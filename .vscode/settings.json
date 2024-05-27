@@ -1,0 +1,15 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "[feature]": {
+    "editor.formatOnSave": false
+  },
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "js/ts.implicitProjectConfig.experimentalDecorators": true,
+  "typescript.preferences.importModuleSpecifier": "non-relative"
+}
