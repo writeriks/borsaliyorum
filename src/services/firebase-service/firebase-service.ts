@@ -8,12 +8,14 @@ import {
   startAfter,
   CollectionReference,
   DocumentData,
+  where,
+  QueryConstraint,
   QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { db } from "./firebase-config";
 import {
-  FirebaseGetCollectionParams,
-  FirebaseQuery,
+  FirebaseGetCollectionDocumentsParams,
+  FirebaseGetDocumentByFieldParams,
   FirebaseSnapshot,
 } from "@/services/firebase-service/types";
 
@@ -32,7 +34,7 @@ class FireBaseService {
     startAfterDocument,
     orderByField,
     orderByDirection = "asc",
-  }: FirebaseGetCollectionParams): Promise<{
+  }: FirebaseGetCollectionDocumentsParams): Promise<{
     documents: DocumentData[];
     lastDocument: FirebaseSnapshot | null;
     previousLimit: number;
@@ -40,19 +42,26 @@ class FireBaseService {
     previousOrderByDirection: "asc" | "desc";
   }> => {
     try {
-      const firebaseQuery = this.generateFirebaseQuery({
-        collectionPath,
-        documentLimit,
-        orderByDirection,
-        orderByField,
-        startAfterDocument,
-      });
+      const firebaseCollectionRef: CollectionReference<DocumentData> =
+        collection(db, collectionPath);
+
+      const queryConstraints: QueryConstraint[] = [limit(documentLimit)];
+
+      if (orderByField) {
+        queryConstraints.push(orderBy(orderByField, orderByDirection));
+      }
+
+      if (startAfterDocument) {
+        queryConstraints.push(startAfter(startAfterDocument));
+      }
+
+      const firebaseQuery = query(firebaseCollectionRef, ...queryConstraints);
 
       const querySnapshot = await getDocs(firebaseQuery);
 
       return {
         documents: querySnapshot.docs.map((doc) => doc.data()),
-        lastDocument: querySnapshot.docs[querySnapshot.docs.length - 1],
+        lastDocument: querySnapshot.docs[querySnapshot.docs.length - 1] || null,
         previousLimit: documentLimit,
         previousOrderByField: orderByField,
         previousOrderByDirection: orderByDirection,
@@ -70,44 +79,36 @@ class FireBaseService {
   };
 
   /*
-   * Generates a firebase query
+   * Gets a document from a collection by a field
    * @param collectionPath - The path to the collection
-   * @param documentLimit - The limit of documents to get
-   * @param startAfterDocument - The document to start after
-   * @param orderByField - The field to order the documents by
-   * @param orderByDirection - The direction to order the documents by
+   * @param fieldName - The field name to query
+   * @param fieldValue - The field value to query
    */
-  private generateFirebaseQuery = ({
+  getDocumentByField = async ({
     collectionPath,
-    documentLimit = 10,
-    startAfterDocument,
-    orderByField,
-    orderByDirection = "asc",
-  }: FirebaseGetCollectionParams): FirebaseQuery => {
-    const firebaseCollectionRef: CollectionReference<DocumentData> = collection(
-      db,
-      collectionPath
-    );
+    fieldName,
+    fieldValue,
+  }: FirebaseGetDocumentByFieldParams): Promise<{
+    document: DocumentData | null;
+    snapshot: FirebaseSnapshot | null;
+  }> => {
+    try {
+      const collectionRef = collection(db, collectionPath);
+      const q = query(collectionRef, where(fieldName, "==", fieldValue));
 
-    let firebaseQuery = query(firebaseCollectionRef);
+      const querySnapshot = await getDocs(q);
 
-    // Apply orderBy if orderByField is provided
-    if (orderByField) {
-      firebaseQuery = query(
-        firebaseQuery,
-        orderBy(orderByField, orderByDirection)
-      );
+      if (!querySnapshot.empty) {
+        const document = querySnapshot.docs[0];
+        return { document: document.data(), snapshot: document };
+      } else {
+        console.log(`No document found with ${fieldName} == ${fieldValue}`);
+        return { document: null, snapshot: null };
+      }
+    } catch (error) {
+      console.error("Error getting document: ", error);
+      return { document: null, snapshot: null };
     }
-
-    // Apply startAfter if startAfterDocument is provided
-    if (startAfterDocument) {
-      firebaseQuery = query(firebaseQuery, startAfter(startAfterDocument));
-    }
-
-    // Apply limit
-    firebaseQuery = query(firebaseQuery, limit(documentLimit));
-
-    return firebaseQuery;
   };
 }
 
