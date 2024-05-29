@@ -1,10 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 
-import { collection, getDocs } from "firebase/firestore";
-import { auth, db } from "../firebase-config";
-import { useEffect, useState } from "react";
+import { auth } from "../services/firebase-service/firebase-config";
 import {
   GoogleAuthProvider,
   User,
@@ -12,14 +12,31 @@ import {
   signOut,
 } from "firebase/auth";
 
+import fireBaseService from "@/services/firebase-service/firebase-service";
+
 export default function Home() {
   const [user, setUser] = useState<User>();
 
   useEffect(() => {
     const fetchData = async () => {
-      const querySnapshot = await getDocs(collection(db, "test"));
-      const docs = querySnapshot.docs.map((doc) => doc.data());
+      const { documents: docs, lastDocument } =
+        await fireBaseService.getDocumentsFromCollectionWithLimit({
+          collectionPath: "test",
+          documentLimit: 2,
+          orderByField: "name",
+        });
       console.log("🚀 ~ fetchData ~ docs:", docs);
+
+      if (docs.length > 0 && lastDocument) {
+        const { documents: startAfterDocs } =
+          await fireBaseService.getDocumentsFromCollectionWithLimit({
+            collectionPath: "test",
+            documentLimit: 2,
+            startAfterDocument: lastDocument,
+            orderByField: "name",
+          });
+        console.log("🚀 ~ fetchData ~ startAfterDocs:", startAfterDocs);
+      }
     };
 
     fetchData();
