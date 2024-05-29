@@ -13,7 +13,11 @@ import {
 } from "firebase/auth";
 
 import fireBaseService from "@/services/firebase-service/firebase-service";
-import { CollectionPath } from "@/services/firebase-service/types";
+import { CollectionPath } from "@/services/firebase-service/types/types";
+import {
+  TestCollection,
+  TestCollectionEnum,
+} from "@/services/firebase-service/types/collection-types";
 
 export default function Home() {
   const [user, setUser] = useState<User>();
@@ -22,19 +26,19 @@ export default function Home() {
     const fetchData = async () => {
       const { documents: docs, lastDocument } =
         await fireBaseService.getDocumentsFromCollectionWithLimit({
-          collectionPath: "test",
+          collectionPath: CollectionPath.Test,
           documentLimit: 2,
-          orderByField: "name",
+          orderByField: TestCollectionEnum.NAME,
         });
       console.log("🚀 ~ fetchData ~ docs:", docs);
 
       if (docs.length > 0 && lastDocument) {
         const { documents: startAfterDocs } =
           await fireBaseService.getDocumentsFromCollectionWithLimit({
-            collectionPath: "test",
+            collectionPath: CollectionPath.Test,
             documentLimit: 2,
             startAfterDocument: lastDocument,
-            orderByField: "name",
+            orderByField: TestCollectionEnum.NAME,
           });
         console.log("🚀 ~ fetchData ~ startAfterDocs:", startAfterDocs);
       }
@@ -42,7 +46,7 @@ export default function Home() {
       const { document: testDoc, snapshot } =
         await fireBaseService.getDocumentByField({
           collectionPath: CollectionPath.Test,
-          fieldName: "name",
+          fieldName: TestCollectionEnum.NAME,
           fieldValue: "test",
         });
       console.log("🚀 ~ fetchData ~ snapshot:", snapshot);
@@ -51,6 +55,26 @@ export default function Home() {
 
     fetchData();
   }, []);
+
+  const addDataWithAutoId = async () => {
+    const data: TestCollection = {
+      name: "test",
+    };
+
+    await fireBaseService.createDocumentWithAutoId(CollectionPath.Test, data);
+  };
+
+  const addDataWithCustomId = async () => {
+    const data: TestCollection = {
+      name: "test",
+    };
+
+    await fireBaseService.createDocumentWithCustomId(
+      CollectionPath.Test,
+      "test",
+      data
+    );
+  };
 
   useEffect(() => {
     console.log(user);
@@ -79,8 +103,7 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between">
-      <Button>Test Button</Button>
+    <main className="flex min-h-screen flex-col items-center">
       {user ? (
         <Button onClick={signOutWithGoogle}>Sign Out</Button>
       ) : (
