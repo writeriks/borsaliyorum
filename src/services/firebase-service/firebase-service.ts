@@ -10,14 +10,19 @@ import {
   DocumentData,
   where,
   QueryConstraint,
-  QueryDocumentSnapshot,
+  addDoc,
+  setDoc,
+  doc,
 } from "firebase/firestore";
 import { db } from "./firebase-config";
 import {
+  CollectionPath,
+  FirebaseSnapshot,
+} from "@/services/firebase-service/types/types";
+import {
   FirebaseGetCollectionDocumentsParams,
   FirebaseGetDocumentByFieldParams,
-  FirebaseSnapshot,
-} from "@/services/firebase-service/types";
+} from "@/services/firebase-service/types/function-params";
 
 class FireBaseService {
   /*
@@ -79,7 +84,7 @@ class FireBaseService {
   };
 
   /*
-   * Gets a document from a collection by a field
+   * Gets a document from a collection by provided field name and value
    * @param collectionPath - The path to the collection
    * @param fieldName - The field name to query
    * @param fieldValue - The field value to query
@@ -108,6 +113,42 @@ class FireBaseService {
     } catch (error) {
       console.error("Error getting document: ", error);
       return { document: null, snapshot: null };
+    }
+  };
+
+  /*
+   * Creates a document with an auto-generated ID
+   * @param collectionPath - The path to the collection
+   * @param data - The data to add to the document
+   */
+  createDocumentWithAutoId = async (
+    collectionPath: CollectionPath,
+    data: Record<string, any>
+  ) => {
+    try {
+      const docRef = await addDoc(collection(db, collectionPath), data);
+      console.log("Document written with ID: ", docRef.id);
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
+  };
+
+  /*
+   * Creates a document with a custom ID
+   * @param collectionPath - The path to the collection
+   * @param docId - The custom ID for the document
+   * @param data - The data to add to the document
+   */
+  createDocumentWithCustomId = async (
+    collectionPath: string,
+    docId: string,
+    data: Record<string, any>
+  ) => {
+    try {
+      await setDoc(doc(db, collectionPath, docId), data);
+      console.log("Document written with ID: ", docId);
+    } catch (e) {
+      console.error("Error setting document: ", e);
     }
   };
 }
