@@ -13,6 +13,7 @@ import {
 } from "firebase/auth";
 
 import fireBaseService from "@/services/firebase-service/firebase-service";
+import { CollectionPath } from "@/services/firebase-service/types";
 
 export default function Home() {
   const [user, setUser] = useState<User>();
@@ -37,6 +38,15 @@ export default function Home() {
           });
         console.log("🚀 ~ fetchData ~ startAfterDocs:", startAfterDocs);
       }
+
+      const { document: testDoc, snapshot } =
+        await fireBaseService.getDocumentByField({
+          collectionPath: CollectionPath.Test,
+          fieldName: "name",
+          fieldValue: "test",
+        });
+      console.log("🚀 ~ fetchData ~ snapshot:", snapshot);
+      console.log("🚀 ~ fetchData ~ testDoc:", testDoc);
     };
 
     fetchData();
