@@ -13,6 +13,8 @@ import {
   addDoc,
   setDoc,
   doc,
+  updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { db } from "./firebase-config";
 import {
@@ -149,6 +151,41 @@ class FireBaseService {
       console.log("Document written with ID: ", docId);
     } catch (e) {
       console.error("Error setting document: ", e);
+    }
+  };
+
+  /*
+   * Updates a document by ID
+   * @param collectionPath - The path to the collection
+   * @param docId - The custom ID for the document
+   * @param data - The data to add to the document
+   */
+  updateDocumentById = async (
+    collectionPath: string,
+    docId: string,
+    data: Record<string, any>
+  ) => {
+    try {
+      const docRef = doc(db, collectionPath, docId);
+      await updateDoc(docRef, data);
+      console.log("Document updated with ID: ", docId);
+    } catch (e) {
+      console.error("Error updating document: ", e);
+    }
+  };
+
+  /*
+   * Deletes a document by ID
+   * @param collectionPath - The path to the collection
+   * @param docId - The custom ID for the document
+   */
+  deleteDocumentById = async (collectionPath: string, docId: string) => {
+    try {
+      const docRef = doc(db, collectionPath, docId);
+      await deleteDoc(docRef);
+      console.log("Document deleted with ID: ", docId);
+    } catch (e) {
+      console.error("Error deleting document: ", e);
     }
   };
 }
