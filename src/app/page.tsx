@@ -19,9 +19,11 @@ import {
   TestCollectionEnum,
 } from "@/services/firebase-service/types/collection-types";
 import { Input } from "@/components/ui/input";
+import { AuthModal } from "@/components/auth/auth-modal";
 
 export default function Home() {
   const [user, setUser] = useState<User>();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const [docIdToUpdate, setDocIdToUpdate] = useState<string>("");
   const [documentName, setDocumentName] = useState<string>("");
@@ -146,11 +148,13 @@ export default function Home() {
       </div>
       <div className="w-1/2 m-4">{object?.name}</div>
 
-      {user ? (
-        <Button onClick={signOutWithGoogle}>Sign Out</Button>
-      ) : (
-        <Button onClick={signInWithGoogle}>Sign In</Button>
-      )}
+      <Button onClick={() => setIsAuthModalOpen(true)} variant="link">
+        Open Login Modal
+      </Button>
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onAuthModalOpenChange={() => setIsAuthModalOpen(!isAuthModalOpen)}
+      />
     </main>
   );
 }
