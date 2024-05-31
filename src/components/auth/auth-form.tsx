@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useState } from "react";
 import { z } from "zod";
 
 import { LoginForm } from "@/components/auth/login-form";
@@ -9,7 +9,7 @@ import { RegisterForm } from "@/components/auth/register-form";
 import {
   loginFormSchema,
   registerFormSchema,
-} from "@/components/auth/common-auth";
+} from "@/components/auth/auth-service/common-auth";
 
 enum FormType {
   Login = "login",
@@ -17,8 +17,8 @@ enum FormType {
 }
 
 export function AuthForm() {
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const [formType, setFormType] = React.useState<FormType>(FormType.Login);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [formType, setFormType] = useState<FormType>(FormType.Login);
 
   const onSubmit = (
     values: z.infer<typeof loginFormSchema | typeof registerFormSchema>

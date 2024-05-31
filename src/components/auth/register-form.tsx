@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Eye, EyeOff } from "lucide-react";
-import { registerFormSchema } from "@/components/auth/common-auth";
+import { registerFormSchema } from "@/components/auth/auth-service/common-auth";
 
 interface RegisterFormProps {
   isLoading: boolean;
@@ -30,7 +30,7 @@ export function RegisterForm({
   onLoginClick,
   onSubmit,
 }: RegisterFormProps) {
-  const [showPassword, setShowPassword] = React.useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<z.infer<typeof registerFormSchema>>({
     resolver: zodResolver(registerFormSchema),
@@ -105,7 +105,7 @@ export function RegisterForm({
             <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             ""
-          )}{" "}
+          )}
           Kaydol
         </Button>
         <p className="text-center">

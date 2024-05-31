@@ -20,7 +20,7 @@ export function LoginWithProviders({ isLoading }: LoginWithProvidersProps) {
           <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
         ) : (
           <Icons.google className="mr-2" />
-        )}{" "}
+        )}
         Google ile devam et
       </Button>
 
@@ -29,7 +29,7 @@ export function LoginWithProviders({ isLoading }: LoginWithProvidersProps) {
           <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
         ) : (
           <Icons.facebook className="mr-2" />
-        )}{" "}
+        )}
         Facebook ile devam et
       </Button>
     </div>
