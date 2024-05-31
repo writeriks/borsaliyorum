@@ -20,6 +20,10 @@ import {
 } from "@/services/firebase-service/types/collection-types";
 import { Input } from "@/components/ui/input";
 import { AuthModal } from "@/components/auth/auth-modal";
+import { useDispatch, useSelector } from "react-redux";
+import { setIsLoading } from "@/store/reducers/ui-reducer/ui-slice";
+import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
+import { Label } from "@/components/ui/label";
 
 export default function Home() {
   const [user, setUser] = useState<User>();
@@ -28,6 +32,9 @@ export default function Home() {
   const [docIdToUpdate, setDocIdToUpdate] = useState<string>("");
   const [documentName, setDocumentName] = useState<string>("");
   const [object, setObject] = useState<TestCollection>();
+
+  const dispatch = useDispatch();
+  const isLoading = useSelector(uiReducerSelector.getIsLoading);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -131,6 +138,10 @@ export default function Home() {
     }
   };
 
+  const toggleLoadingStatus = () => {
+    dispatch(setIsLoading(!isLoading));
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center">
       <div className="w-1/2 m-4">
@@ -155,6 +166,16 @@ export default function Home() {
         isOpen={isAuthModalOpen}
         onAuthModalOpenChange={() => setIsAuthModalOpen(!isAuthModalOpen)}
       />
+      <div className="flex items-center p-10">
+        <Label className="mr-5">{isLoading ? "loading" : "done"}</Label>
+        <Button onClick={toggleLoadingStatus}>Toggle</Button>
+      </div>
+
+      {user ? (
+        <Button onClick={signOutWithGoogle}>Sign Out</Button>
+      ) : (
+        <Button onClick={signInWithGoogle}>Sign In</Button>
+      )}
     </main>
   );
 }
