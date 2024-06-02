@@ -28,6 +28,7 @@ export interface Post {
   tags: string[];
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  isPositiveSentiment: boolean;
 }
 
 export enum PostsCollectionEnum {
@@ -43,4 +44,5 @@ export enum PostsCollectionEnum {
   TAGS = "tags",
   CREATED_AT = "createdAt",
   UPDATED_AT = "updatedAt",
+  IS_POSITIVE_SENTIMENT = "isPositiveSentiment",
 }

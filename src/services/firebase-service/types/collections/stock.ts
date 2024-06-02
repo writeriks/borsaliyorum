@@ -13,6 +13,7 @@ export interface StocksCollection {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   coverPhoto: string | null;
+  positiveSentiment: number;
 }
 
 export enum StocksCollectionEnum {
@@ -26,4 +27,5 @@ export enum StocksCollectionEnum {
   CREATED_AT = "createdAt",
   UPDATED_AT = "updatedAt",
   COVER_PHOTO = "coverPhoto",
+  POSITIVE_SENTIMENT = "positiveSentiment",
 }
