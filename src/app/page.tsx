@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { useDispatch, useSelector } from "react-redux";
 
 import { auth } from "../services/firebase-service/firebase-config";
 import {
@@ -12,18 +12,21 @@ import {
   signOut,
 } from "firebase/auth";
 
-import fireBaseService from "@/services/firebase-service/firebase-service";
-import { CollectionPath } from "@/services/firebase-service/types/types";
+import { AuthModal } from "@/components/auth/auth-modal";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+
+import { setIsLoading } from "@/store/reducers/ui-reducer/ui-slice";
+import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
+import fireBaseOperations from "@/services/firebase-service/firebase-operations";
+
 import {
   TestCollection,
   TestCollectionEnum,
 } from "@/services/firebase-service/types/collection-types";
-import { Input } from "@/components/ui/input";
-import { AuthModal } from "@/components/auth/auth-modal";
-import { useDispatch, useSelector } from "react-redux";
-import { setIsLoading } from "@/store/reducers/ui-reducer/ui-slice";
-import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
-import { Label } from "@/components/ui/label";
+import { CollectionPath } from "@/services/firebase-service/types/types";
+import { WhereFieldEnum } from "@/services/firebase-service/firebase-operations-types";
 
 export default function Home() {
   const [user, setUser] = useState<User>();
@@ -39,7 +42,7 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       const { documents: docs, lastDocument } =
-        await fireBaseService.getDocumentsFromCollectionWithLimit({
+        await fireBaseOperations.getDocumentsWithQuery({
           collectionPath: CollectionPath.Test,
           documentLimit: 2,
           orderByField: TestCollectionEnum.NAME,
@@ -48,7 +51,7 @@ export default function Home() {
 
       if (docs.length > 0 && lastDocument) {
         const { documents: startAfterDocs } =
-          await fireBaseService.getDocumentsFromCollectionWithLimit({
+          await fireBaseOperations.getDocumentsWithQuery({
             collectionPath: CollectionPath.Test,
             documentLimit: 2,
             startAfterDocument: lastDocument,
@@ -62,23 +65,36 @@ export default function Home() {
   }, []);
 
   const searchDocumentWithField = async () => {
-    const { document: testDoc, snapshot } =
-      await fireBaseService.getDocumentByField({
+    const { documents: testDoc, lastDocument } =
+      await fireBaseOperations.getDocumentsWithQuery({
         collectionPath: CollectionPath.Test,
-        fieldName: TestCollectionEnum.NAME,
-        fieldValue: documentName,
+        whereFields: [
+          {
+            field: TestCollectionEnum.NAME,
+            operator: WhereFieldEnum.EQUALS,
+            value: documentName,
+          },
+        ],
       });
 
-    console.log("🚀 ~ searchDocumentWithField ~ snapshot:", snapshot);
-    setObject(testDoc as TestCollection);
-    setDocIdToUpdate(snapshot?.id || "");
+    console.log(
+      "🚀 ~ searchDocumentWithField ~ lastDocument:",
+      lastDocument?.id
+    );
+    console.log("🚀 ~ searchDocumentWithField ~ testDoc[0]:", testDoc[0]);
+
+    setObject(testDoc[0] as TestCollection);
+    setDocIdToUpdate(lastDocument?.id || "");
   };
   const addDataWithAutoId = async () => {
     const data: TestCollection = {
       name: documentName,
     };
 
-    await fireBaseService.createDocumentWithAutoId(CollectionPath.Test, data);
+    await fireBaseOperations.createDocumentWithAutoId(
+      CollectionPath.Test,
+      data
+    );
   };
 
   const addDataWithCustomId = async () => {
@@ -86,7 +102,7 @@ export default function Home() {
       name: "custom name",
     };
 
-    await fireBaseService.createDocumentWithCustomId(
+    await fireBaseOperations.createDocumentWithCustomId(
       CollectionPath.Test,
       "customId",
       data
@@ -98,7 +114,7 @@ export default function Home() {
       name: documentName,
     };
 
-    await fireBaseService.updateDocumentById(
+    await fireBaseOperations.updateDocumentById(
       CollectionPath.Test,
       docIdToUpdate,
       data
@@ -106,7 +122,7 @@ export default function Home() {
   };
 
   const deleteDocument = async () => {
-    await fireBaseService.deleteDocumentById(
+    await fireBaseOperations.deleteDocumentById(
       CollectionPath.Test,
       docIdToUpdate
     );
