@@ -7,7 +7,7 @@ export interface CommentsCollection {
   parentId: PostId;
   comments: Omit<
     Post,
-    "isPositiveSentiment" | "stockTicker" | "comments" | "commentsCount"
+    "isPositiveSentiment" | "stockTickers" | "comments" | "commentsCount"
   >[];
 }
 
