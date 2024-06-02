@@ -4,15 +4,7 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
-import { auth } from "../services/firebase-service/firebase-config";
-import {
-  GoogleAuthProvider,
-  User,
-  signInWithPopup,
-  signOut,
-} from "firebase/auth";
-
-import fireBaseService from "@/services/firebase-service/firebase-service";
+import firebaseService from "@/services/firebase-service/firebase-service";
 import { CollectionPath } from "@/services/firebase-service/types/types";
 import {
   TestCollection,
@@ -26,7 +18,6 @@ import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
 import { Label } from "@/components/ui/label";
 
 export default function Home() {
-  const [user, setUser] = useState<User>();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const [docIdToUpdate, setDocIdToUpdate] = useState<string>("");
@@ -39,7 +30,7 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       const { documents: docs, lastDocument } =
-        await fireBaseService.getDocumentsFromCollectionWithLimit({
+        await firebaseService.getDocumentsFromCollectionWithLimit({
           collectionPath: CollectionPath.Test,
           documentLimit: 2,
           orderByField: TestCollectionEnum.NAME,
@@ -48,7 +39,7 @@ export default function Home() {
 
       if (docs.length > 0 && lastDocument) {
         const { documents: startAfterDocs } =
-          await fireBaseService.getDocumentsFromCollectionWithLimit({
+          await firebaseService.getDocumentsFromCollectionWithLimit({
             collectionPath: CollectionPath.Test,
             documentLimit: 2,
             startAfterDocument: lastDocument,
@@ -63,7 +54,7 @@ export default function Home() {
 
   const searchDocumentWithField = async () => {
     const { document: testDoc, snapshot } =
-      await fireBaseService.getDocumentByField({
+      await firebaseService.getDocumentByField({
         collectionPath: CollectionPath.Test,
         fieldName: TestCollectionEnum.NAME,
         fieldValue: documentName,
@@ -78,7 +69,7 @@ export default function Home() {
       name: documentName,
     };
 
-    await fireBaseService.createDocumentWithAutoId(CollectionPath.Test, data);
+    await firebaseService.createDocumentWithAutoId(CollectionPath.Test, data);
   };
 
   const addDataWithCustomId = async () => {
@@ -86,7 +77,7 @@ export default function Home() {
       name: "custom name",
     };
 
-    await fireBaseService.createDocumentWithCustomId(
+    await firebaseService.createDocumentWithCustomId(
       CollectionPath.Test,
       "customId",
       data
@@ -98,7 +89,7 @@ export default function Home() {
       name: documentName,
     };
 
-    await fireBaseService.updateDocumentById(
+    await firebaseService.updateDocumentById(
       CollectionPath.Test,
       docIdToUpdate,
       data
@@ -106,36 +97,10 @@ export default function Home() {
   };
 
   const deleteDocument = async () => {
-    await fireBaseService.deleteDocumentById(
+    await firebaseService.deleteDocumentById(
       CollectionPath.Test,
       docIdToUpdate
     );
-  };
-
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
-
-  const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-
-    try {
-      const result = await signInWithPopup(auth, provider);
-      // TODO: add user to the state
-      setUser(result.user);
-      console.log(result);
-    } catch (error) {
-      console.error("Error signing in with Google:", error);
-    }
-  };
-
-  const signOutWithGoogle = async () => {
-    try {
-      await signOut(auth);
-      setUser(undefined);
-    } catch (error) {
-      console.error("Error signing out with Google:", error);
-    }
   };
 
   const toggleLoadingStatus = () => {
@@ -170,12 +135,6 @@ export default function Home() {
         <Label className="mr-5">{isLoading ? "loading" : "done"}</Label>
         <Button onClick={toggleLoadingStatus}>Toggle</Button>
       </div>
-
-      {user ? (
-        <Button onClick={signOutWithGoogle}>Sign Out</Button>
-      ) : (
-        <Button onClick={signInWithGoogle}>Sign In</Button>
-      )}
     </main>
   );
 }

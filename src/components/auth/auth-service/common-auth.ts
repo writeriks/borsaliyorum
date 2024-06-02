@@ -16,23 +16,26 @@ const usernameConstants = {
   minLengthMessage: "Kullanıcı adı boş olamaz.",
 };
 
-const commonValidationProps = {
-  password: z.string().min(passwordConstants.minLength, {
-    message: passwordConstants.minLengthMessage,
-  }),
+const emailValidationProps = {
   email: z
     .string()
     .min(emailConstants.minLength, { message: emailConstants.minLengthMessage })
     .email(emailConstants.notValidMessage),
 };
 
+const commonValidationProps = {
+  ...emailValidationProps,
+  password: z.string().min(passwordConstants.minLength, {
+    message: passwordConstants.minLengthMessage,
+  }),
+};
+
 export const loginFormSchema = z.object(commonValidationProps);
+export const resetPasswordSchema = z.object(emailValidationProps);
 
 export const registerFormSchema = z.object({
   ...commonValidationProps,
-  username: z
-    .string()
-    .min(usernameConstants.minLength, {
-      message: usernameConstants.minLengthMessage,
-    }),
+  username: z.string().min(usernameConstants.minLength, {
+    message: usernameConstants.minLengthMessage,
+  }),
 });

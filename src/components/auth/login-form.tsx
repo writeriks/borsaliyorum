@@ -25,11 +25,13 @@ interface LoginFormProps {
   isLoading: boolean;
   onSubmit(values: z.infer<typeof loginFormSchema>): void;
   onRegisterClick(): void;
+  onResetPasswordClick(): void;
 }
 
 export function LoginForm({
   isLoading,
   onRegisterClick,
+  onResetPasswordClick,
   onSubmit,
 }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
@@ -89,6 +91,14 @@ export function LoginForm({
             </FormItem>
           )}
         />
+        <Button
+          onClick={onResetPasswordClick}
+          className="w-1/6 float-right text-xs"
+          variant="link"
+          type="button"
+        >
+          Şifremi unuttum
+        </Button>
         <Button className="w-full" type="submit">
           {isLoading ? (
             <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />

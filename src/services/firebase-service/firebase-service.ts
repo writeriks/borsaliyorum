@@ -26,7 +26,7 @@ import {
   FirebaseGetDocumentByFieldParams,
 } from "@/services/firebase-service/types/function-params";
 
-class FireBaseService {
+class FirebaseService {
   /*
    * Gets documents from a collection
    * @param collectionPath - The path to the collection
@@ -190,5 +190,5 @@ class FireBaseService {
   };
 }
 
-const firebaseService = new FireBaseService();
+const firebaseService = new FirebaseService();
 export default firebaseService;
