@@ -5,7 +5,10 @@ import {
 
 export interface CommentsCollection {
   parentId: PostId;
-  comments: Omit<Post, "isPositiveSentiment" | "stockTicker">[];
+  comments: Omit<
+    Post,
+    "isPositiveSentiment" | "stockTicker" | "comments" | "commentsCount"
+  >[];
 }
 
 export enum CommentsCollectionEnum {
