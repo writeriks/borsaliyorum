@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 
 import { setIsLoading } from "@/store/reducers/ui-reducer/ui-slice";
 import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
-import fireBaseOperations from "@/services/firebase-service/firebase-operations";
+import firebaseOperations from "@/services/firebase-service/firebase-operations";
 
 import {
   TestCollection,
@@ -46,7 +46,7 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       const { documents: docs, lastDocument } =
-        await fireBaseOperations.getDocumentsWithQuery({
+        await firebaseOperations.getDocumentsWithQuery({
           collectionPath: CollectionPath.Test,
           documentLimit: 2,
           orderByField: TestCollectionEnum.NAME,
@@ -55,7 +55,7 @@ export default function Home() {
 
       if (docs.length > 0 && lastDocument) {
         const { documents: startAfterDocs } =
-          await fireBaseOperations.getDocumentsWithQuery({
+          await firebaseOperations.getDocumentsWithQuery({
             collectionPath: CollectionPath.Test,
             documentLimit: 2,
             startAfterDocument: lastDocument,
@@ -70,7 +70,7 @@ export default function Home() {
 
   const searchDocumentWithField = async () => {
     const { documents: testDoc, lastDocument } =
-      await fireBaseOperations.getDocumentsWithQuery({
+      await firebaseOperations.getDocumentsWithQuery({
         collectionPath: CollectionPath.Test,
         whereFields: [
           {
@@ -95,7 +95,7 @@ export default function Home() {
       name: documentName,
     };
 
-    await fireBaseOperations.createDocumentWithAutoId(
+    await firebaseOperations.createDocumentWithAutoId(
       CollectionPath.Test,
       data
     );
@@ -106,7 +106,7 @@ export default function Home() {
       name: "custom name",
     };
 
-    await fireBaseOperations.createDocumentWithCustomId(
+    await firebaseOperations.createDocumentWithCustomId(
       CollectionPath.Test,
       "customId",
       data
@@ -118,7 +118,7 @@ export default function Home() {
       name: documentName,
     };
 
-    await fireBaseOperations.updateDocumentById(
+    await firebaseOperations.updateDocumentById(
       CollectionPath.Test,
       docIdToUpdate,
       data
@@ -126,7 +126,7 @@ export default function Home() {
   };
 
   const deleteDocument = async () => {
-    await fireBaseOperations.deleteDocumentById(
+    await firebaseOperations.deleteDocumentById(
       CollectionPath.Test,
       docIdToUpdate
     );
@@ -138,6 +138,7 @@ export default function Home() {
 
   const logout = async () => {
     await firebaseAuthService.signOut();
+    setIsAuthModalOpen(false);
     dispatch(setIsAuthenticated(false));
   };
 
