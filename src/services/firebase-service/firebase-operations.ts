@@ -4,12 +4,10 @@ import {
   orderBy,
   limit,
   query,
-  FieldPath,
   startAfter,
   CollectionReference,
   DocumentData,
   where,
-  QueryConstraint,
   addDoc,
   setDoc,
   doc,
@@ -17,52 +15,61 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { db } from "./firebase-config";
+import { CollectionPath } from "@/services/firebase-service/types/types";
 import {
-  CollectionPath,
-  FirebaseSnapshot,
-} from "@/services/firebase-service/types/types";
-import {
-  FirebaseGetCollectionDocumentsParams,
-  FirebaseGetDocumentByFieldParams,
-} from "@/services/firebase-service/types/function-params";
+  FirebaseDocumentQueryResponse,
+  QueryParams,
+} from "@/services/firebase-service/firebase-operations-types";
 
-class FirebaseService {
+class FireBaseOperations {
   /*
-   * Gets documents from a collection
+   * Get all documents in a collection
    * @param collectionPath - The path to the collection
-   * @param documentLimit - The limit of documents to get
+   * @param documentLimit - The number of documents to return
    * @param startAfterDocument - The document to start after
-   * @param orderByField - The field to order the documents by
-   * @param orderByDirection - The direction to order the documents by
+   * @param orderByField - The field to order by
+   * @param orderByDirection - The direction to order by
+   * @param whereFields - The fields to filter by
+   *
+   * @returns An array of documents
    */
-  getDocumentsFromCollectionWithLimit = async ({
+  getDocumentsWithQuery = async ({
     collectionPath,
     documentLimit = 10,
     startAfterDocument,
     orderByField,
     orderByDirection = "asc",
-  }: FirebaseGetCollectionDocumentsParams): Promise<{
-    documents: DocumentData[];
-    lastDocument: FirebaseSnapshot | null;
-    previousLimit: number;
-    previousOrderByField?: string | FieldPath;
-    previousOrderByDirection: "asc" | "desc";
-  }> => {
+    whereFields = [],
+  }: QueryParams): Promise<FirebaseDocumentQueryResponse> => {
     try {
       const firebaseCollectionRef: CollectionReference<DocumentData> =
         collection(db, collectionPath);
 
-      const queryConstraints: QueryConstraint[] = [limit(documentLimit)];
+      // Build the query
+      let firebaseQuery = query(firebaseCollectionRef);
 
+      // Apply where clauses if provided
+      if (whereFields.length > 0) {
+        whereFields.forEach(({ field, operator, value }) => {
+          firebaseQuery = query(firebaseQuery, where(field, operator, value));
+        });
+      }
+
+      // Apply orderBy if orderByField is provided
       if (orderByField) {
-        queryConstraints.push(orderBy(orderByField, orderByDirection));
+        firebaseQuery = query(
+          firebaseQuery,
+          orderBy(orderByField, orderByDirection)
+        );
       }
 
+      // Apply startAfter if startAfterDocument is provided
       if (startAfterDocument) {
-        queryConstraints.push(startAfter(startAfterDocument));
+        firebaseQuery = query(firebaseQuery, startAfter(startAfterDocument));
       }
 
-      const firebaseQuery = query(firebaseCollectionRef, ...queryConstraints);
+      // Apply limit
+      firebaseQuery = query(firebaseQuery, limit(documentLimit));
 
       const querySnapshot = await getDocs(firebaseQuery);
 
@@ -82,39 +89,6 @@ class FirebaseService {
         previousOrderByField: orderByField,
         previousOrderByDirection: orderByDirection,
       };
-    }
-  };
-
-  /*
-   * Gets a document from a collection by provided field name and value
-   * @param collectionPath - The path to the collection
-   * @param fieldName - The field name to query
-   * @param fieldValue - The field value to query
-   */
-  getDocumentByField = async ({
-    collectionPath,
-    fieldName,
-    fieldValue,
-  }: FirebaseGetDocumentByFieldParams): Promise<{
-    document: DocumentData | null;
-    snapshot: FirebaseSnapshot | null;
-  }> => {
-    try {
-      const collectionRef = collection(db, collectionPath);
-      const q = query(collectionRef, where(fieldName, "==", fieldValue));
-
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        const document = querySnapshot.docs[0];
-        return { document: document.data(), snapshot: document };
-      } else {
-        console.log(`No document found with ${fieldName} == ${fieldValue}`);
-        return { document: null, snapshot: null };
-      }
-    } catch (error) {
-      console.error("Error getting document: ", error);
-      return { document: null, snapshot: null };
     }
   };
 
@@ -190,5 +164,5 @@ class FirebaseService {
   };
 }
 
-const firebaseService = new FirebaseService();
-export default firebaseService;
+const firebaseOperations = new FireBaseOperations();
+export default firebaseOperations;
