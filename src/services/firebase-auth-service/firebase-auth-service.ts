@@ -24,7 +24,7 @@ class FirebaseAuthService {
     }
   };
 
-  signOutWithGoogle = async () => {
+  signOut = async () => {
     try {
       await signOut(auth);
     } catch (error) {

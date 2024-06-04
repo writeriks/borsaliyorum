@@ -16,6 +16,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { setIsLoading } from "@/store/reducers/ui-reducer/ui-slice";
 import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
 import { Label } from "@/components/ui/label";
+import authReducerSelector from "@/store/reducers/auth-reducer/auth-reducer-selector";
+import {
+  LoginMethod,
+  setIsAuthenticated,
+} from "@/store/reducers/auth-reducer/auth-slice";
+import firebaseAuthService from "@/services/firebase-auth-service/firebase-auth-service";
 
 export default function Home() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -26,6 +32,8 @@ export default function Home() {
 
   const dispatch = useDispatch();
   const isLoading = useSelector(uiReducerSelector.getIsLoading);
+  const isAuthenticated = useSelector(authReducerSelector.getIsAuthenticated);
+  const loginMethod = useSelector(authReducerSelector.getLoginMethod);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -107,6 +115,11 @@ export default function Home() {
     dispatch(setIsLoading(!isLoading));
   };
 
+  const logout = async () => {
+    await firebaseAuthService.signOut();
+    dispatch(setIsAuthenticated(false));
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center">
       <div className="w-1/2 m-4">
@@ -128,12 +141,20 @@ export default function Home() {
         Open Login Modal
       </Button>
       <AuthModal
-        isOpen={isAuthModalOpen}
+        isOpen={!isAuthenticated && isAuthModalOpen}
         onAuthModalOpenChange={() => setIsAuthModalOpen(!isAuthModalOpen)}
       />
-      <div className="flex items-center p-10">
+      <div className="items-center p-10">
         <Label className="mr-5">{isLoading ? "loading" : "done"}</Label>
         <Button onClick={toggleLoadingStatus}>Toggle</Button>
+        <div>
+          <Label className="mt-5">
+            {isAuthenticated
+              ? "user is authenticated"
+              : "user is not authenticated"}
+          </Label>
+          {isAuthenticated && <Button onClick={logout}>Logout</Button>}
+        </div>
       </div>
     </main>
   );

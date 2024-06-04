@@ -12,6 +12,8 @@ import {
 } from "@/components/auth/auth-service/common-auth";
 import firebaseAuthService from "@/services/firebase-auth-service/firebase-auth-service";
 import { ResetPassword } from "@/components/auth/reset-password";
+import { useDispatch } from "react-redux";
+import { setIsAuthenticated } from "@/store/reducers/auth-reducer/auth-slice";
 
 enum FormType {
   Login = "login",
@@ -23,11 +25,12 @@ export function AuthForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [formType, setFormType] = useState<FormType>(FormType.Login);
 
+  const dispatch = useDispatch();
+
   const onSubmit = async (
     values: z.infer<typeof loginFormSchema & typeof registerFormSchema>
   ) => {
     console.log(values);
-
     setIsLoading(true);
 
     if (formType === FormType.Login) {
@@ -35,6 +38,8 @@ export function AuthForm() {
         values.email,
         values.password
       );
+
+      dispatch(setIsAuthenticated(true));
     } else if (formType === FormType.Register) {
       await firebaseAuthService.signUpWithEmailAndPassword(
         values.username,

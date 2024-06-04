@@ -12,9 +12,11 @@ import {
 import storage from "redux-persist/lib/storage"; // defaults to localStorage for web
 
 import uiSlice from "./reducers/ui-reducer/ui-slice";
+import authSlice from "@/store/reducers/auth-reducer/auth-slice";
 
 const rootReducer = combineReducers({
   ui: uiSlice,
+  auth: authSlice,
 });
 
 const persistConfig = {

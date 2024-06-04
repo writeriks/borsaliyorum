@@ -9,15 +9,24 @@ import { Icons } from "@/components/ui/icons";
 import { Label } from "@/components/ui/label";
 import { LoginForm } from "@/components/auth/login-form";
 import firebaseAuthService from "@/services/firebase-auth-service/firebase-auth-service";
+import { useDispatch } from "react-redux";
+import { setIsAuthenticated } from "@/store/reducers/auth-reducer/auth-slice";
 
 interface LoginWithProvidersProps {
   isLoading: boolean;
 }
 export function LoginWithProviders({ isLoading }: LoginWithProvidersProps) {
+  const dispatch = useDispatch();
+
+  const loginWithGoogle = () => {
+    firebaseAuthService.signInWithGoogle();
+    dispatch(setIsAuthenticated(true));
+  };
+
   return (
     <div className="grid space-y-2">
       <Button
-        onClick={() => firebaseAuthService.signInWithGoogle()}
+        onClick={loginWithGoogle}
         variant="outline"
         type="button"
         disabled={isLoading}
