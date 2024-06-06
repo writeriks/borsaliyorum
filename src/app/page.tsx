@@ -159,11 +159,11 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center">
-      <div className="w-1/2 m-4">
-        <div className="flex">
+    <div className="flex flex-col items-center">
+      <div className="m-4 flex">
+        <div className="flex-col">
           <Input
-            className="mr-2"
+            className="mb-2"
             placeholder="Enter Document name."
             onChange={(e) => setDocumentName(e.target.value)}
           />
@@ -192,6 +192,6 @@ export default function Home() {
       ) : (
         <Button onClick={signInWithGoogle}>Sign In</Button>
       )}
-    </main>
+    </div>
   );
 }
