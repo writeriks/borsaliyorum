@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 
 import { setIsLoading } from "@/store/reducers/ui-reducer/ui-slice";
 import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
-import fireBaseOperations from "@/services/firebase-service/firebase-operations";
+import firebaseOperations from "@/services/firebase-service/firebase-operations";
 
 import {
   TestCollection,
@@ -27,9 +27,11 @@ import {
 } from "@/services/firebase-service/types/collection-types";
 import { CollectionPath } from "@/services/firebase-service/types/types";
 import { WhereFieldEnum } from "@/services/firebase-service/firebase-operations-types";
+import firebaseAuthService from "@/services/firebase-auth-service/firebase-auth-service";
+import { setIsAuthenticated } from "@/store/reducers/auth-reducer/auth-slice";
+import authReducerSelector from "@/store/reducers/auth-reducer/auth-reducer-selector";
 
 export default function Home() {
-  const [user, setUser] = useState<User>();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const [docIdToUpdate, setDocIdToUpdate] = useState<string>("");
@@ -38,11 +40,13 @@ export default function Home() {
 
   const dispatch = useDispatch();
   const isLoading = useSelector(uiReducerSelector.getIsLoading);
+  const isAuthenticated = useSelector(authReducerSelector.getIsAuthenticated);
+  const loginMethod = useSelector(authReducerSelector.getLoginMethod);
 
   useEffect(() => {
     const fetchData = async () => {
       const { documents: docs, lastDocument } =
-        await fireBaseOperations.getDocumentsWithQuery({
+        await firebaseOperations.getDocumentsWithQuery({
           collectionPath: CollectionPath.Test,
           documentLimit: 2,
           orderByField: TestCollectionEnum.NAME,
@@ -51,7 +55,7 @@ export default function Home() {
 
       if (docs.length > 0 && lastDocument) {
         const { documents: startAfterDocs } =
-          await fireBaseOperations.getDocumentsWithQuery({
+          await firebaseOperations.getDocumentsWithQuery({
             collectionPath: CollectionPath.Test,
             documentLimit: 2,
             startAfterDocument: lastDocument,
@@ -66,7 +70,7 @@ export default function Home() {
 
   const searchDocumentWithField = async () => {
     const { documents: testDoc, lastDocument } =
-      await fireBaseOperations.getDocumentsWithQuery({
+      await firebaseOperations.getDocumentsWithQuery({
         collectionPath: CollectionPath.Test,
         whereFields: [
           {
@@ -91,7 +95,7 @@ export default function Home() {
       name: documentName,
     };
 
-    await fireBaseOperations.createDocumentWithAutoId(
+    await firebaseOperations.createDocumentWithAutoId(
       CollectionPath.Test,
       data
     );
@@ -102,7 +106,7 @@ export default function Home() {
       name: "custom name",
     };
 
-    await fireBaseOperations.createDocumentWithCustomId(
+    await firebaseOperations.createDocumentWithCustomId(
       CollectionPath.Test,
       "customId",
       data
@@ -114,7 +118,7 @@ export default function Home() {
       name: documentName,
     };
 
-    await fireBaseOperations.updateDocumentById(
+    await firebaseOperations.updateDocumentById(
       CollectionPath.Test,
       docIdToUpdate,
       data
@@ -122,40 +126,20 @@ export default function Home() {
   };
 
   const deleteDocument = async () => {
-    await fireBaseOperations.deleteDocumentById(
+    await firebaseOperations.deleteDocumentById(
       CollectionPath.Test,
       docIdToUpdate
     );
   };
 
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
-
-  const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-
-    try {
-      const result = await signInWithPopup(auth, provider);
-      // TODO: add user to the state
-      setUser(result.user);
-      console.log(result);
-    } catch (error) {
-      console.error("Error signing in with Google:", error);
-    }
-  };
-
-  const signOutWithGoogle = async () => {
-    try {
-      await signOut(auth);
-      setUser(undefined);
-    } catch (error) {
-      console.error("Error signing out with Google:", error);
-    }
-  };
-
   const toggleLoadingStatus = () => {
     dispatch(setIsLoading(!isLoading));
+  };
+
+  const logout = async () => {
+    await firebaseAuthService.signOut();
+    setIsAuthModalOpen(false);
+    dispatch(setIsAuthenticated(false));
   };
 
   return (
@@ -179,19 +163,21 @@ export default function Home() {
         Open Login Modal
       </Button>
       <AuthModal
-        isOpen={isAuthModalOpen}
+        isOpen={!isAuthenticated && isAuthModalOpen}
         onAuthModalOpenChange={() => setIsAuthModalOpen(!isAuthModalOpen)}
       />
-      <div className="flex items-center p-10">
+      <div className="items-center p-10">
         <Label className="mr-5">{isLoading ? "loading" : "done"}</Label>
         <Button onClick={toggleLoadingStatus}>Toggle</Button>
+        <div>
+          <Label className="mt-5">
+            {isAuthenticated
+              ? "user is authenticated"
+              : "user is not authenticated"}
+          </Label>
+          {isAuthenticated && <Button onClick={logout}>Logout</Button>}
+        </div>
       </div>
-
-      {user ? (
-        <Button onClick={signOutWithGoogle}>Sign Out</Button>
-      ) : (
-        <Button onClick={signInWithGoogle}>Sign In</Button>
-      )}
     </div>
   );
 }
