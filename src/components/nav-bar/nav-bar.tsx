@@ -2,13 +2,22 @@
 
 import React from "react";
 
+import { useDispatch, useSelector } from "react-redux";
+
+import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
+import { toggleHamburgerMenuOpen } from "@/store/reducers/ui-reducer/ui-slice";
+
 const NavigationBar = () => {
-  const [isHamburgerMenuOpen, setIsHamburgerMenuOpen] = React.useState(false);
+  const dispatch = useDispatch();
+
+  const isHamburgerMenuOpen = useSelector(
+    uiReducerSelector.getIsHamburgerMenuOpen
+  );
 
   return (
     <nav className="h-[60px] bg-red-800 p-4">
       <div className="container mx-auto flex items-center justify-between">
-        <a href="/my-portfolio" className="text-white">
+        <a href="/" className="text-white">
           LOGO
         </a>
 
@@ -17,7 +26,7 @@ const NavigationBar = () => {
           <button
             title="hamburger menu"
             className="transform text-white transition duration-300 ease-in-out"
-            onClick={() => setIsHamburgerMenuOpen(!isHamburgerMenuOpen)}
+            onClick={() => dispatch(toggleHamburgerMenuOpen())}
           >
             <svg
               className={`h-6 w-6 transform transition-transform ${
@@ -49,10 +58,10 @@ const NavigationBar = () => {
 
         <div className={`hidden space-x-4 md:flex`}>
           <a href="/" className="text-md text-white">
-            test
+            Test
           </a>
           <a href="/" className="text-md text-white">
-            Logout
+            Log out
           </a>
         </div>
       </div>
