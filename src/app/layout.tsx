@@ -5,6 +5,7 @@ import ReduxProvider from "../components/redux-provider/redux-provider"; // Adju
 
 import "./globals.css";
 import NavigationBar from "@/components/nav-bar/nav-bar";
+import SideBarMenu from "@/components/side-bar-menu/side-bar-menu";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({
           </div>
 
           <main className="flex-grow bg-blue-200 h-screen w-screen">
+            <SideBarMenu />
             <NavigationBar />
             {children}
           </main>

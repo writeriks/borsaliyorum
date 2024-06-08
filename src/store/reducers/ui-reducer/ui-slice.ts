@@ -20,12 +20,12 @@ const uiSlice = createSlice({
       state.isLoading = action.payload;
     },
 
-    toggleHamburgerMenu: (state) => {
+    toggleHamburgerMenuOpen: (state) => {
       state.isHamburgerMenuOpen = !state.isHamburgerMenuOpen;
     },
   },
 });
 
-export const { setIsLoading, toggleHamburgerMenu } = uiSlice.actions;
+export const { setIsLoading, toggleHamburgerMenuOpen } = uiSlice.actions;
 
 export default uiSlice.reducer;
