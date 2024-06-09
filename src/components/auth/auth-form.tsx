@@ -10,44 +10,84 @@ import {
   loginFormSchema,
   registerFormSchema,
 } from "@/components/auth/auth-service/common-auth";
+import firebaseAuthService from "@/services/firebase-auth-service/firebase-auth-service";
+import { ResetPassword } from "@/components/auth/reset-password";
+import { useDispatch } from "react-redux";
+import { setIsAuthenticated } from "@/store/reducers/auth-reducer/auth-slice";
 
 enum FormType {
   Login = "login",
   Register = "register",
+  ResetPassword = "resetPassword",
 }
 
 export function AuthForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [formType, setFormType] = useState<FormType>(FormType.Login);
 
-  const onSubmit = (
-    values: z.infer<typeof loginFormSchema | typeof registerFormSchema>
+  const dispatch = useDispatch();
+
+  const onSubmit = async (
+    values: z.infer<typeof loginFormSchema & typeof registerFormSchema>
   ) => {
     console.log(values);
-
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
+    if (formType === FormType.Login) {
+      await firebaseAuthService.signInWithEmailAndPassword(
+        values.email,
+        values.password
+      );
+
+      dispatch(setIsAuthenticated(true));
+    } else if (formType === FormType.Register) {
+      await firebaseAuthService.signUpWithEmailAndPassword(
+        values.username,
+        values.email,
+        values.password
+      );
+    } else {
+      await firebaseAuthService.sendPasswordResetEmail(values.email);
+    }
+
+    setIsLoading(false);
+  };
+
+  const renderFormScreen = (formType: FormType) => {
+    switch (formType) {
+      case FormType.ResetPassword:
+        return (
+          <ResetPassword
+            onLoginClick={() => setFormType(FormType.Login)}
+            onSubmit={onSubmit}
+            isLoading={isLoading}
+          />
+        );
+
+      case FormType.Register:
+        return (
+          <RegisterForm
+            onLoginClick={() => setFormType(FormType.Login)}
+            onSubmit={onSubmit}
+            isLoading={isLoading}
+          />
+        );
+
+      default:
+        return (
+          <LoginForm
+            onRegisterClick={() => setFormType(FormType.Register)}
+            onResetPasswordClick={() => setFormType(FormType.ResetPassword)}
+            onSubmit={onSubmit}
+            isLoading={isLoading}
+          />
+        );
+    }
   };
 
   return (
     <div className="grid gap-4">
-      {formType === FormType.Login ? (
-        <LoginForm
-          onRegisterClick={() => setFormType(FormType.Register)}
-          onSubmit={onSubmit}
-          isLoading={isLoading}
-        />
-      ) : (
-        <RegisterForm
-          onLoginClick={() => setFormType(FormType.Login)}
-          onSubmit={onSubmit}
-          isLoading={isLoading}
-        />
-      )}
-
+      {renderFormScreen(formType)}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />

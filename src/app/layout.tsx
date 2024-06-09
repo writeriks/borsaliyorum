@@ -4,6 +4,8 @@ import { Inter } from "next/font/google";
 import ReduxProvider from "../components/redux-provider/redux-provider"; // Adjust the path as needed
 
 import "./globals.css";
+import NavigationBar from "@/components/nav-bar/nav-bar";
+import SideBarMenu from "@/components/side-bar-menu/side-bar-menu";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,8 +21,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <ReduxProvider>{children}</ReduxProvider>
+      <body className="min-h-screen flex flex-col lg:flex-row">
+        <ReduxProvider>
+          <div className="hidden lg:flex lg:w-1/5 lg:min-h-screen bg-gray-200">
+            <div className="flex items-center justify-center h-full w-full">
+              <p className="text-center">Ad Space (Left)</p>
+            </div>
+          </div>
+
+          <main className="flex-grow bg-blue-200 h-screen w-screen">
+            <SideBarMenu />
+            <NavigationBar />
+            {children}
+          </main>
+
+          <div className="hidden lg:flex lg:w-1/5 min-h-screen bg-red-500">
+            <div className="flex items-center justify-center h-full w-full">
+              <p className="text-center">Ad Space (Right)</p>
+            </div>
+          </div>
+        </ReduxProvider>
       </body>
     </html>
   );

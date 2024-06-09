@@ -28,6 +28,7 @@ const storage = getStorage(app);
 const db = getFirestore(app);
 
 const auth = getAuth(app);
+auth.languageCode = "tr";
 
 // TODO: Adding analytics gives error. investigate how to use analytics
 // const analytics = getAnalytics(app);

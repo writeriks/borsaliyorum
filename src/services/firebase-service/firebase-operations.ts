@@ -21,7 +21,7 @@ import {
   QueryParams,
 } from "@/services/firebase-service/firebase-operations-types";
 
-class FireBaseOperations {
+class FirebaseOperations {
   /*
    * Get all documents in a collection
    * @param collectionPath - The path to the collection
@@ -164,5 +164,5 @@ class FireBaseOperations {
   };
 }
 
-const firebaseOperations = new FireBaseOperations();
+const firebaseOperations = new FirebaseOperations();
 export default firebaseOperations;
