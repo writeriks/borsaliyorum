@@ -4,14 +4,6 @@ import { useEffect, useState } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
 
-import { auth } from "../services/firebase-service/firebase-config";
-import {
-  GoogleAuthProvider,
-  User,
-  signInWithPopup,
-  signOut,
-} from "firebase/auth";
-
 import { AuthModal } from "@/components/auth/auth-modal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -19,17 +11,18 @@ import { Input } from "@/components/ui/input";
 
 import { setIsLoading } from "@/store/reducers/ui-reducer/ui-slice";
 import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
+import { setIsAuthenticated } from "@/store/reducers/auth-reducer/auth-slice";
+import authReducerSelector from "@/store/reducers/auth-reducer/auth-reducer-selector";
+
 import firebaseOperations from "@/services/firebase-service/firebase-operations";
+import firebaseAuthService from "@/services/firebase-auth-service/firebase-auth-service";
 
 import {
+  CollectionPath,
   TestCollection,
   TestCollectionEnum,
 } from "@/services/firebase-service/types/collection-types";
-import { CollectionPath } from "@/services/firebase-service/types/types";
 import { WhereFieldEnum } from "@/services/firebase-service/firebase-operations-types";
-import firebaseAuthService from "@/services/firebase-auth-service/firebase-auth-service";
-import { setIsAuthenticated } from "@/store/reducers/auth-reducer/auth-slice";
-import authReducerSelector from "@/store/reducers/auth-reducer/auth-reducer-selector";
 
 export default function Home() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);

@@ -1,17 +1,19 @@
+import { PostId } from "@/services/firebase-service/types/collections/post";
 import { Timestamp } from "firebase/firestore";
 
 export type StockId = string;
 
+// Stocks Main Collection
 export interface StocksCollection {
   stockId: StockId;
   ticker: StockId;
-  name: string;
+  posts: PostId[];
+  postsCount: number;
+  fullName: string;
   description: string;
   currentPrice: number | null;
   marketCap: number;
-  postsCount: number;
   createdAt: Timestamp;
-  updatedAt: Timestamp;
   coverPhoto: string | null;
   positiveSentiment: number;
 }
@@ -19,13 +21,13 @@ export interface StocksCollection {
 export enum StocksCollectionEnum {
   STOCK_ID = "stockId",
   TICKER = "ticker",
-  NAME = "name",
+  POSTS = "posts",
+  POSTS_COUNT = "postsCount",
+  FULL_NAME = "fullName",
   DESCRIPTION = "description",
   CURRENT_PRICE = "currentPrice",
   MARKET_CAP = "marketCap",
-  POSTS_COUNT = "postsCount",
   CREATED_AT = "createdAt",
-  UPDATED_AT = "updatedAt",
   COVER_PHOTO = "coverPhoto",
   POSITIVE_SENTIMENT = "positiveSentiment",
 }

@@ -1,20 +1,18 @@
-import { FollowersCollection } from "@/services/firebase-service/types/collections/followers";
-import { FollowingCollection } from "@/services/firebase-service/types/collections/followings";
 import { PostId } from "@/services/firebase-service/types/collections/post";
+import { StockId } from "@/services/firebase-service/types/collections/stock";
 import { Timestamp } from "firebase/firestore";
 
-export type UserId = string;
+// User Main Collection
+export type UserCollection = User[];
 
-export enum Theme {
-  DARK = "dark",
-  LIGHT = "light",
-}
+export type UserId = string;
 
 export interface User {
   userId: UserId;
   posts: PostId[];
   username: string;
   email: string;
+  birthday: Timestamp;
   profilePhoto: string;
   coverPhoto: string;
   bio: string;
@@ -26,10 +24,17 @@ export interface User {
   isVerifiedUser: boolean;
   lastReloadDate: Timestamp;
   postsCount: number;
-  followingCount: number;
-  followersCount: number;
-  following: FollowingCollection | null;
-  followers: FollowersCollection | null;
+  userFollowingCount: number;
+  userFollowersCount: number;
+  stockFollowingCount: number;
+  followedStocks: StockId[];
+  followedUsers: UserId[];
+  followedByUsers: UserId[];
+}
+
+export enum Theme {
+  DARK = "dark",
+  LIGHT = "light",
 }
 
 export enum UserEnum {
@@ -37,6 +42,7 @@ export enum UserEnum {
   POSTS = "posts",
   USERNAME = "username",
   EMAIL = "email",
+  BIRTHDAY = "birthday",
   PROFILE_PHOTO = "profilePhoto",
   COVER_PHOTO = "coverPhoto",
   BIO = "bio",
@@ -48,8 +54,10 @@ export enum UserEnum {
   IS_VERIFIED_USER = "isVerifiedUser",
   LAST_RELOAD_DATE = "lastReloadDate",
   POSTS_COUNT = "postsCount",
-  FOLLOWING_COUNT = "followingCount",
-  FOLLOWERS_COUNT = "followersCount",
-  FOLLOWING = "following",
-  FOLLOWERS = "followers",
+  FOLLOWING_COUNT = "userFollowingCount",
+  FOLLOWERS_COUNT = "userFollowersCount",
+  STOCK_FOLLOWING_COUNT = "stockFollowingCount",
+  FOLLOWED_STOCKS = "followedStocks",
+  FOLLOWED_USERS = "followedUsers",
+  FOLLOWED_BY_USERS = "followedByUsers",
 }

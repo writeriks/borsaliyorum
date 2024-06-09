@@ -1,11 +1,30 @@
-import { CommentsCollection } from "@/services/firebase-service/types/collections/comments";
-import { LikesCollection } from "@/services/firebase-service/types/collections/likes";
+import { PostCommentsCollection } from "@/services/firebase-service/types/collections/comments";
+import { PostLikesCollection } from "@/services/firebase-service/types/collections/likes";
 import { StockId } from "@/services/firebase-service/types/collections/stock";
-import { Tag } from "@/services/firebase-service/types/collections/tags";
+import { Tag } from "@/services/firebase-service/types/collections/tag";
 import { UserId } from "@/services/firebase-service/types/collections/user";
 import { Timestamp } from "firebase/firestore";
 
+// Post Main Collection
+export type PostCollection = Post[];
+
 export type PostId = string;
+
+export interface Post {
+  postId: PostId;
+  userId: UserId;
+  stockTickers: StockId[];
+  likesCount: number;
+  likes: PostLikesCollection | null;
+  commentsCount: number;
+  comments: PostCommentsCollection | null;
+  media: MediaPreview | null;
+  content: string;
+  tags: Tag[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  isPositiveSentiment: boolean;
+}
 
 export type MediaData = {
   src: string;
@@ -15,22 +34,6 @@ export type MediaData = {
 export type MediaPreview = (MediaData & {
   id: number;
 })[];
-
-export interface Post {
-  postId: PostId;
-  userId: UserId;
-  stockTickers: StockId[];
-  likesCount: number;
-  commentsCount: number;
-  likes: LikesCollection | null;
-  comments: CommentsCollection | null;
-  media: MediaPreview | null;
-  content: string;
-  tags: Tag[];
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-  isPositiveSentiment: boolean;
-}
 
 export enum PostsCollectionEnum {
   POST_ID = "postId",
