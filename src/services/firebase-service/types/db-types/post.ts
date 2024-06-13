@@ -1,8 +1,8 @@
-import { PostCommentsCollection } from "@/services/firebase-service/types/collections/comments";
-import { PostLikesCollection } from "@/services/firebase-service/types/collections/likes";
-import { StockId } from "@/services/firebase-service/types/collections/stock";
-import { Tag } from "@/services/firebase-service/types/collections/tag";
-import { UserId } from "@/services/firebase-service/types/collections/user";
+import { PostCommentsCollection } from "@/services/firebase-service/types/db-types/comments";
+import { PostLikesCollection } from "@/services/firebase-service/types/db-types/likes";
+import { StockId } from "@/services/firebase-service/types/db-types/stock";
+import { Tag } from "@/services/firebase-service/types/db-types/tag";
+import { UserId } from "@/services/firebase-service/types/db-types/user";
 import { Timestamp } from "firebase/firestore";
 
 // Post Main Collection
@@ -14,13 +14,10 @@ export interface Post {
   postId: PostId;
   userId: UserId;
   stockTickers: StockId[];
-  likesCount: number;
-  likes: PostLikesCollection | null;
-  commentsCount: number;
-  comments: PostCommentsCollection | null;
+  likeCount: number;
+  commentCount: number;
   media: MediaPreview | null;
   content: string;
-  tags: Tag[];
   createdAt: Timestamp;
   updatedAt: Timestamp;
   isPositiveSentiment: boolean;
@@ -39,13 +36,10 @@ export enum PostsCollectionEnum {
   POST_ID = "postId",
   USER_ID = "userId",
   STOCK_TICKER = "stockTickers",
-  LIKES_COUNT = "likesCount",
-  COMMENTS_COUNT = "commentsCount",
-  LIKES = "likes",
-  COMMENTS = "comments",
+  LIKE_COUNT = "likeCount",
+  COMMENT_COUNT = "commentCount",
   MEDIA = "media",
   CONTENT = "content",
-  TAGS = "tags",
   CREATED_AT = "createdAt",
   UPDATED_AT = "updatedAt",
   IS_POSITIVE_SENTIMENT = "isPositiveSentiment",

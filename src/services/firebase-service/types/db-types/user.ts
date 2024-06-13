@@ -1,5 +1,5 @@
-import { PostId } from "@/services/firebase-service/types/collections/post";
-import { StockId } from "@/services/firebase-service/types/collections/stock";
+import { PostId } from "@/services/firebase-service/types/db-types/post";
+import { StockId } from "@/services/firebase-service/types/db-types/stock";
 import { Timestamp } from "firebase/firestore";
 
 // User Main Collection
@@ -9,7 +9,6 @@ export type UserId = string;
 
 export interface User {
   userId: UserId;
-  posts: PostId[];
   username: string;
   email: string;
   birthday: Timestamp;
@@ -27,9 +26,6 @@ export interface User {
   userFollowingCount: number;
   userFollowersCount: number;
   stockFollowingCount: number;
-  followedStocks: StockId[];
-  followedUsers: UserId[];
-  followedByUsers: UserId[];
 }
 
 export enum Theme {
@@ -39,7 +35,6 @@ export enum Theme {
 
 export enum UserEnum {
   USER_ID = "userId",
-  POSTS = "posts",
   USERNAME = "username",
   EMAIL = "email",
   BIRTHDAY = "birthday",
@@ -57,7 +52,4 @@ export enum UserEnum {
   FOLLOWING_COUNT = "userFollowingCount",
   FOLLOWERS_COUNT = "userFollowersCount",
   STOCK_FOLLOWING_COUNT = "stockFollowingCount",
-  FOLLOWED_STOCKS = "followedStocks",
-  FOLLOWED_USERS = "followedUsers",
-  FOLLOWED_BY_USERS = "followedByUsers",
 }
