@@ -6,7 +6,7 @@ export interface StockFollowers {
   followerId: UserId;
   stockId: StockId;
   followedAt: Timestamp;
-  isNotified: boolean;
+  isNotified: boolean; // May be removed
 }
 
 export enum StockFollowersEnum {

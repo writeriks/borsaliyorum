@@ -4,7 +4,7 @@ import { Timestamp } from "firebase/firestore";
 
 export interface CommentLikes {
   userId: UserId;
-  content: string;
+  commentId: CommentId;
   createdAt: Timestamp;
 }
 

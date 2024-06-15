@@ -8,8 +8,8 @@ export type TagsCollection = Tag[];
 
 export interface Tag {
   tagId: TagId;
-  name: string;
   postIds: PostId[]; // ????
+  name: string;
   postCount: number;
   createdAt: Timestamp;
 }

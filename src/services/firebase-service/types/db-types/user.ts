@@ -1,5 +1,3 @@
-import { PostId } from "@/services/firebase-service/types/db-types/post";
-import { StockId } from "@/services/firebase-service/types/db-types/stock";
 import { Timestamp } from "firebase/firestore";
 
 // User Main Collection
@@ -11,21 +9,21 @@ export interface User {
   userId: UserId;
   username: string;
   email: string;
-  birthday: Timestamp;
-  profilePhoto: string;
-  coverPhoto: string;
-  bio: string;
-  theme: Theme;
-  website: string | null;
+  birthday?: Timestamp;
+  profilePhoto?: string;
+  coverPhoto?: string;
+  bio?: string;
+  theme?: Theme;
+  website?: string;
   createdAt: Timestamp;
-  updatedAt: Timestamp;
-  isPremiumUser: boolean;
-  isVerifiedUser: boolean;
-  lastReloadDate: Timestamp;
-  postsCount: number;
-  userFollowingCount: number;
-  userFollowersCount: number;
-  stockFollowingCount: number;
+  updatedAt?: Timestamp;
+  premiumEndDate?: Timestamp;
+  isEmailVerified?: boolean;
+  lastReloadDate?: Timestamp;
+  postsCount?: number;
+  userFollowingCount?: number;
+  userFollowersCount?: number;
+  stockFollowingCount?: number;
 }
 
 export enum Theme {
@@ -45,8 +43,8 @@ export enum UserEnum {
   WEBSITE = "website",
   CREATED_AT = "createdAt",
   UPDATED_AT = "updatedAt",
-  IS_PREMIUM_USER = "isPremiumUser",
-  IS_VERIFIED_USER = "isVerifiedUser",
+  PREMIUM_END_DATE = "premiumEndDate",
+  IS_EMAIL_VERIFIED = "isEmailVerified",
   LAST_RELOAD_DATE = "lastReloadDate",
   POSTS_COUNT = "postsCount",
   FOLLOWING_COUNT = "userFollowingCount",

@@ -1,7 +1,4 @@
-import { PostCommentsCollection } from "@/services/firebase-service/types/db-types/comments";
-import { PostLikesCollection } from "@/services/firebase-service/types/db-types/likes";
 import { StockId } from "@/services/firebase-service/types/db-types/stock";
-import { Tag } from "@/services/firebase-service/types/db-types/tag";
 import { UserId } from "@/services/firebase-service/types/db-types/user";
 import { Timestamp } from "firebase/firestore";
 
@@ -16,7 +13,7 @@ export interface Post {
   stockTickers: StockId[];
   likeCount: number;
   commentCount: number;
-  media: MediaPreview | null;
+  media: MediaData | null;
   content: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -25,12 +22,7 @@ export interface Post {
 
 export type MediaData = {
   src: string;
-  alt: string;
 };
-
-export type MediaPreview = (MediaData & {
-  id: number;
-})[];
 
 export enum PostsCollectionEnum {
   POST_ID = "postId",

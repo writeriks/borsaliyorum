@@ -5,7 +5,7 @@ export interface UserFollowers {
   followerId: UserId;
   followedId: UserId;
   followetAt: Timestamp;
-  isNotified: boolean;
+  isNotified: boolean; // May be removed
 }
 
 export enum UserFollowersEnum {
