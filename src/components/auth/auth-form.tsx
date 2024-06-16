@@ -46,6 +46,7 @@ export function AuthForm() {
         values.email,
         values.password
       );
+      setFormType(FormType.Login);
     } else {
       await firebaseAuthService.sendPasswordResetEmail(values.email);
     }

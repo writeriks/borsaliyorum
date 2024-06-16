@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const passwordConstants = {
+  // TODO: Add secure password validation
   minLength: 8,
   minLengthMessage: "Şifre en az 8 karakter içermelidir.",
 };

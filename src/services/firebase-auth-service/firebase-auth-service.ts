@@ -2,7 +2,7 @@ import userService from "@/services/user-service/user-service";
 import { auth } from "../firebase-service/firebase-config";
 import {
   GoogleAuthProvider,
-  User,
+  User as FirebaseUser,
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -11,6 +11,11 @@ import {
   AuthCredential,
   sendPasswordResetEmail,
 } from "firebase/auth";
+import {
+  User,
+  UserEnum,
+} from "@/services/firebase-service/types/db-types/user";
+import { Timestamp } from "firebase/firestore";
 
 class FirebaseAuthService {
   /**
@@ -21,6 +26,25 @@ class FirebaseAuthService {
 
     try {
       const result = await signInWithPopup(auth, provider);
+      const { user } = result;
+      const userDocument = await userService.getUserById(user.uid);
+
+      if (userDocument) {
+        // When sign in with Google, email is automatically verified. Need to update in user collection
+        await userService.syncUser(user, userDocument);
+      } else {
+        // If new user, add user to the user collection
+        const customUser: User = {
+          [UserEnum.USER_ID]: user.uid,
+          [UserEnum.CREATED_AT]: Timestamp.now(),
+          [UserEnum.EMAIL]: user.email as string,
+          [UserEnum.USERNAME]: user.email as string,
+          [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
+          [UserEnum.PROFILE_PHOTO]: user.photoURL ?? undefined,
+        };
+
+        await userService.addUser(customUser);
+      }
       console.log(result);
     } catch (error) {
       console.error("Error signing in with Google:", error);
@@ -34,7 +58,7 @@ class FirebaseAuthService {
     try {
       await signOut(auth);
     } catch (error) {
-      console.error("Error signing out with Google:", error);
+      console.error("Error signing out:", error);
     }
   };
 
@@ -45,8 +69,11 @@ class FirebaseAuthService {
    */
   signInWithEmailAndPassword = async (email: string, password: string) => {
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      console.log(result);
+      const { user } = await signInWithEmailAndPassword(auth, email, password);
+      const userDocument = await userService.getUserById(user.uid);
+      if (userDocument) {
+        await userService.syncUser(user, userDocument);
+      }
     } catch (error) {
       console.error("Error during signing in:", error);
     }
@@ -69,9 +96,18 @@ class FirebaseAuthService {
         email,
         password
       );
-      await userService.sendEmailVerification(result.user);
-      // TODO create user with extra fields
-      console.log(result);
+      const { user } = result;
+      await userService.sendEmailVerification(user);
+
+      const customUser: User = {
+        [UserEnum.USER_ID]: user.uid,
+        [UserEnum.CREATED_AT]: Timestamp.now(),
+        [UserEnum.EMAIL]: user.email as string,
+        [UserEnum.USERNAME]: username,
+        [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
+      };
+
+      await userService.addUser(customUser);
     } catch (error) {
       console.error("Error during signing up:", error);
     }
@@ -96,7 +132,7 @@ class FirebaseAuthService {
    * @param credentials - The authentication credentials
    */
   reauthenticateWithCredential = async (
-    user: User,
+    user: FirebaseUser,
     credentials: AuthCredential
   ) => {
     try {
