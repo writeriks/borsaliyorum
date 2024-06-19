@@ -17,6 +17,11 @@ const usernameConstants = {
   minLengthMessage: "Kullanıcı adı boş olamaz.",
 };
 
+const displayNameConstants = {
+  minLength: 1,
+  minLengthMessage: "Ad soyad boş olamaz.",
+};
+
 const emailValidationProps = {
   email: z
     .string()
@@ -38,5 +43,8 @@ export const registerFormSchema = z.object({
   ...commonValidationProps,
   username: z.string().min(usernameConstants.minLength, {
     message: usernameConstants.minLengthMessage,
+  }),
+  displayName: z.string().min(displayNameConstants.minLength, {
+    message: displayNameConstants.minLengthMessage,
   }),
 });

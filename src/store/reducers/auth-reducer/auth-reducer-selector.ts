@@ -5,11 +5,6 @@ import { type AuthState } from "./auth-slice";
 class AuthReducerSelector {
   getAuthReducer = (state: RootState): AuthState => state.auth;
 
-  getIsAuthenticated = createSelector(
-    this.getAuthReducer,
-    (auth) => auth.isAuthenticated
-  );
-
   getLoginMethod = createSelector(
     this.getAuthReducer,
     (auth) => auth.loginMethod

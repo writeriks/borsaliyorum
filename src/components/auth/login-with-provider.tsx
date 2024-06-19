@@ -8,19 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Icons } from "@/components/ui/icons";
 import { Label } from "@/components/ui/label";
 import { LoginForm } from "@/components/auth/login-form";
-import firebaseAuthService from "@/services/firebase-auth-service/firebase-auth-service";
+import firebaseAuthService from "@/services/firebase-service/firebase-auth-service";
 import { useDispatch } from "react-redux";
-import { setIsAuthenticated } from "@/store/reducers/auth-reducer/auth-slice";
 
 interface LoginWithProvidersProps {
   isLoading: boolean;
 }
 export function LoginWithProviders({ isLoading }: LoginWithProvidersProps) {
-  const dispatch = useDispatch();
-
   const loginWithGoogle = () => {
     firebaseAuthService.signInWithGoogle();
-    dispatch(setIsAuthenticated(true));
   };
 
   return (

@@ -1,5 +1,5 @@
 import userService from "@/services/user-service/user-service";
-import { auth } from "../firebase-service/firebase-config";
+import { auth } from "./firebase-config";
 import {
   GoogleAuthProvider,
   User as FirebaseUser,
@@ -21,7 +21,7 @@ class FirebaseAuthService {
   /**
    * Signs in the user using Google authentication.
    */
-  signInWithGoogle = async () => {
+  signInWithGoogle = async (): Promise<void> => {
     const provider = new GoogleAuthProvider();
 
     try {
@@ -39,6 +39,7 @@ class FirebaseAuthService {
           [UserEnum.CREATED_AT]: Timestamp.now(),
           [UserEnum.EMAIL]: user.email as string,
           [UserEnum.USERNAME]: user.email as string,
+          [UserEnum.DISPLAY_NAME]: user.displayName as string,
           [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
           [UserEnum.PROFILE_PHOTO]: user.photoURL ?? undefined,
         };
@@ -54,7 +55,7 @@ class FirebaseAuthService {
   /**
    * Signs out the currently authenticated user.
    */
-  signOut = async () => {
+  signOut = async (): Promise<void> => {
     try {
       await signOut(auth);
     } catch (error) {
@@ -67,7 +68,10 @@ class FirebaseAuthService {
    * @param email - The user's email address
    * @param password - The user's password
    */
-  signInWithEmailAndPassword = async (email: string, password: string) => {
+  signInWithEmailAndPassword = async (
+    email: string,
+    password: string
+  ): Promise<void> => {
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       const userDocument = await userService.getUserById(user.uid);
@@ -87,9 +91,10 @@ class FirebaseAuthService {
    */
   signUpWithEmailAndPassword = async (
     username: string,
+    displayName: string,
     email: string,
     password: string
-  ) => {
+  ): Promise<void> => {
     try {
       const result = await createUserWithEmailAndPassword(
         auth,
@@ -104,6 +109,7 @@ class FirebaseAuthService {
         [UserEnum.CREATED_AT]: Timestamp.now(),
         [UserEnum.EMAIL]: user.email as string,
         [UserEnum.USERNAME]: username,
+        [UserEnum.DISPLAY_NAME]: displayName,
         [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
       };
 
@@ -117,7 +123,7 @@ class FirebaseAuthService {
    * Sends a password reset email to the user.
    * @param email - The user's email address
    */
-  sendPasswordResetEmail = async (email: string) => {
+  sendPasswordResetEmail = async (email: string): Promise<void> => {
     try {
       const result = await sendPasswordResetEmail(auth, email);
       console.log(result);
@@ -134,7 +140,7 @@ class FirebaseAuthService {
   reauthenticateWithCredential = async (
     user: FirebaseUser,
     credentials: AuthCredential
-  ) => {
+  ): Promise<void> => {
     try {
       const result = await reauthenticateWithCredential(user, credentials);
       console.log(result);
