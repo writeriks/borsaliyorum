@@ -13,10 +13,12 @@ import storage from "redux-persist/lib/storage"; // defaults to localStorage for
 
 import uiSlice from "./reducers/ui-reducer/ui-slice";
 import authSlice from "@/store/reducers/auth-reducer/auth-slice";
+import contextSlice from "@/store/reducers/context-reducer/context-slice";
 
 const rootReducer = combineReducers({
   ui: uiSlice,
   auth: authSlice,
+  context: contextSlice,
 });
 
 const persistConfig = {
