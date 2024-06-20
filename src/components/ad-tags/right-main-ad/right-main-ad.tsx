@@ -7,13 +7,13 @@ const RightMainAd = () => {
 
   return (
     <>
-      {!isMobile ? (
+      {!isMobile && (
         <div className="lg:flex lg:w-1/5 min-h-screen bg-red-500">
           <div className="flex items-center justify-center h-full w-full">
             <p className="text-center">Ad Space (Right)</p>
           </div>
         </div>
-      ) : null}
+      )}
     </>
   );
 };
