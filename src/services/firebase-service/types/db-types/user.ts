@@ -8,6 +8,7 @@ export type UserId = string;
 export interface User {
   userId: UserId;
   username: string;
+  displayName: string;
   email: string;
   birthday?: Timestamp;
   profilePhoto?: string;
@@ -34,6 +35,7 @@ export enum Theme {
 export enum UserEnum {
   USER_ID = "userId",
   USERNAME = "username",
+  DISPLAY_NAME = "displayName",
   EMAIL = "email",
   BIRTHDAY = "birthday",
   PROFILE_PHOTO = "profilePhoto",

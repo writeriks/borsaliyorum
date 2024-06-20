@@ -69,6 +69,19 @@ export function RegisterForm({
         />
         <FormField
           control={form.control}
+          name="displayName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Ad Soyad</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>

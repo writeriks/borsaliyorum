@@ -1,6 +1,7 @@
 import {
   collection,
   getDocs,
+  getDoc,
   orderBy,
   limit,
   query,
@@ -15,7 +16,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { db } from "./firebase-config";
-import { CollectionPath } from "@/services/firebase-service/types/types";
+import { CollectionPath } from "@/services/firebase-service/types/collection-types";
 import {
   FirebaseDocumentQueryResponse,
   QueryParams,
@@ -125,6 +126,21 @@ class FirebaseOperations {
       console.log("Document written with ID: ", docId);
     } catch (e) {
       console.error("Error setting document: ", e);
+    }
+  };
+
+  /*
+   * Gets a document by ID
+   * @param collectionPath - The path to the collection
+   * @param docId - The custom ID for the document
+   */
+  getDocumentById = async (collectionPath: string, docId: string) => {
+    try {
+      const docRef = doc(db, collectionPath, docId);
+
+      return getDoc(docRef);
+    } catch (e) {
+      console.error("Error getting document: ", e);
     }
   };
 

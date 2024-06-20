@@ -11,11 +11,10 @@ import { Input } from "@/components/ui/input";
 
 import { setIsLoading } from "@/store/reducers/ui-reducer/ui-slice";
 import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
-import { setIsAuthenticated } from "@/store/reducers/auth-reducer/auth-slice";
 import authReducerSelector from "@/store/reducers/auth-reducer/auth-reducer-selector";
 
 import firebaseOperations from "@/services/firebase-service/firebase-operations";
-import firebaseAuthService from "@/services/firebase-auth-service/firebase-auth-service";
+import firebaseAuthService from "@/services/firebase-service/firebase-auth-service";
 
 import {
   CollectionPath,
@@ -23,6 +22,7 @@ import {
   TestCollectionEnum,
 } from "@/services/firebase-service/types/collection-types";
 import { WhereFieldEnum } from "@/services/firebase-service/firebase-operations-types";
+import useUser from "@/hooks/useUser";
 
 export default function Home() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -33,8 +33,9 @@ export default function Home() {
 
   const dispatch = useDispatch();
   const isLoading = useSelector(uiReducerSelector.getIsLoading);
-  const isAuthenticated = useSelector(authReducerSelector.getIsAuthenticated);
   const loginMethod = useSelector(authReducerSelector.getLoginMethod);
+
+  const user = useUser();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -132,7 +133,6 @@ export default function Home() {
   const logout = async () => {
     await firebaseAuthService.signOut();
     setIsAuthModalOpen(false);
-    dispatch(setIsAuthenticated(false));
   };
 
   return (
@@ -156,7 +156,7 @@ export default function Home() {
         Open Login Modal
       </Button>
       <AuthModal
-        isOpen={!isAuthenticated && isAuthModalOpen}
+        isOpen={!Boolean(user) && isAuthModalOpen}
         onAuthModalOpenChange={() => setIsAuthModalOpen(!isAuthModalOpen)}
       />
       <div className="items-center p-10">
@@ -164,11 +164,9 @@ export default function Home() {
         <Button onClick={toggleLoadingStatus}>Toggle</Button>
         <div>
           <Label className="mt-5">
-            {isAuthenticated
-              ? "user is authenticated"
-              : "user is not authenticated"}
+            {user ? "user is authenticated" : "user is not authenticated"}
           </Label>
-          {isAuthenticated && <Button onClick={logout}>Logout</Button>}
+          {user && <Button onClick={logout}>Logout</Button>}
         </div>
       </div>
     </div>

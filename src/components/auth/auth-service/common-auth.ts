@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const passwordConstants = {
+  // TODO: Add secure password validation
   minLength: 8,
   minLengthMessage: "Şifre en az 8 karakter içermelidir.",
 };
@@ -14,6 +15,11 @@ const emailConstants = {
 const usernameConstants = {
   minLength: 1,
   minLengthMessage: "Kullanıcı adı boş olamaz.",
+};
+
+const displayNameConstants = {
+  minLength: 1,
+  minLengthMessage: "Ad soyad boş olamaz.",
 };
 
 const emailValidationProps = {
@@ -37,5 +43,8 @@ export const registerFormSchema = z.object({
   ...commonValidationProps,
   username: z.string().min(usernameConstants.minLength, {
     message: usernameConstants.minLengthMessage,
+  }),
+  displayName: z.string().min(displayNameConstants.minLength, {
+    message: displayNameConstants.minLengthMessage,
   }),
 });
