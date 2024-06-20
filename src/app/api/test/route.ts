@@ -16,5 +16,12 @@ export async function GET(request: Request) {
     });
   console.log("🚀 ~ GET ~ docs:", docs);
 
-  return NextResponse.json({ message: "Hello World!" });
+  const jsonResponse = NextResponse.json({
+    status: 500,
+    statusText: "Internal Server Error",
+  });
+
+  jsonResponse.cookies.set("theme", "dark");
+
+  return jsonResponse;
 }
