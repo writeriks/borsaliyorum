@@ -16,10 +16,13 @@ export async function GET(request: Request) {
     });
   console.log("🚀 ~ GET ~ docs:", docs);
 
-  const jsonResponse = NextResponse.json({
-    status: 500,
-    statusText: "Internal Server Error",
-  });
+  const jsonResponse = NextResponse.json(
+    {
+      anan: 500,
+      ami: "Internal Server Error",
+    },
+    { status: 500, statusText: "Internal Server Error" }
+  );
 
   jsonResponse.cookies.set("theme", "dark");
 
