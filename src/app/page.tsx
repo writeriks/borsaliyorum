@@ -38,6 +38,28 @@ export default function Home() {
   const user = useUser();
 
   useEffect(() => {
+    const fetchTest = async () => {
+      console.log("fetching test");
+      try {
+        const response = await fetch("/api/test", {
+          method: "GET",
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("🚀 ~ fetchTest ~ data:", data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchTest();
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       const { documents: docs, lastDocument } =
         await firebaseOperations.getDocumentsWithQuery({
@@ -45,7 +67,7 @@ export default function Home() {
           documentLimit: 2,
           orderByField: TestCollectionEnum.NAME,
         });
-      console.log("🚀 ~ fetchData ~ docs:", docs);
+      /* console.log("🚀 ~ fetchData ~ docs:", docs); */
 
       if (docs.length > 0 && lastDocument) {
         const { documents: startAfterDocs } =
@@ -55,7 +77,7 @@ export default function Home() {
             startAfterDocument: lastDocument,
             orderByField: TestCollectionEnum.NAME,
           });
-        console.log("🚀 ~ fetchData ~ startAfterDocs:", startAfterDocs);
+        /* console.log("🚀 ~ fetchData ~ startAfterDocs:", startAfterDocs); */
       }
     };
 
