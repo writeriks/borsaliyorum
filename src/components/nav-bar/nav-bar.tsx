@@ -4,8 +4,9 @@ import React from "react";
 
 import { useDispatch, useSelector } from "react-redux";
 
-import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
 import { toggleHamburgerMenuOpen } from "@/store/reducers/ui-reducer/ui-slice";
+
+import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
 
 const NavigationBar = () => {
   const dispatch = useDispatch();
