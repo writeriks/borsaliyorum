@@ -114,7 +114,7 @@ export function RegisterForm({
             </FormItem>
           )}
         />
-        <Button className="w-full" type="submit">
+        <Button disabled={isLoading} className="w-full" type="submit">
           {isLoading ? (
             <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
           ) : (
