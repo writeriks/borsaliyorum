@@ -1,19 +1,19 @@
-import contextReducerSelector from "@/store/reducers/context-reducer/context-reducer-selector";
 import React from "react";
+
 import { useSelector } from "react-redux";
+
+import contextReducerSelector from "@/store/reducers/context-reducer/context-reducer-selector";
 
 const RightMainAd = () => {
   const isMobile = useSelector(contextReducerSelector.getIsMobile);
-
+  // make the call for ad if not mobile
   return (
     <>
-      {!isMobile && (
-        <div className="lg:flex lg:w-1/5 min-h-screen bg-red-500">
-          <div className="flex items-center justify-center h-full w-full">
-            <p className="text-center">Ad Space (Right)</p>
-          </div>
+      <div className="hidden lg:flex lg:min-w-44 lg:min-h-screen bg-red-500">
+        <div className="flex items-center justify-center h-full w-full">
+          <p className="text-center">Ad Space (Right)</p>
         </div>
-      )}
+      </div>
     </>
   );
 };
