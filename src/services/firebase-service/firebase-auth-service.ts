@@ -94,8 +94,10 @@ class FirebaseAuthService {
     displayName: string,
     email: string,
     password: string
-  ): Promise<void> => {
+  ): Promise<boolean> => {
     try {
+      await userService.validateUser(username, email, displayName);
+
       const result = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -116,7 +118,10 @@ class FirebaseAuthService {
       await userService.addUser(customUser);
     } catch (error) {
       console.error("Error during signing up:", error);
+      return false;
     }
+
+    return true;
   };
 
   /**
