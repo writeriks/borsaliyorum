@@ -9,7 +9,11 @@ const InnerLeftMainAd = () => {
   // make the call for ad if not mobile
 
   return (
-    <div id="inner-left-ad-section" className="h-full bg-yellow-300">
+    <div
+      id="inner-left-ad-section"
+      className="h-full bg-black flex items-center justify-center text-base"
+    >
+      <div className="h-96"></div>
       INNER LEFT AD SECTION
     </div>
   );

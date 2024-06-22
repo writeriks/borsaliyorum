@@ -162,7 +162,7 @@ export default function Home() {
       <div className="m-4 flex">
         <div className="flex-col">
           <Input
-            className="mb-2"
+            className="mb-2 text-black text-base"
             placeholder="Enter Document name."
             onChange={(e) => setDocumentName(e.target.value)}
           />

@@ -16,17 +16,15 @@ const NavigationBar = () => {
   );
 
   return (
-    <nav className="h-[60px] bg-red-800 p-4">
+    <nav className="h-[60px] bg-themeColor p-4 rounded-md border-1 border-black">
       <div className="container mx-auto flex items-center justify-between">
-        <a href="/" className="text-white">
-          LOGO
-        </a>
+        <a href="/">LOGO</a>
 
         {/* Hamburger menu for mobile */}
         <div className="z-50 md:hidden">
           <button
             title="hamburger menu"
-            className="transform text-white transition duration-300 ease-in-out"
+            className="transform transition duration-300 ease-in-out"
             onClick={() => dispatch(toggleHamburgerMenuOpen())}
           >
             <svg
@@ -58,10 +56,10 @@ const NavigationBar = () => {
         </div>
 
         <div className={`hidden space-x-4 md:flex`}>
-          <a href="/" className="text-md text-white">
+          <a href="/" className="text-md">
             Test
           </a>
-          <a href="/" className="text-md text-white">
+          <a href="/" className="text-md">
             Log out
           </a>
         </div>

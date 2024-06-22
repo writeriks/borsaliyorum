@@ -28,20 +28,23 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <LeftMainAd />
-      <main className="flex-grow ">
+      <main className="flex-grow  bg-black text-base text-white">
         <SideBarMenu />
         <NavigationBar />
 
-        <div
-          id="main-container"
-          className="flex w-full bg-teal-950 flex-col lg:flex-row"
-        >
-          <div id="left-section" className="hidden lg:flex flex-col w-1/5">
+        <div id="main-container" className="flex w-full flex-col lg:flex-row">
+          <div
+            id="left-section"
+            className="hidden lg:flex flex-col lg:min-w-64"
+          >
             <UserProfileOptions />
             <InnerLeftMainAd />
           </div>
 
-          <div id="right-section" className="flex flex-col h-full  lg:w-full">
+          <div
+            id="right-section"
+            className="flex flex-col h-full lg:w-full border-1 border-black rounded-md"
+          >
             <InnerTopAd />
             {children}
           </div>

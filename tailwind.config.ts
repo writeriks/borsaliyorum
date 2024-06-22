@@ -18,10 +18,20 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: [
+          "Source Sans Pro",
+          "Arial",
+          "Helvetica Neue",
+          "Helvetica",
+          "sans-serif",
+        ],
+      },
       height: {
         "screen-minus-60": "calc(100vh - 60px)",
       },
       colors: {
+        themeColor: "#131722",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

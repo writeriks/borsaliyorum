@@ -9,7 +9,7 @@ const RightMainAd = () => {
   // make the call for ad if not mobile
   return (
     <>
-      <div className="hidden lg:flex lg:min-w-44 lg:min-h-screen bg-red-500">
+      <div className="hidden lg:flex lg:min-w-44 lg:min-h-screen bg-black text-base text-white">
         <div className="flex items-center justify-center h-full w-full">
           <p className="text-center">Ad Space (Right)</p>
         </div>
