@@ -38,6 +38,7 @@ export function RegisterForm({
       password: "",
       email: "",
       username: "",
+      displayName: "",
     },
   });
 
@@ -61,7 +62,7 @@ export function RegisterForm({
             <FormItem>
               <FormLabel>Kullanıcı Adı</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input type="text" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -74,7 +75,7 @@ export function RegisterForm({
             <FormItem>
               <FormLabel>Ad Soyad</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input type="text" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -87,7 +88,7 @@ export function RegisterForm({
             <FormItem>
               <FormLabel>E-posta</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input type="email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -113,7 +114,7 @@ export function RegisterForm({
             </FormItem>
           )}
         />
-        <Button className="w-full" type="submit">
+        <Button disabled={isLoading} className="w-full" type="submit">
           {isLoading ? (
             <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
           ) : (

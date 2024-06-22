@@ -35,13 +35,15 @@ export function AuthForm() {
         values.password
       );
     } else if (formType === FormType.Register) {
-      await firebaseAuthService.signUpWithEmailAndPassword(
+      const isUserAdded = await firebaseAuthService.signUpWithEmailAndPassword(
         values.username,
         values.displayName,
         values.email,
         values.password
       );
-      setFormType(FormType.Login);
+      if (isUserAdded) {
+        setFormType(FormType.Login);
+      }
     } else {
       await firebaseAuthService.sendPasswordResetEmail(values.email);
     }

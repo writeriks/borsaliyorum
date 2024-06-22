@@ -21,9 +21,7 @@ class UserService {
    */
   sendEmailVerification = async (user: FirebaseUser): Promise<void> => {
     try {
-      const result = await sendEmailVerification(user);
-
-      console.log(result);
+      await sendEmailVerification(user);
     } catch (error) {
       console.error("Error sending email verification:", error);
     }
@@ -72,7 +70,7 @@ class UserService {
         }
       }
     } catch (error) {
-      console.error("Error updating email:", error);
+      console.error("Error syncing user:", error);
     }
   };
 
@@ -138,16 +136,39 @@ class UserService {
    * @param user - The user document to add.
    */
   addUser = async (user: User): Promise<void> => {
-    try {
-      const result = await firebaseOperations.createDocumentWithCustomId(
-        CollectionPath.Users,
-        user.userId,
-        user
-      );
-      console.log(result);
-    } catch (error) {
-      console.error("Error adding user:", error);
-    }
+    const requestBody = {
+      user,
+    };
+    const result = await fetch("/api/user/createUser", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!result.ok) throw new Error(result.statusText);
+  };
+
+  /**
+   * Validates a new user to make sure username and email are not taken as well as other string validations.
+   * @param username - username to check
+   * @param email - email to check
+   * @param displayName - displayName to check
+   */
+  validateUser = async (
+    username: string,
+    email: string,
+    displayName: string
+  ): Promise<void> => {
+    const requestBody = {
+      username,
+      email,
+      displayName,
+    };
+    const result = await fetch("/api/user/validateUser", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!result.ok) throw new Error(result.statusText);
   };
 
   /**
