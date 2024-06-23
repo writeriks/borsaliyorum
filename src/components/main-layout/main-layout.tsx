@@ -15,9 +15,13 @@ import UserProfileOptions from "@/components/user-profile-options/user-profile-o
 import InnerTopAd from "@/components/ad-tags/inner-top-ad/inner-top-ad";
 
 import { setIsMobile } from "@/store/reducers/context-reducer/context-slice";
+import { Toaster } from "@/components/ui/sonner";
+import useUINotification from "@/hooks/useUINotification";
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const dispatch = useDispatch();
+
+  useUINotification();
 
   useEffect(() => {
     if (window) {
@@ -49,6 +53,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             {children}
           </div>
         </div>
+        <Toaster richColors />
       </main>
 
       <RightMainAd />

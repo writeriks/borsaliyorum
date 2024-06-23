@@ -11,7 +11,7 @@ import {
 } from "redux-persist";
 import storage from "redux-persist/lib/storage"; // defaults to localStorage for web
 
-import uiSlice from "./reducers/ui-reducer/ui-slice";
+import uiSlice from "@/store/reducers/ui-reducer/ui-slice";
 import authSlice from "@/store/reducers/auth-reducer/auth-slice";
 import contextSlice from "@/store/reducers/context-reducer/context-slice";
 

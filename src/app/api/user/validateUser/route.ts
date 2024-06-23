@@ -19,6 +19,14 @@ export async function POST(request: Request) {
   const displayName = body["displayName"] as string;
   let response;
 
+  const badRequestProps = {
+    status: 400,
+    statusText: "Bad Request",
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+    },
+  };
+
   const searchField = async (
     field: UserEnum,
     value: string
@@ -49,27 +57,23 @@ export async function POST(request: Request) {
 
   // Check if username is valid
   if (!isValidUsername(username)) {
-    return NextResponse.json(null, {
-      status: 400,
-      statusText:
-        "Invalid username. Must be 3-20 characters long and can only contain letters, numbers, and underscores.",
-    });
+    const message = "Geçersiz kullanıcı adı.";
+
+    return NextResponse.json({ error: message }, badRequestProps);
   }
 
   // Check if email is valid
   if (!isValidEmail(email)) {
-    return NextResponse.json(null, {
-      status: 400,
-      statusText: "Invalid email format.",
-    });
+    const message = "Geçersiz e-posta.";
+
+    return NextResponse.json({ error: message }, badRequestProps);
   }
 
   // Check if display name is valid
   if (!isValidDisplayName(displayName)) {
-    return NextResponse.json(null, {
-      status: 400,
-      statusText: "Invalid display name. Must be 3-80 characters.",
-    });
+    const message = "Geçersiz ad soyad.";
+
+    return NextResponse.json({ error: message }, badRequestProps);
   }
 
   // Check if email or username is already taken
@@ -77,24 +81,23 @@ export async function POST(request: Request) {
     const emailTaken = await isEmailTaken(email.toLowerCase());
 
     if (emailTaken) {
-      return NextResponse.json(null, {
-        status: 400,
-        statusText: "Email is already taken.",
-      });
+      const message = "Bu e-posta adresi ile bir kullanıcı zaten mevcut.";
+
+      return NextResponse.json({ error: message }, badRequestProps);
     }
 
     const usernameTaken = await isUsernameTaken(username.toLowerCase());
 
     if (usernameTaken) {
-      return NextResponse.json(null, {
-        status: 400,
-        statusText: "Username is already taken.",
-      });
+      const message =
+        "Bu kullanıcı adı daha önce alınmış. Lütfen farklı bir kullanıcı adı ile tekrar deneyin.";
+
+      return NextResponse.json({ error: message }, badRequestProps);
     }
 
     response = NextResponse.json(null, {
       status: 200,
-      statusText: "Username and email are available.",
+      statusText: "SUCCESS",
     });
   } catch (error) {
     console.log("ERROR:", error);

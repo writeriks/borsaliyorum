@@ -16,8 +16,24 @@ import {
   UserEnum,
 } from "@/services/firebase-service/types/db-types/user";
 import { Timestamp } from "firebase/firestore";
+import store from "@/store/redux-store";
+import {
+  UINotificationEnum,
+  setUINotification,
+} from "@/store/reducers/ui-reducer/ui-slice";
 
 class FirebaseAuthService {
+  genericErrorMessage = "Bir hata oluştu.";
+
+  dispatchError = (error: any) => {
+    store.dispatch(
+      setUINotification({
+        message: error?.message ?? this.genericErrorMessage,
+        notificationType: UINotificationEnum.ERROR,
+      })
+    );
+  };
+
   /**
    * Signs in the user using Google authentication.
    */
@@ -47,8 +63,9 @@ class FirebaseAuthService {
         await userService.addUser(customUser);
       }
       console.log(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing in with Google:", error);
+      this.dispatchError(error);
     }
   };
 
@@ -58,8 +75,9 @@ class FirebaseAuthService {
   signOut = async (): Promise<void> => {
     try {
       await signOut(auth);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing out:", error);
+      this.dispatchError(error);
     }
   };
 
@@ -78,8 +96,9 @@ class FirebaseAuthService {
       if (userDocument) {
         await userService.syncUser(user, userDocument);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error during signing in:", error);
+      this.dispatchError(error);
     }
   };
 
@@ -116,10 +135,19 @@ class FirebaseAuthService {
       };
 
       await userService.addUser(customUser);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error during signing up:", error);
+      this.dispatchError(error);
+
       return false;
     }
+
+    store.dispatch(
+      setUINotification({
+        message: "Hesabınız başarıyla oluşturuldu. Şimdi giriş yapabilirsiniz.",
+        notificationType: UINotificationEnum.SUCCESS,
+      })
+    );
 
     return true;
   };
@@ -132,8 +160,9 @@ class FirebaseAuthService {
     try {
       const result = await sendPasswordResetEmail(auth, email);
       console.log(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error sending reset password email:", error);
+      this.dispatchError(error);
     }
   };
 
@@ -149,8 +178,9 @@ class FirebaseAuthService {
     try {
       const result = await reauthenticateWithCredential(user, credentials);
       console.log(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error during reauthentication:", error);
+      this.dispatchError(error);
     }
   };
 }
