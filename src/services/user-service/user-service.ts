@@ -168,7 +168,10 @@ class UserService {
       body: JSON.stringify(requestBody),
     });
 
-    if (!result.ok) throw new Error(result.statusText);
+    if (!result.ok) {
+      const errorData = await result.json();
+      throw new Error(errorData.error || "Bir hata oluştu.");
+    }
   };
 
   /**

@@ -7,6 +7,11 @@ class UiReducerSelector {
 
   getIsLoading = createSelector(this.getUiReducer, (ui) => ui.isLoading);
 
+  getUINotification = createSelector(
+    this.getUiReducer,
+    (ui) => ui.uiNotification
+  );
+
   getIsHamburgerMenuOpen = createSelector(
     this.getUiReducer,
     (ui) => ui.isHamburgerMenuOpen
