@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import { parse } from "next-useragent";
 
@@ -16,56 +16,12 @@ import InnerTopAd from "@/components/ad-tags/inner-top-ad/inner-top-ad";
 
 import { setIsMobile } from "@/store/reducers/context-reducer/context-slice";
 import { Toaster } from "@/components/ui/sonner";
-import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
-import { toast } from "sonner";
-import {
-  UINotificationEnum,
-  setUINotification,
-} from "@/store/reducers/ui-reducer/ui-slice";
+import useUINotification from "@/hooks/useUINotification";
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const dispatch = useDispatch();
-  const uiNotification = useSelector(uiReducerSelector.getUINotification);
 
-  const { duration, message, notificationType, position } =
-    uiNotification ?? {};
-
-  useEffect(() => {
-    if (message) {
-      const otherProps = {
-        duration: duration ?? 3000,
-        position: position ?? "top-center",
-      };
-
-      switch (notificationType) {
-        case UINotificationEnum.ERROR:
-          toast.error(message, otherProps);
-          break;
-
-        case UINotificationEnum.WARNING:
-          toast.warning(message, otherProps);
-          break;
-
-        case UINotificationEnum.SUCCESS:
-          toast.success(message, otherProps);
-          break;
-
-        case UINotificationEnum.INFO:
-          toast.info(message, otherProps);
-          break;
-
-        default:
-          toast(message, otherProps);
-      }
-    }
-
-    dispatch(
-      setUINotification({
-        message: "",
-        notificationType: UINotificationEnum.DEFAULT,
-      })
-    );
-  }, [dispatch, duration, message, notificationType, position]);
+  useUINotification();
 
   useEffect(() => {
     if (window) {
