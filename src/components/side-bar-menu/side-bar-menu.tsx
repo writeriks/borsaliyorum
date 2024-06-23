@@ -13,7 +13,7 @@ const SideBarMenu: React.FC = () => {
 
   return (
     <div
-      className={`fixed right-0 top-0 z-40 h-screen w-64 transform bg-black transition-transform ease-in-out ${
+      className={`fixed right-0 top-0 z-40 h-screen w-64 transform transition-transform ease-in-out ${
         isHamburgerMenuOpen ? "translate-x-0" : "translate-x-64"
       }`}
     >

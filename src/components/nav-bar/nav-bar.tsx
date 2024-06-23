@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { toggleHamburgerMenuOpen } from "@/store/reducers/ui-reducer/ui-slice";
 
 import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
+import ThemeModeToggle from "@/components/theme-toggle/theme-toggle";
 
 const NavigationBar = () => {
   const dispatch = useDispatch();
@@ -16,7 +17,7 @@ const NavigationBar = () => {
   );
 
   return (
-    <nav className="h-[60px] bg-themeColor p-4 rounded-md border-1 border-black">
+    <nav className="h-[60px] p-4 rounded-md border-1 border-black">
       <div className="container mx-auto flex items-center justify-between">
         <a href="/">LOGO</a>
 
@@ -62,6 +63,7 @@ const NavigationBar = () => {
           <a href="/" className="text-md">
             Log out
           </a>
+          <ThemeModeToggle />
         </div>
       </div>
     </nav>

@@ -20,7 +20,7 @@ const UserProfileOptions = () => {
   return (
     <div
       id="user-profile-section"
-      className="min-h-44 bg-themeColor flex p-2 flex-col border-black border-2 rounded-md"
+      className="min-h-44 flex p-2 flex-col border-black border-2 rounded-md"
     >
       {user ? (
         <div className="w-full h-full flex flex-col p-1">
@@ -29,7 +29,7 @@ const UserProfileOptions = () => {
           </div>
           <div>
             <Button
-              className="text-white ttext-primary-text text-[13px] leading-[16px] p-0"
+              className="text-primary-text text-[13px] leading-[16px] p-0"
               variant="link"
               onClick={logout}
             >

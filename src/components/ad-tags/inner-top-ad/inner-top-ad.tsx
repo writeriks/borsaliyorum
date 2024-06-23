@@ -9,7 +9,7 @@ const InnerTopAd = () => {
   // make the call for ad if not mobile
 
   return (
-    <div className="flex min-h-24 lg:min-h-44 bg-black items-center justify-center text-base">
+    <div className="flex min-h-24 lg:min-h-44 items-center justify-center text-base">
       Inner Top Ad
     </div>
   );

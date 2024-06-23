@@ -32,7 +32,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <LeftMainAd />
-      <main className="flex-grow  bg-black text-base text-white">
+      <main className="flex-grow text-base">
         <SideBarMenu />
         <NavigationBar />
 
