@@ -56,7 +56,7 @@ const NavigationBar = () => {
           </button>
         </div>
 
-        <div className={`hidden space-x-4 md:flex`}>
+        <div className={`hidden space-x-4 md:flex items-center`}>
           <a href="/" className="text-md">
             Test
           </a>
