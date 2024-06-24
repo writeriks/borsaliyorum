@@ -5,6 +5,7 @@ import ReduxProvider from "../components/redux-provider/redux-provider";
 import "./globals.css";
 
 import MainLayout from "@/components/main-layout/main-layout";
+import { ThemeProvider } from "@/components/theme-provider/theme-provider";
 
 export const metadata: Metadata = {
   title: "Türk Borsa ve Yatırım Sosyal Medya Platformu",
@@ -30,7 +31,14 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen flex flex-col lg:flex-row">
         <ReduxProvider>
-          <MainLayout>{children}</MainLayout>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <MainLayout>{children}</MainLayout>
+          </ThemeProvider>
         </ReduxProvider>
       </body>
     </html>

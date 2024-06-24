@@ -11,7 +11,7 @@ const InnerLeftMainAd = () => {
   return (
     <div
       id="inner-left-ad-section"
-      className="h-full bg-black flex items-center justify-center text-base"
+      className="h-full flex items-center justify-center text-base"
     >
       <div className="h-96"></div>
       INNER LEFT AD SECTION
