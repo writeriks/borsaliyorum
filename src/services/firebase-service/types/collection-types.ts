@@ -20,4 +20,5 @@ export enum CollectionPath {
   Stocks = "stocks",
   Following = "following",
   Followers = "followers",
+  SecurityRoles = "securityRoles",
 }
