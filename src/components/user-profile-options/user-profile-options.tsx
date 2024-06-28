@@ -10,7 +10,6 @@ const UserProfileOptions = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const user = useUser();
-  console.log("🚀 ~ UserProfileOptions ~ user:", user);
 
   const logout = async () => {
     await firebaseAuthService.signOut();

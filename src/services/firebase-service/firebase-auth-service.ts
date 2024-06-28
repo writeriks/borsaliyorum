@@ -43,6 +43,7 @@ class FirebaseAuthService {
     try {
       const result = await signInWithPopup(auth, provider);
       const { user } = result;
+
       const userDocument = await userService.getUserById(user.uid);
 
       if (userDocument) {
@@ -62,6 +63,8 @@ class FirebaseAuthService {
 
         await userService.addUser(customUser);
       }
+
+      await userService.validateUser(user);
       console.log(result);
     } catch (error: any) {
       console.error("Error signing in with Google:", error);
@@ -75,6 +78,10 @@ class FirebaseAuthService {
   signOut = async (): Promise<void> => {
     try {
       await signOut(auth);
+      await userService.logOutUser();
+      if (typeof window !== "undefined") {
+        window.location.reload();
+      }
     } catch (error: any) {
       console.error("Error signing out:", error);
       this.dispatchError(error);
@@ -93,6 +100,8 @@ class FirebaseAuthService {
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       const userDocument = await userService.getUserById(user.uid);
+
+      await userService.validateUser(user);
       if (userDocument) {
         await userService.syncUser(user, userDocument);
       }
@@ -115,7 +124,7 @@ class FirebaseAuthService {
     password: string
   ): Promise<boolean> => {
     try {
-      await userService.validateUser(username, email, displayName);
+      await userService.checkIfUserExist(username, email, displayName);
 
       const result = await createUserWithEmailAndPassword(
         auth,
@@ -124,6 +133,8 @@ class FirebaseAuthService {
       );
       const { user } = result;
       await userService.sendEmailVerification(user);
+
+      await userService.validateUser(user);
 
       const customUser: User = {
         [UserEnum.USER_ID]: user.uid,
