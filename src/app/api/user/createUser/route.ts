@@ -9,13 +9,12 @@ import {
   UserEnum,
 } from "@/services/firebase-service/types/db-types/user";
 import { Timestamp } from "firebase/firestore";
-import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const userData = body["user"] as User;
+  const userData: User = body["user"];
+
   const { userId } = userData;
-  let response;
 
   try {
     // Create user document
@@ -40,17 +39,15 @@ export async function POST(request: Request) {
       }
     );
 
-    response = NextResponse.json(null, {
+    return new Response(null, {
       status: 200,
       statusText: "SUCCESS",
     });
   } catch (error) {
     console.log("ERROR:", error);
-    response = NextResponse.json(null, {
+    return new Response(null, {
       status: 500,
       statusText: "Internal Server Error",
     });
   }
-
-  return response;
 }

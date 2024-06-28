@@ -1,111 +1,30 @@
-import {
-  isValidDisplayName,
-  isValidEmail,
-  isValidUsername,
-} from "@/app/utils/user-utils/user-utils";
-import firebaseOperations from "@/services/firebase-service/firebase-operations";
-import {
-  FirebaseDocumentQueryResponse,
-  WhereFieldEnum,
-} from "@/services/firebase-service/firebase-operations-types";
-import { CollectionPath } from "@/services/firebase-service/types/collection-types";
-import { UserEnum } from "@/services/firebase-service/types/db-types/user";
+import { auth } from "@/services/firebase-service/firebase-admin";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const username = body["username"] as string;
-  const email = body["email"] as string;
-  const displayName = body["displayName"] as string;
-  let response;
+  const token: string = body["token"];
 
-  const badRequestProps = {
-    status: 400,
-    statusText: "Bad Request",
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-    },
-  };
-
-  const searchField = async (
-    field: UserEnum,
-    value: string
-  ): Promise<FirebaseDocumentQueryResponse> => {
-    return firebaseOperations.getDocumentsWithQuery({
-      collectionPath: CollectionPath.Users,
-      whereFields: [
-        {
-          field,
-          operator: WhereFieldEnum.EQUALS,
-          value,
-        },
-      ],
-    });
-  };
-
-  const isUsernameTaken = async (username: string): Promise<boolean> => {
-    const result = await searchField(UserEnum.USERNAME, username);
-
-    return result.documents.length > 0;
-  };
-
-  const isEmailTaken = async (email: string): Promise<boolean> => {
-    const result = await searchField(UserEnum.EMAIL, email);
-
-    return result.documents.length > 0;
-  };
-
-  // Check if username is valid
-  if (!isValidUsername(username)) {
-    const message = "Geçersiz kullanıcı adı.";
-
-    return NextResponse.json({ error: message }, badRequestProps);
-  }
-
-  // Check if email is valid
-  if (!isValidEmail(email)) {
-    const message = "Geçersiz e-posta.";
-
-    return NextResponse.json({ error: message }, badRequestProps);
-  }
-
-  // Check if display name is valid
-  if (!isValidDisplayName(displayName)) {
-    const message = "Geçersiz ad soyad.";
-
-    return NextResponse.json({ error: message }, badRequestProps);
-  }
-
-  // Check if email or username is already taken
   try {
-    const emailTaken = await isEmailTaken(email.toLowerCase());
+    const decodedToken = await auth.verifyIdToken(token);
+    const uid = decodedToken.uid;
 
-    if (emailTaken) {
-      const message = "Bu e-posta adresi ile bir kullanıcı zaten mevcut.";
+    const body = { message: "Logged in successfully", uid };
 
-      return NextResponse.json({ error: message }, badRequestProps);
-    }
-
-    const usernameTaken = await isUsernameTaken(username.toLowerCase());
-
-    if (usernameTaken) {
-      const message =
-        "Bu kullanıcı adı daha önce alınmış. Lütfen farklı bir kullanıcı adı ile tekrar deneyin.";
-
-      return NextResponse.json({ error: message }, badRequestProps);
-    }
-
-    response = NextResponse.json(null, {
+    return NextResponse.json(body, {
       status: 200,
       statusText: "SUCCESS",
+      headers: {
+        "Set-Cookie": `identity=${token}; HttpOnly; Secure; Max-Age=86400; SameSite=Lax; Path=/`,
+      },
     });
   } catch (error) {
-    console.log("ERROR:", error);
-    response = NextResponse.json(null, {
-      status: 500,
-      statusText: "Internal Server Error",
-    });
+    return NextResponse.json(
+      { error: `Unauthorized ${error}` },
+      {
+        status: 401,
+        statusText: "Unauthorized",
+      }
+    );
   }
-
-  return response;
 }

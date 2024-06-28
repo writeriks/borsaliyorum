@@ -148,12 +148,12 @@ class UserService {
   };
 
   /**
-   * Validates a new user to make sure username and email are not taken as well as other string validations.
+   * Checks the new user to make sure username and email are not taken as well as other string validations.
    * @param username - username to check
    * @param email - email to check
    * @param displayName - displayName to check
    */
-  validateUser = async (
+  checkIfUserExist = async (
     username: string,
     email: string,
     displayName: string
@@ -163,9 +163,42 @@ class UserService {
       email,
       displayName,
     };
+    const result = await fetch("/api/user/checkIfUserExist", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!result.ok) {
+      const errorData = await result.json();
+      throw new Error(errorData.error || "Bir hata oluştu.");
+    }
+  };
+
+  /**
+   * Validates the provided Firebase user and assigns a session cookie.
+   * @param user - The Firebase user to validate.
+   */
+  validateUser = async (user: FirebaseUser): Promise<void> => {
+    const token = await user.getIdToken();
+    const requestBody = { token };
+
     const result = await fetch("/api/user/validateUser", {
       method: "POST",
       body: JSON.stringify(requestBody),
+    });
+
+    if (!result.ok) {
+      const errorData = await result.json();
+      throw new Error(errorData.error || "Bir hata oluştu.");
+    }
+  };
+
+  /**
+   * Logs out the current user.
+   */
+  logOutUser = async (): Promise<void> => {
+    const result = await fetch("/api/user/logout", {
+      method: "POST",
     });
 
     if (!result.ok) {
