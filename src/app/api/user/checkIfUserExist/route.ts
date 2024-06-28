@@ -17,7 +17,6 @@ export async function POST(request: Request) {
   const username = body["username"] as string;
   const email = body["email"] as string;
   const displayName = body["displayName"] as string;
-  let response;
 
   const badRequestProps = {
     status: 400,
@@ -95,17 +94,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: message }, badRequestProps);
     }
 
-    response = NextResponse.json(null, {
+    return new Response(null, {
       status: 200,
       statusText: "SUCCESS",
     });
   } catch (error) {
-    console.log("ERROR:", error);
-    response = NextResponse.json(null, {
+    return new Response(null, {
       status: 500,
       statusText: "Internal Server Error",
     });
   }
-
-  return response;
 }
