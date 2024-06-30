@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { toggleHamburgerMenuOpen } from "@/store/reducers/ui-reducer/ui-slice";
 
 import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
-import ThemeModeToggle from "@/components/theme-toggle/theme-toggle";
 
 const NavigationBar = () => {
   const dispatch = useDispatch();
@@ -63,7 +62,6 @@ const NavigationBar = () => {
           <a href="/" className="text-md">
             Log out
           </a>
-          <ThemeModeToggle />
         </div>
       </div>
     </nav>

@@ -39,7 +39,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         <div id="main-container" className="flex w-full flex-col lg:flex-row">
           <div
             id="left-section"
-            className="hidden lg:flex flex-col lg:min-w-64"
+            className="hidden md:flex md:min-w-64 lg:flex flex-col lg:min-w-64"
           >
             <UserProfileOptions />
             <InnerLeftMainAd />
