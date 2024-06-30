@@ -5,7 +5,7 @@ import firebaseAuthService from "@/services/firebase-service/firebase-auth-servi
 import { Label } from "@/components/ui/label";
 import useUser from "@/hooks/useUser";
 import { AuthModal } from "@/components/auth/auth-modal";
-import { Bell, Edit, LogOut, Settings, User } from "lucide-react";
+import { Bell, LogOut, Settings, User } from "lucide-react";
 import {
   Select,
   SelectContent,

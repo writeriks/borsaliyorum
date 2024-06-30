@@ -69,6 +69,10 @@ const config = {
           DEFAULT: "hsl(var(--purple))",
           foreground: "hsl(var(--purple-foreground))",
         },
+        bullish: {
+          DEFAULT: "hsl(var(--bullish))",
+          foreground: "hsl(var(--bullish-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -16,7 +16,7 @@ const NavigationBar = () => {
   );
 
   return (
-    <nav className="h-[60px] p-4 rounded-md border-1 border-black">
+    <nav className="h-[60px] p-4 rounded-md sticky bg-background top-0 z-50 border-1 border-black overflow-hidden">
       <div className="container mx-auto flex items-center justify-between">
         <a href="/">LOGO</a>
 
