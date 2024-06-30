@@ -12,20 +12,20 @@ const ThemeModeToggle = () => {
   const modeName = isDark ? "Aydınlık Tema" : "Karanlık Tema";
 
   return (
-    <Button
-      className="outline-none border-none rounded-full"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      variant="outline"
-      size="icon"
-    >
-      {theme === "dark" ? (
-        <Sun className="dark:-rotate-90 dark:scale-100" />
-      ) : (
-        <Moon className="absolute dark:rotate-0 dark:scale-100" />
-      )}
-
-      <span className="sr-only">{modeName}</span>
-    </Button>
+    <div>
+      <Button
+        variant="secondary"
+        className="bg-transparent dark:bg-transparent dark:hover:bg-secondary"
+        onClick={() => setTheme(isDark ? "light" : "dark")}
+      >
+        {theme === "dark" ? (
+          <Sun className="mr-2 h-4 w-4 dark:-rotate-90 dark:scale-100" />
+        ) : (
+          <Moon className="mr-2 h-4 w-4 dark:rotate-0 dark:scale-100" />
+        )}{" "}
+        {modeName}
+      </Button>
+    </div>
   );
 };
 
