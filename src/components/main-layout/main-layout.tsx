@@ -36,7 +36,10 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         <SideBarMenu />
         <NavigationBar />
 
-        <div id="main-container" className="flex w-full flex-col lg:flex-row">
+        <div
+          id="main-container"
+          className="flex w-full flex-col md:flex-row lg:flex-row"
+        >
           <div
             id="left-section"
             className="hidden md:flex md:min-w-64 lg:flex flex-col lg:min-w-64"
@@ -47,7 +50,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
 
           <div
             id="right-section"
-            className="flex flex-col h-full lg:w-full border-1 border-black rounded-md"
+            className="flex flex-col h-full md:w-full lg:w-full border-1 border-black rounded-md"
           >
             <InnerTopAd />
             {children}
