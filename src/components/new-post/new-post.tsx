@@ -14,7 +14,7 @@ const NewPost = () => {
   // TODO replace hook with redux selector. Get user from redux
   const user = useUser();
   const profileImage = user?.profilePhoto;
-  const proxyUrl = `/api/imageProxy?imageUrlaS=${encodeURIComponent(
+  const proxyUrl = `/api/imageProxy?imageUrl=${encodeURIComponent(
     profileImage as string
   )}`;
 
