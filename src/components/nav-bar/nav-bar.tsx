@@ -16,12 +16,12 @@ const NavigationBar = () => {
   );
 
   return (
-    <nav className="h-[60px] p-4 rounded-md sticky bg-background top-0 z-50 border-1 border-black overflow-hidden">
+    <nav className="h-[60px] p-4  rounded-md sticky bg-background top-0 z-50 border-1 border-black overflow-hidden">
       <div className="container mx-auto flex items-center justify-between">
         <a href="/">LOGO</a>
 
         {/* Hamburger menu for mobile */}
-        <div className="z-50 md:hidden">
+        <div className="z-40 md:hidden">
           <button
             title="hamburger menu"
             className="transform transition duration-300 ease-in-out"

@@ -14,11 +14,11 @@ const SideBarMenu: React.FC = () => {
 
   return (
     <div
-      className={`md:hidden md:min-w-64 fixed right-0 top-0 z-40 h-screen w-64 transform bg-white dark:bg-slate-800 transition-transform ease-in-out ${
+      className={`md:hidden md:min-w-64 fixed right-0 top-0 z-50 h-screen w-64 transform dark:bg-background bg-white transition-transform ease-in-out ${
         isHamburgerMenuOpen ? "translate-x-0" : "translate-x-64"
       }`}
     >
-      <ul className="flex h-full flex-col items-center space-y-4 border-2 border-secondary">
+      <ul className="flex h-full flex-col items-center space-y-4 ">
         <li className="mt-12">
           <UserProfileOptions />
         </li>
