@@ -1,9 +1,8 @@
-import userService from "@/services/user-service/user-service";
 import { NextResponse, NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  const asd = request.headers.get("Cookie");
-  const token = asd?.split("identity=")[1];
+  const cookie = request.headers.get("Cookie");
+  const token = cookie?.split("identity=")[1];
 
   try {
     if (token) {
