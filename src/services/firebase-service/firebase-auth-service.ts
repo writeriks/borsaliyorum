@@ -66,7 +66,7 @@ class FirebaseAuthService {
 
       await userService.validateUser(user);
 
-      window.location.pathname = "/posts";
+      window.location.pathname = "/feed";
     } catch (error: any) {
       console.error("Error signing in with Google:", error);
       this.dispatchError(error);
@@ -107,7 +107,7 @@ class FirebaseAuthService {
         await userService.syncUser(user, userDocument);
       }
 
-      window.location.pathname = "/posts";
+      window.location.pathname = "/feed";
     } catch (error: any) {
       console.error("Error during signing in:", error);
       this.dispatchError(error);
@@ -150,7 +150,7 @@ class FirebaseAuthService {
 
       await userService.addUser(customUser);
 
-      window.location.pathname = "/posts";
+      window.location.pathname = "/feed";
     } catch (error: any) {
       console.error("Error during signing up:", error);
       this.dispatchError(error);
