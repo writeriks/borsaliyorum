@@ -7,10 +7,12 @@ export enum LoginMethod {
 
 export interface AuthState {
   loginMethod: LoginMethod;
+  isAuthModalOpen: boolean;
 }
 
 export const initialState: AuthState = {
   loginMethod: LoginMethod.EmailAndPassword,
+  isAuthModalOpen: false,
 };
 
 const authSlice = createSlice({
@@ -20,9 +22,13 @@ const authSlice = createSlice({
     setLoginMethod: (state, action: PayloadAction<LoginMethod>) => {
       state.loginMethod = action.payload;
     },
+
+    setIsAuthModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isAuthModalOpen = action.payload;
+    },
   },
 });
 
-export const { setLoginMethod } = authSlice.actions;
+export const { setLoginMethod, setIsAuthModalOpen } = authSlice.actions;
 
 export default authSlice.reducer;
