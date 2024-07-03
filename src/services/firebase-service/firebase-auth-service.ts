@@ -19,6 +19,7 @@ import { Timestamp } from "firebase/firestore";
 import store from "@/store/redux-store";
 import {
   UINotificationEnum,
+  setIsLoading,
   setUINotification,
 } from "@/store/reducers/ui-reducer/ui-slice";
 
@@ -99,6 +100,7 @@ class FirebaseAuthService {
     password: string
   ): Promise<void> => {
     try {
+      store.dispatch(setIsLoading(true));
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       const userDocument = await userService.getUserById(user.uid);
 

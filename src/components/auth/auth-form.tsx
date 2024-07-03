@@ -26,7 +26,6 @@ export function AuthForm() {
   const onSubmit = async (
     values: z.infer<typeof loginFormSchema & typeof registerFormSchema>
   ) => {
-    console.log(values);
     setIsLoading(true);
 
     if (formType === FormType.Login) {

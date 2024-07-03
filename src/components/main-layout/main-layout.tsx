@@ -17,11 +17,13 @@ import InnerTopAd from "@/components/ad-tags/inner-top-ad/inner-top-ad";
 import { setIsMobile } from "@/store/reducers/context-reducer/context-slice";
 import { Toaster } from "@/components/ui/sonner";
 import useUINotification from "@/hooks/useUINotification";
+import useUser from "@/hooks/useUser";
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const dispatch = useDispatch();
 
   useUINotification();
+  useUser();
 
   useEffect(() => {
     if (window) {

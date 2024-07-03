@@ -9,6 +9,11 @@ class AuthReducerSelector {
     this.getAuthReducer,
     (auth) => auth.loginMethod
   );
+
+  getIsAuthModalOpen = createSelector(
+    this.getAuthReducer,
+    (auth) => auth.isAuthModalOpen
+  );
 }
 
 const authReducerSelector = new AuthReducerSelector();
