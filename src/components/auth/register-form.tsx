@@ -25,11 +25,11 @@ interface RegisterFormProps {
   onLoginClick(): void;
 }
 
-export function RegisterForm({
+export const RegisterForm = ({
   isLoading,
   onLoginClick,
   onSubmit,
-}: RegisterFormProps) {
+}: RegisterFormProps): React.ReactNode => {
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<z.infer<typeof registerFormSchema>>({
@@ -130,4 +130,4 @@ export function RegisterForm({
       </form>
     </Form>
   );
-}
+};

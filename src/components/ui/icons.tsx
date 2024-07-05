@@ -47,7 +47,7 @@ export const Icons = {
       ></path>
     </svg>
   ),
-  google: (props: IconProps) => (
+  google: () => (
     <svg
       className="h-6 w-6 mr-2"
       xmlns="http://www.w3.org/2000/svg"
@@ -88,7 +88,7 @@ export const Icons = {
       </g>
     </svg>
   ),
-  facebook: (props: IconProps) => (
+  facebook: () => (
     <svg
       className="h-6 w-6 mr-2"
       xmlns="http://www.w3.org/2000/svg"

@@ -10,7 +10,7 @@ import {
 } from "@/services/firebase-service/types/db-types/user";
 import { Timestamp } from "firebase/firestore";
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   const body = await request.json();
   const userData: User = body["user"];
 

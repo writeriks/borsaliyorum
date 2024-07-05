@@ -5,23 +5,23 @@ import userService from "@/services/user-service/user-service";
 import { User } from "@/services/firebase-service/types/db-types/user";
 
 const useUser = (): User | null => {
-  const [user, setUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const userData = (await userService.getUserById(user.uid)) as User;
 
-        setUser(userData);
+        setCurrentUser(userData);
       } else {
-        setUser(null);
+        setCurrentUser(null);
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  return user;
+  return currentUser;
 };
 
 export default useUser;

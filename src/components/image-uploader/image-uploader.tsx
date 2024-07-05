@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { ImagePlus } from "lucide-react";
 import React, { ChangeEvent } from "react";
+
+import { Button } from "@/components/ui/button";
+import { ImagePlus } from "lucide-react";
 
 interface ImageUploaderProps {
   onImageUpload: (image: string) => void;
@@ -14,7 +14,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   fileInputRef,
   children,
 }) => {
-  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>): void => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -25,7 +25,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
   };
 
-  const handleImageUpload = () => {
+  const handleImageUpload = (): void => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }

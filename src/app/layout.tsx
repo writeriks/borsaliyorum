@@ -22,25 +22,25 @@ export const metadata: Metadata = {
   ],
 };
 
-export default function RootLayout({
+const RootLayout = ({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en">
-      <body className="min-h-screen flex flex-col lg:flex-row">
-        <ReduxProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <MainLayout>{children}</MainLayout>
-          </ThemeProvider>
-        </ReduxProvider>
-      </body>
-    </html>
-  );
-}
+}>): React.ReactNode => (
+  <html lang="en">
+    <body className="min-h-screen flex flex-col lg:flex-row">
+      <ReduxProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <MainLayout>{children}</MainLayout>
+        </ThemeProvider>
+      </ReduxProvider>
+    </body>
+  </html>
+);
+
+export default RootLayout;

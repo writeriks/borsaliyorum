@@ -12,7 +12,7 @@ import { CollectionPath } from "@/services/firebase-service/types/collection-typ
 import { UserEnum } from "@/services/firebase-service/types/db-types/user";
 import { NextResponse } from "next/server";
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   const body = await request.json();
   const username = body["username"] as string;
   const email = body["email"] as string;
@@ -42,14 +42,14 @@ export async function POST(request: Request) {
     });
   };
 
-  const isUsernameTaken = async (username: string): Promise<boolean> => {
-    const result = await searchField(UserEnum.USERNAME, username);
+  const isUsernameTaken = async (): Promise<boolean> => {
+    const result = await searchField(UserEnum.USERNAME, username.toLowerCase());
 
     return result.documents.length > 0;
   };
 
-  const isEmailTaken = async (email: string): Promise<boolean> => {
-    const result = await searchField(UserEnum.EMAIL, email);
+  const isEmailTaken = async (): Promise<boolean> => {
+    const result = await searchField(UserEnum.EMAIL, email.toLowerCase());
 
     return result.documents.length > 0;
   };
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
 
   // Check if email or username is already taken
   try {
-    const emailTaken = await isEmailTaken(email.toLowerCase());
+    const emailTaken = await isEmailTaken();
 
     if (emailTaken) {
       const message = "Bu e-posta adresi ile bir kullanıcı zaten mevcut.";
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: message }, badRequestProps);
     }
 
-    const usernameTaken = await isUsernameTaken(username.toLowerCase());
+    const usernameTaken = await isUsernameTaken();
 
     if (usernameTaken) {
       const message =

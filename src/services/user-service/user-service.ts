@@ -209,9 +209,8 @@ class UserService {
 
   /**
    * Updates the profile of the provided user.
-   * @param user - The user to update.
    */
-  updateUserProfile = async (user: User): Promise<void> => {
+  updateUserProfile = async (): Promise<void> => {
     try {
       if (auth.currentUser) {
         // TODO

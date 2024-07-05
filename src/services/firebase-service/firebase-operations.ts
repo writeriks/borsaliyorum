@@ -14,6 +14,7 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  DocumentSnapshot,
 } from "firebase/firestore";
 import { db } from "./firebase-config";
 import { CollectionPath } from "@/services/firebase-service/types/collection-types";
@@ -75,7 +76,7 @@ class FirebaseOperations {
       const querySnapshot = await getDocs(firebaseQuery);
 
       return {
-        documents: querySnapshot.docs.map((doc) => doc.data()),
+        documents: querySnapshot.docs.map((document) => document.data()),
         lastDocument: querySnapshot.docs[querySnapshot.docs.length - 1] || null,
         previousLimit: documentLimit,
         previousOrderByField: orderByField,
@@ -101,7 +102,7 @@ class FirebaseOperations {
   createDocumentWithAutoId = async (
     collectionPath: CollectionPath,
     data: Record<string, any>
-  ) => {
+  ): Promise<void> => {
     try {
       const docRef = await addDoc(collection(db, collectionPath), data);
       console.log("Document written with ID: ", docRef.id);
@@ -120,7 +121,7 @@ class FirebaseOperations {
     collectionPath: string,
     docId: string,
     data: Record<string, any>
-  ) => {
+  ): Promise<void> => {
     try {
       await setDoc(doc(db, collectionPath, docId), data);
       console.log("Document written with ID: ", docId);
@@ -134,13 +135,17 @@ class FirebaseOperations {
    * @param collectionPath - The path to the collection
    * @param docId - The custom ID for the document
    */
-  getDocumentById = async (collectionPath: string, docId: string) => {
+  getDocumentById = async (
+    collectionPath: string,
+    docId: string
+  ): Promise<DocumentSnapshot<DocumentData, DocumentData>> => {
     try {
       const docRef = doc(db, collectionPath, docId);
 
       return getDoc(docRef);
     } catch (e) {
       console.error("Error getting document: ", e);
+      throw e; // Add a throw statement to handle the error case
     }
   };
 
@@ -154,7 +159,7 @@ class FirebaseOperations {
     collectionPath: string,
     docId: string,
     data: Record<string, any>
-  ) => {
+  ): Promise<void> => {
     try {
       const docRef = doc(db, collectionPath, docId);
       await updateDoc(docRef, data);
@@ -169,7 +174,10 @@ class FirebaseOperations {
    * @param collectionPath - The path to the collection
    * @param docId - The custom ID for the document
    */
-  deleteDocumentById = async (collectionPath: string, docId: string) => {
+  deleteDocumentById = async (
+    collectionPath: string,
+    docId: string
+  ): Promise<void> => {
     try {
       const docRef = doc(db, collectionPath, docId);
       await deleteDoc(docRef);

@@ -3,7 +3,7 @@ import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import useUser from "@/hooks/useUser";
 
-const UserAvatar = () => {
+const UserAvatar = (): React.ReactNode => {
   const user = useUser();
   const profileImage = user?.profilePhoto;
   const proxyUrl = `/api/imageProxy?imageUrl=${encodeURIComponent(

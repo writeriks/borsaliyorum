@@ -11,15 +11,13 @@ import firebaseAuthService from "@/services/firebase-service/firebase-auth-servi
 interface LoginWithProvidersProps {
   isLoading: boolean;
 }
-export function LoginWithProviders({ isLoading }: LoginWithProvidersProps) {
-  const loginWithGoogle = () => {
-    firebaseAuthService.signInWithGoogle();
-  };
-
+export const LoginWithProviders = ({
+  isLoading,
+}: LoginWithProvidersProps): React.ReactNode => {
   return (
     <div className="grid space-y-2">
       <Button
-        onClick={loginWithGoogle}
+        onClick={() => firebaseAuthService.signInWithGoogle()}
         variant="outline"
         type="button"
         disabled={isLoading}
@@ -33,4 +31,4 @@ export function LoginWithProviders({ isLoading }: LoginWithProvidersProps) {
       </Button>
     </div>
   );
-}
+};

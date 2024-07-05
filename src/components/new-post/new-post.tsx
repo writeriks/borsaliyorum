@@ -1,16 +1,19 @@
 "use client";
 
-import React, { ChangeEvent, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import UserAvatar from "@/components/user-avatar/user-avatar";
 
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ArrowBigDown, TrendingDown, TrendingUp, X } from "lucide-react";
+import { TrendingDown, TrendingUp, X } from "lucide-react";
 import Image from "next/image";
 import ImageUploader from "@/components/image-uploader/image-uploader";
+import { Label } from "@/components/ui/label";
 
-const NewPost = () => {
+const MAX_CHARACTERS = 1000;
+
+const NewPost = (): React.ReactElement => {
   const [idea, setIdea] = useState("");
   const [isBullish, setIsBullish] = useState(true);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -26,11 +29,11 @@ const NewPost = () => {
     }
   }, [idea]);
 
-  const handleToggle = () => {
+  const handleToggle = (): void => {
     setIsBullish(!isBullish);
   };
 
-  const handleRemoveImage = () => {
+  const handleRemoveImage = (): void => {
     setImageSrc(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -44,15 +47,23 @@ const NewPost = () => {
 
       <div className="flex flex-col ml-2 w-full justify-between">
         <div>
-          <Textarea
-            ref={textareaRef}
-            autoFocus
-            className="text-lg w-full resize-none border-none outline-none focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:border-none"
-            rows={1}
-            placeholder="$TUPRS - Ne düşünüyorsun"
-            value={idea}
-            onChange={(e) => setIdea(e.target.value)}
-          />
+          <div className="flex">
+            <Textarea
+              ref={textareaRef}
+              autoFocus
+              className="text-lg w-full resize-none border-none outline-none focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:border-none"
+              rows={1}
+              maxLength={1000}
+              placeholder="$TUPRS - Ne düşünüyorsun"
+              value={idea}
+              onChange={(e) => setIdea(e.target.value)}
+            />
+            {idea ? (
+              <Label className="flex flex-col-reverse text-sm">
+                {MAX_CHARACTERS - idea.length}
+              </Label>
+            ) : null}
+          </div>
           <div className="relative w-full">
             {imageSrc && (
               <>

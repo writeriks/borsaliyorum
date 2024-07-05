@@ -25,7 +25,7 @@ import {
 class FirebaseAuthService {
   genericErrorMessage = "Bir hata oluştu.";
 
-  dispatchError = (error: any) => {
+  dispatchError = (error: any): void => {
     store.dispatch(
       setUINotification({
         message: error?.message ?? this.genericErrorMessage,

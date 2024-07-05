@@ -18,7 +18,11 @@ import { setIsMobile } from "@/store/reducers/context-reducer/context-slice";
 import { Toaster } from "@/components/ui/sonner";
 import useUINotification from "@/hooks/useUINotification";
 
-const MainLayout = ({ children }: { children: React.ReactNode }) => {
+const MainLayout = ({
+  children,
+}: {
+  children: React.ReactNode;
+}): React.ReactNode => {
   const dispatch = useDispatch();
 
   useUINotification();

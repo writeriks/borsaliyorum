@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
 
-const ThemeModeToggle = () => {
+const ThemeModeToggle = (): React.ReactNode => {
   const { setTheme, theme } = useTheme();
   console.log("🚀 ~ ThemeModeToggle ~ theme:", theme);
   const isDark = theme === "dark";

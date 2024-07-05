@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest): Promise<NextResponse> {
   const cookie = request.headers.get("Cookie");
   const token = cookie?.split("identity=")[1];
 

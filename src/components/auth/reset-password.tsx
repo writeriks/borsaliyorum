@@ -1,12 +1,8 @@
 "use client";
 
-import { useState } from "react";
-
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Icons } from "@/components/ui/icons";
-import { Label } from "@/components/ui/label";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -26,11 +22,11 @@ interface ResetPasswordProps {
   onLoginClick(): void;
 }
 
-export function ResetPassword({
+export const ResetPassword = ({
   isLoading,
   onSubmit,
   onLoginClick,
-}: ResetPasswordProps) {
+}: ResetPasswordProps): React.ReactNode => {
   const form = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
@@ -70,4 +66,4 @@ export function ResetPassword({
       </form>
     </Form>
   );
-}
+};

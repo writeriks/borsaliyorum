@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 
 import contextReducerSelector from "@/store/reducers/context-reducer/context-reducer-selector";
 
-const InnerLeftMainAd = () => {
+const InnerLeftMainAd = (): React.ReactNode => {
   const isMobile = useSelector(contextReducerSelector.getIsMobile);
   // make the call for ad if not mobile
 

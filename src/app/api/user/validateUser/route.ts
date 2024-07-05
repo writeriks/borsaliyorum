@@ -1,7 +1,7 @@
 import { auth } from "@/services/firebase-service/firebase-admin";
 import { NextResponse } from "next/server";
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   const body = await request.json();
   const token: string = body["token"];
 
@@ -9,9 +9,9 @@ export async function POST(request: Request) {
     const decodedToken = await auth.verifyIdToken(token);
     const uid = decodedToken.uid;
 
-    const body = { message: "Logged in successfully", uid };
+    const responseBody = { message: "Logged in successfully", uid };
 
-    return NextResponse.json(body, {
+    return NextResponse.json(responseBody, {
       status: 200,
       statusText: "SUCCESS",
       headers: {

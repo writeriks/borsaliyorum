@@ -7,7 +7,7 @@ import {
   setUINotification,
 } from "@/store/reducers/ui-reducer/ui-slice";
 
-const useUINotification = () => {
+const useUINotification = (): void => {
   const dispatch = useDispatch();
   const uiNotification = useSelector(uiReducerSelector.getUINotification);
 

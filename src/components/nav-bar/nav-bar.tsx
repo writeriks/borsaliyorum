@@ -9,7 +9,7 @@ import { toggleHamburgerMenuOpen } from "@/store/reducers/ui-reducer/ui-slice";
 import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
 import { cn } from "@/lib/utils";
 
-const NavigationBar = () => {
+const NavigationBar = (): React.ReactNode => {
   const dispatch = useDispatch();
 
   const isHamburgerMenuOpen = useSelector(

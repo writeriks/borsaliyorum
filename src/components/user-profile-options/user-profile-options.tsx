@@ -15,12 +15,17 @@ import {
 } from "@/components/ui/select";
 import ThemeModeToggle from "@/components/theme-toggle/theme-toggle";
 
-const UserProfileOptions = () => {
+const UserProfileOptions = (): React.ReactNode => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const user = useUser();
 
-  const onProfileSelectChange = (value: any) => {
+  const logout = async (): Promise<void> => {
+    await firebaseAuthService.signOut();
+    setIsAuthModalOpen(false);
+  };
+
+  const onProfileSelectChange = (value: any): void => {
     console.log(value);
     switch (value) {
       case "view-profile":
@@ -35,11 +40,6 @@ const UserProfileOptions = () => {
       default:
         break;
     }
-  };
-
-  const logout = async () => {
-    await firebaseAuthService.signOut();
-    setIsAuthModalOpen(false);
   };
 
   return (
