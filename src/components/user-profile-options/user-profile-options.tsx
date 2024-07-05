@@ -2,7 +2,6 @@ import React, { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import firebaseAuthService from "@/services/firebase-service/firebase-auth-service";
-import { AuthModal } from "@/components/auth/auth-modal";
 import { Bell, LogOut, Settings, User } from "lucide-react";
 import {
   Select,
@@ -16,15 +15,13 @@ import { useDispatch, useSelector } from "react-redux";
 import userReducerSelector from "@/store/reducers/user-reducer/user-reducer-selector";
 import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
 import { Skeleton } from "@/components/ui/skeleton";
-import authReducerSelector from "@/store/reducers/auth-reducer/auth-reducer-selector";
-import { setIsAuthModalOpen } from "@/store/reducers/auth-reducer/auth-slice";
 import UserAvatar from "@/components/user-avatar/user-avatar";
+import { setIsAuthModalOpen } from "@/store/reducers/ui-reducer/ui-slice";
 
 const UserProfileOptions = () => {
   const dispatch = useDispatch();
   const user = useSelector(userReducerSelector.getUser);
-  const isLoading = useSelector(uiReducerSelector.getIsLoading);
-  const isAuthModalOpen = useSelector(authReducerSelector.getIsAuthModalOpen);
+  const isAuthLoading = useSelector(uiReducerSelector.getIsAuthLoading);
 
   const onProfileSelectChange = (value: any) => {
     switch (value) {
@@ -47,7 +44,7 @@ const UserProfileOptions = () => {
     dispatch(setIsAuthModalOpen(false));
   };
 
-  return isLoading ? (
+  return isAuthLoading ? (
     <div className="flex items-center w-fit">
       <Skeleton className="h-8 w-8 rounded-full" />
       <div className="space-y-2">
@@ -112,13 +109,6 @@ const UserProfileOptions = () => {
           </Button>
         </div>
       )}
-
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onAuthModalOpenChange={() =>
-          dispatch(setIsAuthModalOpen(!isAuthModalOpen))
-        }
-      />
     </div>
   );
 };

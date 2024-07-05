@@ -5,7 +5,10 @@ import { type UIState } from "./ui-slice";
 class UiReducerSelector {
   getUiReducer = (state: RootState): UIState => state.ui;
 
-  getIsLoading = createSelector(this.getUiReducer, (ui) => ui.isLoading);
+  getIsAuthLoading = createSelector(
+    this.getUiReducer,
+    (ui) => ui.isAuthLoading
+  );
 
   getUINotification = createSelector(
     this.getUiReducer,
@@ -15,6 +18,11 @@ class UiReducerSelector {
   getIsHamburgerMenuOpen = createSelector(
     this.getUiReducer,
     (ui) => ui.isHamburgerMenuOpen
+  );
+
+  getIsAuthModalOpen = createSelector(
+    this.getUiReducer,
+    (ui) => ui.isAuthModalOpen
   );
 }
 

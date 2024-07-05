@@ -21,28 +21,30 @@ type UINotificationType = {
     | "bottom-right";
 };
 export interface UIState {
-  isLoading: boolean;
+  isAuthLoading: boolean;
   isHamburgerMenuOpen: boolean;
   refetchUserStocks: boolean;
   uiNotification: UINotificationType;
+  isAuthModalOpen: boolean;
 }
 
 export const initialState: UIState = {
-  isLoading: false,
+  isAuthLoading: false,
   isHamburgerMenuOpen: false,
   refetchUserStocks: false,
   uiNotification: {
     notificationType: UINotificationEnum.DEFAULT,
     message: "message",
   },
+  isAuthModalOpen: false,
 };
 
 const uiSlice = createSlice({
   name: "ui",
   initialState,
   reducers: {
-    setIsLoading: (state, action: PayloadAction<boolean>) => {
-      state.isLoading = action.payload;
+    setIsAuthLoading: (state, action: PayloadAction<boolean>) => {
+      state.isAuthLoading = action.payload;
     },
 
     toggleHamburgerMenuOpen: (state) => {
@@ -52,10 +54,18 @@ const uiSlice = createSlice({
     setUINotification: (state, action: PayloadAction<UINotificationType>) => {
       state.uiNotification = action.payload;
     },
+
+    setIsAuthModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isAuthModalOpen = action.payload;
+    },
   },
 });
 
-export const { setIsLoading, toggleHamburgerMenuOpen, setUINotification } =
-  uiSlice.actions;
+export const {
+  setIsAuthLoading,
+  setIsAuthModalOpen,
+  toggleHamburgerMenuOpen,
+  setUINotification,
+} = uiSlice.actions;
 
 export default uiSlice.reducer;

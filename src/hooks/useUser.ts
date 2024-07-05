@@ -6,8 +6,10 @@ import { User } from "@/services/firebase-service/types/db-types/user";
 import { UserState, setUser } from "@/store/reducers/user-reducer/user-slice";
 import { useDispatch, useSelector } from "react-redux";
 import userReducerSelector from "@/store/reducers/user-reducer/user-reducer-selector";
-import { setIsLoading } from "@/store/reducers/ui-reducer/ui-slice";
-import { setIsAuthModalOpen } from "@/store/reducers/auth-reducer/auth-slice";
+import {
+  setIsAuthLoading,
+  setIsAuthModalOpen,
+} from "@/store/reducers/ui-reducer/ui-slice";
 
 const useUser = (): UserState => {
   const dispatch = useDispatch();
@@ -17,8 +19,15 @@ const useUser = (): UserState => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const userData = (await userService.getUserById(user.uid)) as User;
-        // if (userData && window.location.pathname === "/feed")
-        if (!userState.isAuthenticated) {
+
+        // register case
+        if (!userData) {
+          dispatch(setIsAuthModalOpen(false));
+          return;
+        }
+
+        // login case
+        if (userData && !userState.isAuthenticated) {
           // Add more data if needed
           const { displayName, username, email, profilePhoto } = userData;
           dispatch(
@@ -46,7 +55,7 @@ const useUser = (): UserState => {
       }
 
       if (window.location.pathname === "/feed") {
-        dispatch(setIsLoading(false));
+        dispatch(setIsAuthLoading(false));
       }
     });
 

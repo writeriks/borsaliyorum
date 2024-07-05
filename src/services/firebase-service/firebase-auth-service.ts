@@ -19,7 +19,8 @@ import { Timestamp } from "firebase/firestore";
 import store from "@/store/redux-store";
 import {
   UINotificationEnum,
-  setIsLoading,
+  setIsAuthLoading,
+  setIsAuthModalOpen,
   setUINotification,
 } from "@/store/reducers/ui-reducer/ui-slice";
 
@@ -100,7 +101,7 @@ class FirebaseAuthService {
     password: string
   ): Promise<void> => {
     try {
-      store.dispatch(setIsLoading(true));
+      store.dispatch(setIsAuthLoading(true));
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       const userDocument = await userService.getUserById(user.uid);
 
@@ -129,6 +130,7 @@ class FirebaseAuthService {
     password: string
   ): Promise<boolean> => {
     try {
+      store.dispatch(setIsAuthLoading(true));
       await userService.checkIfUserExist(username, email, displayName);
 
       const result = await createUserWithEmailAndPassword(
@@ -151,9 +153,10 @@ class FirebaseAuthService {
       };
 
       await userService.addUser(customUser);
-
+      store.dispatch(setIsAuthModalOpen(false));
       window.location.pathname = "/feed";
     } catch (error: any) {
+      store.dispatch(setIsAuthModalOpen(false));
       console.error("Error during signing up:", error);
       this.dispatchError(error);
 

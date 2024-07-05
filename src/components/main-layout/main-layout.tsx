@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { parse } from "next-useragent";
 
@@ -18,12 +18,17 @@ import { setIsMobile } from "@/store/reducers/context-reducer/context-slice";
 import { Toaster } from "@/components/ui/sonner";
 import useUINotification from "@/hooks/useUINotification";
 import useUser from "@/hooks/useUser";
+import { AuthModal } from "@/components/auth/auth-modal";
+import uiReducerSelector from "@/store/reducers/ui-reducer/ui-reducer-selector";
+import { setIsAuthModalOpen } from "@/store/reducers/ui-reducer/ui-slice";
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const dispatch = useDispatch();
 
   useUINotification();
   useUser();
+
+  const isAuthModalOpen = useSelector(uiReducerSelector.getIsAuthModalOpen);
 
   useEffect(() => {
     if (window) {
@@ -62,6 +67,12 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       </main>
 
       <RightMainAd />
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onAuthModalOpenChange={() =>
+          dispatch(setIsAuthModalOpen(!isAuthModalOpen))
+        }
+      />
     </>
   );
 };
