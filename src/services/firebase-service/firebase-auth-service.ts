@@ -43,6 +43,7 @@ class FirebaseAuthService {
     const provider = new GoogleAuthProvider();
 
     try {
+      store.dispatch(setIsAuthLoading(true));
       const result = await signInWithPopup(auth, provider);
       const { user } = result;
 
@@ -82,9 +83,6 @@ class FirebaseAuthService {
     try {
       await signOut(auth);
       await userService.logOutUser();
-      if (typeof window !== "undefined") {
-        window.location.reload();
-      }
     } catch (error: any) {
       console.error("Error signing out:", error);
       this.dispatchError(error);
