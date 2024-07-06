@@ -1,21 +1,15 @@
-import { createSelector } from "@reduxjs/toolkit";
-import { type RootState } from "../../redux-store";
-import { type UIState } from "./ui-slice";
+import { createSelector } from '@reduxjs/toolkit';
+import { type RootState } from '../../redux-store';
+import { type UIState } from './ui-slice';
 
 class UiReducerSelector {
   getUiReducer = (state: RootState): UIState => state.ui;
 
-  getIsLoading = createSelector(this.getUiReducer, (ui) => ui.isLoading);
+  getIsLoading = createSelector(this.getUiReducer, ui => ui.isLoading);
 
-  getUINotification = createSelector(
-    this.getUiReducer,
-    (ui) => ui.uiNotification
-  );
+  getUINotification = createSelector(this.getUiReducer, ui => ui.uiNotification);
 
-  getIsHamburgerMenuOpen = createSelector(
-    this.getUiReducer,
-    (ui) => ui.isHamburgerMenuOpen
-  );
+  getIsHamburgerMenuOpen = createSelector(this.getUiReducer, ui => ui.isHamburgerMenuOpen);
 }
 
 const uiReducerSelector = new UiReducerSelector();

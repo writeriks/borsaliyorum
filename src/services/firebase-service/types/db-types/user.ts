@@ -1,4 +1,4 @@
-import { Timestamp } from "firebase/firestore";
+import { Timestamp } from 'firebase/firestore';
 
 // User Main Collection
 export type UserCollection = User[];
@@ -28,28 +28,28 @@ export interface User {
 }
 
 export enum Theme {
-  DARK = "dark",
-  LIGHT = "light",
+  DARK = 'dark',
+  LIGHT = 'light',
 }
 
 export enum UserEnum {
-  USER_ID = "userId",
-  USERNAME = "username",
-  DISPLAY_NAME = "displayName",
-  EMAIL = "email",
-  BIRTHDAY = "birthday",
-  PROFILE_PHOTO = "profilePhoto",
-  COVER_PHOTO = "coverPhoto",
-  BIO = "bio",
-  THEME = "theme",
-  WEBSITE = "website",
-  CREATED_AT = "createdAt",
-  UPDATED_AT = "updatedAt",
-  PREMIUM_END_DATE = "premiumEndDate",
-  IS_EMAIL_VERIFIED = "isEmailVerified",
-  LAST_RELOAD_DATE = "lastReloadDate",
-  POSTS_COUNT = "postsCount",
-  FOLLOWING_COUNT = "userFollowingCount",
-  FOLLOWERS_COUNT = "userFollowersCount",
-  STOCK_FOLLOWING_COUNT = "stockFollowingCount",
+  USER_ID = 'userId',
+  USERNAME = 'username',
+  DISPLAY_NAME = 'displayName',
+  EMAIL = 'email',
+  BIRTHDAY = 'birthday',
+  PROFILE_PHOTO = 'profilePhoto',
+  COVER_PHOTO = 'coverPhoto',
+  BIO = 'bio',
+  THEME = 'theme',
+  WEBSITE = 'website',
+  CREATED_AT = 'createdAt',
+  UPDATED_AT = 'updatedAt',
+  PREMIUM_END_DATE = 'premiumEndDate',
+  IS_EMAIL_VERIFIED = 'isEmailVerified',
+  LAST_RELOAD_DATE = 'lastReloadDate',
+  POSTS_COUNT = 'postsCount',
+  FOLLOWING_COUNT = 'userFollowingCount',
+  FOLLOWERS_COUNT = 'userFollowersCount',
+  STOCK_FOLLOWING_COUNT = 'stockFollowingCount',
 }

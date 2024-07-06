@@ -1,5 +1,5 @@
-import { UserId } from "@/services/firebase-service/types/db-types/user";
-import { Timestamp } from "firebase/firestore";
+import { UserId } from '@/services/firebase-service/types/db-types/user';
+import { Timestamp } from 'firebase/firestore';
 
 export interface UserFollowers {
   followerId: UserId;
@@ -9,8 +9,8 @@ export interface UserFollowers {
 }
 
 export enum UserFollowersEnum {
-  FOLLOWER_ID = "followerId",
-  FOLLOWED_ID = "followedId",
-  FOLLOWET_AT = "followetAt",
-  IS_NOTIFIED = "isNotified",
+  FOLLOWER_ID = 'followerId',
+  FOLLOWED_ID = 'followedId',
+  FOLLOWET_AT = 'followetAt',
+  IS_NOTIFIED = 'isNotified',
 }

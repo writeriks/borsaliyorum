@@ -1,5 +1,5 @@
-import userService from "@/services/user-service/user-service";
-import { auth } from "./firebase-config";
+import userService from '@/services/user-service/user-service';
+import { auth } from './firebase-config';
 import {
   GoogleAuthProvider,
   User as FirebaseUser,
@@ -10,20 +10,14 @@ import {
   reauthenticateWithCredential,
   AuthCredential,
   sendPasswordResetEmail,
-} from "firebase/auth";
-import {
-  User,
-  UserEnum,
-} from "@/services/firebase-service/types/db-types/user";
-import { Timestamp } from "firebase/firestore";
-import store from "@/store/redux-store";
-import {
-  UINotificationEnum,
-  setUINotification,
-} from "@/store/reducers/ui-reducer/ui-slice";
+} from 'firebase/auth';
+import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
+import { Timestamp } from 'firebase/firestore';
+import store from '@/store/redux-store';
+import { UINotificationEnum, setUINotification } from '@/store/reducers/ui-reducer/ui-slice';
 
 class FirebaseAuthService {
-  genericErrorMessage = "Bir hata oluştu.";
+  genericErrorMessage = 'Bir hata oluştu.';
 
   dispatchError = (error: any): void => {
     store.dispatch(
@@ -66,9 +60,9 @@ class FirebaseAuthService {
 
       await userService.validateUser(user);
 
-      window.location.pathname = "/feed";
+      window.location.pathname = '/feed';
     } catch (error: any) {
-      console.error("Error signing in with Google:", error);
+      console.error('Error signing in with Google:', error);
       this.dispatchError(error);
     }
   };
@@ -80,11 +74,11 @@ class FirebaseAuthService {
     try {
       await signOut(auth);
       await userService.logOutUser();
-      if (typeof window !== "undefined") {
+      if (typeof window !== 'undefined') {
         window.location.reload();
       }
     } catch (error: any) {
-      console.error("Error signing out:", error);
+      console.error('Error signing out:', error);
       this.dispatchError(error);
     }
   };
@@ -94,10 +88,7 @@ class FirebaseAuthService {
    * @param email - The user's email address
    * @param password - The user's password
    */
-  signInWithEmailAndPassword = async (
-    email: string,
-    password: string
-  ): Promise<void> => {
+  signInWithEmailAndPassword = async (email: string, password: string): Promise<void> => {
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       const userDocument = await userService.getUserById(user.uid);
@@ -107,9 +98,9 @@ class FirebaseAuthService {
         await userService.syncUser(user, userDocument);
       }
 
-      window.location.pathname = "/feed";
+      window.location.pathname = '/feed';
     } catch (error: any) {
-      console.error("Error during signing in:", error);
+      console.error('Error during signing in:', error);
       this.dispatchError(error);
     }
   };
@@ -129,11 +120,7 @@ class FirebaseAuthService {
     try {
       await userService.checkIfUserExist(username, email, displayName);
 
-      const result = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const result = await createUserWithEmailAndPassword(auth, email, password);
       const { user } = result;
       await userService.sendEmailVerification(user);
 
@@ -150,9 +137,9 @@ class FirebaseAuthService {
 
       await userService.addUser(customUser);
 
-      window.location.pathname = "/feed";
+      window.location.pathname = '/feed';
     } catch (error: any) {
-      console.error("Error during signing up:", error);
+      console.error('Error during signing up:', error);
       this.dispatchError(error);
 
       return false;
@@ -160,7 +147,7 @@ class FirebaseAuthService {
 
     store.dispatch(
       setUINotification({
-        message: "Hesabınız başarıyla oluşturuldu. Şimdi giriş yapabilirsiniz.",
+        message: 'Hesabınız başarıyla oluşturuldu. Şimdi giriş yapabilirsiniz.',
         notificationType: UINotificationEnum.SUCCESS,
       })
     );
@@ -177,7 +164,7 @@ class FirebaseAuthService {
       const result = await sendPasswordResetEmail(auth, email);
       console.log(result);
     } catch (error: any) {
-      console.error("Error sending reset password email:", error);
+      console.error('Error sending reset password email:', error);
       this.dispatchError(error);
     }
   };
@@ -195,7 +182,7 @@ class FirebaseAuthService {
       const result = await reauthenticateWithCredential(user, credentials);
       console.log(result);
     } catch (error: any) {
-      console.error("Error during reauthentication:", error);
+      console.error('Error during reauthentication:', error);
       this.dispatchError(error);
     }
   };

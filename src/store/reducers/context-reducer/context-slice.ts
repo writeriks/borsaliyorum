@@ -1,8 +1,8 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 export enum LoginMethod {
-  EmailAndPassword = "emailAndPassword",
-  Google = "google",
+  EmailAndPassword = 'emailAndPassword',
+  Google = 'google',
 }
 
 export interface ContextState {
@@ -14,7 +14,7 @@ export const initialState: ContextState = {
 };
 
 const contextSlice = createSlice({
-  name: "context",
+  name: 'context',
   initialState,
   reducers: {
     setIsMobile: (state, action: PayloadAction<boolean>) => {

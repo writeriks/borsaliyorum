@@ -1,21 +1,21 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse, NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
-  const cookie = request.headers.get("Cookie");
-  const token = cookie?.split("identity=")[1];
+  const cookie = request.headers.get('Cookie');
+  const token = cookie?.split('identity=')[1];
 
   try {
     if (token) {
       return NextResponse.next();
     } else {
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL('/', request.url));
     }
   } catch (error) {
-    console.error("Authentication error:", error);
-    return NextResponse.redirect(new URL("/", request.url));
+    console.error('Authentication error:', error);
+    return NextResponse.redirect(new URL('/', request.url));
   }
 }
 
 export const config = {
-  matcher: ["/feed/:path*", "/stocks/:path*", "/profile/:path*"],
+  matcher: ['/feed/:path*', '/stocks/:path*', '/profile/:path*'],
 };

@@ -1,22 +1,19 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { z } from "zod";
+import { useState } from 'react';
+import { z } from 'zod';
 
-import { LoginForm } from "@/components/auth/login-form";
-import { LoginWithProviders } from "@/components/auth/login-with-provider";
-import { RegisterForm } from "@/components/auth/register-form";
-import {
-  loginFormSchema,
-  registerFormSchema,
-} from "@/components/auth/auth-service/common-auth";
-import firebaseAuthService from "@/services/firebase-service/firebase-auth-service";
-import { ResetPassword } from "@/components/auth/reset-password";
+import { LoginForm } from '@/components/auth/login-form';
+import { LoginWithProviders } from '@/components/auth/login-with-provider';
+import { RegisterForm } from '@/components/auth/register-form';
+import { loginFormSchema, registerFormSchema } from '@/components/auth/auth-service/common-auth';
+import firebaseAuthService from '@/services/firebase-service/firebase-auth-service';
+import { ResetPassword } from '@/components/auth/reset-password';
 
 enum FormType {
-  LOGIN = "login",
-  REGISTER = "register",
-  RESET_PASSWORD = "resetPassword",
+  LOGIN = 'login',
+  REGISTER = 'register',
+  RESET_PASSWORD = 'resetPassword',
 }
 
 export const AuthForm = (): React.ReactNode => {
@@ -30,10 +27,7 @@ export const AuthForm = (): React.ReactNode => {
     setIsLoading(true);
 
     if (formType === FormType.LOGIN) {
-      await firebaseAuthService.signInWithEmailAndPassword(
-        values.email,
-        values.password
-      );
+      await firebaseAuthService.signInWithEmailAndPassword(values.email, values.password);
     } else if (formType === FormType.REGISTER) {
       const isUserAdded = await firebaseAuthService.signUpWithEmailAndPassword(
         values.username,
@@ -84,14 +78,14 @@ export const AuthForm = (): React.ReactNode => {
   };
 
   return (
-    <div className="grid gap-4">
+    <div className='grid gap-4'>
       {renderFormScreen()}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
+      <div className='relative'>
+        <div className='absolute inset-0 flex items-center'>
+          <span className='w-full border-t' />
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">veya</span>
+        <div className='relative flex justify-center text-xs uppercase'>
+          <span className='bg-background px-2 text-muted-foreground'>veya</span>
         </div>
       </div>
       <LoginWithProviders isLoading={isLoading} />

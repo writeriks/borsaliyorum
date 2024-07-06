@@ -1,8 +1,5 @@
-import {
-  MediaData,
-  PostId,
-} from "@/services/firebase-service/types/db-types/post";
-import { Timestamp } from "firebase/firestore";
+import { MediaData, PostId } from '@/services/firebase-service/types/db-types/post';
+import { Timestamp } from 'firebase/firestore';
 
 export type CommentId = string;
 
@@ -17,11 +14,11 @@ export interface Comment {
 }
 
 export enum CommentsCollectionEnum {
-  COMMENT_ID = "commentId",
-  POST_ID = "postId",
-  LIKE_COUNT = "likeCount",
-  MEDIA = "media",
-  CONTENT = "content",
-  CREATED_AT = "createdAt",
-  UPDATED_AT = "updatedAt",
+  COMMENT_ID = 'commentId',
+  POST_ID = 'postId',
+  LIKE_COUNT = 'likeCount',
+  MEDIA = 'media',
+  CONTENT = 'content',
+  CREATED_AT = 'createdAt',
+  UPDATED_AT = 'updatedAt',
 }

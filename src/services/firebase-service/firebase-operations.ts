@@ -15,13 +15,13 @@ import {
   updateDoc,
   deleteDoc,
   DocumentSnapshot,
-} from "firebase/firestore";
-import { db } from "./firebase-config";
-import { CollectionPath } from "@/services/firebase-service/types/collection-types";
+} from 'firebase/firestore';
+import { db } from './firebase-config';
+import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import {
   FirebaseDocumentQueryResponse,
   QueryParams,
-} from "@/services/firebase-service/firebase-operations-types";
+} from '@/services/firebase-service/firebase-operations-types';
 
 class FirebaseOperations {
   /*
@@ -40,12 +40,14 @@ class FirebaseOperations {
     documentLimit = 10,
     startAfterDocument,
     orderByField,
-    orderByDirection = "asc",
+    orderByDirection = 'asc',
     whereFields = [],
   }: QueryParams): Promise<FirebaseDocumentQueryResponse> => {
     try {
-      const firebaseCollectionRef: CollectionReference<DocumentData> =
-        collection(db, collectionPath);
+      const firebaseCollectionRef: CollectionReference<DocumentData> = collection(
+        db,
+        collectionPath
+      );
 
       // Build the query
       let firebaseQuery = query(firebaseCollectionRef);
@@ -59,10 +61,7 @@ class FirebaseOperations {
 
       // Apply orderBy if orderByField is provided
       if (orderByField) {
-        firebaseQuery = query(
-          firebaseQuery,
-          orderBy(orderByField, orderByDirection)
-        );
+        firebaseQuery = query(firebaseQuery, orderBy(orderByField, orderByDirection));
       }
 
       // Apply startAfter if startAfterDocument is provided
@@ -76,14 +75,14 @@ class FirebaseOperations {
       const querySnapshot = await getDocs(firebaseQuery);
 
       return {
-        documents: querySnapshot.docs.map((document) => document.data()),
+        documents: querySnapshot.docs.map(document => document.data()),
         lastDocument: querySnapshot.docs[querySnapshot.docs.length - 1] || null,
         previousLimit: documentLimit,
         previousOrderByField: orderByField,
         previousOrderByDirection: orderByDirection,
       };
     } catch (error) {
-      console.error("Error getting documents:", error);
+      console.error('Error getting documents:', error);
       return {
         documents: [],
         lastDocument: null,
@@ -105,9 +104,9 @@ class FirebaseOperations {
   ): Promise<void> => {
     try {
       const docRef = await addDoc(collection(db, collectionPath), data);
-      console.log("Document written with ID: ", docRef.id);
+      console.log('Document written with ID: ', docRef.id);
     } catch (e) {
-      console.error("Error adding document: ", e);
+      console.error('Error adding document: ', e);
     }
   };
 
@@ -124,9 +123,9 @@ class FirebaseOperations {
   ): Promise<void> => {
     try {
       await setDoc(doc(db, collectionPath, docId), data);
-      console.log("Document written with ID: ", docId);
+      console.log('Document written with ID: ', docId);
     } catch (e) {
-      console.error("Error setting document: ", e);
+      console.error('Error setting document: ', e);
     }
   };
 
@@ -144,7 +143,7 @@ class FirebaseOperations {
 
       return getDoc(docRef);
     } catch (e) {
-      console.error("Error getting document: ", e);
+      console.error('Error getting document: ', e);
       throw e; // Add a throw statement to handle the error case
     }
   };
@@ -163,9 +162,9 @@ class FirebaseOperations {
     try {
       const docRef = doc(db, collectionPath, docId);
       await updateDoc(docRef, data);
-      console.log("Document updated with ID: ", docId);
+      console.log('Document updated with ID: ', docId);
     } catch (e) {
-      console.error("Error updating document: ", e);
+      console.error('Error updating document: ', e);
     }
   };
 
@@ -174,16 +173,13 @@ class FirebaseOperations {
    * @param collectionPath - The path to the collection
    * @param docId - The custom ID for the document
    */
-  deleteDocumentById = async (
-    collectionPath: string,
-    docId: string
-  ): Promise<void> => {
+  deleteDocumentById = async (collectionPath: string, docId: string): Promise<void> => {
     try {
       const docRef = doc(db, collectionPath, docId);
       await deleteDoc(docRef);
-      console.log("Document deleted with ID: ", docId);
+      console.log('Document deleted with ID: ', docId);
     } catch (e) {
-      console.error("Error deleting document: ", e);
+      console.error('Error deleting document: ', e);
     }
   };
 }

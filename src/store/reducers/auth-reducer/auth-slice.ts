@@ -1,8 +1,8 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 export enum LoginMethod {
-  EmailAndPassword = "emailAndPassword",
-  Google = "google",
+  EmailAndPassword = 'emailAndPassword',
+  Google = 'google',
 }
 
 export interface AuthState {
@@ -14,7 +14,7 @@ export const initialState: AuthState = {
 };
 
 const authSlice = createSlice({
-  name: "auth",
+  name: 'auth',
   initialState,
   reducers: {
     setLoginMethod: (state, action: PayloadAction<LoginMethod>) => {
