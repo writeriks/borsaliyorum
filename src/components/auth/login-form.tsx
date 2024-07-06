@@ -78,7 +78,7 @@ export const LoginForm = ({
               <FormControl>
                 <Input type={showPassword ? 'input' : 'password'} {...field} />
               </FormControl>
-              <span style={{ float: 'right' }}>
+              <span className='float-right'>
                 {showPassword ? <EyeOff {...eyeProps} /> : <Eye {...eyeProps} />}
               </span>
               <FormMessage />
