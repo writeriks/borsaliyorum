@@ -13,9 +13,6 @@ module.exports = {
   },
   parser: '@typescript-eslint/parser',
   plugins: ['react', 'jest', '@typescript-eslint', 'import'],
-  globals: {
-    Office: 'readonly',
-  },
   rules: {
     'jsx-a11y/label-has-associated-control': ['error', { assert: 'either' }],
     'import/extensions': [
