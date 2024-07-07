@@ -22,6 +22,8 @@
     --accent-foreground: 0 0% 25%;
     --destructive: 5 80% 33%;
     --destructive-foreground: 5 80% 93%;
+    --bullish: 143, 71%, 45%;
+    --bullish-foreground: 0, 0%, 100%;
     --ring: 0 0% 17%;
     --radius: 0.5rem;
 
@@ -47,6 +49,8 @@
     --accent-foreground: 60 8% 90%;
     --destructive: 7 98% 49%;
     --destructive-foreground: 0 0% 100%;
+    --bullish: 143, 71%, 45%;
+    --bullish-foreground: 0, 0%, 100%;
     --ring: 205 85% 78%;
   }
 }

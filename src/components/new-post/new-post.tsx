@@ -10,6 +10,8 @@ import { TrendingDown, TrendingUp, X } from 'lucide-react';
 import Image from 'next/image';
 import ImageUploader from '@/components/image-uploader/image-uploader';
 import { Label } from '@/components/ui/label';
+import { useSelector } from 'react-redux';
+import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 
 const MAX_CHARACTERS = 1000;
 
@@ -20,6 +22,8 @@ const NewPost = (): React.ReactElement => {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const user = useSelector(userReducerSelector.getUser);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -42,7 +46,7 @@ const NewPost = (): React.ReactElement => {
   return (
     <div className='lg:p-6 flex p-2 rounded-lg shadow-lg w-full lg:w-3/4 self-start'>
       <div className='flex items-start w-10 lg:w-12'>
-        <UserAvatar />
+        <UserAvatar user={user} />
       </div>
 
       <div className='flex flex-col ml-2 w-full justify-between'>

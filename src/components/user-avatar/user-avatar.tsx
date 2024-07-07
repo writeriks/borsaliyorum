@@ -3,9 +3,13 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
+import { UserState } from '@/store/reducers/user-reducer/user-slice';
 
-const UserAvatar = (): React.ReactNode => {
-  const user = useSelector(userReducerSelector.getUser);
+interface UserAvatarProps {
+  user: UserState;
+}
+
+const UserAvatar = ({ user }: UserAvatarProps): React.ReactNode => {
   const profileImage = user?.profilePhoto;
   const proxyUrl = `/api/imageProxy?imageUrl=${encodeURIComponent(profileImage as string)}`;
 
