@@ -36,6 +36,10 @@ class FirebaseAuthService {
     );
   };
 
+  dispatchAuthLoading = (value: boolean) => {
+    store.dispatch(setIsAuthLoading(value));
+  };
+
   /**
    * Signs in the user using Google authentication.
    */
@@ -73,6 +77,7 @@ class FirebaseAuthService {
     } catch (error: any) {
       console.error("Error signing in with Google:", error);
       this.dispatchError(error);
+      this.dispatchAuthLoading(false);
     }
   };
 
@@ -112,6 +117,7 @@ class FirebaseAuthService {
     } catch (error: any) {
       console.error("Error during signing in:", error);
       this.dispatchError(error);
+      this.dispatchAuthLoading(false);
     }
   };
 
@@ -157,6 +163,7 @@ class FirebaseAuthService {
       store.dispatch(setIsAuthModalOpen(false));
       console.error("Error during signing up:", error);
       this.dispatchError(error);
+      this.dispatchAuthLoading(false);
 
       return false;
     }

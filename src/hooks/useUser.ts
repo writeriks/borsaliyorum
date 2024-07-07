@@ -67,7 +67,7 @@ const useUser = (): UserState => {
     });
 
     return () => unsubscribe();
-  }, [dispatch, userState.isAuthenticated, router]);
+  }, [dispatch, router, userState.username]);
 
   return userState;
 };
