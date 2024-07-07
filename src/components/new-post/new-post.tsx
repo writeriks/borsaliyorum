@@ -10,6 +10,9 @@ import { TrendingDown, TrendingUp, X } from 'lucide-react';
 import Image from 'next/image';
 import ImageUploader from '@/components/image-uploader/image-uploader';
 import { Label } from '@/components/ui/label';
+import { MentionsInput, Mention, SuggestionDataItem } from 'react-mentions';
+import { tickers } from '@/components/new-post/constants';
+import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 
 const MAX_CHARACTERS = 1000;
 
@@ -17,6 +20,7 @@ const NewPost = (): React.ReactElement => {
   const [idea, setIdea] = useState('');
   const [isBullish, setIsBullish] = useState(true);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [filteredValues, setFilteredValues] = useState<SuggestionDataItem[]>([]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,6 +43,22 @@ const NewPost = (): React.ReactElement => {
       fileInputRef.current.value = '';
     }
   };
+
+  const handleIdeaChange = (e: any): void => {
+    const pre = e.target.value.split('@')[1] || '';
+    console.log('eeeeee', e);
+    const filteredTickers = tickers.filter(ticker =>
+      (ticker.display as string).toLowerCase().includes(pre.toLowerCase())
+    );
+
+    // const filteredTickers2 = tickers.filter(ticker =>
+    //   (e.target.value as string).toLowerCase().includes((ticker.id as string).toLowerCase())
+    // );
+    console.log('filteredTickers', filteredTickers);
+
+    setFilteredValues(filteredTickers);
+    setIdea(e.target.value);
+  };
   return (
     <div className='lg:p-6 flex p-2 rounded-lg shadow-lg w-full lg:w-3/4 self-start'>
       <div className='flex items-start w-10 lg:w-12'>
@@ -48,7 +68,7 @@ const NewPost = (): React.ReactElement => {
       <div className='flex flex-col ml-2 w-full justify-between'>
         <div>
           <div className='flex'>
-            <Textarea
+            {/* <Textarea
               ref={textareaRef}
               autoFocus
               className='text-lg w-full resize-none border-none outline-none focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:border-none'
@@ -57,7 +77,37 @@ const NewPost = (): React.ReactElement => {
               placeholder='$TUPRS - Ne düşünüyorsun'
               value={idea}
               onChange={e => setIdea(e.target.value)}
-            />
+            /> */}
+
+            <MentionsInput
+              autoFocus
+              placeholder='$TUPRS - Ne düşünüyorsun?'
+              className='mentions'
+              value={idea}
+              onChange={handleIdeaChange}
+            >
+              <Mention
+                trigger={TagsEnum.CASHTAG}
+                data={tickers}
+                displayTransform={(id, display) => `${TagsEnum.CASHTAG + id}`}
+              />
+              <Mention
+                trigger={TagsEnum.MENTION}
+                data={filteredValues.slice(0, 5)}
+                displayTransform={(id, display) => `${TagsEnum.MENTION + id}`}
+              />
+              <Mention
+                className='text-blue-700'
+                trigger='#'
+                data={[
+                  {
+                    id: idea,
+                    display: idea,
+                  },
+                ]}
+                displayTransform={(id, display) => `${TagsEnum.HASHTAG + id}`}
+              />
+            </MentionsInput>
             {idea ? (
               <Label className='flex flex-col-reverse text-sm'>
                 {MAX_CHARACTERS - idea.length}
