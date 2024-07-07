@@ -21,7 +21,7 @@ const SideBarMenu: React.FC = () => {
       )}
     >
       <ul className="flex h-full flex-col items-center space-y-4 ">
-        <li className="mt-12">
+        <li className="mt-16">
           <UserProfileOptions />
         </li>
       </ul>

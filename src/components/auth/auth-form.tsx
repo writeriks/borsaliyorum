@@ -26,7 +26,6 @@ export function AuthForm() {
   const onSubmit = async (
     values: z.infer<typeof loginFormSchema & typeof registerFormSchema>
   ) => {
-    console.log(values);
     setIsLoading(true);
 
     if (formType === FormType.Login) {
@@ -41,9 +40,6 @@ export function AuthForm() {
         values.email,
         values.password
       );
-      if (isUserAdded) {
-        setFormType(FormType.Login);
-      }
     } else {
       await firebaseAuthService.sendPasswordResetEmail(values.email);
     }
