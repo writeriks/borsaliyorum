@@ -14,7 +14,12 @@ import {
 import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
 import { Timestamp } from 'firebase/firestore';
 import store from '@/store/redux-store';
-import { UINotificationEnum, setUINotification } from '@/store/reducers/ui-reducer/ui-slice';
+import {
+  UINotificationEnum,
+  setIsAuthLoading,
+  setIsAuthModalOpen,
+  setUINotification,
+} from '@/store/reducers/ui-reducer/ui-slice';
 
 class FirebaseAuthService {
   genericErrorMessage = 'Bir hata oluştu.';
@@ -28,6 +33,10 @@ class FirebaseAuthService {
     );
   };
 
+  dispatchAuthLoading = (value: boolean): void => {
+    store.dispatch(setIsAuthLoading(value));
+  };
+
   /**
    * Signs in the user using Google authentication.
    */
@@ -35,6 +44,7 @@ class FirebaseAuthService {
     const provider = new GoogleAuthProvider();
 
     try {
+      store.dispatch(setIsAuthLoading(true));
       const result = await signInWithPopup(auth, provider);
       const { user } = result;
 
@@ -64,6 +74,7 @@ class FirebaseAuthService {
     } catch (error: any) {
       console.error('Error signing in with Google:', error);
       this.dispatchError(error);
+      this.dispatchAuthLoading(false);
     }
   };
 
@@ -74,9 +85,6 @@ class FirebaseAuthService {
     try {
       await signOut(auth);
       await userService.logOutUser();
-      if (typeof window !== 'undefined') {
-        window.location.reload();
-      }
     } catch (error: any) {
       console.error('Error signing out:', error);
       this.dispatchError(error);
@@ -90,6 +98,7 @@ class FirebaseAuthService {
    */
   signInWithEmailAndPassword = async (email: string, password: string): Promise<void> => {
     try {
+      store.dispatch(setIsAuthLoading(true));
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       const userDocument = await userService.getUserById(user.uid);
 
@@ -102,6 +111,7 @@ class FirebaseAuthService {
     } catch (error: any) {
       console.error('Error during signing in:', error);
       this.dispatchError(error);
+      this.dispatchAuthLoading(false);
     }
   };
 
@@ -118,6 +128,7 @@ class FirebaseAuthService {
     password: string
   ): Promise<boolean> => {
     try {
+      store.dispatch(setIsAuthLoading(true));
       await userService.checkIfUserExist(username, email, displayName);
 
       const result = await createUserWithEmailAndPassword(auth, email, password);
@@ -136,11 +147,13 @@ class FirebaseAuthService {
       };
 
       await userService.addUser(customUser);
-
+      store.dispatch(setIsAuthModalOpen(false));
       window.location.pathname = '/feed';
     } catch (error: any) {
+      store.dispatch(setIsAuthModalOpen(false));
       console.error('Error during signing up:', error);
       this.dispatchError(error);
+      this.dispatchAuthLoading(false);
 
       return false;
     }

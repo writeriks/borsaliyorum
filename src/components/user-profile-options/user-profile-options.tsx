@@ -1,11 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import { Button } from '@/components/ui/button';
 import firebaseAuthService from '@/services/firebase-service/firebase-auth-service';
-import { Label } from '@/components/ui/label';
-import useUser from '@/hooks/useUser';
-import { AuthModal } from '@/components/auth/auth-modal';
-import { Bell, LogOut, Settings, User } from 'lucide-react';
+import { Bell, LogOut, Settings } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -14,19 +11,24 @@ import {
   SelectTrigger,
 } from '@/components/ui/select';
 import ThemeModeToggle from '@/components/theme-toggle/theme-toggle';
+import { useDispatch, useSelector } from 'react-redux';
+import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
+import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
+import { Skeleton } from '@/components/ui/skeleton';
+import UserAvatar from '@/components/user-avatar/user-avatar';
+import { setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
 
 const UserProfileOptions = (): React.ReactNode => {
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-
-  const user = useUser();
+  const dispatch = useDispatch();
+  const user = useSelector(userReducerSelector.getUser);
+  const isAuthLoading = useSelector(uiReducerSelector.getIsAuthLoading);
 
   const logout = async (): Promise<void> => {
     await firebaseAuthService.signOut();
-    setIsAuthModalOpen(false);
+    dispatch(setIsAuthModalOpen(false));
   };
 
   const onProfileSelectChange = (value: any): void => {
-    console.log(value);
     switch (value) {
       case 'view-profile':
         // TODO: route to profile
@@ -42,15 +44,23 @@ const UserProfileOptions = (): React.ReactNode => {
     }
   };
 
-  return (
-    <div id='user-profile-section' className='flex p-2 flex-col'>
-      {user ? (
+  return isAuthLoading ? (
+    <div className='flex items-center w-fit'>
+      <Skeleton className='h-8 w-8 rounded-full' />
+      <div className='space-y-2'>
+        <Skeleton className='h-4 w-[150px]' />
+        <Skeleton className='h-4 w-[100px]' />
+      </div>
+    </div>
+  ) : (
+    <div id='user-profile-section' className='flex flex-col'>
+      {user.username ? (
         <div className='w-full h-full flex flex-col p-1'>
           <div>
             <Select value='' onValueChange={onProfileSelectChange}>
-              <SelectTrigger className='w-[180px] hover:bg-secondary border-none text-secondary-foreground dark:bg-transparent dark:hover:bg-secondary'>
-                <div className='flex relative left-1'>
-                  <User className='mr-2 h-4 w-4' /> Profil
+              <SelectTrigger className='w-full hover:bg-secondary border-none text-secondary-foreground dark:bg-transparent dark:hover:bg-secondary'>
+                <div className='flex items-center'>
+                  <UserAvatar /> <span className='ml-2'> Profil</span>
                 </div>
               </SelectTrigger>
               <SelectContent>
@@ -91,22 +101,14 @@ const UserProfileOptions = (): React.ReactNode => {
         </div>
       ) : (
         <div className='flex flex-col w-full h-full justify-center items-center'>
-          <Label className='capitalize m-1'>Hemen şimdi kayıt ol</Label>
-          {!user && (
-            <Button
-              className='w-48 m-1 text-lg font-medium bg-blue-600 rounded-full text-white'
-              onClick={() => setIsAuthModalOpen(true)}
-            >
-              Giriş Yap
-            </Button>
-          )}
+          <Button
+            className='w-48 m-1 text-lg font-medium bg-blue-600 rounded-full text-white'
+            onClick={() => dispatch(setIsAuthModalOpen(true))}
+          >
+            Giriş Yap
+          </Button>
         </div>
       )}
-
-      <AuthModal
-        isOpen={!Boolean(user) && isAuthModalOpen}
-        onAuthModalOpenChange={() => setIsAuthModalOpen(!isAuthModalOpen)}
-      />
     </div>
   );
 };

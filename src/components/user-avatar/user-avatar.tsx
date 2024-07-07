@@ -1,10 +1,11 @@
 import React from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import useUser from '@/hooks/useUser';
+import { useSelector } from 'react-redux';
+import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 
 const UserAvatar = (): React.ReactNode => {
-  const user = useUser();
+  const user = useSelector(userReducerSelector.getUser);
   const profileImage = user?.profilePhoto;
   const proxyUrl = `/api/imageProxy?imageUrl=${encodeURIComponent(profileImage as string)}`;
 

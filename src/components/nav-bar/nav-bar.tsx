@@ -17,7 +17,7 @@ const NavigationBar = (): React.ReactNode => {
   return (
     <nav className='h-[60px] p-4 rounded-lg shadow-lg sticky bg-background top-0 z-50 border-1 border-black overflow-hidden'>
       <div className='container mx-auto flex items-center justify-between'>
-        <a href='/'>LOGO</a>
+        <a href='/feed'>LOGO</a>
 
         {/* Hamburger menu for mobile */}
         <div className='z-40 md:hidden'>
