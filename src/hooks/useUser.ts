@@ -27,7 +27,7 @@ const useUser = (): UserState => {
         }
 
         // login case
-        if (userData && !userState.isAuthenticated) {
+        if (userData && !userState.username) {
           // Add more data if needed
           const { displayName, username, email, profilePhoto } = userData;
           dispatch(
@@ -35,7 +35,6 @@ const useUser = (): UserState => {
               displayName,
               username,
               email,
-              isAuthenticated: true,
               profilePhoto,
             })
           );
@@ -49,7 +48,6 @@ const useUser = (): UserState => {
             displayName: "",
             email: "",
             profilePhoto: "",
-            isAuthenticated: false,
           })
         );
       }

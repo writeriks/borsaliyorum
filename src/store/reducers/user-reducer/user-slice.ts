@@ -5,7 +5,6 @@ export interface UserState {
   displayName: string;
   email: string;
   profilePhoto?: string;
-  isAuthenticated: boolean;
 }
 
 export const initialState: UserState = {
@@ -13,7 +12,6 @@ export const initialState: UserState = {
   displayName: "",
   email: "",
   profilePhoto: "",
-  isAuthenticated: false,
 };
 
 const userSlice = createSlice({
@@ -25,7 +23,6 @@ const userSlice = createSlice({
       state.username = action.payload.username;
       state.email = action.payload.email;
       state.profilePhoto = action.payload.profilePhoto;
-      state.isAuthenticated = action.payload.isAuthenticated;
     },
   },
 });

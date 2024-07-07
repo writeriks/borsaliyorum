@@ -54,7 +54,7 @@ const UserProfileOptions = () => {
     </div>
   ) : (
     <div id="user-profile-section" className="flex flex-col">
-      {user.isAuthenticated ? (
+      {user.username ? (
         <div className="w-full h-full flex flex-col p-1">
           <div>
             <Select value="" onValueChange={onProfileSelectChange}>
