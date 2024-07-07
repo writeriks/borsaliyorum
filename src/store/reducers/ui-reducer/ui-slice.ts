@@ -1,11 +1,11 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 export enum UINotificationEnum {
-  DEFAULT = "default",
-  ERROR = "error",
-  WARNING = "warning",
-  SUCCESS = "success",
-  INFO = "info",
+  DEFAULT = 'default',
+  ERROR = 'error',
+  WARNING = 'warning',
+  SUCCESS = 'success',
+  INFO = 'info',
 }
 
 type UINotificationType = {
@@ -13,12 +13,12 @@ type UINotificationType = {
   message: string;
   duration?: number; // milliseconds
   position?:
-    | "top-left"
-    | "top-center"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-center"
-    | "bottom-right";
+    | 'top-left'
+    | 'top-center'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-center'
+    | 'bottom-right';
 };
 export interface UIState {
   isAuthLoading: boolean;
@@ -34,20 +34,20 @@ export const initialState: UIState = {
   refetchUserStocks: false,
   uiNotification: {
     notificationType: UINotificationEnum.DEFAULT,
-    message: "message",
+    message: 'message',
   },
   isAuthModalOpen: false,
 };
 
 const uiSlice = createSlice({
-  name: "ui",
+  name: 'ui',
   initialState,
   reducers: {
     setIsAuthLoading: (state, action: PayloadAction<boolean>) => {
       state.isAuthLoading = action.payload;
     },
 
-    toggleHamburgerMenuOpen: (state) => {
+    toggleHamburgerMenuOpen: state => {
       state.isHamburgerMenuOpen = !state.isHamburgerMenuOpen;
     },
 
@@ -61,11 +61,7 @@ const uiSlice = createSlice({
   },
 });
 
-export const {
-  setIsAuthLoading,
-  setIsAuthModalOpen,
-  toggleHamburgerMenuOpen,
-  setUINotification,
-} = uiSlice.actions;
+export const { setIsAuthLoading, setIsAuthModalOpen, toggleHamburgerMenuOpen, setUINotification } =
+  uiSlice.actions;
 
 export default uiSlice.reducer;

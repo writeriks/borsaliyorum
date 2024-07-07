@@ -1,6 +1,6 @@
-import { StockId } from "@/services/firebase-service/types/db-types/stock";
-import { UserId } from "@/services/firebase-service/types/db-types/user";
-import { Timestamp } from "firebase/firestore";
+import { StockId } from '@/services/firebase-service/types/db-types/stock';
+import { UserId } from '@/services/firebase-service/types/db-types/user';
+import { Timestamp } from 'firebase/firestore';
 
 // Post Main Collection
 export type PostCollection = Post[];
@@ -25,14 +25,14 @@ export type MediaData = {
 };
 
 export enum PostsCollectionEnum {
-  POST_ID = "postId",
-  USER_ID = "userId",
-  STOCK_TICKER = "stockTickers",
-  LIKE_COUNT = "likeCount",
-  COMMENT_COUNT = "commentCount",
-  MEDIA = "media",
-  CONTENT = "content",
-  CREATED_AT = "createdAt",
-  UPDATED_AT = "updatedAt",
-  IS_POSITIVE_SENTIMENT = "isPositiveSentiment",
+  POST_ID = 'postId',
+  USER_ID = 'userId',
+  STOCK_TICKER = 'stockTickers',
+  LIKE_COUNT = 'likeCount',
+  COMMENT_COUNT = 'commentCount',
+  MEDIA = 'media',
+  CONTENT = 'content',
+  CREATED_AT = 'createdAt',
+  UPDATED_AT = 'updatedAt',
+  IS_POSITIVE_SENTIMENT = 'isPositiveSentiment',
 }

@@ -1,18 +1,15 @@
-import firebaseOperations from "@/services/firebase-service/firebase-operations";
-import { auth } from "../firebase-service/firebase-config";
+import firebaseOperations from '@/services/firebase-service/firebase-operations';
+import { auth } from '../firebase-service/firebase-config';
 import {
   User as FirebaseUser,
   deleteUser,
   sendEmailVerification,
   updateEmail,
   updatePassword,
-} from "firebase/auth";
-import { CollectionPath } from "@/services/firebase-service/types/collection-types";
-import {
-  User,
-  UserEnum,
-} from "@/services/firebase-service/types/db-types/user";
-import { Timestamp } from "firebase/firestore";
+} from 'firebase/auth';
+import { CollectionPath } from '@/services/firebase-service/types/collection-types';
+import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
+import { Timestamp } from 'firebase/firestore';
 
 class UserService {
   /**
@@ -23,7 +20,7 @@ class UserService {
     try {
       await sendEmailVerification(user);
     } catch (error) {
-      console.error("Error sending email verification:", error);
+      console.error('Error sending email verification:', error);
     }
   };
 
@@ -34,14 +31,11 @@ class UserService {
    */
   getUserById = async (userId: string): Promise<User | undefined> => {
     try {
-      const userDoc = await firebaseOperations.getDocumentById(
-        CollectionPath.Users,
-        userId
-      );
+      const userDoc = await firebaseOperations.getDocumentById(CollectionPath.Users, userId);
 
       return userDoc?.exists() ? (userDoc.data() as User) : undefined;
     } catch (error) {
-      console.error("Error getting user:", error);
+      console.error('Error getting user:', error);
     }
   };
 
@@ -57,20 +51,16 @@ class UserService {
           user.email !== userDocument.email ||
           user.emailVerified !== userDocument.isEmailVerified
         ) {
-          await firebaseOperations.updateDocumentById(
-            CollectionPath.Users,
-            userDocument.userId,
-            {
-              ...userDocument,
-              [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
-              [UserEnum.EMAIL]: user.email,
-              [UserEnum.UPDATED_AT]: Timestamp.now(),
-            }
-          );
+          await firebaseOperations.updateDocumentById(CollectionPath.Users, userDocument.userId, {
+            ...userDocument,
+            [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
+            [UserEnum.EMAIL]: user.email,
+            [UserEnum.UPDATED_AT]: Timestamp.now(),
+          });
         }
       }
     } catch (error) {
-      console.error("Error syncing user:", error);
+      console.error('Error syncing user:', error);
     }
   };
 
@@ -79,10 +69,7 @@ class UserService {
    * @param user - The Firebase user to update.
    * @param newEmail - The new email address to set.
    */
-  updateUserEmail = async (
-    user: FirebaseUser,
-    newEmail: string
-  ): Promise<void> => {
+  updateUserEmail = async (user: FirebaseUser, newEmail: string): Promise<void> => {
     try {
       if (auth.currentUser) {
         const result = await updateEmail(user, newEmail);
@@ -90,7 +77,7 @@ class UserService {
         console.log(result);
       }
     } catch (error) {
-      console.error("Error updating email:", error);
+      console.error('Error updating email:', error);
     }
   };
 
@@ -99,10 +86,7 @@ class UserService {
    * @param user - The Firebase user to update.
    * @param newPassword - The new password to set.
    */
-  updateUserPassword = async (
-    user: FirebaseUser,
-    newPassword: string
-  ): Promise<void> => {
+  updateUserPassword = async (user: FirebaseUser, newPassword: string): Promise<void> => {
     try {
       if (auth.currentUser) {
         const result = await updatePassword(user, newPassword);
@@ -110,7 +94,7 @@ class UserService {
         console.log(result);
       }
     } catch (error) {
-      console.error("Error updating password:", error);
+      console.error('Error updating password:', error);
     }
   };
 
@@ -127,7 +111,7 @@ class UserService {
         console.log(result);
       }
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error('Error deleting user:', error);
     }
   };
 
@@ -139,8 +123,8 @@ class UserService {
     const requestBody = {
       user,
     };
-    const result = await fetch("/api/user/createUser", {
-      method: "POST",
+    const result = await fetch('/api/user/createUser', {
+      method: 'POST',
       body: JSON.stringify(requestBody),
     });
 
@@ -163,14 +147,14 @@ class UserService {
       email,
       displayName,
     };
-    const result = await fetch("/api/user/checkIfUserExist", {
-      method: "POST",
+    const result = await fetch('/api/user/checkIfUserExist', {
+      method: 'POST',
       body: JSON.stringify(requestBody),
     });
 
     if (!result.ok) {
       const errorData = await result.json();
-      throw new Error(errorData.error || "Bir hata oluştu.");
+      throw new Error(errorData.error || 'Bir hata oluştu.');
     }
   };
 
@@ -182,14 +166,14 @@ class UserService {
     const token = await user.getIdToken();
     const requestBody = { token };
 
-    const result = await fetch("/api/user/validateUser", {
-      method: "POST",
+    const result = await fetch('/api/user/validateUser', {
+      method: 'POST',
       body: JSON.stringify(requestBody),
     });
 
     if (!result.ok) {
       const errorData = await result.json();
-      throw new Error(errorData.error || "Bir hata oluştu.");
+      throw new Error(errorData.error || 'Bir hata oluştu.');
     }
   };
 
@@ -197,27 +181,26 @@ class UserService {
    * Logs out the current user.
    */
   logOutUser = async (): Promise<void> => {
-    const result = await fetch("/api/user/logout", {
-      method: "POST",
+    const result = await fetch('/api/user/logout', {
+      method: 'POST',
     });
 
     if (!result.ok) {
       const errorData = await result.json();
-      throw new Error(errorData.error || "Bir hata oluştu.");
+      throw new Error(errorData.error || 'Bir hata oluştu.');
     }
   };
 
   /**
    * Updates the profile of the provided user.
-   * @param user - The user to update.
    */
-  updateUserProfile = async (user: User): Promise<void> => {
+  updateUserProfile = async (): Promise<void> => {
     try {
       if (auth.currentUser) {
         // TODO
       }
     } catch (error) {
-      console.error("Error updating user:", error);
+      console.error('Error updating user:', error);
     }
   };
 }

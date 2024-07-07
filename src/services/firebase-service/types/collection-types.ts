@@ -6,19 +6,19 @@ export interface TestCollection {
 }
 // Example data enum, should be removed later
 export enum TestCollectionEnum {
-  NAME = "name",
+  NAME = 'name',
 }
 
 export enum CollectionPath {
   // Example collection path, should be removed later
-  Test = "test",
+  Test = 'test',
 
-  Users = "users",
-  Posts = "posts",
-  Likes = "likes",
-  Comments = "comments",
-  Stocks = "stocks",
-  Following = "following",
-  Followers = "followers",
-  SecurityRoles = "securityRoles",
+  Users = 'users',
+  Posts = 'posts',
+  Likes = 'likes',
+  Comments = 'comments',
+  Stocks = 'stocks',
+  Following = 'following',
+  Followers = 'followers',
+  SecurityRoles = 'securityRoles',
 }

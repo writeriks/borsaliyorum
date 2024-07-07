@@ -1,5 +1,5 @@
-import userService from "@/services/user-service/user-service";
-import { auth } from "./firebase-config";
+import userService from '@/services/user-service/user-service';
+import { auth } from './firebase-config';
 import {
   GoogleAuthProvider,
   User as FirebaseUser,
@@ -10,24 +10,21 @@ import {
   reauthenticateWithCredential,
   AuthCredential,
   sendPasswordResetEmail,
-} from "firebase/auth";
-import {
-  User,
-  UserEnum,
-} from "@/services/firebase-service/types/db-types/user";
-import { Timestamp } from "firebase/firestore";
-import store from "@/store/redux-store";
+} from 'firebase/auth';
+import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
+import { Timestamp } from 'firebase/firestore';
+import store from '@/store/redux-store';
 import {
   UINotificationEnum,
   setIsAuthLoading,
   setIsAuthModalOpen,
   setUINotification,
-} from "@/store/reducers/ui-reducer/ui-slice";
+} from '@/store/reducers/ui-reducer/ui-slice';
 
 class FirebaseAuthService {
-  genericErrorMessage = "Bir hata oluştu.";
+  genericErrorMessage = 'Bir hata oluştu.';
 
-  dispatchError = (error: any) => {
+  dispatchError = (error: any): void => {
     store.dispatch(
       setUINotification({
         message: error?.message ?? this.genericErrorMessage,
@@ -36,7 +33,7 @@ class FirebaseAuthService {
     );
   };
 
-  dispatchAuthLoading = (value: boolean) => {
+  dispatchAuthLoading = (value: boolean): void => {
     store.dispatch(setIsAuthLoading(value));
   };
 
@@ -73,9 +70,9 @@ class FirebaseAuthService {
 
       await userService.validateUser(user);
 
-      window.location.pathname = "/feed";
+      window.location.pathname = '/feed';
     } catch (error: any) {
-      console.error("Error signing in with Google:", error);
+      console.error('Error signing in with Google:', error);
       this.dispatchError(error);
       this.dispatchAuthLoading(false);
     }
@@ -89,7 +86,7 @@ class FirebaseAuthService {
       await signOut(auth);
       await userService.logOutUser();
     } catch (error: any) {
-      console.error("Error signing out:", error);
+      console.error('Error signing out:', error);
       this.dispatchError(error);
     }
   };
@@ -99,10 +96,7 @@ class FirebaseAuthService {
    * @param email - The user's email address
    * @param password - The user's password
    */
-  signInWithEmailAndPassword = async (
-    email: string,
-    password: string
-  ): Promise<void> => {
+  signInWithEmailAndPassword = async (email: string, password: string): Promise<void> => {
     try {
       store.dispatch(setIsAuthLoading(true));
       const { user } = await signInWithEmailAndPassword(auth, email, password);
@@ -113,9 +107,9 @@ class FirebaseAuthService {
         await userService.syncUser(user, userDocument);
       }
 
-      window.location.pathname = "/feed";
+      window.location.pathname = '/feed';
     } catch (error: any) {
-      console.error("Error during signing in:", error);
+      console.error('Error during signing in:', error);
       this.dispatchError(error);
       this.dispatchAuthLoading(false);
     }
@@ -137,11 +131,7 @@ class FirebaseAuthService {
       store.dispatch(setIsAuthLoading(true));
       await userService.checkIfUserExist(username, email, displayName);
 
-      const result = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const result = await createUserWithEmailAndPassword(auth, email, password);
       const { user } = result;
       await userService.sendEmailVerification(user);
 
@@ -158,10 +148,10 @@ class FirebaseAuthService {
 
       await userService.addUser(customUser);
       store.dispatch(setIsAuthModalOpen(false));
-      window.location.pathname = "/feed";
+      window.location.pathname = '/feed';
     } catch (error: any) {
       store.dispatch(setIsAuthModalOpen(false));
-      console.error("Error during signing up:", error);
+      console.error('Error during signing up:', error);
       this.dispatchError(error);
       this.dispatchAuthLoading(false);
 
@@ -170,7 +160,7 @@ class FirebaseAuthService {
 
     store.dispatch(
       setUINotification({
-        message: "Hesabınız başarıyla oluşturuldu. Şimdi giriş yapabilirsiniz.",
+        message: 'Hesabınız başarıyla oluşturuldu. Şimdi giriş yapabilirsiniz.',
         notificationType: UINotificationEnum.SUCCESS,
       })
     );
@@ -187,7 +177,7 @@ class FirebaseAuthService {
       const result = await sendPasswordResetEmail(auth, email);
       console.log(result);
     } catch (error: any) {
-      console.error("Error sending reset password email:", error);
+      console.error('Error sending reset password email:', error);
       this.dispatchError(error);
     }
   };
@@ -205,7 +195,7 @@ class FirebaseAuthService {
       const result = await reauthenticateWithCredential(user, credentials);
       console.log(result);
     } catch (error: any) {
-      console.error("Error during reauthentication:", error);
+      console.error('Error during reauthentication:', error);
       this.dispatchError(error);
     }
   };

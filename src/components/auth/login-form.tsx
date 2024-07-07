@@ -1,15 +1,13 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Icons } from "@/components/ui/icons";
-import { Label } from "@/components/ui/label";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Icons } from '@/components/ui/icons';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import {
   Form,
   FormControl,
@@ -17,9 +15,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Eye, EyeOff } from "lucide-react";
-import { loginFormSchema } from "@/components/auth/auth-service/common-auth";
+} from '@/components/ui/form';
+import { Eye, EyeOff } from 'lucide-react';
+import { loginFormSchema } from '@/components/auth/auth-service/common-auth';
 
 interface LoginFormProps {
   isLoading: boolean;
@@ -28,38 +26,38 @@ interface LoginFormProps {
   onResetPasswordClick(): void;
 }
 
-export function LoginForm({
+export const LoginForm = ({
   isLoading,
   onRegisterClick,
   onResetPasswordClick,
   onSubmit,
-}: LoginFormProps) {
+}: LoginFormProps): React.ReactNode => {
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
-      password: "",
-      email: "",
+      password: '',
+      email: '',
     },
   });
 
   const eyeProps = {
     onClick: () => setShowPassword(!showPassword),
     style: {
-      position: "relative",
-      right: "10px",
-      bottom: "39px",
-      cursor: "pointer",
+      position: 'relative',
+      right: '10px',
+      bottom: '39px',
+      cursor: 'pointer',
     },
   } as any;
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 gap-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-3 gap-6'>
         <FormField
           control={form.control}
-          name="email"
+          name='email'
           render={({ field }) => (
             <FormItem>
               <FormLabel>E-posta</FormLabel>
@@ -72,20 +70,16 @@ export function LoginForm({
         />
         <FormField
           control={form.control}
-          name="password"
+          name='password'
           render={({ field }) => (
             <FormItem>
               <FormLabel>Şifre</FormLabel>
 
               <FormControl>
-                <Input type={showPassword ? "input" : "password"} {...field} />
+                <Input type={showPassword ? 'input' : 'password'} {...field} />
               </FormControl>
-              <span style={{ float: "right" }}>
-                {showPassword ? (
-                  <EyeOff {...eyeProps} />
-                ) : (
-                  <Eye {...eyeProps} />
-                )}
+              <span className='float-right'>
+                {showPassword ? <EyeOff {...eyeProps} /> : <Eye {...eyeProps} />}
               </span>
               <FormMessage />
             </FormItem>
@@ -93,26 +87,22 @@ export function LoginForm({
         />
         <Button
           onClick={onResetPasswordClick}
-          className="w-1/6 float-right text-xs"
-          variant="link"
-          type="button"
+          className='w-1/6 float-right text-xs'
+          variant='link'
+          type='button'
         >
           Şifremi unuttum
         </Button>
-        <Button className="w-full" type="submit">
-          {isLoading ? (
-            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            ""
-          )}
+        <Button className='w-full' type='submit'>
+          {isLoading ? <Icons.spinner className='mr-2 h-4 w-4 animate-spin' /> : ''}
           Giriş
         </Button>
-        <p className="text-center">
-          <Button onClick={onRegisterClick} type="button" variant="link">
+        <p className='text-center'>
+          <Button onClick={onRegisterClick} type='button' variant='link'>
             Üye değil misiniz? Hemen kaydolun!
           </Button>
         </p>
       </form>
     </Form>
   );
-}
+};

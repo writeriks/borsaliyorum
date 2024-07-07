@@ -1,46 +1,38 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 
-import ReduxProvider from "../components/redux-provider/redux-provider";
+import ReduxProvider from '../components/redux-provider/redux-provider';
 
-import "./globals.css";
+import './globals.css';
 
-import MainLayout from "@/components/main-layout/main-layout";
-import { ThemeProvider } from "@/components/theme-provider/theme-provider";
+import MainLayout from '@/components/main-layout/main-layout';
+import { ThemeProvider } from '@/components/theme-provider/theme-provider';
 
 export const metadata: Metadata = {
-  title: "Türk Borsa ve Yatırım Sosyal Medya Platformu",
+  title: 'Türk Borsa ve Yatırım Sosyal Medya Platformu',
   description:
     "Türkiye'nin lider borsa sosyal medya platformu ile hisse senetleri, kripto paralar ve diğer yatırım araçları hakkında bilgi alışverişinde bulunun. Analizler, haberler ve yatırım stratejileri ile portföyünüzü güçlendirin.",
-  keywords: [
-    "borsa",
-    "hisse senetleri",
-    "kripto paralar",
-    "yatırım",
-    "analiz",
-    "haber",
-    "portföy",
-  ],
+  keywords: ['borsa', 'hisse senetleri', 'kripto paralar', 'yatırım', 'analiz', 'haber', 'portföy'],
 };
 
-export default function RootLayout({
+const RootLayout = ({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en">
-      <body className="min-h-screen flex flex-col lg:flex-row">
-        <ReduxProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <MainLayout>{children}</MainLayout>
-          </ThemeProvider>
-        </ReduxProvider>
-      </body>
-    </html>
-  );
-}
+}>): React.ReactNode => (
+  <html lang='en'>
+    <body className='min-h-screen flex flex-col lg:flex-row'>
+      <ReduxProvider>
+        <ThemeProvider
+          attribute='class'
+          defaultTheme='system'
+          enableSystem
+          disableTransitionOnChange
+        >
+          <MainLayout>{children}</MainLayout>
+        </ThemeProvider>
+      </ReduxProvider>
+    </body>
+  </html>
+);
+
+export default RootLayout;

@@ -1,21 +1,18 @@
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from 'react-redux';
 
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged } from 'firebase/auth';
 
-import { auth } from "@/services/firebase-service/firebase-config";
+import { auth } from '@/services/firebase-service/firebase-config';
 
-import userService from "@/services/user-service/user-service";
-import {
-  setIsAuthLoading,
-  setIsAuthModalOpen,
-} from "@/store/reducers/ui-reducer/ui-slice";
-import { UserState, setUser } from "@/store/reducers/user-reducer/user-slice";
-import userReducerSelector from "@/store/reducers/user-reducer/user-reducer-selector";
+import userService from '@/services/user-service/user-service';
+import { setIsAuthLoading, setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
+import { UserState, setUser } from '@/store/reducers/user-reducer/user-slice';
+import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 
-import { User } from "@/services/firebase-service/types/db-types/user";
+import { User } from '@/services/firebase-service/types/db-types/user';
 
 const useUser = (): UserState => {
   const dispatch = useDispatch();
@@ -23,7 +20,7 @@ const useUser = (): UserState => {
 
   const router = useRouter();
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async user => {
       if (user) {
         const userData = (await userService.getUserById(user.uid)) as User;
 
@@ -51,17 +48,17 @@ const useUser = (): UserState => {
       } else {
         dispatch(
           setUser({
-            username: "",
-            displayName: "",
-            email: "",
-            profilePhoto: "",
+            username: '',
+            displayName: '',
+            email: '',
+            profilePhoto: '',
           })
         );
         await userService.logOutUser();
-        router.push("/");
+        router.push('/');
       }
 
-      if (window.location.pathname === "/feed") {
+      if (window.location.pathname === '/feed') {
         dispatch(setIsAuthLoading(false));
       }
     });

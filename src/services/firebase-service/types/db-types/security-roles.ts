@@ -4,12 +4,12 @@ export interface SecurityRoles {
 }
 
 export enum SecurityRolesCollectionEnum {
-  USER_ID = "userId",
-  ROLE = "role",
+  USER_ID = 'userId',
+  ROLE = 'role',
 }
 
 export enum Role {
-  DEFAULT = "default",
-  ADMIN = "admin",
-  MODERATOR = "moderator",
+  DEFAULT = 'default',
+  ADMIN = 'admin',
+  MODERATOR = 'moderator',
 }

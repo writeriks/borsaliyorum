@@ -1,5 +1,5 @@
-import { PostId } from "@/services/firebase-service/types/db-types/post";
-import { Timestamp } from "firebase/firestore";
+import { PostId } from '@/services/firebase-service/types/db-types/post';
+import { Timestamp } from 'firebase/firestore';
 
 export type TagId = string;
 
@@ -15,9 +15,9 @@ export interface Tag {
 }
 
 export enum TagsCollectionEnum {
-  TAG_ID = "tagId",
-  NAME = "name",
-  POST_IDS = "postIds", // ???
-  POST_COUNT = "postCount",
-  CREATED_AT = "createdAt",
+  TAG_ID = 'tagId',
+  NAME = 'name',
+  POST_IDS = 'postIds', // ???
+  POST_COUNT = 'postCount',
+  CREATED_AT = 'createdAt',
 }
