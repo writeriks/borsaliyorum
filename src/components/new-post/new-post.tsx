@@ -45,8 +45,6 @@ const NewPost = (): React.ReactElement => {
   const handleIdeaChange = (e: any): void => {
     setIdea(e.target.value);
   };
-
-  // const handleDisplayIdea = useCallback(
   //   (id: string, display: string): string => {
   //     switch (currentChar) {
   //       case TagsEnum.CASHTAG:
