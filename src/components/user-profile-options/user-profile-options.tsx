@@ -45,7 +45,7 @@ const UserProfileOptions = (): React.ReactNode => {
   };
 
   return isAuthLoading ? (
-    <div className='flex items-center w-fit'>
+    <div className='flex items-center w-fit rounded-lg shadow-lg'>
       <Skeleton className='h-8 w-8 rounded-full' />
       <div className='space-y-2'>
         <Skeleton className='h-4 w-[150px]' />
@@ -53,7 +53,7 @@ const UserProfileOptions = (): React.ReactNode => {
       </div>
     </div>
   ) : (
-    <div id='user-profile-section' className='flex flex-col'>
+    <div id='user-profile-section' className='flex flex-col rounded-lg shadow-lg'>
       {user.username ? (
         <div className='w-full h-full flex flex-col p-1'>
           <div>
@@ -83,7 +83,7 @@ const UserProfileOptions = (): React.ReactNode => {
             <div>
               <Button
                 variant='secondary'
-                className='bg-transparent dark:bg-transparent dark:hover:bg-secondary'
+                className='w-full justify-start bg-transparent dark:bg-transparent dark:hover:bg-secondary'
               >
                 <Bell className='mr-2 h-4 w-4' /> Bildirimler
               </Button>
@@ -91,7 +91,7 @@ const UserProfileOptions = (): React.ReactNode => {
             <div>
               <Button
                 variant='secondary'
-                className='bg-transparent dark:bg-transparent dark:hover:bg-secondary'
+                className='w-full justify-start bg-transparent dark:bg-transparent dark:hover:bg-secondary'
               >
                 <Settings className='mr-2 h-4 w-4' /> Ayarlar
               </Button>

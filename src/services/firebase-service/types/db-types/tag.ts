@@ -21,3 +21,9 @@ export enum TagsCollectionEnum {
   POST_COUNT = 'postCount',
   CREATED_AT = 'createdAt',
 }
+
+export enum TagsEnum {
+  HASHTAG = '#',
+  CASHTAG = '$',
+  MENTION = '@',
+}
