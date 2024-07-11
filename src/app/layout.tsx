@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 
 import ReduxProvider from '../components/redux-provider/redux-provider';
-
-import './globals.css';
+import ClientQueryProvider from '@/components/tanstack-provider/tanstack-provider';
+import { ThemeProvider } from '@/components/theme-provider/theme-provider';
 
 import MainLayout from '@/components/main-layout/main-layout';
-import { ThemeProvider } from '@/components/theme-provider/theme-provider';
+
+import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Türk Borsa ve Yatırım Sosyal Medya Platformu',
@@ -21,16 +22,18 @@ const RootLayout = ({
 }>): React.ReactNode => (
   <html lang='en'>
     <body className='min-h-screen flex flex-col lg:flex-row'>
-      <ReduxProvider>
-        <ThemeProvider
-          attribute='class'
-          defaultTheme='system'
-          enableSystem
-          disableTransitionOnChange
-        >
-          <MainLayout>{children}</MainLayout>
-        </ThemeProvider>
-      </ReduxProvider>
+      <ClientQueryProvider>
+        <ReduxProvider>
+          <ThemeProvider
+            attribute='class'
+            defaultTheme='system'
+            enableSystem
+            disableTransitionOnChange
+          >
+            <MainLayout>{children}</MainLayout>
+          </ThemeProvider>
+        </ReduxProvider>
+      </ClientQueryProvider>
     </body>
   </html>
 );
