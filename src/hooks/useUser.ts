@@ -7,6 +7,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 
 import { auth } from '@/services/firebase-service/firebase-config';
 
+import { queryClient } from '@/components/tanstack-provider/tanstack-provider';
 import userService from '@/services/user-service/user-service';
 import { setIsAuthLoading, setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
 import { UserState, setUser } from '@/store/reducers/user-reducer/user-slice';
@@ -54,7 +55,10 @@ const useUser = (): UserState => {
             profilePhoto: '',
           })
         );
-        await userService.logOutUser();
+        await queryClient.fetchQuery({
+          queryKey: ['logOutUser'],
+          queryFn: () => userService.logOutUser(),
+        });
         router.push('/');
       }
 
