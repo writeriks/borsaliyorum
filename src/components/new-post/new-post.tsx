@@ -45,23 +45,6 @@ const NewPost = (): React.ReactElement => {
   const handleIdeaChange = (e: any): void => {
     setIdea(e.target.value);
   };
-  //   (id: string, display: string): string => {
-  //     switch (currentChar) {
-  //       case TagsEnum.CASHTAG:
-  //         return `${TagsEnum.CASHTAG + id}`;
-
-  //       case TagsEnum.HASHTAG:
-  //         return `${TagsEnum.HASHTAG + id}`;
-
-  //       case TagsEnum.MENTION:
-  //         return `${TagsEnum.MENTION + id}`;
-
-  //       default:
-  //         return `${TagsEnum.HASHTAG + id}`;
-  //     }
-  //   },
-  //   [currentChar]
-  // );
 
   return (
     <div className='lg:p-6 flex p-2 rounded-lg shadow-lg w-full lg:w-3/4 self-start'>

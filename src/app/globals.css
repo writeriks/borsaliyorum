@@ -27,7 +27,7 @@
 
     --radius: 0.5rem;
 
-    /* react-mentions*/
+    /* REACT-MENTIONS BEGIN */
     .mentions {
       width: 100%;
       border-radius: 50%;
@@ -62,7 +62,6 @@
     }
 
     .mentions__suggestions__list {
-      /* background-color:  #97cff7; */
       background-color: hsl(var(--background));
       color: hsl(var(--primary));
       font-size: 10pt;
@@ -80,6 +79,8 @@
     .mentions__mention {
       background-color: #ff0000;
     }
+
+    /* REACT-MENTIONS END */
   }
 
   .dark {
