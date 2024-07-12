@@ -1,12 +1,9 @@
 import React from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useSelector } from 'react-redux';
-import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
-import { UserState } from '@/store/reducers/user-reducer/user-slice';
-
+import { User } from '@/services/firebase-service/types/db-types/user';
 interface UserAvatarProps {
-  user: UserState;
+  user: User;
 }
 
 const UserAvatar = ({ user }: UserAvatarProps): React.ReactNode => {
