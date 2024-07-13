@@ -82,6 +82,7 @@ const Comment = ({ comment }: CommentProp): React.ReactNode => {
                 <span className='sr-only'>Seçenekler</span>
               </Button>
             </DropdownMenuTrigger>
+            {/* TODO: implement dropdown click functionalities */}
             <DropdownMenuContent align='end'>
               <DropdownMenuItem>
                 <VolumeX className='h-4 w-4 mr-2' />
@@ -112,7 +113,8 @@ const Comment = ({ comment }: CommentProp): React.ReactNode => {
           </div>
         )}
       </CardContent>
-      <CardFooter className='flex items-center justify-between p-2'>
+      <CardFooter className='flex items-center justify-between ml-24 mr-24'>
+        {/* TODO: send like request when user clicks comment's comment icon */}
         <div className='inline-flex'>
           <Heart className='h-5 w-5 hover:cursor-pointer hover:text-red-500 hover:rounded-full' />
           <span className='ml-1 text-xs flex items-center'>{comment.likeCount}</span>
@@ -120,7 +122,6 @@ const Comment = ({ comment }: CommentProp): React.ReactNode => {
         {/* TODO: open newpost in modal when user clicks comment's comment icon */}
         <div className='inline-flex'>
           <MessageCircle className='h-5 w-5 hover:cursor-pointer hover:text-blue-500 hover:rounded-full' />
-          <span className='ml-1 text-xs flex items-center'></span>
         </div>
       </CardFooter>
     </Card>

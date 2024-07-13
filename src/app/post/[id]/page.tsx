@@ -2,15 +2,14 @@
 
 import React from 'react';
 
-import NewPost from '@/components/new-post/new-post';
 import Post from '@/components/post/post';
 import Comment from '@/components/comment/comment';
 import { Timestamp } from 'firebase/firestore';
 import { Post as PostType } from '@/services/firebase-service/types/db-types/post';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowBigLeft, ArrowLeft, MoveLeft } from 'lucide-react';
+import { MoveLeft } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import NewPost from '@/components/new-post/new-post';
 
 const PostDetail = (): React.ReactNode => {
   // Example Posts.
@@ -97,12 +96,16 @@ const PostDetail = (): React.ReactNode => {
     <div className='flex flex-col'>
       {foundPost ? (
         <>
+          {/* TODO: when click back it should scroll to the previous post */}
           <Card onClick={() => back()} className='w-full max-w-2xl cursor-pointer'>
             <span className='inline-flex items-center justify-center p-3 bg-transparent'>
               <MoveLeft className='mr-2 h-5 w-5' /> Geri
             </span>
           </Card>
           <Post post={foundPost} />
+          <div className='m-2'>
+            <NewPost />
+          </div>
           {comments.map(comment => (
             <div key={comment.commentId} className='mt-1'>
               <Comment comment={comment} />

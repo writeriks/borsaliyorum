@@ -14,6 +14,7 @@ import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-sele
 import { MentionsInput, Mention } from 'react-mentions';
 import { tickers } from '@/components/new-post/constants';
 import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
+import { User } from '@/services/firebase-service/types/db-types/user';
 
 const MAX_CHARACTERS = 1000;
 
@@ -25,7 +26,7 @@ const NewPost = (): React.ReactElement => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const user = useSelector(userReducerSelector.getUser);
+  const user = useSelector(userReducerSelector.getUser) as User;
 
   useEffect(() => {
     const textarea = textareaRef.current;

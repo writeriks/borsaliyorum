@@ -6,10 +6,11 @@ import NewPost from '@/components/new-post/new-post';
 import { Post as PostType } from '@/services/firebase-service/types/db-types/post';
 import { Timestamp } from 'firebase/firestore';
 import Post from '@/components/post/post';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Home = (): React.ReactNode => {
   // Example Posts.
-  // TODO: Fetch posts from following users db
+  // TODO: Fetch posts from following users db. Dont forget loading skeleton
   const posts: PostType[] = [
     {
       postId: 'post1',
@@ -55,11 +56,28 @@ const Home = (): React.ReactNode => {
   return (
     <div className='flex flex-col'>
       <NewPost />
-      {posts.map(post => (
-        <div key={post.postId} className='mt-8'>
-          <Post post={post} />
-        </div>
-      ))}
+      <Tabs defaultValue='latest' className='mt-2'>
+        <TabsList className='w-full max-w-2xl'>
+          <TabsTrigger className='mr-16' value='latest'>
+            En Son Gönderiler
+          </TabsTrigger>
+          <TabsTrigger value='popular'>En Popüler Gönderiler</TabsTrigger>
+        </TabsList>
+        <TabsContent value='latest'>
+          {posts.map(post => (
+            <div key={post.postId} className='mb-8'>
+              <Post post={post} />
+            </div>
+          ))}
+        </TabsContent>
+        <TabsContent value='popular'>
+          {posts.map(post => (
+            <div key={post.postId} className='mb-8'>
+              <Post post={post} />
+            </div>
+          ))}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
