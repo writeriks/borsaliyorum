@@ -46,22 +46,20 @@ class UserService {
 
   /**
    * Sends a request to public api to fetch users searched by username.
-   * @param userName - The username of the user to retrieve.
+   * @param username - The username of the user to retrieve.
    * @returns  The user document array, or undefined if not found.
    */
-  getUsersByName = async (userName: string): Promise<User[] | undefined> => {
+  getUsersByName = async (username: string): Promise<User[] | undefined> => {
     try {
       const result = await fetch(
-        `/api/user/getUserByName?userName=${encodeURIComponent(userName)}`
+        `/api/user/get-user-by-name?username=${encodeURIComponent(username)}`
       );
 
       return result.json();
     } catch (error) {
-      console.error('Error getting user:', error);
-
       store.dispatch(
         setUINotification({
-          message: 'Error on Getting User',
+          message: 'Bir hata oluştu.',
           notificationType: UINotificationEnum.ERROR,
         })
       );
