@@ -23,7 +23,6 @@ export const AuthForm = (): React.ReactNode => {
   const onSubmit = async (
     values: z.infer<typeof loginFormSchema & typeof registerFormSchema>
   ): Promise<void> => {
-    console.log(values);
     setIsLoading(true);
 
     if (formType === FormType.LOGIN) {

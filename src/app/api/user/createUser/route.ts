@@ -33,7 +33,6 @@ export async function POST(request: Request): Promise<Response> {
       statusText: 'SUCCESS',
     });
   } catch (error) {
-    console.log('ERROR:', error);
     return new Response(null, {
       status: 500,
       statusText: 'Internal Server Error',

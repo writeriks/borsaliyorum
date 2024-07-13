@@ -16,12 +16,18 @@ import {
   deleteDoc,
   DocumentSnapshot,
 } from 'firebase/firestore';
+
 import { db } from './firebase-config';
-import { CollectionPath } from '@/services/firebase-service/types/collection-types';
+
+import { User } from 'firebase/auth';
+
 import {
   FirebaseDocumentQueryResponse,
   QueryParams,
+  WhereFieldEnum,
 } from '@/services/firebase-service/firebase-operations-types';
+import { UserEnum } from '@/services/firebase-service/types/db-types/user';
+import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 
 class FirebaseOperations {
   /*
@@ -93,6 +99,36 @@ class FirebaseOperations {
     }
   };
 
+  /**
+   * Retrieves array of user documents searched by unique user name.
+   * @param username - The username of the user to retrieve.
+   * @returns  The user document array, or undefined if not found.
+   */
+  getUsersFromFirebaseByName = async (username: string): Promise<User[] | undefined> => {
+    try {
+      const endUsername = username + '\uf8ff';
+      const { documents } = await this.getDocumentsWithQuery({
+        collectionPath: CollectionPath.Users,
+        whereFields: [
+          {
+            field: UserEnum.USERNAME,
+            operator: WhereFieldEnum.GREATER_THAN_OR_EQUAL,
+            value: username,
+          },
+          {
+            field: UserEnum.USERNAME,
+            operator: WhereFieldEnum.LESS_THAN_OR_EQUAL,
+            value: endUsername,
+          },
+        ],
+      });
+
+      return documents as User[];
+    } catch (error) {
+      console.error('Error getting user:', error);
+    }
+  };
+
   /*
    * Creates a document with an auto-generated ID
    * @param collectionPath - The path to the collection
@@ -103,8 +139,7 @@ class FirebaseOperations {
     data: Record<string, any>
   ): Promise<void> => {
     try {
-      const docRef = await addDoc(collection(db, collectionPath), data);
-      console.log('Document written with ID: ', docRef.id);
+      await addDoc(collection(db, collectionPath), data);
     } catch (e) {
       console.error('Error adding document: ', e);
     }
@@ -123,7 +158,6 @@ class FirebaseOperations {
   ): Promise<void> => {
     try {
       await setDoc(doc(db, collectionPath, docId), data);
-      console.log('Document written with ID: ', docId);
     } catch (e) {
       console.error('Error setting document: ', e);
     }
@@ -162,7 +196,6 @@ class FirebaseOperations {
     try {
       const docRef = doc(db, collectionPath, docId);
       await updateDoc(docRef, data);
-      console.log('Document updated with ID: ', docId);
     } catch (e) {
       console.error('Error updating document: ', e);
     }
@@ -177,7 +210,6 @@ class FirebaseOperations {
     try {
       const docRef = doc(db, collectionPath, docId);
       await deleteDoc(docRef);
-      console.log('Document deleted with ID: ', docId);
     } catch (e) {
       console.error('Error deleting document: ', e);
     }
