@@ -15,7 +15,6 @@ const MAX_CHARACTERS = 1000;
 
 const NewPost = (): React.ReactElement => {
   const [content, setcontent] = useState('');
-  console.log('🚀 ~ NewPost ~ content:', content);
   const [isBullish, setIsBullish] = useState(true);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
 
