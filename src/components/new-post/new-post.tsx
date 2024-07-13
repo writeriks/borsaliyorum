@@ -10,6 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { TrendingDown, TrendingUp, X } from 'lucide-react';
 import ImageUploader from '@/components/image-uploader/image-uploader';
+import { useSelector } from 'react-redux';
+import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
+import { User } from '@/services/firebase-service/types/db-types/user';
 
 const MAX_CHARACTERS = 1000;
 
@@ -19,6 +22,8 @@ const NewPost = (): React.ReactElement => {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const user = useSelector(userReducerSelector.getUser) as User;
 
   const handleToggle = (): void => {
     setIsBullish(!isBullish);
