@@ -101,9 +101,7 @@ class UserService {
   updateUserEmail = async (user: FirebaseUser, newEmail: string): Promise<void> => {
     try {
       if (auth.currentUser) {
-        const result = await updateEmail(user, newEmail);
-
-        console.log(result);
+        await updateEmail(user, newEmail);
       }
     } catch (error) {
       console.error('Error updating email:', error);
@@ -118,9 +116,7 @@ class UserService {
   updateUserPassword = async (user: FirebaseUser, newPassword: string): Promise<void> => {
     try {
       if (auth.currentUser) {
-        const result = await updatePassword(user, newPassword);
-
-        console.log(result);
+        await updatePassword(user, newPassword);
       }
     } catch (error) {
       console.error('Error updating password:', error);
@@ -135,9 +131,7 @@ class UserService {
   deleteUser = async (user: FirebaseUser): Promise<void> => {
     try {
       if (auth.currentUser) {
-        const result = await deleteUser(user);
-
-        console.log(result);
+        await deleteUser(user);
       }
     } catch (error) {
       console.error('Error deleting user:', error);

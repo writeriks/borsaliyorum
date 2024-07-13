@@ -139,8 +139,7 @@ class FirebaseOperations {
     data: Record<string, any>
   ): Promise<void> => {
     try {
-      const docRef = await addDoc(collection(db, collectionPath), data);
-      console.log('Document written with ID: ', docRef.id);
+      await addDoc(collection(db, collectionPath), data);
     } catch (e) {
       console.error('Error adding document: ', e);
     }
@@ -159,7 +158,6 @@ class FirebaseOperations {
   ): Promise<void> => {
     try {
       await setDoc(doc(db, collectionPath, docId), data);
-      console.log('Document written with ID: ', docId);
     } catch (e) {
       console.error('Error setting document: ', e);
     }
@@ -198,7 +196,6 @@ class FirebaseOperations {
     try {
       const docRef = doc(db, collectionPath, docId);
       await updateDoc(docRef, data);
-      console.log('Document updated with ID: ', docId);
     } catch (e) {
       console.error('Error updating document: ', e);
     }
@@ -213,7 +210,6 @@ class FirebaseOperations {
     try {
       const docRef = doc(db, collectionPath, docId);
       await deleteDoc(docRef);
-      console.log('Document deleted with ID: ', docId);
     } catch (e) {
       console.error('Error deleting document: ', e);
     }
