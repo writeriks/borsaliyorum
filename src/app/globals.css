@@ -73,7 +73,7 @@
     }
 
     .mentions__suggestions__item--focused {
-      background-color: #cee4e5;
+      background-color: rgba(0, 0, 0, 0.15);
     }
 
     .mentions__mention {

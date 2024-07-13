@@ -1,5 +1,3 @@
-import firebaseOperations from '@/services/firebase-service/firebase-operations';
-import { auth } from '../firebase-service/firebase-config';
 import {
   User as FirebaseUser,
   deleteUser,
@@ -7,9 +5,16 @@ import {
   updateEmail,
   updatePassword,
 } from 'firebase/auth';
+
+import { auth } from '../firebase-service/firebase-config';
+
+import firebaseOperations from '@/services/firebase-service/firebase-operations';
+
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
 import { Timestamp } from 'firebase/firestore';
+import store from '@/store/redux-store';
+import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 
 class UserService {
   /**
@@ -36,6 +41,28 @@ class UserService {
       return userDoc?.exists() ? (userDoc.data() as User) : undefined;
     } catch (error) {
       console.error('Error getting user:', error);
+    }
+  };
+
+  /**
+   * Sends a request to public api to fetch users searched by username.
+   * @param username - The username of the user to retrieve.
+   * @returns  The user document array, or undefined if not found.
+   */
+  getUsersByName = async (username: string): Promise<User[] | undefined> => {
+    try {
+      const result = await fetch(
+        `/api/user/get-user-by-name?username=${encodeURIComponent(username)}`
+      );
+
+      return result.json();
+    } catch (error) {
+      store.dispatch(
+        setUINotification({
+          message: 'Bir hata oluştu.',
+          notificationType: UINotificationEnum.ERROR,
+        })
+      );
     }
   };
 
@@ -72,9 +99,7 @@ class UserService {
   updateUserEmail = async (user: FirebaseUser, newEmail: string): Promise<void> => {
     try {
       if (auth.currentUser) {
-        const result = await updateEmail(user, newEmail);
-
-        console.log(result);
+        await updateEmail(user, newEmail);
       }
     } catch (error) {
       console.error('Error updating email:', error);
@@ -89,9 +114,7 @@ class UserService {
   updateUserPassword = async (user: FirebaseUser, newPassword: string): Promise<void> => {
     try {
       if (auth.currentUser) {
-        const result = await updatePassword(user, newPassword);
-
-        console.log(result);
+        await updatePassword(user, newPassword);
       }
     } catch (error) {
       console.error('Error updating password:', error);
@@ -106,9 +129,7 @@ class UserService {
   deleteUser = async (user: FirebaseUser): Promise<void> => {
     try {
       if (auth.currentUser) {
-        const result = await deleteUser(user);
-
-        console.log(result);
+        await deleteUser(user);
       }
     } catch (error) {
       console.error('Error deleting user:', error);

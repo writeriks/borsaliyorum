@@ -1,35 +1,24 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
+
+import Image from 'next/image';
 
 import UserAvatar from '@/components/user-avatar/user-avatar';
-
+import PostEditor from '@/components/post-editor/post-editor';
 import { Button } from '@/components/ui/button';
-import { TrendingDown, TrendingUp, X } from 'lucide-react';
-import Image from 'next/image';
-import ImageUploader from '@/components/image-uploader/image-uploader';
 import { Label } from '@/components/ui/label';
-import { MentionsInput, Mention } from 'react-mentions';
-import { tickers } from '@/components/new-post/constants';
-import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
+import { TrendingDown, TrendingUp, X } from 'lucide-react';
+import ImageUploader from '@/components/image-uploader/image-uploader';
 
 const MAX_CHARACTERS = 1000;
 
 const NewPost = (): React.ReactElement => {
-  const [idea, setIdea] = useState('');
+  const [content, setcontent] = useState('');
   const [isBullish, setIsBullish] = useState(true);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    }
-  }, [idea]);
 
   const handleToggle = (): void => {
     setIsBullish(!isBullish);
@@ -42,50 +31,18 @@ const NewPost = (): React.ReactElement => {
     }
   };
 
-  const handleIdeaChange = (e: any): void => {
-    setIdea(e.target.value);
-  };
-
   return (
     <div className='lg:p-6 flex p-2 rounded-lg shadow-lg w-full lg:w-3/4 self-start'>
       <div className='flex items-start w-10 lg:w-12'>
         <UserAvatar />
       </div>
-
       <div className='flex flex-col ml-2 w-full justify-between'>
         <div>
           <div className='flex'>
-            <MentionsInput
-              autoFocus
-              placeholder='$TUPRS - Ne düşünüyorsun?'
-              className='mentions'
-              value={idea}
-              onChange={handleIdeaChange}
-            >
-              <Mention
-                markup='$(__id__)'
-                trigger={TagsEnum.CASHTAG}
-                data={tickers}
-                displayTransform={id => `${TagsEnum.CASHTAG + id}`}
-              />
-              <Mention
-                markup='@(__id__)'
-                trigger={TagsEnum.MENTION}
-                data={tickers}
-                displayTransform={id => `${TagsEnum.MENTION + id}`}
-              />
-              {/* <Mention
-                markup='#[__display__](__id__)'
-                className='text-blue-700'
-                trigger={TagsEnum.HASHTAG}
-                data={[{ id: idea, display: idea }]}
-                displayTransform={(id) => `${TagsEnum.HASHTAG + id}`}
-              /> */}
-            </MentionsInput>
-
-            {idea ? (
+            <PostEditor content={content} setContent={setcontent} />
+            {content ? (
               <Label className='flex flex-col-reverse text-sm'>
-                {MAX_CHARACTERS - idea.length}
+                {MAX_CHARACTERS - content.length}
               </Label>
             ) : null}
           </div>

@@ -198,8 +198,7 @@ class FirebaseAuthService {
    */
   sendPasswordResetEmail = async (email: string): Promise<void> => {
     try {
-      const result = await sendPasswordResetEmail(auth, email);
-      console.log(result);
+      await sendPasswordResetEmail(auth, email);
     } catch (error: any) {
       console.error('Error sending reset password email:', error);
       this.dispatchError(error);
@@ -216,8 +215,7 @@ class FirebaseAuthService {
     credentials: AuthCredential
   ): Promise<void> => {
     try {
-      const result = await reauthenticateWithCredential(user, credentials);
-      console.log(result);
+      await reauthenticateWithCredential(user, credentials);
     } catch (error: any) {
       console.error('Error during reauthentication:', error);
       this.dispatchError(error);
