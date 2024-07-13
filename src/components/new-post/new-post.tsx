@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import UserAvatar from '@/components/user-avatar/user-avatar';
 
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { TrendingDown, TrendingUp, X } from 'lucide-react';
 import Image from 'next/image';
@@ -12,6 +11,9 @@ import ImageUploader from '@/components/image-uploader/image-uploader';
 import { Label } from '@/components/ui/label';
 import { useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
+import { MentionsInput, Mention } from 'react-mentions';
+import { tickers } from '@/components/new-post/constants';
+import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 
 const MAX_CHARACTERS = 1000;
 
@@ -43,6 +45,11 @@ const NewPost = (): React.ReactElement => {
       fileInputRef.current.value = '';
     }
   };
+
+  const handleIdeaChange = (e: any): void => {
+    setIdea(e.target.value);
+  };
+
   return (
     <div className='lg:p-6 flex p-2 rounded-lg shadow-lg w-full lg:w-3/4 self-start'>
       <div className='flex items-start w-10 lg:w-12'>
@@ -52,16 +59,34 @@ const NewPost = (): React.ReactElement => {
       <div className='flex flex-col ml-2 w-full justify-between'>
         <div>
           <div className='flex'>
-            <Textarea
-              ref={textareaRef}
+            <MentionsInput
               autoFocus
-              className='text-lg w-full resize-none border-none outline-none focus-visible:ring-offset-0 focus-visible:ring-0 focus-visible:border-none'
-              rows={1}
-              maxLength={1000}
-              placeholder='$TUPRS - Ne düşünüyorsun'
+              placeholder='$TUPRS - Ne düşünüyorsun?'
+              className='mentions'
               value={idea}
-              onChange={e => setIdea(e.target.value)}
-            />
+              onChange={handleIdeaChange}
+            >
+              <Mention
+                markup='$(__id__)'
+                trigger={TagsEnum.CASHTAG}
+                data={tickers}
+                displayTransform={id => `${TagsEnum.CASHTAG + id}`}
+              />
+              <Mention
+                markup='@(__id__)'
+                trigger={TagsEnum.MENTION}
+                data={tickers}
+                displayTransform={id => `${TagsEnum.MENTION + id}`}
+              />
+              {/* <Mention
+                markup='#[__display__](__id__)'
+                className='text-blue-700'
+                trigger={TagsEnum.HASHTAG}
+                data={[{ id: idea, display: idea }]}
+                displayTransform={(id) => `${TagsEnum.HASHTAG + id}`}
+              /> */}
+            </MentionsInput>
+
             {idea ? (
               <Label className='flex flex-col-reverse text-sm'>
                 {MAX_CHARACTERS - idea.length}
@@ -72,7 +97,7 @@ const NewPost = (): React.ReactElement => {
             {imageSrc && (
               <>
                 <Button
-                  className='absolute top-1 right-1 p-1 bg-slate-800 hover:bg-slate-800 rounded-full text-white z-10'
+                  className='absolute top-1 right-1 p-1 bg-slate-800 hover:bg-slate-800 rounded-full text-white'
                   onClick={handleRemoveImage}
                 >
                   <X size={30} />

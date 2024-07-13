@@ -28,6 +28,61 @@
     --radius: 0.5rem;
 
     --radius: 0.5rem;
+
+    /* REACT-MENTIONS BEGIN */
+    .mentions {
+      width: 100%;
+      border-radius: 50%;
+    }
+
+    .mentions--singleLine .mentions__control {
+      display: inline-block;
+    }
+    .mentions--singleLine .mentions__higlighter {
+      padding: 1px;
+      background-color: yellow;
+    }
+    .mentions--singleLine .mentions__input {
+      padding: 5px;
+      background-color: yellow;
+    }
+
+    .mentions--multiLine .mentions__control {
+      font-family: monospace;
+      font-size: 11pt;
+    }
+    .mentions--multiLine .mentions__highlighter {
+      padding: 8px;
+      color: var(--primary-foreground) !important;
+      font-weight: 900;
+    }
+    .mentions--multiLine .mentions__input {
+      padding: 9px;
+      min-height: 63px;
+      outline: 0;
+      border: 0;
+    }
+
+    .mentions__suggestions__list {
+      background-color: hsl(var(--background));
+      color: hsl(var(--primary));
+      font-size: 10pt;
+    }
+
+    .mentions__suggestions__item {
+      padding: 5px 15px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    }
+
+    .mentions__suggestions__item--focused {
+      background-color: #cee4e5;
+    }
+
+    .mentions__mention {
+      background-color: #ff0000;
+    }
+
+    /* REACT-MENTIONS END */
   }
 
   .dark {

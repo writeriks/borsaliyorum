@@ -20,6 +20,7 @@ import {
   setIsAuthModalOpen,
   setUINotification,
 } from '@/store/reducers/ui-reducer/ui-slice';
+import { queryClient } from '@/components/tanstack-provider/tanstack-provider';
 
 class FirebaseAuthService {
   genericErrorMessage = 'Bir hata oluştu.';
@@ -65,10 +66,16 @@ class FirebaseAuthService {
           [UserEnum.PROFILE_PHOTO]: user.photoURL ?? undefined,
         };
 
-        await userService.addUser(customUser);
+        await queryClient.fetchQuery({
+          queryKey: ['addUser', customUser],
+          queryFn: () => userService.addUser(customUser),
+        });
       }
 
-      await userService.validateUser(user);
+      await queryClient.fetchQuery({
+        queryKey: ['validateUser', user],
+        queryFn: () => userService.validateUser(user),
+      });
 
       window.location.pathname = '/feed';
     } catch (error: any) {
@@ -84,7 +91,10 @@ class FirebaseAuthService {
   signOut = async (): Promise<void> => {
     try {
       await signOut(auth);
-      await userService.logOutUser();
+      await queryClient.fetchQuery({
+        queryKey: ['logOutUser'],
+        queryFn: () => userService.logOutUser(),
+      });
     } catch (error: any) {
       console.error('Error signing out:', error);
       this.dispatchError(error);
@@ -102,7 +112,10 @@ class FirebaseAuthService {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       const userDocument = await userService.getUserById(user.uid);
 
-      await userService.validateUser(user);
+      await queryClient.fetchQuery({
+        queryKey: ['validateUser', user],
+        queryFn: () => userService.validateUser(user),
+      });
       if (userDocument) {
         await userService.syncUser(user, userDocument);
       }
@@ -129,13 +142,20 @@ class FirebaseAuthService {
   ): Promise<boolean> => {
     try {
       store.dispatch(setIsAuthLoading(true));
-      await userService.checkIfUserExist(username, email, displayName);
+
+      await queryClient.fetchQuery({
+        queryKey: ['checkIfUserExist', username, email, displayName],
+        queryFn: () => userService.checkIfUserExist(username, email, displayName),
+      });
 
       const result = await createUserWithEmailAndPassword(auth, email, password);
       const { user } = result;
       await userService.sendEmailVerification(user);
 
-      await userService.validateUser(user);
+      await queryClient.fetchQuery({
+        queryKey: ['validateUser', user],
+        queryFn: () => userService.validateUser(user),
+      });
 
       const customUser: User = {
         [UserEnum.USER_ID]: user.uid,
@@ -146,7 +166,11 @@ class FirebaseAuthService {
         [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
       };
 
-      await userService.addUser(customUser);
+      await queryClient.fetchQuery({
+        queryKey: ['addUser', customUser],
+        queryFn: () => userService.addUser(customUser),
+      });
+
       store.dispatch(setIsAuthModalOpen(false));
       window.location.pathname = '/feed';
     } catch (error: any) {

@@ -15,7 +15,7 @@ const ThemeModeToggle = (): React.ReactNode => {
     <div>
       <Button
         variant='secondary'
-        className='bg-transparent dark:bg-transparent dark:hover:bg-secondary'
+        className='w-full justify-start bg-transparent dark:bg-transparent dark:hover:bg-secondary'
         onClick={() => setTheme(isDark ? 'light' : 'dark')}
       >
         {theme === 'dark' ? (
