@@ -4,7 +4,6 @@
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -16,7 +15,6 @@ import {
   Ellipsis,
   Heart,
   MessageCircle,
-  Repeat,
   Trash,
   TrendingDown,
   TrendingUp,
@@ -30,7 +28,6 @@ import { Comment as CommentType } from '@/services/firebase-service/types/db-typ
 import { useEffect, useState } from 'react';
 import userService from '@/services/user-service/user-service';
 import { User } from '@/services/firebase-service/types/db-types/user';
-import { useRouter } from 'next/navigation';
 
 export interface CommentProp {
   comment: CommentType;
