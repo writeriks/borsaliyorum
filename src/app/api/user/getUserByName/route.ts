@@ -6,7 +6,6 @@ import firebaseOperations from '@/services/firebase-service/firebase-operations'
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
   const userName = searchParams.get('userName');
-  console.log('🚀 ~ GET ~ username:', userName);
 
   if (!userName) {
     return NextResponse.json({ error: 'error on getting username' }, { status: 400 });
