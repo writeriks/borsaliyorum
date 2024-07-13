@@ -16,12 +16,18 @@ import {
   deleteDoc,
   DocumentSnapshot,
 } from 'firebase/firestore';
+
 import { db } from './firebase-config';
-import { CollectionPath } from '@/services/firebase-service/types/collection-types';
+
+import { User } from 'firebase/auth';
+
 import {
   FirebaseDocumentQueryResponse,
   QueryParams,
+  WhereFieldEnum,
 } from '@/services/firebase-service/firebase-operations-types';
+import { UserEnum } from '@/services/firebase-service/types/db-types/user';
+import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 
 class FirebaseOperations {
   /*
@@ -90,6 +96,36 @@ class FirebaseOperations {
         previousOrderByField: orderByField,
         previousOrderByDirection: orderByDirection,
       };
+    }
+  };
+
+  /**
+   * Retrieves array of user documents searched by unique user name.
+   * @param userName - The username of the user to retrieve.
+   * @returns  The user document array, or undefined if not found.
+   */
+  getUsersFromFirebaseByName = async (userName: string): Promise<User[] | undefined> => {
+    try {
+      const endUsername = userName + '\uf8ff';
+      const { documents } = await this.getDocumentsWithQuery({
+        collectionPath: CollectionPath.Users,
+        whereFields: [
+          {
+            field: UserEnum.USERNAME,
+            operator: WhereFieldEnum.GREATER_THAN_OR_EQUAL,
+            value: userName,
+          },
+          {
+            field: UserEnum.USERNAME,
+            operator: WhereFieldEnum.LESS_THAN_OR_EQUAL,
+            value: endUsername,
+          },
+        ],
+      });
+
+      return documents as User[];
+    } catch (error) {
+      console.error('Error getting user:', error);
     }
   };
 

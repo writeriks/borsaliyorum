@@ -1,5 +1,3 @@
-import firebaseOperations from '@/services/firebase-service/firebase-operations';
-import { auth } from '../firebase-service/firebase-config';
 import {
   User as FirebaseUser,
   deleteUser,
@@ -7,10 +5,16 @@ import {
   updateEmail,
   updatePassword,
 } from 'firebase/auth';
+
+import { auth } from '../firebase-service/firebase-config';
+
+import firebaseOperations from '@/services/firebase-service/firebase-operations';
+
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
 import { Timestamp } from 'firebase/firestore';
-import { WhereFieldEnum } from '@/services/firebase-service/firebase-operations-types';
+import store from '@/store/redux-store';
+import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 
 class UserService {
   /**
@@ -41,32 +45,26 @@ class UserService {
   };
 
   /**
-   * Retrieves array of user documents searched by unique user name.
+   * Sends a request to public api to fetch users searched by username.
    * @param userName - The username of the user to retrieve.
    * @returns  The user document array, or undefined if not found.
    */
   getUsersByName = async (userName: string): Promise<User[] | undefined> => {
     try {
-      const endUsername = userName + '\uf8ff';
-      const { documents } = await firebaseOperations.getDocumentsWithQuery({
-        collectionPath: CollectionPath.Users,
-        whereFields: [
-          {
-            field: UserEnum.USERNAME,
-            operator: WhereFieldEnum.GREATER_THAN_OR_EQUAL,
-            value: userName,
-          },
-          {
-            field: UserEnum.USERNAME,
-            operator: WhereFieldEnum.LESS_THAN_OR_EQUAL,
-            value: endUsername,
-          },
-        ],
-      });
+      const result = await fetch(
+        `/api/user/getUserByName?userName=${encodeURIComponent(userName)}`
+      );
 
-      return documents as User[];
+      return result.json();
     } catch (error) {
       console.error('Error getting user:', error);
+
+      store.dispatch(
+        setUINotification({
+          message: 'Error on Getting User',
+          notificationType: UINotificationEnum.ERROR,
+        })
+      );
     }
   };
 
