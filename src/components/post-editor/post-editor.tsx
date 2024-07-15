@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { Mention, MentionsInput, SuggestionDataItem } from 'react-mentions';
 
@@ -6,6 +6,7 @@ import userService from '@/services/user-service/user-service';
 
 import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 import { tickers } from '@/tickers';
+import useDebounce from '@/hooks/userDebounce';
 
 interface PostEditorProps {
   content: string;
@@ -13,19 +14,36 @@ interface PostEditorProps {
 }
 
 const PostEditor: React.FC<PostEditorProps> = ({ content, setContent }) => {
-  const onMentionSearch = async (
-    search: string,
-    callback: (suggestions: SuggestionDataItem[]) => void
-  ): Promise<void> => {
-    if (search.length === 0) return;
+  const [searchTerm, setSearchTerm] = useState('');
+  const [mentionSuggestions, setMentionSuggestions] = useState<SuggestionDataItem[]>([]);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  const fetchMentions = useCallback(async (search: string) => {
+    if (search.length === 0) return [];
 
     const users = await userService.getUsersByName(search);
-    const suggestions: SuggestionDataItem[] = (users ?? []).map(user => ({
+    return (users ?? []).map(user => ({
       id: user.username,
       display: user.username,
     }));
+  }, []);
 
-    callback(suggestions);
+  useEffect(() => {
+    if (debouncedSearchTerm) {
+      fetchMentions(debouncedSearchTerm).then(suggestions => {
+        setMentionSuggestions(suggestions);
+      });
+    }
+  }, [debouncedSearchTerm, fetchMentions]);
+
+  const onMentionSearch = (
+    search: string,
+    callback: (suggestions: SuggestionDataItem[]) => void
+  ): void => {
+    if (search.length === 0) return;
+
+    setSearchTerm(search);
+    callback(mentionSuggestions);
   };
 
   const onCashtagSearch = (
@@ -61,6 +79,7 @@ const PostEditor: React.FC<PostEditorProps> = ({ content, setContent }) => {
         markup='@(__id__)'
         trigger={TagsEnum.MENTION}
         data={onMentionSearch || []}
+        onAdd={() => setMentionSuggestions([])}
         className='bg-slate-700'
         displayTransform={id => `${TagsEnum.MENTION}${id}`}
       />
