@@ -65,16 +65,12 @@ const Home = (): React.ReactNode => {
         </TabsList>
         <TabsContent value='latest'>
           {posts.map(post => (
-            <div key={post.postId} className='mb-8'>
-              <Post post={post} />
-            </div>
+            <Post key={post.postId} post={post} />
           ))}
         </TabsContent>
         <TabsContent value='popular'>
           {posts.map(post => (
-            <div key={post.postId} className='mb-8'>
-              <Post post={post} />
-            </div>
+            <Post key={post.postId} post={post} />
           ))}
         </TabsContent>
       </Tabs>

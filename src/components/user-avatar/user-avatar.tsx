@@ -2,11 +2,12 @@ import React from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from '@/services/firebase-service/types/db-types/user';
+
 interface UserAvatarProps {
   user: User;
 }
 
-const UserAvatar = ({ user }: UserAvatarProps): React.ReactNode => {
+const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
   const profileImage = user?.profilePhoto;
   const proxyUrl = `/api/imageProxy?imageUrl=${encodeURIComponent(profileImage as string)}`;
 

@@ -1,9 +1,7 @@
 'use client';
 
-import Post from '@/components/post/post';
-
 const Home = (): React.ReactNode => {
-  return <Post />;
+  return <div>Home Page, show around 10 posts for the most active stocks of the day</div>;
 };
 
 export default Home;

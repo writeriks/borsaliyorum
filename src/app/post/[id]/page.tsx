@@ -88,13 +88,13 @@ const PostDetail = (): React.ReactNode => {
   const query = useParams();
 
   // TODO: Fetch post by id
-  const foundPost = posts.find(p => p.postId === query.id);
+  const post = posts.find(p => p.postId === query.id);
 
   // TODO: Fetch comments by post id
 
   return (
     <div className='flex flex-col'>
-      {foundPost ? (
+      {post ? (
         <>
           {/* TODO: when click back it should scroll to the previous post */}
           <Card onClick={() => back()} className='w-full max-w-2xl cursor-pointer'>
@@ -102,14 +102,12 @@ const PostDetail = (): React.ReactNode => {
               <MoveLeft className='mr-2 h-5 w-5' /> Geri
             </span>
           </Card>
-          <Post post={foundPost} />
+          <Post post={post} />
           <div className='m-2'>
             <NewPost />
           </div>
           {comments.map(comment => (
-            <div key={comment.commentId} className='mt-1'>
-              <Comment comment={comment} />
-            </div>
+            <Comment key={comment.commentId} comment={comment} />
           ))}
         </>
       ) : (
