@@ -17,7 +17,7 @@ import {
   DocumentSnapshot,
 } from 'firebase/firestore';
 
-import { db } from './firebase-config';
+import { db, storage } from './firebase-config';
 
 import { User } from 'firebase/auth';
 
@@ -28,6 +28,8 @@ import {
 } from '@/services/firebase-service/firebase-operations-types';
 import { UserEnum } from '@/services/firebase-service/types/db-types/user';
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
+import { MediaData } from '@/services/firebase-service/types/db-types/post';
+import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 
 class FirebaseOperations {
   /*
@@ -127,6 +129,19 @@ class FirebaseOperations {
     } catch (error) {
       console.error('Error getting user:', error);
     }
+  };
+
+  /*
+   * Uploads an image to Firebase Storage from client side
+   * Will not work on server side call due to firebase storage rules
+   * @param media - The media data
+   * @param imageData - The image data
+   * @returns The download URL of the image
+   */
+  handleSubmitImageFromClient = async (media: MediaData, imageData: string): Promise<string> => {
+    const storageRef = ref(storage, `images/${Date.now()}_${media.alt}.jpg`);
+    await uploadString(storageRef, imageData, 'data_url');
+    return getDownloadURL(storageRef);
   };
 
   /*
