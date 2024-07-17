@@ -34,13 +34,14 @@ const useUser = (): UserState => {
         // login case
         if (userData && !userState.username) {
           // Add more data if needed
-          const { displayName, username, email, profilePhoto } = userData;
+          const { displayName, username, email, profilePhoto, userId } = userData;
           dispatch(
             setUser({
               displayName,
               username,
               email,
               profilePhoto,
+              userId,
             })
           );
 
@@ -53,6 +54,7 @@ const useUser = (): UserState => {
             displayName: '',
             email: '',
             profilePhoto: '',
+            userId: '',
           })
         );
         await queryClient.fetchQuery({
