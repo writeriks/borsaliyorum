@@ -8,20 +8,21 @@ export type PostCollection = Post[];
 export type PostId = string;
 
 export interface Post {
-  postId: PostId;
+  postId?: PostId;
   userId: UserId;
   stockTickers: StockId[];
   likeCount: number;
   commentCount: number;
-  media: MediaData | null;
+  media: MediaData;
   content: string;
   createdAt: Timestamp;
-  updatedAt: Timestamp;
+  updatedAt?: Timestamp;
   isPositiveSentiment: boolean;
 }
 
 export type MediaData = {
   src: string;
+  alt: string;
 };
 
 export enum PostsCollectionEnum {

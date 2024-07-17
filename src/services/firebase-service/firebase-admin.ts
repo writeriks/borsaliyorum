@@ -1,4 +1,5 @@
 import admin from 'firebase-admin';
+import { getStorage, Storage } from 'firebase-admin/storage';
 
 const projectId = process.env.FIREBASE_PROJECT_ID;
 const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
@@ -15,9 +16,13 @@ if (!admin.apps.length) {
       clientEmail,
       privateKey,
     }),
+
+    storageBucket: `gs://borsaliyorum-7da89.appspot.com`,
   });
 }
 
 const auth = admin.auth();
+const storage: Storage = getStorage();
+const storageBucket = admin.storage().bucket();
 
-export { auth };
+export { auth, storage, storageBucket };

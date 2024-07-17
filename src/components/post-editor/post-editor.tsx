@@ -11,12 +11,13 @@ import useDebounce from '@/hooks/userDebounce';
 interface PostEditorProps {
   content: string;
   setContent: (content: string) => void;
+  onSetCashTags?: (cashTag: string) => void;
 }
 
-const PostEditor: React.FC<PostEditorProps> = ({ content, setContent }) => {
+const PostEditor: React.FC<PostEditorProps> = ({ content, setContent, onSetCashTags }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [mentionSuggestions, setMentionSuggestions] = useState<SuggestionDataItem[]>([]);
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const fetchMentions = useCallback(async (search: string) => {
     if (search.length === 0) return [];
@@ -73,6 +74,7 @@ const PostEditor: React.FC<PostEditorProps> = ({ content, setContent }) => {
         trigger={TagsEnum.CASHTAG}
         data={onCashtagSearch}
         className='bg-slate-700'
+        onAdd={tags => onSetCashTags && onSetCashTags(tags as string)}
         displayTransform={id => `${TagsEnum.CASHTAG}${id}`}
       />
       <Mention

@@ -1,5 +1,5 @@
 module.exports = {
-  extends: ['next/core-web-vitals'],
+  extends: ['next/core-web-vitals', 'prettier'],
   settings: {
     react: { version: '18.2.0' },
     'import/parsers': {
