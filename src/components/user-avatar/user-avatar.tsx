@@ -1,11 +1,13 @@
 import React from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useSelector } from 'react-redux';
-import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
+import { User } from '@/services/firebase-service/types/db-types/user';
 
-const UserAvatar = (): React.ReactNode => {
-  const user = useSelector(userReducerSelector.getUser);
+interface UserAvatarProps {
+  user: User;
+}
+
+const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
   const profileImage = user?.profilePhoto;
   const proxyUrl = `/api/imageProxy?imageUrl=${encodeURIComponent(profileImage as string)}`;
 

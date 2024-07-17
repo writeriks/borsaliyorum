@@ -60,7 +60,7 @@ const UserProfileOptions = (): React.ReactNode => {
             <Select value='' onValueChange={onProfileSelectChange}>
               <SelectTrigger className='w-full hover:bg-secondary border-none text-secondary-foreground dark:bg-transparent dark:hover:bg-secondary'>
                 <div className='flex items-center'>
-                  <UserAvatar /> <span className='ml-2'> Profil</span>
+                  <UserAvatar user={user} /> <span className='ml-2'> Profil</span>
                 </div>
               </SelectTrigger>
               <SelectContent>

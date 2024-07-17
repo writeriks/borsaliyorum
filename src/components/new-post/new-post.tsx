@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { TrendingDown, TrendingUp, X } from 'lucide-react';
 import ImageUploader from '@/components/image-uploader/image-uploader';
+import { User } from '@/services/firebase-service/types/db-types/user';
+
 import { useDispatch, useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import { MediaData, Post } from '@/services/firebase-service/types/db-types/post';
@@ -31,6 +33,7 @@ const NewPost = (): React.ReactElement => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const user = useSelector(userReducerSelector.getUser) as User;
   const mutation = useMutation({
     mutationFn: ({ post, postImageData }: { post: Post; postImageData: string }) =>
       postService.createNewPost(post, postImageData),
@@ -91,6 +94,7 @@ const NewPost = (): React.ReactElement => {
       content,
       likeCount: 0,
       commentCount: 0,
+      repostCount: 0,
       isPositiveSentiment: isBullish,
       media: { src: '', alt: `${Date.now()}` } as MediaData,
     };
@@ -100,7 +104,7 @@ const NewPost = (): React.ReactElement => {
   return (
     <div className='lg:p-6 flex p-2 rounded-lg shadow-lg w-full lg:w-3/4 self-start'>
       <div className='flex items-start w-10 lg:w-12'>
-        <UserAvatar />
+        <UserAvatar user={user} />
       </div>
       <div className='flex flex-col ml-2 w-full justify-between'>
         <div>

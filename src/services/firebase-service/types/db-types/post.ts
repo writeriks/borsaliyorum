@@ -13,6 +13,7 @@ export interface Post {
   stockTickers: StockId[];
   likeCount: number;
   commentCount: number;
+  repostCount: number;
   media: MediaData;
   content: string;
   createdAt: Timestamp;
