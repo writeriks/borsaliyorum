@@ -30,7 +30,7 @@ export async function POST(request: Request): Promise<Response> {
         contentType: 'image/jpeg',
         metadata: {
           metadata: {
-            firebaseStorageDownloadTokens: randomUUID(), // Generate a unique download token
+            firebaseStorageDownloadTokens: randomUUID(),
           },
         },
       });
