@@ -4,19 +4,14 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAuth } from 'firebase/auth';
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: 'AIzaSyC0vQmVrQbAx7NTEXRZgH_k6rYl5WwYHH8',
-  authDomain: 'borsaliyorum-7da89.firebaseapp.com',
-  projectId: 'borsaliyorum-7da89',
-  storageBucket: 'borsaliyorum-7da89.appspot.com',
-  messagingSenderId: '477704498003',
-  appId: '1:477704498003:web:c381e03f13f648a2b70fa6',
-  measurementId: 'G-Z6ZS87645K',
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_MESSAGE_SENDER_ID, //'477704498003',
+  appId: process.env.NEXT_PUBLIC_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
@@ -28,8 +23,5 @@ const db = getFirestore(app);
 
 const auth = getAuth(app);
 auth.languageCode = 'tr';
-
-// TODO: Adding analytics gives error. investigate how to use analytics
-// const analytics = getAnalytics(app);
 
 export { app, db, storage, auth };
