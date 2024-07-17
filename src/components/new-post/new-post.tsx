@@ -17,8 +17,8 @@ import { Timestamp } from 'firebase/firestore';
 import postService from '@/services/post-service/post-service';
 import { useMutation } from '@tanstack/react-query';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
-
-const MAX_CHARACTERS = 1000;
+import { Icons } from '@/components/ui/icons';
+import { MAX_CHARACTERS } from '@/services/post-service/constants';
 
 const NewPost = (): React.ReactElement => {
   const [content, setcontent] = useState('');
@@ -34,23 +34,26 @@ const NewPost = (): React.ReactElement => {
   const mutation = useMutation({
     mutationFn: ({ post, postImageData }: { post: Post; postImageData: string }) =>
       postService.createNewPost(post, postImageData),
-    onSuccess: data => {
+    onSuccess: () => {
       dispatch(
         setUINotification({
-          message: 'Post başarıyla oluşturuldu.',
+          message: 'Gönnderi başarıyla oluşturuldu.',
           notificationType: UINotificationEnum.SUCCESS,
         })
       );
-      console.log('Post created successfully:', data);
+
+      setcontent('');
+      setCashTags([]);
+      setIsBullish(true);
+      setImageData('');
     },
-    onError: (error: Error) => {
+    onError: () => {
       dispatch(
         setUINotification({
           message: 'Bir hata oluştu.',
           notificationType: UINotificationEnum.ERROR,
         })
       );
-      console.error('Error creating post:', error);
     },
   });
 
@@ -84,8 +87,10 @@ const NewPost = (): React.ReactElement => {
     const post: Post = {
       userId: currentUser.userId,
       stockTickers: cashTags,
-      createdAt: Timestamp.fromMillis(Date.now()),
+      createdAt: Timestamp.now(),
       content,
+      likeCount: 0,
+      commentCount: 0,
       isPositiveSentiment: isBullish,
       media: { src: '', alt: `${Date.now()}` } as MediaData,
     };
@@ -169,7 +174,14 @@ const NewPost = (): React.ReactElement => {
               onClick={submitPost}
               disabled={isSubmitDisabled}
             >
-              {mutation.isPending ? 'Gönderiliyor' : 'Gönder'}
+              {mutation.isPending ? (
+                <>
+                  <Icons.spinner className='mr-2 h-4 w-4 animate-spin' />
+                  <span>Gönderiliyor</span>
+                </>
+              ) : (
+                <span>Gönder</span>
+              )}
             </Button>
           </div>
         </div>
