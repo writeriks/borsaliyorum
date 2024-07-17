@@ -47,13 +47,15 @@ const Post: React.FC<PostProp> = ({ post }) => {
           </div>
         )}
 
-        <Image
-          src={proxyUrl}
-          alt='Sample image'
-          width={400}
-          height={300}
-          className='w-full rounded-md object-cover'
-        />
+        {post?.media && (
+          <Image
+            src={proxyUrl}
+            alt={post.media.alt}
+            width={400}
+            height={300}
+            className='w-full rounded-md object-cover'
+          />
+        )}
       </CardContent>
       <CardFooter className='flex items-center justify-between ml-16 mr-16'>
         <ContentAction

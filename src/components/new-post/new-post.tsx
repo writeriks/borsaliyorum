@@ -94,6 +94,7 @@ const NewPost = (): React.ReactElement => {
       content,
       likeCount: 0,
       commentCount: 0,
+      repostCount: 0,
       isPositiveSentiment: isBullish,
       media: { src: '', alt: `${Date.now()}` } as MediaData,
     };
