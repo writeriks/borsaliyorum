@@ -51,8 +51,17 @@ class UserService {
    */
   getUsersByName = async (username: string): Promise<User[] | undefined> => {
     try {
+      const idToken = await auth.currentUser?.getIdToken();
+
       const result = await fetch(
-        `/api/user/get-user-by-name?username=${encodeURIComponent(username)}`
+        `/api/user/get-user-by-name?username=${encodeURIComponent(username)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
       );
 
       return result.json();
@@ -144,7 +153,7 @@ class UserService {
     const requestBody = {
       user,
     };
-    const result = await fetch('/api/user/createUser', {
+    const result = await fetch('/api/user/create-user', {
       method: 'POST',
       body: JSON.stringify(requestBody),
     });
@@ -168,7 +177,7 @@ class UserService {
       email,
       displayName,
     };
-    const result = await fetch('/api/user/checkIfUserExist', {
+    const result = await fetch('/api/user/check-if-user-exist', {
       method: 'POST',
       body: JSON.stringify(requestBody),
     });
@@ -185,11 +194,13 @@ class UserService {
    */
   validateUser = async (user: FirebaseUser): Promise<void> => {
     const token = await user.getIdToken();
-    const requestBody = { token };
 
-    const result = await fetch('/api/user/validateUser', {
+    const result = await fetch('/api/user/validate-user', {
       method: 'POST',
-      body: JSON.stringify(requestBody),
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
     });
 
     if (!result.ok) {
