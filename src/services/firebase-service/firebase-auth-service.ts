@@ -73,7 +73,7 @@ class FirebaseAuthService {
       }
 
       await queryClient.fetchQuery({
-        queryKey: ['validateUser', user],
+        queryKey: ['validate-user', user],
         queryFn: () => userService.validateUser(user),
       });
 
@@ -113,7 +113,7 @@ class FirebaseAuthService {
       const userDocument = await userService.getUserById(user.uid);
 
       await queryClient.fetchQuery({
-        queryKey: ['validateUser', user],
+        queryKey: ['validate-user', user],
         queryFn: () => userService.validateUser(user),
       });
       if (userDocument) {
@@ -144,7 +144,7 @@ class FirebaseAuthService {
       store.dispatch(setIsAuthLoading(true));
 
       await queryClient.fetchQuery({
-        queryKey: ['checkIfUserExist', username, email, displayName],
+        queryKey: ['check-if-user-exist', username, email, displayName],
         queryFn: () => userService.checkIfUserExist(username, email, displayName),
       });
 
@@ -153,7 +153,7 @@ class FirebaseAuthService {
       await userService.sendEmailVerification(user);
 
       await queryClient.fetchQuery({
-        queryKey: ['validateUser', user],
+        queryKey: ['validate-user', user],
         queryFn: () => userService.validateUser(user),
       });
 
