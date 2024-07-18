@@ -1,12 +1,15 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+
+import { useQuery } from '@tanstack/react-query';
 
 import { Mention, MentionsInput, SuggestionDataItem } from 'react-mentions';
+
+import useDebounce from '@/hooks/userDebounce';
 
 import userService from '@/services/user-service/user-service';
 
 import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 import { tickers } from '@/tickers';
-import useDebounce from '@/hooks/userDebounce';
 
 interface PostEditorProps {
   content: string;
@@ -19,23 +22,26 @@ const PostEditor: React.FC<PostEditorProps> = ({ content, setContent, onSetCashT
   const [mentionSuggestions, setMentionSuggestions] = useState<SuggestionDataItem[]>([]);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  const fetchMentions = useCallback(async (search: string) => {
-    if (search.length === 0) return [];
-
-    const users = await userService.getUsersByName(search);
-    return (users ?? []).map(user => ({
-      id: user.username,
-      display: user.username,
-    }));
-  }, []);
+  const { refetch } = useQuery({
+    queryKey: ['fetch-mentions'],
+    queryFn: () => userService.getUsersByName(debouncedSearchTerm),
+    enabled: false,
+  });
 
   useEffect(() => {
-    if (debouncedSearchTerm) {
-      fetchMentions(debouncedSearchTerm).then(suggestions => {
+    const fetchMentions = async (): Promise<void> => {
+      if (debouncedSearchTerm) {
+        const { data } = await refetch();
+        const suggestions = (data ?? []).map(user => ({
+          id: user.username,
+          display: user.username,
+        }));
+
         setMentionSuggestions(suggestions);
-      });
-    }
-  }, [debouncedSearchTerm, fetchMentions]);
+      }
+    };
+    fetchMentions();
+  }, [refetch, debouncedSearchTerm]);
 
   const onMentionSearch = (
     search: string,
