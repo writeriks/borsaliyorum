@@ -6,7 +6,7 @@ import {
   updatePassword,
 } from 'firebase/auth';
 
-import { auth } from '../firebase-service/firebase-config';
+import { auth } from '../../firebase-service/firebase-config';
 
 import firebaseOperations from '@/services/firebase-service/firebase-operations';
 
@@ -16,7 +16,7 @@ import { Timestamp } from 'firebase/firestore';
 import store from '@/store/redux-store';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 
-class UserService {
+class UserApiService {
   /**
    * Sends an email verification to the provided Firebase user.
    * @param user - The Firebase user to send the email verification to.
@@ -237,5 +237,5 @@ class UserService {
   };
 }
 
-const userService = new UserService();
-export default userService;
+const userApiService = new UserApiService();
+export default userApiService;

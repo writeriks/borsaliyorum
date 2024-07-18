@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import userService from '@/services/user-service/user-service';
 import { User } from '@/services/firebase-service/types/db-types/user';
+import userApiService from '@/services/api-service/user-api-service/user-api-service';
 
 const useFetchContentOwner = (userId: string): User | undefined => {
   const [contentOwner, setContentOwner] = useState<User>();
 
   useEffect(() => {
     const fetchUser = async (): Promise<void> => {
-      const fetchedUser = await userService.getUserById(userId);
+      const fetchedUser = await userApiService.getUserById(userId);
       if (fetchedUser) {
         setContentOwner(fetchedUser);
       }

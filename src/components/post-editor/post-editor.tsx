@@ -6,10 +6,9 @@ import { Mention, MentionsInput, SuggestionDataItem } from 'react-mentions';
 
 import useDebounce from '@/hooks/userDebounce';
 
-import userService from '@/services/user-service/user-service';
-
 import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 import { tickers } from '@/tickers';
+import userApiService from '@/services/api-service/user-api-service/user-api-service';
 
 interface PostEditorProps {
   content: string;
@@ -24,7 +23,7 @@ const PostEditor: React.FC<PostEditorProps> = ({ content, setContent, onSetCashT
 
   const { refetch } = useQuery({
     queryKey: ['fetch-mentions'],
-    queryFn: () => userService.getUsersByName(debouncedSearchTerm),
+    queryFn: () => userApiService.getUsersByName(debouncedSearchTerm),
     enabled: false,
   });
 
