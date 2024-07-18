@@ -8,13 +8,12 @@ import {
 
 import { auth } from '../../firebase-service/firebase-config';
 
-import firebaseOperations from '@/services/firebase-service/firebase-operations';
-
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
 import { Timestamp } from 'firebase/firestore';
 import store from '@/store/redux-store';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
+import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 
 class UserApiService {
   /**
@@ -36,7 +35,8 @@ class UserApiService {
    */
   getUserById = async (userId: string): Promise<User | undefined> => {
     try {
-      const userDoc = await firebaseOperations.getDocumentById(CollectionPath.Users, userId);
+      // TODO: Call public api to handle this
+      const userDoc = await firebaseGenericOperations.getDocumentById(CollectionPath.Users, userId);
 
       return userDoc?.exists() ? (userDoc.data() as User) : undefined;
     } catch (error) {
@@ -87,12 +87,16 @@ class UserApiService {
           user.email !== userDocument.email ||
           user.emailVerified !== userDocument.isEmailVerified
         ) {
-          await firebaseOperations.updateDocumentById(CollectionPath.Users, userDocument.userId, {
-            ...userDocument,
-            [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
-            [UserEnum.EMAIL]: user.email,
-            [UserEnum.UPDATED_AT]: Timestamp.now(),
-          });
+          await firebaseGenericOperations.updateDocumentById(
+            CollectionPath.Users,
+            userDocument.userId,
+            {
+              ...userDocument,
+              [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
+              [UserEnum.EMAIL]: user.email,
+              [UserEnum.UPDATED_AT]: Timestamp.now(),
+            }
+          );
         }
       }
     } catch (error) {
