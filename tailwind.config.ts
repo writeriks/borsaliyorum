@@ -21,6 +21,10 @@ const config = {
       fontFamily: {
         sans: ['Source Sans Pro', 'Arial', 'Helvetica Neue', 'Helvetica', 'sans-serif'],
       },
+      screens: {
+        'min-1500': { 'min': '1500px' },
+        'max-1500': { 'max': '1500px' },
+      },
       height: {
         'screen-minus-60': 'calc(100vh - 60px)',
       },

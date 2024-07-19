@@ -4,6 +4,7 @@ import firebaseGenericOperations from '@/services/firebase-service/firebase-gene
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import { MediaData, Post } from '@/services/firebase-service/types/db-types/post';
 import { randomUUID } from 'crypto';
+import { Timestamp } from 'firebase/firestore';
 
 export async function POST(request: Request): Promise<Response> {
   try {
@@ -44,6 +45,8 @@ export async function POST(request: Request): Promise<Response> {
       post.media.src = downloadUrl[0];
     }
 
+    post.createdAt = Timestamp.now();
+    post.postId = randomUUID() + Date.now();
     await firebaseGenericOperations.createDocumentWithAutoId(CollectionPath.Posts, post);
 
     return new Response(JSON.stringify({ message: 'Post created successfully' }), {

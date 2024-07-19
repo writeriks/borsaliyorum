@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { Timestamp } from 'firebase/firestore';
 
 export interface UserState {
   username: string;
@@ -6,6 +7,7 @@ export interface UserState {
   email: string;
   profilePhoto?: string;
   userId: string;
+  createdAt: Timestamp;
 }
 
 export const initialState: UserState = {
@@ -14,6 +16,7 @@ export const initialState: UserState = {
   email: '',
   userId: '',
   profilePhoto: '',
+  createdAt: Timestamp.now(),
 };
 
 const userSlice = createSlice({

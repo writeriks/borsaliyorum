@@ -45,7 +45,7 @@ const UserProfileOptions = (): React.ReactNode => {
   };
 
   return isAuthLoading ? (
-    <div className='flex items-center w-fit rounded-lg shadow-lg'>
+    <div className='flex items-center w-fit rounded-lg top-[60px] h-[170px] sticky shadow-lg'>
       <Skeleton className='h-8 w-8 rounded-full' />
       <div className='space-y-2'>
         <Skeleton className='h-4 w-[150px]' />
@@ -53,14 +53,21 @@ const UserProfileOptions = (): React.ReactNode => {
       </div>
     </div>
   ) : (
-    <div id='user-profile-section' className='flex flex-col rounded-lg shadow-lg'>
+    <div
+      id='user-profile-section'
+      className='flex flex-col top-[60px] h-[170px] sticky rounded-lg shadow-lg'
+    >
       {user.username ? (
         <div className='w-full h-full flex flex-col p-1'>
           <div>
             <Select value='' onValueChange={onProfileSelectChange}>
-              <SelectTrigger className='w-full hover:bg-secondary border-none text-secondary-foreground dark:bg-transparent dark:hover:bg-secondary'>
+              <SelectTrigger className='w-full hover:bg-secondary border-none h-[45px] text-secondary-foreground dark:bg-transparent dark:hover:bg-secondary'>
                 <div className='flex items-center'>
-                  <UserAvatar user={user} /> <span className='ml-2'> Profil</span>
+                  <UserAvatar user={user} />
+                  <div className='ml-2 flex flex-col items-start'>
+                    <span className='text-sm'>{user.displayName}</span>
+                    <span className='text-xs'>{user.username}</span>
+                  </div>
                 </div>
               </SelectTrigger>
               <SelectContent>

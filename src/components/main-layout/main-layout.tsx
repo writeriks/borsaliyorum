@@ -21,6 +21,7 @@ import useUser from '@/hooks/useUser';
 import { AuthModal } from '@/components/auth/auth-modal';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
 import { setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
+import Discover from '@/components/doscover/discover';
 
 const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNode => {
   const dispatch = useDispatch();
@@ -49,6 +50,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
             className='hidden md:flex md:min-w-64 lg:flex flex-col lg:min-w-64'
           >
             <UserProfileOptions />
+            <div className='lg:flex top-[230px] sticky min-1500:hidden flex-col lg:w-1/4'>
+              <Discover />
+            </div>
             <InnerLeftMainAd />
           </div>
 
@@ -60,6 +64,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
             {children}
           </div>
         </div>
+        <div className='md:hidden'> ADD TAB CONTROLLER HERE</div>
         <Toaster richColors />
       </main>
 
