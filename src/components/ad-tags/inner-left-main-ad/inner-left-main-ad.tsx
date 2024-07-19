@@ -9,7 +9,10 @@ const InnerLeftMainAd = (): React.ReactNode => {
   // make the call for ad if not mobile
 
   return (
-    <div id='inner-left-ad-section' className='h-full flex items-center justify-center text-base'>
+    <div
+      id='inner-left-ad-section'
+      className='max-1500:hidden sticky top-[230px] w-[256px] flex items-center justify-center text-base'
+    >
       <div className='h-96'></div>
       INNER LEFT AD SECTION
     </div>

@@ -9,8 +9,8 @@ const RightMainAd = (): React.ReactNode => {
   // make the call for ad if not mobile
   return (
     <>
-      <div className='hidden lg:flex lg:min-w-44 lg:min-h-screen text-base'>
-        <div className='flex items-center justify-center h-full w-full'>
+      <div className='hidden lg:flex lg:min-w-44 h-full sticky top-0 text-base'>
+        <div className='flex items-center justify-center h-[800px] w-full'>
           <p className='text-center'>Ad Space (Right)</p>
         </div>
       </div>

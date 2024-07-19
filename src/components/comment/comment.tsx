@@ -18,7 +18,7 @@ const Comment: React.FC<CommentProp> = ({ comment }) => {
   const commentor = useFetchContentOwner(comment.userId);
 
   return (
-    <Card className='w-full max-w-2xl hover:bg-secondary cursor-pointer mt-1'>
+    <Card className='w-full hover:bg-secondary cursor-pointer mt-1'>
       <CardContent className='p-4 flex flex-col items-start gap-4'>
         <div className='flex items-start gap-4 w-full'>
           {commentor && <UserAvatar user={commentor} />}

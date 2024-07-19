@@ -19,7 +19,6 @@ const NavigationBar = (): React.ReactNode => {
       <div className='container mx-auto flex items-center justify-between'>
         <a href='/feed'>LOGO</a>
 
-        {/* Hamburger menu for mobile */}
         <div className='z-40 md:hidden'>
           <button
             title='hamburger menu'
