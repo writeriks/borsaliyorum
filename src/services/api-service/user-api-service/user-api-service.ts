@@ -6,17 +6,16 @@ import {
   updatePassword,
 } from 'firebase/auth';
 
-import { auth } from '../firebase-service/firebase-config';
-
-import firebaseOperations from '@/services/firebase-service/firebase-operations';
+import { auth } from '../../firebase-service/firebase-config';
 
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
 import { Timestamp } from 'firebase/firestore';
 import store from '@/store/redux-store';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
+import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 
-class UserService {
+class UserApiService {
   /**
    * Sends an email verification to the provided Firebase user.
    * @param user - The Firebase user to send the email verification to.
@@ -36,7 +35,8 @@ class UserService {
    */
   getUserById = async (userId: string): Promise<User | undefined> => {
     try {
-      const userDoc = await firebaseOperations.getDocumentById(CollectionPath.Users, userId);
+      // TODO: Call public api to handle this
+      const userDoc = await firebaseGenericOperations.getDocumentById(CollectionPath.Users, userId);
 
       return userDoc?.exists() ? (userDoc.data() as User) : undefined;
     } catch (error) {
@@ -51,8 +51,17 @@ class UserService {
    */
   getUsersByName = async (username: string): Promise<User[] | undefined> => {
     try {
+      const idToken = await auth.currentUser?.getIdToken();
+
       const result = await fetch(
-        `/api/user/get-user-by-name?username=${encodeURIComponent(username)}`
+        `/api/user/get-user-by-name?username=${encodeURIComponent(username)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
       );
 
       return result.json();
@@ -78,12 +87,16 @@ class UserService {
           user.email !== userDocument.email ||
           user.emailVerified !== userDocument.isEmailVerified
         ) {
-          await firebaseOperations.updateDocumentById(CollectionPath.Users, userDocument.userId, {
-            ...userDocument,
-            [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
-            [UserEnum.EMAIL]: user.email,
-            [UserEnum.UPDATED_AT]: Timestamp.now(),
-          });
+          await firebaseGenericOperations.updateDocumentById(
+            CollectionPath.Users,
+            userDocument.userId,
+            {
+              ...userDocument,
+              [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
+              [UserEnum.EMAIL]: user.email,
+              [UserEnum.UPDATED_AT]: Timestamp.now(),
+            }
+          );
         }
       }
     } catch (error) {
@@ -144,7 +157,7 @@ class UserService {
     const requestBody = {
       user,
     };
-    const result = await fetch('/api/user/createUser', {
+    const result = await fetch('/api/user/create-user', {
       method: 'POST',
       body: JSON.stringify(requestBody),
     });
@@ -168,7 +181,7 @@ class UserService {
       email,
       displayName,
     };
-    const result = await fetch('/api/user/checkIfUserExist', {
+    const result = await fetch('/api/user/check-if-user-exist', {
       method: 'POST',
       body: JSON.stringify(requestBody),
     });
@@ -185,11 +198,13 @@ class UserService {
    */
   validateUser = async (user: FirebaseUser): Promise<void> => {
     const token = await user.getIdToken();
-    const requestBody = { token };
 
-    const result = await fetch('/api/user/validateUser', {
+    const result = await fetch('/api/user/validate-user', {
       method: 'POST',
-      body: JSON.stringify(requestBody),
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
     });
 
     if (!result.ok) {
@@ -226,5 +241,5 @@ class UserService {
   };
 }
 
-const userService = new UserService();
-export default userService;
+const userApiService = new UserApiService();
+export default userApiService;

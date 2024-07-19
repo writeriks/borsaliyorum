@@ -20,7 +20,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
 
   const postOwner = useFetchContentOwner(post.userId);
 
-  const proxyUrl = `/api/imageProxy?imageUrl=${encodeURIComponent(post?.media?.src as string)}`;
+  const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(post?.media?.src as string)}`;
 
   return (
     <Card

@@ -1,4 +1,5 @@
-import firebaseOperations from '@/services/firebase-service/firebase-operations';
+import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
+
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import {
   Role,
@@ -15,7 +16,7 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     // Create user document
-    await firebaseOperations.createDocumentWithCustomId(CollectionPath.Users, userId, {
+    await firebaseGenericOperations.createDocumentWithCustomId(CollectionPath.Users, userId, {
       ...userData,
       [UserEnum.CREATED_AT]: Timestamp.now(),
       [UserEnum.USERNAME]: userData.username.toLowerCase(),
@@ -23,10 +24,14 @@ export async function POST(request: Request): Promise<Response> {
     });
 
     // Create user role
-    await firebaseOperations.createDocumentWithCustomId(CollectionPath.SecurityRoles, userId, {
-      [SecurityRolesCollectionEnum.USER_ID]: userId,
-      [SecurityRolesCollectionEnum.ROLE]: Role.DEFAULT,
-    });
+    await firebaseGenericOperations.createDocumentWithCustomId(
+      CollectionPath.SecurityRoles,
+      userId,
+      {
+        [SecurityRolesCollectionEnum.USER_ID]: userId,
+        [SecurityRolesCollectionEnum.ROLE]: Role.DEFAULT,
+      }
+    );
 
     return new Response(null, {
       status: 200,

@@ -9,7 +9,7 @@ interface UserAvatarProps {
 
 const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
   const profileImage = user?.profilePhoto;
-  const proxyUrl = `/api/imageProxy?imageUrl=${encodeURIComponent(profileImage as string)}`;
+  const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(profileImage as string)}`;
 
   const initials = user?.displayName
     .split(' ')

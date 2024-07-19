@@ -1,7 +1,7 @@
 import { auth } from '@/services/firebase-service/firebase-config';
 import { Post } from '@/services/firebase-service/types/db-types/post';
 
-class PostService {
+class PostApiService {
   createNewPost = async (post: Post, imageData: string): Promise<any> => {
     const requestBody = {
       post,
@@ -24,5 +24,5 @@ class PostService {
   };
 }
 
-const postService = new PostService();
-export default postService;
+const postApiService = new PostApiService();
+export default postApiService;

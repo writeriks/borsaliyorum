@@ -16,11 +16,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import { MediaData, Post } from '@/services/firebase-service/types/db-types/post';
 import { Timestamp } from 'firebase/firestore';
-import postService from '@/services/post-service/post-service';
 import { useMutation } from '@tanstack/react-query';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { Icons } from '@/components/ui/icons';
-import { MAX_CHARACTERS } from '@/services/post-service/constants';
+import { MAX_CHARACTERS } from '@/services/api-service/post-api-service/constants';
+import postApiService from '@/services/api-service/post-api-service/post-api-service';
 
 const NewPost = (): React.ReactElement => {
   const [content, setcontent] = useState('');
@@ -36,7 +36,7 @@ const NewPost = (): React.ReactElement => {
   const user = useSelector(userReducerSelector.getUser) as User;
   const mutation = useMutation({
     mutationFn: ({ post, postImageData }: { post: Post; postImageData: string }) =>
-      postService.createNewPost(post, postImageData),
+      postApiService.createNewPost(post, postImageData),
     onSuccess: () => {
       dispatch(
         setUINotification({
