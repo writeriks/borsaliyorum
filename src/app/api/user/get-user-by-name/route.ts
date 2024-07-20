@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import firebaseOperations from '@/services/firebase-service/firebase-operations';
 import { auth } from '@/services/firebase-service/firebase-admin';
 
-/* Buffer to return image to client */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);

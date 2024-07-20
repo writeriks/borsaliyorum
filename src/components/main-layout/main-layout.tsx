@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -22,12 +22,13 @@ import { AuthModal } from '@/components/auth/auth-modal';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
 import { setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
 import Discover from '@/components/doscover/discover';
+import useValidateSession from '@/hooks/useValidateSession';
 
 const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNode => {
   const dispatch = useDispatch();
-
   useUINotification();
   useUser();
+  useValidateSession();
 
   const isAuthModalOpen = useSelector(uiReducerSelector.getIsAuthModalOpen);
 

@@ -14,6 +14,7 @@ import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-sele
 
 import { User } from '@/services/firebase-service/types/db-types/user';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
+import { Timestamp } from 'firebase/firestore';
 
 const useUser = (): UserState => {
   const dispatch = useDispatch();
@@ -34,7 +35,7 @@ const useUser = (): UserState => {
         // login case
         if (userData && !userState.username) {
           // Add more data if needed
-          const { displayName, username, email, profilePhoto, userId } = userData;
+          const { displayName, username, email, profilePhoto, userId, createdAt } = userData;
           dispatch(
             setUser({
               displayName,
@@ -42,6 +43,7 @@ const useUser = (): UserState => {
               email,
               profilePhoto,
               userId,
+              createdAt,
             })
           );
 
@@ -55,6 +57,7 @@ const useUser = (): UserState => {
             email: '',
             profilePhoto: '',
             userId: '',
+            createdAt: Timestamp.now(),
           })
         );
         await queryClient.fetchQuery({
