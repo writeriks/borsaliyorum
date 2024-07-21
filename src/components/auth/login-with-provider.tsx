@@ -20,11 +20,7 @@ export const LoginWithProviders = ({ isLoading }: LoginWithProvidersProps): Reac
         type='button'
         disabled={isLoading}
       >
-        {isLoading ? (
-          <Icons.spinner className='mr-2 h-4 w-4 animate-spin' />
-        ) : (
-          <Icons.google className='mr-2' />
-        )}
+        {isLoading ? <Icons.spinner className='mr-2 h-4 w-4 animate-spin' /> : <Icons.google />}
         Google ile devam et
       </Button>
     </div>

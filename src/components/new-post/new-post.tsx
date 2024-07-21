@@ -36,8 +36,7 @@ const NewPost = (): React.ReactElement => {
   const mutation = useMutation({
     mutationFn: ({ post, postImageData }: { post: Post; postImageData: string }) =>
       postApiService.createNewPost(post, postImageData),
-    onSuccess: (data: any) => {
-      console.log('🚀 ~ NewPost ~ data:', data);
+    onSuccess: () => {
       dispatch(
         setUINotification({
           message: 'Gönnderi başarıyla oluşturuldu.',
