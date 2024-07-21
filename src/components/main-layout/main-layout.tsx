@@ -25,10 +25,10 @@ import Discover from '@/components/doscover/discover';
 import useValidateSession from '@/hooks/useValidateSession';
 
 const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNode => {
+  useValidateSession();
   const dispatch = useDispatch();
   useUINotification();
   useUser();
-  useValidateSession();
 
   const isAuthModalOpen = useSelector(uiReducerSelector.getIsAuthModalOpen);
 

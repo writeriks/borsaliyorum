@@ -69,7 +69,7 @@ const PostEditor: React.FC<PostEditorProps> = ({ content, setContent, onSetCashT
     <MentionsInput
       autoFocus
       placeholder='$TUPRS - Ne düşünüyorsun?'
-      className='mentions resize-none	break-words break-all'
+      className='mentions resize-none break-words break-all'
       value={content}
       onChange={e => setContent(e.target.value)}
       maxLength={1000}
