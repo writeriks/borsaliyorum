@@ -15,7 +15,6 @@ import { User } from '@/services/firebase-service/types/db-types/user';
 import { useDispatch, useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import { MediaData, Post } from '@/services/firebase-service/types/db-types/post';
-import { Timestamp } from 'firebase/firestore';
 import { useMutation } from '@tanstack/react-query';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { Icons } from '@/components/ui/icons';

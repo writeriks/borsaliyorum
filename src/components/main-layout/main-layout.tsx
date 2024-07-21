@@ -22,10 +22,11 @@ import { AuthModal } from '@/components/auth/auth-modal';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
 import { setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
 import Discover from '@/components/doscover/discover';
+import useValidateSession from '@/hooks/useValidateSession';
 
 const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNode => {
+  useValidateSession();
   const dispatch = useDispatch();
-
   useUINotification();
   useUser();
 

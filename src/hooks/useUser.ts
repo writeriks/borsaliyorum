@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useDispatch, useSelector } from 'react-redux';
 
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, User as FBAuthUserType } from 'firebase/auth';
 
 import { auth } from '@/services/firebase-service/firebase-config';
 
@@ -14,17 +14,19 @@ import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-sele
 
 import { User } from '@/services/firebase-service/types/db-types/user';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
+import { Timestamp } from 'firebase/firestore';
 
-const useUser = (): UserState => {
+const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
   const dispatch = useDispatch();
   const userState = useSelector(userReducerSelector.getUser);
+  const [fbAuthUser, setFBAuthUser] = useState<FBAuthUserType | null>(null);
 
   const router = useRouter();
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async user => {
       if (user) {
         const userData = (await userApiService.getUserById(user.uid)) as User;
-
+        setFBAuthUser(auth.currentUser);
         // register case
         if (!userData) {
           dispatch(setIsAuthModalOpen(false));
@@ -34,7 +36,7 @@ const useUser = (): UserState => {
         // login case
         if (userData && !userState.username) {
           // Add more data if needed
-          const { displayName, username, email, profilePhoto, userId } = userData;
+          const { displayName, username, email, profilePhoto, userId, createdAt } = userData;
           dispatch(
             setUser({
               displayName,
@@ -42,6 +44,7 @@ const useUser = (): UserState => {
               email,
               profilePhoto,
               userId,
+              createdAt,
             })
           );
 
@@ -55,6 +58,7 @@ const useUser = (): UserState => {
             email: '',
             profilePhoto: '',
             userId: '',
+            createdAt: Timestamp.now(),
           })
         );
         await queryClient.fetchQuery({
@@ -72,7 +76,7 @@ const useUser = (): UserState => {
     return () => unsubscribe();
   }, [dispatch, router, userState.username]);
 
-  return userState;
+  return { user: userState, fbAuthUser: fbAuthUser };
 };
 
 export default useUser;

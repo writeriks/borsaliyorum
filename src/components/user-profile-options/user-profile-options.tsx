@@ -45,7 +45,7 @@ const UserProfileOptions = (): React.ReactNode => {
   };
 
   return isAuthLoading ? (
-    <div className='flex items-center w-fit rounded-lg top-[60px] h-[170px] sticky shadow-lg'>
+    <div className='flex items-center rounded-lg w-[256px] top-[60px] h-[170px] sticky shadow-lg'>
       <Skeleton className='h-8 w-8 rounded-full' />
       <div className='space-y-2'>
         <Skeleton className='h-4 w-[150px]' />

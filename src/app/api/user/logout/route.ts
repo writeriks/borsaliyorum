@@ -8,7 +8,7 @@ export async function POST(): Promise<Response> {
       status: 200,
       statusText: 'SUCCESS',
       headers: {
-        'Set-Cookie': `identity=; HttpOnly; Secure; Max-Age=86400; SameSite=Lax; Path=/`,
+        'Set-Cookie': `identity=; Max-Age=86400; SameSite=Lax; Path=/`,
       },
     });
   } catch (error) {

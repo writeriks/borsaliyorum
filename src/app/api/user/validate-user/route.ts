@@ -17,7 +17,7 @@ export async function POST(request: Request): Promise<Response> {
       status: 200,
       statusText: 'SUCCESS',
       headers: {
-        'Set-Cookie': `identity=${token}; HttpOnly; Secure; Max-Age=86400; SameSite=Lax; Path=/`,
+        'Set-Cookie': `identity=${token}; Max-Age=86400; SameSite=Lax; Path=/`,
       },
     });
   } catch (error) {
