@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useDispatch, useSelector } from 'react-redux';
 
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, User as FBAuthUser } from 'firebase/auth';
 
 import { auth } from '@/services/firebase-service/firebase-config';
 
@@ -15,16 +15,20 @@ import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-sele
 
 import { User } from '@/services/firebase-service/types/db-types/user';
 
-const useUser = (): UserState => {
+const useUser = (): { userState: UserState; authUser: FBAuthUser | undefined } => {
   const dispatch = useDispatch();
   const userState = useSelector(userReducerSelector.getUser);
+
+  const [authUser, setAuthUser] = useState<FBAuthUser>();
 
   const router = useRouter();
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async user => {
+      if (auth.currentUser) {
+        setAuthUser(auth.currentUser);
+      }
       if (user) {
         const userData = (await userService.getUserById(user.uid)) as User;
-
         // register case
         if (!userData) {
           dispatch(setIsAuthModalOpen(false));
@@ -72,7 +76,7 @@ const useUser = (): UserState => {
     return () => unsubscribe();
   }, [dispatch, router, userState.username]);
 
-  return userState;
+  return { userState, authUser };
 };
 
 export default useUser;

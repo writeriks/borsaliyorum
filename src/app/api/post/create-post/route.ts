@@ -2,7 +2,11 @@ import { auth, storageBucket } from '@/services/firebase-service/firebase-admin'
 
 import firebaseOperations from '@/services/firebase-service/firebase-operations';
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
-import { MediaData, Post } from '@/services/firebase-service/types/db-types/post';
+import {
+  MediaData,
+  Post,
+  PostsCollectionEnum,
+} from '@/services/firebase-service/types/db-types/post';
 import { randomUUID } from 'crypto';
 
 export async function POST(request: Request): Promise<Response> {
@@ -44,7 +48,10 @@ export async function POST(request: Request): Promise<Response> {
       post.media.src = downloadUrl[0];
     }
 
-    await firebaseOperations.createDocumentWithAutoId(CollectionPath.Posts, post);
+    await firebaseOperations.createDocumentWithAutoId(CollectionPath.Posts, {
+      ...post,
+      [PostsCollectionEnum.POST_ID]: randomUUID(),
+    });
 
     return new Response(JSON.stringify({ message: 'Post created successfully' }), {
       status: 200,
