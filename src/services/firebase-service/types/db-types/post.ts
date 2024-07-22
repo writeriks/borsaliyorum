@@ -16,7 +16,7 @@ export interface Post {
   repostCount: number;
   media: MediaData;
   content: string;
-  createdAt: Timestamp;
+  createdAt?: Timestamp;
   updatedAt?: Timestamp;
   isPositiveSentiment: boolean;
 }

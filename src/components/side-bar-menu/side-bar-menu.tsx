@@ -14,7 +14,7 @@ const SideBarMenu: React.FC = () => {
   return (
     <div
       className={cn(
-        'md:hidden md:min-w-64 fixed right-0 top-0 z-50 h-screen w-64 transform dark:bg-background bg-white transition-transform ease-in-out',
+        'min-1500:hidden md:min-w-64 fixed right-0 top-0 z-50 h-screen w-64 transform dark:bg-background bg-white transition-transform ease-in-out',
         isHamburgerMenuOpen ? 'translate-x-0' : 'translate-x-64'
       )}
     >

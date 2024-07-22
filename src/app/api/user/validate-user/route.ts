@@ -2,20 +2,22 @@ import { auth } from '@/services/firebase-service/firebase-admin';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request): Promise<Response> {
-  const body = await request.json();
-  const token: string = body['token'];
-
   try {
-    const decodedToken = await auth.verifyIdToken(token);
-    const uid = decodedToken.uid;
+    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
-    const responseBody = { message: 'Logged in successfully', uid };
+    if (!token) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    }
+
+    await auth.verifyIdToken(token);
+
+    const responseBody = { message: 'Logged in successfully' };
 
     return NextResponse.json(responseBody, {
       status: 200,
       statusText: 'SUCCESS',
       headers: {
-        'Set-Cookie': `identity=${token}; HttpOnly; Secure; Max-Age=86400; SameSite=Lax; Path=/`,
+        'Set-Cookie': `identity=${token}; Max-Age=86400; SameSite=Lax; Path=/`,
       },
     });
   } catch (error) {

@@ -1,4 +1,3 @@
-import userService from '@/services/user-service/user-service';
 import { auth } from './firebase-config';
 import {
   GoogleAuthProvider,
@@ -21,6 +20,7 @@ import {
   setUINotification,
 } from '@/store/reducers/ui-reducer/ui-slice';
 import { queryClient } from '@/components/tanstack-provider/tanstack-provider';
+import userApiService from '@/services/api-service/user-api-service/user-api-service';
 
 class FirebaseAuthService {
   genericErrorMessage = 'Bir hata oluştu.';
@@ -49,11 +49,11 @@ class FirebaseAuthService {
       const result = await signInWithPopup(auth, provider);
       const { user } = result;
 
-      const userDocument = await userService.getUserById(user.uid);
+      const userDocument = await userApiService.getUserById(user.uid);
 
       if (userDocument) {
         // When sign in with Google, email is automatically verified. Need to update in user collection
-        await userService.syncUser(user, userDocument);
+        await userApiService.syncUser(user, userDocument);
       } else {
         // If new user, add user to the user collection
         const customUser: User = {
@@ -68,13 +68,13 @@ class FirebaseAuthService {
 
         await queryClient.fetchQuery({
           queryKey: ['addUser', customUser],
-          queryFn: () => userService.addUser(customUser),
+          queryFn: () => userApiService.addUser(customUser),
         });
       }
 
       await queryClient.fetchQuery({
-        queryKey: ['validateUser', user],
-        queryFn: () => userService.validateUser(user),
+        queryKey: ['validate-user', user],
+        queryFn: () => userApiService.validateUser(user),
       });
 
       window.location.pathname = '/feed';
@@ -93,7 +93,7 @@ class FirebaseAuthService {
       await signOut(auth);
       await queryClient.fetchQuery({
         queryKey: ['logOutUser'],
-        queryFn: () => userService.logOutUser(),
+        queryFn: () => userApiService.logOutUser(),
       });
     } catch (error: any) {
       console.error('Error signing out:', error);
@@ -110,14 +110,14 @@ class FirebaseAuthService {
     try {
       store.dispatch(setIsAuthLoading(true));
       const { user } = await signInWithEmailAndPassword(auth, email, password);
-      const userDocument = await userService.getUserById(user.uid);
+      const userDocument = await userApiService.getUserById(user.uid);
 
       await queryClient.fetchQuery({
-        queryKey: ['validateUser', user],
-        queryFn: () => userService.validateUser(user),
+        queryKey: ['validate-user', user],
+        queryFn: () => userApiService.validateUser(user),
       });
       if (userDocument) {
-        await userService.syncUser(user, userDocument);
+        await userApiService.syncUser(user, userDocument);
       }
 
       window.location.pathname = '/feed';
@@ -144,17 +144,17 @@ class FirebaseAuthService {
       store.dispatch(setIsAuthLoading(true));
 
       await queryClient.fetchQuery({
-        queryKey: ['checkIfUserExist', username, email, displayName],
-        queryFn: () => userService.checkIfUserExist(username, email, displayName),
+        queryKey: ['check-if-user-exist', username, email, displayName],
+        queryFn: () => userApiService.checkIfUserExist(username, email, displayName),
       });
 
       const result = await createUserWithEmailAndPassword(auth, email, password);
       const { user } = result;
-      await userService.sendEmailVerification(user);
+      await userApiService.sendEmailVerification(user);
 
       await queryClient.fetchQuery({
-        queryKey: ['validateUser', user],
-        queryFn: () => userService.validateUser(user),
+        queryKey: ['validate-user', user],
+        queryFn: () => userApiService.validateUser(user),
       });
 
       const customUser: User = {
@@ -168,7 +168,7 @@ class FirebaseAuthService {
 
       await queryClient.fetchQuery({
         queryKey: ['addUser', customUser],
-        queryFn: () => userService.addUser(customUser),
+        queryFn: () => userApiService.addUser(customUser),
       });
 
       store.dispatch(setIsAuthModalOpen(false));

@@ -5,6 +5,7 @@ import NewPost from '@/components/new-post/new-post';
 import { Post as PostType } from '@/services/firebase-service/types/db-types/post';
 import Post from '@/components/post/post';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Discover from '@/components/doscover/discover';
 
 import { useDispatch } from 'react-redux';
 import postService from '@/services/post-service/post-service';
@@ -135,30 +136,33 @@ const Home = (): React.ReactNode => {
   }, []);
 
   return (
-    <div className='flex flex-col'>
-      <NewPost />
-      <Tabs defaultValue='latest' className='mt-2'>
-        <TabsList className='w-full max-w-2xl'>
-          <TabsTrigger className='mr-16' value='latest'>
-            En Son Gönderiler
-          </TabsTrigger>
-          <TabsTrigger value='popular'>En Popüler Gönderiler</TabsTrigger>
-        </TabsList>
-        <TabsContent value='latest'>
-          {mutation.isPending ? (
-            <>Loading</>
-          ) : (
-            postsByDate?.map(post => <Post key={post.postId} post={post} />)
-          )}
-        </TabsContent>
-        <TabsContent value='popular'>
-          {mutation.isPending ? (
-            <>Loading</>
-          ) : (
-            postsByLikes?.map(post => <Post key={post.postId} post={post} />)
-          )}
-        </TabsContent>
-      </Tabs>
+    <div className='flex min-w-full'>
+      <div className='flex flex-col w-full min-1500:w-3/4'>
+        <NewPost />
+        <div className='lg:p-6 flex p-2 rounded-lg shadow-lg w-full self-start'>
+          <Tabs defaultValue='latest' className='mt-2 w-full'>
+            <TabsList className='w-full'>
+              <TabsTrigger className='mr-10' value='latest'>
+                En Son Gönderiler
+              </TabsTrigger>
+              <TabsTrigger value='popular'>En Popüler Gönderiler</TabsTrigger>
+            </TabsList>
+            <TabsContent value='latest'>
+              {posts.map(post => (
+                <Post key={post.postId} post={post} />
+              ))}
+            </TabsContent>
+            <TabsContent value='popular'>
+              {posts.map(post => (
+                <Post key={post.postId} post={post} />
+              ))}
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+      <div className='lg:flex max-1500:hidden sticky top-52 h-[170px] flex-col lg:w-1/4'>
+        <Discover />
+      </div>
     </div>
   );
 };

@@ -3,7 +3,7 @@ import {
   isValidEmail,
   isValidUsername,
 } from '@/app/utils/user-utils/user-utils';
-import firebaseOperations from '@/services/firebase-service/firebase-operations';
+import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 import {
   FirebaseDocumentQueryResponse,
   WhereFieldEnum,
@@ -30,7 +30,7 @@ export async function POST(request: Request): Promise<Response> {
     field: UserEnum,
     value: string
   ): Promise<FirebaseDocumentQueryResponse> => {
-    return firebaseOperations.getDocumentsWithQuery({
+    return firebaseGenericOperations.getDocumentsWithQuery({
       collectionPath: CollectionPath.Users,
       whereFields: [
         {
