@@ -78,7 +78,7 @@ const Home = (): React.ReactNode => {
       <div className='flex flex-col w-full min-1500:w-3/4'>
         <NewPost />
         <div className='lg:p-6 flex p-2 rounded-lg shadow-lg w-full self-start'>
-          <Tabs defaultValue='latest' className='mt-2 w-full'>
+          <Tabs defaultValue='latest' onValueChange={e => console.log(e)} className='mt-2 w-full'>
             <TabsList className='w-full'>
               <TabsTrigger className='mr-10' value='latest'>
                 En Son Gönderiler

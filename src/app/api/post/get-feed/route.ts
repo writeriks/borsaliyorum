@@ -15,14 +15,14 @@ export async function POST(request: Request): Promise<Response> {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
     }
 
-    const pageSize = 5;
+    const pageSize = 1;
 
     const decodedToken = await auth.verifyIdToken(token);
 
     const body = await request.json();
 
-    const lastDocumentDate = body['lastDocumentDate'] as DocumentData;
-    const lastDocumentLike = body['lastDocumentLike'] as DocumentData;
+    const lastPostIdDate = body['lastPostIdByDate'] as DocumentData;
+    const lastPostIdByLike = body['lastPostIdByLike'] as DocumentData;
 
     const followedUsers = await firebaseGenericOperations.getDocumentsWithQuery({
       collectionPath: CollectionPath.UsersFollowers,
@@ -44,6 +44,27 @@ export async function POST(request: Request): Promise<Response> {
       });
     }
 
+    const lastPostDocumentByDate = await firebaseGenericOperations.getDocumentsWithQuery({
+      collectionPath: CollectionPath.Posts,
+      whereFields: [
+        {
+          field: PostsCollectionEnum.POST_ID,
+          operator: WhereFieldEnum.EQUALS,
+          value: lastPostIdDate,
+        },
+      ],
+    });
+    const lastPostDocumentByLike = await firebaseGenericOperations.getDocumentsWithQuery({
+      collectionPath: CollectionPath.Posts,
+      whereFields: [
+        {
+          field: PostsCollectionEnum.POST_ID,
+          operator: WhereFieldEnum.EQUALS,
+          value: lastPostIdByLike,
+        },
+      ],
+    });
+
     const postsByDate = await firebaseGenericOperations.getDocumentsWithQuery({
       collectionPath: CollectionPath.Posts,
       whereFields: [
@@ -56,7 +77,7 @@ export async function POST(request: Request): Promise<Response> {
       documentLimit: pageSize,
       orderByField: PostsCollectionEnum.CREATED_AT,
       orderByDirection: 'desc',
-      startAfterDocument: lastDocumentDate,
+      startAfterDocument: lastPostDocumentByDate.lastDocument as DocumentData,
     });
 
     const postsByLikes = await firebaseGenericOperations.getDocumentsWithQuery({
@@ -71,15 +92,18 @@ export async function POST(request: Request): Promise<Response> {
       documentLimit: pageSize,
       orderByField: PostsCollectionEnum.LIKE_COUNT,
       orderByDirection: 'desc',
-      startAfterDocument: lastDocumentLike,
+      startAfterDocument: lastPostDocumentByLike.lastDocument as DocumentData,
     });
+
+    const newLastPostIdByDate = postsByDate.lastDocument?.data().postId;
+    const newLastPostIdByLike = postsByLikes.lastDocument?.data().postId;
 
     return new NextResponse(
       JSON.stringify({
         postsByDate: postsByDate.documents,
         postsByLikes: postsByLikes.documents,
-        lastDocumentByDate: postsByDate.lastDocument,
-        lastDocumentByLike: postsByLikes.lastDocument,
+        lastPostIdByDate: newLastPostIdByDate,
+        lastPostIdByLike: newLastPostIdByLike,
       }),
       {
         status: 200,

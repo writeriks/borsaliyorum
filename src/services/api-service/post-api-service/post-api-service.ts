@@ -3,8 +3,8 @@ import { Post } from '@/services/firebase-service/types/db-types/post';
 import { DocumentData } from 'firebase/firestore';
 
 class PostApiService {
-  lastDocumentByDate = null;
-  lastDocumentByLike = null;
+  lastPostIdByDate = null;
+  lastPostIdByLike = null;
 
   createNewPost = async (post: Post, imageData: string): Promise<any> => {
     const requestBody = {
@@ -32,8 +32,8 @@ class PostApiService {
     postsByLikes: DocumentData[];
   }> => {
     const requestBody = {
-      lastDocumentDate: this.lastDocumentByDate,
-      lastDocumentLike: this.lastDocumentByLike,
+      lastPostIdByDate: this.lastPostIdByDate,
+      lastPostIdByLike: this.lastPostIdByLike,
     };
 
     const idToken = await auth.currentUser?.getIdToken();
@@ -51,8 +51,8 @@ class PostApiService {
 
     const data = await response.json();
 
-    this.lastDocumentByDate = data.lastDocumentByDate;
-    this.lastDocumentByLike = data.lastDocumentByLike;
+    this.lastPostIdByDate = data.lastPostIdByDate;
+    this.lastPostIdByLike = data.lastPostIdByLike;
 
     return data;
   };
