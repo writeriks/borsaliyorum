@@ -44,11 +44,7 @@ const PostDetail = (): React.ReactNode => {
 
   const { back } = useRouter();
   const query = useParams();
-
   const [post, setPost] = useState<PostType>();
-
-  // TODO: Fetch post by id
-  // const post = posts.find(p => p.postId === query.id);
 
   useEffect(() => {
     const fetchPost = async (): Promise<void> => {

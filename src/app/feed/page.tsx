@@ -26,8 +26,6 @@ const Home = (): React.ReactNode => {
   const mutation = useMutation({
     mutationFn: () => postApiService.getFeed(),
     onSuccess: (dataFromRefetch: any) => {
-      console.log('dataFromRefetch: ', dataFromRefetch);
-
       const dataByDate = dataFromRefetch.postsByDate ?? [];
       const dataByLike = dataFromRefetch.postsByLikes ?? [];
 

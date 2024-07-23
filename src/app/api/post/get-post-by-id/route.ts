@@ -11,8 +11,6 @@ export async function GET(request: NextRequest): Promise<Response> {
   const { searchParams } = new URL(request.url);
   const postId = searchParams.get('postId');
 
-  console.log(postId);
-
   if (!postId) {
     return NextResponse.json({ error: 'error on getting post' }, { status: 400 });
   }
@@ -37,8 +35,6 @@ export async function GET(request: NextRequest): Promise<Response> {
       ],
       documentLimit: 1,
     });
-
-    console.log(response.documents[0]);
 
     const post = response.documents[0];
 

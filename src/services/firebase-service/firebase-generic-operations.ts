@@ -27,7 +27,6 @@ import {
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 
 class FirebaseGenericOperations {
-  lastDocument: any = null;
   /*
    * Get all documents in a collection
    * @param collectionPath - The path to the collection
