@@ -2,11 +2,7 @@ import { auth, storageBucket } from '@/services/firebase-service/firebase-admin'
 import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
-import {
-  MediaData,
-  Post,
-  PostsCollectionEnum,
-} from '@/services/firebase-service/types/db-types/post';
+import { MediaData, Post } from '@/services/firebase-service/types/db-types/post';
 import { randomUUID } from 'crypto';
 import { Timestamp } from 'firebase/firestore';
 

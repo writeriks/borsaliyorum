@@ -1,9 +1,10 @@
 import { auth } from '@/services/firebase-service/firebase-admin';
-import firebaseOperations from '@/services/firebase-service/firebase-operations';
+import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 import { WhereFieldEnum } from '@/services/firebase-service/firebase-operations-types';
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import { PostsCollectionEnum } from '@/services/firebase-service/types/db-types/post';
 import { UserFollowersEnum } from '@/services/firebase-service/types/db-types/user-followers';
+import { DocumentData } from '@firebase/firestore';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request): Promise<Response> {
@@ -20,9 +21,10 @@ export async function POST(request: Request): Promise<Response> {
 
     const body = await request.json();
 
-    console.log(body);
+    const lastDocumentDate = body['lastDocumentDate'] as DocumentData;
+    const lastDocumentLike = body['lastDocumentLike'] as DocumentData;
 
-    const followedUsers = await firebaseOperations.getDocumentsWithQuery({
+    const followedUsers = await firebaseGenericOperations.getDocumentsWithQuery({
       collectionPath: CollectionPath.UsersFollowers,
       whereFields: [
         {
@@ -42,7 +44,7 @@ export async function POST(request: Request): Promise<Response> {
       });
     }
 
-    const postsByDate = await firebaseOperations.getDocumentsWithQuery({
+    const postsByDate = await firebaseGenericOperations.getDocumentsWithQuery({
       collectionPath: CollectionPath.Posts,
       whereFields: [
         {
@@ -54,9 +56,10 @@ export async function POST(request: Request): Promise<Response> {
       documentLimit: pageSize,
       orderByField: PostsCollectionEnum.CREATED_AT,
       orderByDirection: 'desc',
+      startAfterDocument: lastDocumentDate,
     });
 
-    const postsByLikes = await firebaseOperations.getDocumentsWithQuery({
+    const postsByLikes = await firebaseGenericOperations.getDocumentsWithQuery({
       collectionPath: CollectionPath.Posts,
       whereFields: [
         {
@@ -65,13 +68,19 @@ export async function POST(request: Request): Promise<Response> {
           value: followingUserIds,
         },
       ],
-      documentLimit: 5,
+      documentLimit: pageSize,
       orderByField: PostsCollectionEnum.LIKE_COUNT,
       orderByDirection: 'desc',
+      startAfterDocument: lastDocumentLike,
     });
 
     return new NextResponse(
-      JSON.stringify({ postsByDate: postsByDate.documents, postsByLikes: postsByLikes.documents }),
+      JSON.stringify({
+        postsByDate: postsByDate.documents,
+        postsByLikes: postsByLikes.documents,
+        lastDocumentByDate: postsByDate.lastDocument,
+        lastDocumentByLike: postsByLikes.lastDocument,
+      }),
       {
         status: 200,
         statusText: 'SUCCESS',

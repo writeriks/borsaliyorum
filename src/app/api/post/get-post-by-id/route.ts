@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import firebaseOperations from '@/services/firebase-service/firebase-operations';
 import { auth } from '@/services/firebase-service/firebase-admin';
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
-import { Post, PostsCollectionEnum } from '@/services/firebase-service/types/db-types/post';
+import { PostsCollectionEnum } from '@/services/firebase-service/types/db-types/post';
 import { WhereFieldEnum } from '@/services/firebase-service/firebase-operations-types';
+import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 
 /* Buffer to return image to client */
 export async function GET(request: NextRequest): Promise<Response> {
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   await auth.verifyIdToken(token);
 
   try {
-    const response = await firebaseOperations.getDocumentsWithQuery({
+    const response = await firebaseGenericOperations.getDocumentsWithQuery({
       collectionPath: CollectionPath.Posts,
       whereFields: [
         {
