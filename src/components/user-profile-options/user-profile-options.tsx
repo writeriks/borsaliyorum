@@ -14,9 +14,10 @@ import ThemeModeToggle from '@/components/theme-toggle/theme-toggle';
 import { useDispatch, useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
-import { Skeleton } from '@/components/ui/skeleton';
 import UserAvatar from '@/components/user-avatar/user-avatar';
 import { setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
+import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
+import { LoadingSkeletons } from '@/app/constants';
 
 const UserProfileOptions = (): React.ReactNode => {
   const dispatch = useDispatch();
@@ -45,13 +46,7 @@ const UserProfileOptions = (): React.ReactNode => {
   };
 
   return isAuthLoading ? (
-    <div className='flex items-center rounded-lg w-[256px] top-[60px] h-[170px] sticky shadow-lg'>
-      <Skeleton className='h-8 w-8 rounded-full' />
-      <div className='space-y-2'>
-        <Skeleton className='h-4 w-[150px]' />
-        <Skeleton className='h-4 w-[100px]' />
-      </div>
-    </div>
+    <LoadingSkeleton type={LoadingSkeletons.USER_PROFILE} />
   ) : (
     <div
       id='user-profile-section'

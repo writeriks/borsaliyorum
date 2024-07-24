@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import NewPost from '@/components/new-post/new-post';
 import { Post as PostType } from '@/services/firebase-service/types/db-types/post';
 import Post from '@/components/post/post';
@@ -8,14 +8,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Discover from '@/components/doscover/discover';
 
 import { useDispatch } from 'react-redux';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, UseMutationResult } from '@tanstack/react-query';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import useUser from '@/hooks/useUser';
 import postApiService from '@/services/api-service/post-api-service/post-api-service';
+import { FeedTab, LoadingSkeletons } from '@/app/constants';
+import useInfiniteScroll from '@/hooks/useInfiniteScroll';
+import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
 
 const Home = (): React.ReactNode => {
   const [postsByDate, setPostsByDate] = useState<PostType[]>([]);
-  const [postsByLikes, setPostsByLikes] = useState<PostType[]>([]);
+  const [postsByLike, setPostsByLike] = useState<PostType[]>([]);
+  const [lastPostIdForDate, setLastPostIdForDate] = useState('');
+  const [lastPostIdForLike, setLastPostIdForLike] = useState('');
+  const [activeTab, setActiveTab] = useState<FeedTab>(FeedTab.LATEST);
+  const [isLikeTabClicked, setIsLikeTabClicked] = useState(false);
 
   const isPending = useRef(false);
 
@@ -23,18 +30,26 @@ const Home = (): React.ReactNode => {
 
   const dispatch = useDispatch();
 
-  const mutation = useMutation({
-    mutationFn: () => postApiService.getFeed(),
-    onSuccess: (dataFromRefetch: any) => {
-      const dataByDate = dataFromRefetch.postsByDate ?? [];
-      const dataByLike = dataFromRefetch.postsByLikes ?? [];
-
+  const setPosts = (data: any): void => {
+    if (activeTab === FeedTab.LATEST) {
+      const dataByDate = data.postsByDate ?? [];
       const mergedPostsByDate = [...postsByDate].concat(dataByDate as PostType[]);
-      const mergedPostsByLikes = [...postsByLikes].concat(dataByLike as PostType[]);
 
       setPostsByDate(mergedPostsByDate);
-      setPostsByLikes(mergedPostsByLikes);
+      setLastPostIdForDate(data.lastPostIdByDate);
+    } else {
+      const dataByLike = data.postsByLike ?? [];
+      const mergedPostsByLike = [...postsByLike].concat(dataByLike as PostType[]);
 
+      setPostsByLike(mergedPostsByLike);
+      setLastPostIdForLike(data.lastPostIdByLike);
+    }
+  };
+
+  const mutationForDate = useMutation({
+    mutationFn: () => postApiService.getFeedByDate(lastPostIdForDate),
+    onSuccess: (data: any) => {
+      setPosts(data);
       isPending.current = false;
     },
     onError: () => {
@@ -49,27 +64,46 @@ const Home = (): React.ReactNode => {
     },
   });
 
-  const handleScroll = useCallback(async () => {
-    if (
-      window.innerHeight + document.documentElement.scrollTop + 10 >=
-        document.documentElement.offsetHeight &&
-      !isPending.current
-    ) {
-      isPending.current = true;
-      mutation.mutate();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const mutationForLike = useMutation({
+    mutationFn: () => postApiService.getFeedByLike(lastPostIdForLike),
+    onSuccess: (data: any) => {
+      setPosts(data);
+      isPending.current = false;
+    },
+    onError: () => {
+      dispatch(
+        setUINotification({
+          message: 'Bir hata oluştu.',
+          notificationType: UINotificationEnum.ERROR,
+        })
+      );
 
-  useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
+      isPending.current = false;
+    },
+  });
+
+  const getMutation = (): UseMutationResult<any, Error, void, unknown> =>
+    activeTab === FeedTab.LATEST ? mutationForDate : mutationForLike;
+
+  useInfiniteScroll({
+    isFetchingNextPage: getMutation().isPending,
+    fetchNextPage: getMutation().mutate,
+  });
+
+  const handleTabChange = (tabValue: FeedTab): void => {
+    // call the mutation for like for the first time
+    if (tabValue === FeedTab.POPULAR && !isLikeTabClicked) {
+      setIsLikeTabClicked(true);
+      mutationForLike.mutate();
+    }
+
+    setActiveTab(tabValue);
+  };
 
   useEffect(() => {
     if (!fbAuthUser) return;
 
-    mutation.mutate();
+    getMutation().mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fbAuthUser]);
 
@@ -78,7 +112,11 @@ const Home = (): React.ReactNode => {
       <div className='flex flex-col w-full min-1500:w-3/4'>
         <NewPost />
         <div className='lg:p-6 flex p-2 rounded-lg shadow-lg w-full self-start'>
-          <Tabs defaultValue='latest' onValueChange={e => console.log(e)} className='mt-2 w-full'>
+          <Tabs
+            defaultValue='latest'
+            onValueChange={e => handleTabChange(e as FeedTab)}
+            className='mt-2 w-full'
+          >
             <TabsList className='w-full'>
               <TabsTrigger className='mr-10' value='latest'>
                 En Son Gönderiler
@@ -89,11 +127,13 @@ const Home = (): React.ReactNode => {
               {postsByDate.map(post => (
                 <Post key={post.postId} post={post} />
               ))}
+              <LoadingSkeleton type={LoadingSkeletons.POST} />
             </TabsContent>
             <TabsContent value='popular'>
-              {postsByLikes.map(post => (
+              {postsByLike.map(post => (
                 <Post key={post.postId} post={post} />
               ))}
+              <LoadingSkeleton type={LoadingSkeletons.POST} />
             </TabsContent>
           </Tabs>
         </div>

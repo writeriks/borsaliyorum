@@ -3,14 +3,14 @@ import { Timestamp } from 'firebase/firestore';
 
 export interface UserFollowers {
   followerId: UserId;
-  followedId: UserId;
+  followingId: UserId;
   followedAt: Timestamp;
   isNotified: boolean; // May be removed
 }
 
 export enum UserFollowersEnum {
   FOLLOWER_ID = 'followerId',
-  FOLLOWED_ID = 'followedId',
+  FOLLOWING_ID = 'followingId',
   FOLLOWED_AT = 'followedAt',
   IS_NOTIFIED = 'isNotified',
 }

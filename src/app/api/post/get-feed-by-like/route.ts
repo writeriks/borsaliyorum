@@ -7,7 +7,7 @@ import { UserFollowersEnum } from '@/services/firebase-service/types/db-types/us
 import { DocumentData } from '@firebase/firestore';
 import { NextResponse } from 'next/server';
 
-export async function POST(request: Request): Promise<Response> {
+export async function GET(request: Request): Promise<Response> {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
@@ -15,16 +15,14 @@ export async function POST(request: Request): Promise<Response> {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
     }
 
-    const pageSize = 1;
-
     const decodedToken = await auth.verifyIdToken(token);
 
-    const body = await request.json();
+    const { searchParams } = new URL(request.url);
+    const lastPostId = searchParams.get('lastPostId');
 
-    const lastPostIdDate = body['lastPostIdByDate'] as DocumentData;
-    const lastPostIdByLike = body['lastPostIdByLike'] as DocumentData;
+    const pageSize = 5;
 
-    const followedUsers = await firebaseGenericOperations.getDocumentsWithQuery({
+    const followingUsers = await firebaseGenericOperations.getDocumentsWithQuery({
       collectionPath: CollectionPath.UsersFollowers,
       whereFields: [
         {
@@ -35,7 +33,7 @@ export async function POST(request: Request): Promise<Response> {
       ],
     });
 
-    const followingUserIds = followedUsers.documents.map(doc => doc.followedId);
+    const followingUserIds = followingUsers.documents.map(doc => doc.followingId);
 
     if (followingUserIds.length === 0) {
       return new NextResponse(JSON.stringify([]), {
@@ -44,43 +42,18 @@ export async function POST(request: Request): Promise<Response> {
       });
     }
 
-    const lastPostDocumentByDate = await firebaseGenericOperations.getDocumentsWithQuery({
-      collectionPath: CollectionPath.Posts,
-      whereFields: [
-        {
-          field: PostsCollectionEnum.POST_ID,
-          operator: WhereFieldEnum.EQUALS,
-          value: lastPostIdDate,
-        },
-      ],
-    });
     const lastPostDocumentByLike = await firebaseGenericOperations.getDocumentsWithQuery({
       collectionPath: CollectionPath.Posts,
       whereFields: [
         {
           field: PostsCollectionEnum.POST_ID,
           operator: WhereFieldEnum.EQUALS,
-          value: lastPostIdByLike,
+          value: lastPostId,
         },
       ],
     });
 
-    const postsByDate = await firebaseGenericOperations.getDocumentsWithQuery({
-      collectionPath: CollectionPath.Posts,
-      whereFields: [
-        {
-          field: PostsCollectionEnum.USER_ID,
-          operator: WhereFieldEnum.IN,
-          value: followingUserIds,
-        },
-      ],
-      documentLimit: pageSize,
-      orderByField: PostsCollectionEnum.CREATED_AT,
-      orderByDirection: 'desc',
-      startAfterDocument: lastPostDocumentByDate.lastDocument as DocumentData,
-    });
-
-    const postsByLikes = await firebaseGenericOperations.getDocumentsWithQuery({
+    const postsByLike = await firebaseGenericOperations.getDocumentsWithQuery({
       collectionPath: CollectionPath.Posts,
       whereFields: [
         {
@@ -92,17 +65,14 @@ export async function POST(request: Request): Promise<Response> {
       documentLimit: pageSize,
       orderByField: PostsCollectionEnum.LIKE_COUNT,
       orderByDirection: 'desc',
-      startAfterDocument: lastPostDocumentByLike.lastDocument as DocumentData,
+      startAfterDocument: lastPostDocumentByLike?.lastDocument as DocumentData,
     });
 
-    const newLastPostIdByDate = postsByDate.lastDocument?.data().postId;
-    const newLastPostIdByLike = postsByLikes.lastDocument?.data().postId;
+    const newLastPostIdByLike = postsByLike.lastDocument?.data().postId;
 
     return new NextResponse(
       JSON.stringify({
-        postsByDate: postsByDate.documents,
-        postsByLikes: postsByLikes.documents,
-        lastPostIdByDate: newLastPostIdByDate,
+        postsByLike: postsByLike.documents,
         lastPostIdByLike: newLastPostIdByLike,
       }),
       {
