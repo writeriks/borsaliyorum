@@ -35,10 +35,19 @@ class UserApiService {
    */
   getUserById = async (userId: string): Promise<User | undefined> => {
     try {
-      // TODO: Call public api to handle this
-      const userDoc = await firebaseGenericOperations.getDocumentById(CollectionPath.Users, userId);
+      const idToken = await auth.currentUser?.getIdToken();
 
-      return userDoc?.exists() ? (userDoc.data() as User) : undefined;
+      const result = await fetch(`/api/user/get-user-by-id?userId=${encodeURIComponent(userId)}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const user = await result.json();
+
+      return user ? user : undefined;
     } catch (error) {
       console.error('Error getting user:', error);
     }
