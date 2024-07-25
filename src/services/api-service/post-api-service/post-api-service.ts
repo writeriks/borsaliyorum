@@ -1,5 +1,6 @@
 import { auth } from '@/services/firebase-service/firebase-config';
 import { Post } from '@/services/firebase-service/types/db-types/post';
+import { DocumentData } from 'firebase/firestore';
 
 class PostApiService {
   createNewPost = async (post: Post, imageData: string): Promise<any> => {
@@ -12,6 +13,70 @@ class PostApiService {
     const response = await fetch('/api/post/create-post', {
       method: 'POST',
       body: JSON.stringify(requestBody),
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) throw new Error(response.statusText);
+
+    return response.json();
+  };
+
+  getFeedByDate = async (
+    lastPostId: string
+  ): Promise<{
+    postsByDate: DocumentData[];
+    lastPostId: string;
+  }> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch(
+      `/api/post/get-feed-by-date?lastPostId=${encodeURIComponent(lastPostId)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) throw new Error(response.statusText);
+
+    return response.json();
+  };
+
+  getFeedByLike = async (
+    lastPostId: string
+  ): Promise<{
+    postsByDate: DocumentData[];
+    lastPostId: string;
+  }> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch(
+      `/api/post/get-feed-by-like?lastPostId=${encodeURIComponent(lastPostId)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) throw new Error(response.statusText);
+
+    return response.json();
+  };
+
+  getPostById = async (postId: string): Promise<Post> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch(`/api/post/get-post-by-id?postId=${encodeURIComponent(postId)}`, {
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${idToken}`,
         'Content-Type': 'application/json',

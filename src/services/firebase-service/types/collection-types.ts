@@ -21,4 +21,5 @@ export enum CollectionPath {
   Following = 'following',
   Followers = 'followers',
   SecurityRoles = 'securityRoles',
+  UsersFollowers = 'usersFollowers',
 }
