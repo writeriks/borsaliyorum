@@ -35,6 +35,20 @@ class FirebaseOperations {
       console.error('Error getting user:', error);
     }
   };
+
+  /**
+   * Retrieves user documents searched by unique user id.
+   * @param userId - The id of the user to retrieve.
+   * @returns  The user document, or undefined if not found.
+   */
+  getUsersFromFirebaseId = async (userId: string): Promise<User | undefined> => {
+    try {
+      const userDoc = await firebaseGenericOperations.getDocumentById(CollectionPath.Users, userId);
+      return userDoc?.exists() ? (userDoc.data() as User) : undefined;
+    } catch (error) {
+      console.error('Error getting user:', error);
+    }
+  };
 }
 
 const firebaseOperations = new FirebaseOperations();
