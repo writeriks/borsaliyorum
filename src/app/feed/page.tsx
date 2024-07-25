@@ -24,8 +24,6 @@ const Home = (): React.ReactNode => {
   const [activeTab, setActiveTab] = useState<FeedTab>(FeedTab.LATEST);
   const [isLikeTabClicked, setIsLikeTabClicked] = useState(false);
 
-  const isPending = useRef(false);
-
   const { fbAuthUser } = useUser();
 
   const dispatch = useDispatch();
@@ -33,24 +31,29 @@ const Home = (): React.ReactNode => {
   const setPosts = (data: any): void => {
     if (activeTab === FeedTab.LATEST) {
       const dataByDate = data.postsByDate ?? [];
-      const mergedPostsByDate = [...postsByDate].concat(dataByDate as PostType[]);
 
-      setPostsByDate(mergedPostsByDate);
+      setPostsByDate([...postsByDate, ...dataByDate]);
       setLastPostIdForDate(data.lastPostIdByDate);
     } else {
       const dataByLike = data.postsByLike ?? [];
-      const mergedPostsByLike = [...postsByLike].concat(dataByLike as PostType[]);
 
-      setPostsByLike(mergedPostsByLike);
+      setPostsByLike([...postsByLike, ...dataByLike]);
       setLastPostIdForLike(data.lastPostIdByLike);
     }
   };
 
   const mutationForDate = useMutation({
-    mutationFn: () => postApiService.getFeedByDate(lastPostIdForDate),
+    mutationFn: async () => {
+      if (lastPostIdForDate === undefined) {
+        return;
+      }
+
+      return postApiService.getFeedByDate(lastPostIdForDate);
+    },
     onSuccess: (data: any) => {
-      setPosts(data);
-      isPending.current = false;
+      if (data) {
+        setPosts(data);
+      }
     },
     onError: () => {
       dispatch(
@@ -59,16 +62,21 @@ const Home = (): React.ReactNode => {
           notificationType: UINotificationEnum.ERROR,
         })
       );
-
-      isPending.current = false;
     },
   });
 
   const mutationForLike = useMutation({
-    mutationFn: () => postApiService.getFeedByLike(lastPostIdForLike),
+    mutationFn: async () => {
+      if (lastPostIdForLike === undefined) {
+        return;
+      }
+
+      return postApiService.getFeedByLike(lastPostIdForLike);
+    },
     onSuccess: (data: any) => {
-      setPosts(data);
-      isPending.current = false;
+      if (data) {
+        setPosts(data);
+      }
     },
     onError: () => {
       dispatch(
@@ -77,8 +85,6 @@ const Home = (): React.ReactNode => {
           notificationType: UINotificationEnum.ERROR,
         })
       );
-
-      isPending.current = false;
     },
   });
 
@@ -113,27 +119,27 @@ const Home = (): React.ReactNode => {
         <NewPost />
         <div className='lg:p-6 flex p-2 rounded-lg shadow-lg w-full self-start'>
           <Tabs
-            defaultValue='latest'
-            onValueChange={e => handleTabChange(e as FeedTab)}
+            defaultValue={FeedTab.LATEST}
+            onValueChange={value => handleTabChange(value as FeedTab)}
             className='mt-2 w-full'
           >
             <TabsList className='w-full'>
-              <TabsTrigger className='mr-10' value='latest'>
+              <TabsTrigger className='mr-10' value={FeedTab.LATEST}>
                 En Son Gönderiler
               </TabsTrigger>
-              <TabsTrigger value='popular'>En Popüler Gönderiler</TabsTrigger>
+              <TabsTrigger value={FeedTab.POPULAR}>En Popüler Gönderiler</TabsTrigger>
             </TabsList>
-            <TabsContent value='latest'>
+            <TabsContent value={FeedTab.LATEST}>
               {postsByDate.map(post => (
                 <Post key={post.postId} post={post} />
               ))}
-              <LoadingSkeleton type={LoadingSkeletons.POST} />
+              {getMutation().isPending && <LoadingSkeleton type={LoadingSkeletons.POST} />}
             </TabsContent>
-            <TabsContent value='popular'>
+            <TabsContent value={FeedTab.POPULAR}>
               {postsByLike.map(post => (
                 <Post key={post.postId} post={post} />
               ))}
-              <LoadingSkeleton type={LoadingSkeletons.POST} />
+              {getMutation().isPending && <LoadingSkeleton type={LoadingSkeletons.POST} />}
             </TabsContent>
           </Tabs>
         </div>

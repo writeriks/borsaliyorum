@@ -6,7 +6,6 @@ import { PostsCollectionEnum } from '@/services/firebase-service/types/db-types/
 import { WhereFieldEnum } from '@/services/firebase-service/firebase-operations-types';
 import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 
-/* Buffer to return image to client */
 export async function GET(request: NextRequest): Promise<Response> {
   const { searchParams } = new URL(request.url);
   const postId = searchParams.get('postId');
