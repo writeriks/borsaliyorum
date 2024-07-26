@@ -31,6 +31,11 @@ const Post: React.FC<PostProp> = ({ post }) => {
     setIsExpanded(!isExpanded);
   };
 
+  /* TODO:
+  - Add styling for tags
+  - Add follow/unfollow button to top right of post
+  - Add post creation date or subtract from today's date and put 1d ago, 2d ago etc.
+  */
   return (
     <Card
       onClick={() => router.push(`post/${post.postId}`)}
