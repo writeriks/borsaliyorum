@@ -46,7 +46,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
           <ContentOptions isCommentOwner={postOwner?.username === currentUser.username} />
         </div>
 
-        <div className='break-words break-all'>
+        <div className='break-words break-all p-2'>
           <p className={cn('overflow-hidden', isExpanded ? '' : 'line-clamp-3')}>{post.content}</p>
           {post.content.length > 100 && (
             <button
