@@ -116,8 +116,6 @@ const Home = (): React.ReactNode => {
   return (
     <div className='flex min-w-full md:max-w-[800px]'>
       <div className='flex flex-col w-full min-1500:max-w-[800px]'>
-        {' '}
-        {/* min-1500:w-3/4 */}
         <NewPost />
         <div className='lg:p-6 flex p-2 rounded-lg shadow-lg w-full self-start'>
           <Tabs
