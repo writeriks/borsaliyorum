@@ -52,8 +52,8 @@ const Post: React.FC<PostProp> = ({ post }) => {
             src={proxyUrl}
             alt={post.media.alt}
             layout='responsive'
-            width={640}
-            height={640}
+            width={400}
+            height={400}
             className='rounded-md object-contain max-h-[400px] max-w-[400px]'
           />
         )}
