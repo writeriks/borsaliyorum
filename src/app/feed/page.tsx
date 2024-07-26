@@ -114,7 +114,7 @@ const Home = (): React.ReactNode => {
   }, [fbAuthUser]);
 
   return (
-    <div className='flex min-w-full md:max-w-[800px]'>
+    <div className='flex min-w-full md:max-w-[800px] justify-between'>
       <div className='flex flex-col w-full min-1500:max-w-[720px] md:max-w-[720px]'>
         <NewPost />
         <div className='lg:p-6 flex p-2 rounded-lg shadow-lg w-full self-start'>
@@ -144,7 +144,7 @@ const Home = (): React.ReactNode => {
           </Tabs>
         </div>
       </div>
-      <div className='lg:flex max-1500:hidden sticky top-52 h-[170px] flex-col lg:w-1/4'>
+      <div className='lg:flex max-1500:hidden sticky top-52 p-2 h-[260px] flex-col lg:w-[260px]'>
         <Discover />
       </div>
     </div>
