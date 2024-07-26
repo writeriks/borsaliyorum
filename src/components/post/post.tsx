@@ -25,7 +25,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
   return (
     <Card
       onClick={() => router.push(`post/${post.postId}`)}
-      className='w-full hover:bg-secondary cursor-pointer mb-8'
+      className='w-full hover:bg-secondary cursor-pointer mb-8 max-h-[640px] overflow-hidden'
     >
       <CardContent className='p-4 flex flex-col items-start gap-4'>
         <div className='flex items-start gap-4 w-full'>
@@ -36,7 +36,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
           </div>
           <ContentOptions isCommentOwner={postOwner?.username === currentUser.username} />
         </div>
-        <p>{post.content}</p>
+        <p className='break-words break-all'>{post.content}</p>
         {post.isPositiveSentiment ? (
           <div className='flex items-center p-1 rounded-md bg-bullish text-bullish-foreground'>
             <TrendingUp />
@@ -47,13 +47,14 @@ const Post: React.FC<PostProp> = ({ post }) => {
           </div>
         )}
 
-        {post?.media && (
+        {post?.media.src && (
           <Image
             src={proxyUrl}
             alt={post.media.alt}
-            width={400}
-            height={300}
-            className='w-full rounded-md object-cover'
+            layout='responsive'
+            width={640}
+            height={640}
+            className='rounded-md object-contain max-h-[400px] max-w-[400px]'
           />
         )}
       </CardContent>
