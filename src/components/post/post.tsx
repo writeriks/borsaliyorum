@@ -7,9 +7,9 @@ import Image from 'next/image';
 import { Post as PostType } from '@/services/firebase-service/types/db-types/post';
 import { useRouter } from 'next/navigation';
 import useFetchContentOwner from '@/hooks/useFetchContentOwner';
-import ContentOptions from '@/components/content/content-options';
-import ContentAction from '@/components/content/content-actions';
-import ExtendableLabel from '@/components/extendable-label/extendable-label';
+import ContentOptions from '@/components/content-actions/content-options';
+import ContentAction from '@/components/content-actions/content-actions';
+import Content from '@/components/content/content';
 
 export interface PostProp {
   post: PostType;
@@ -31,7 +31,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
   return (
     <Card
       onClick={() => router.push(`post/${post.postId}`)}
-      className='w-full hover:bg-secondary cursor-pointer mb-8 max-h-[640px] overflow-hidden'
+      className='w-full cursor-pointer mb-8 max-h-[640px] overflow-hidden'
     >
       <CardContent className='p-4 flex flex-col items-start gap-4'>
         <div className='flex items-start gap-4 w-full'>
@@ -44,7 +44,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
         </div>
 
         <section className='p-2'>
-          <ExtendableLabel content={post.content} />
+          <Content content={post.content} />
         </section>
 
         {post.isPositiveSentiment ? (

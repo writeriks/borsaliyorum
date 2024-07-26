@@ -56,7 +56,7 @@ const UserProfileOptions = (): React.ReactNode => {
         <div className='w-full h-full flex flex-col p-1'>
           <div>
             <Select value='' onValueChange={onProfileSelectChange}>
-              <SelectTrigger className='w-full hover:bg-secondary border-none h-[45px] text-secondary-foreground dark:bg-transparent dark:hover:bg-secondary'>
+              <SelectTrigger className='w-full hover:bg-accent border-none h-[45px] text-secondary-foreground dark:bg-transparent dark:hover:bg-accent'>
                 <div className='flex items-center'>
                   <UserAvatar user={user} />
                   <div className='ml-2 flex flex-col items-start'>
@@ -85,7 +85,7 @@ const UserProfileOptions = (): React.ReactNode => {
             <div>
               <Button
                 variant='secondary'
-                className='w-full justify-start bg-transparent dark:bg-transparent dark:hover:bg-secondary'
+                className='w-full justify-start bg-transparent dark:bg-transparent dark:hover:bg-accent'
               >
                 <Bell className='mr-2 h-4 w-4' /> Bildirimler
               </Button>
@@ -93,7 +93,7 @@ const UserProfileOptions = (): React.ReactNode => {
             <div>
               <Button
                 variant='secondary'
-                className='w-full justify-start bg-transparent dark:bg-transparent dark:hover:bg-secondary'
+                className='w-full justify-start bg-transparent dark:bg-transparent dark:hover:bg-accent'
               >
                 <Settings className='mr-2 h-4 w-4' /> Ayarlar
               </Button>

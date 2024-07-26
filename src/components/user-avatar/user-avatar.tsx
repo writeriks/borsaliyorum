@@ -19,9 +19,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
   return (
     <Avatar>
       <AvatarImage className='rounded-full' src={proxyUrl} alt='profile picture' />
-      <AvatarFallback className='relative p-2.5 bg-secondary rounded-full'>
-        {initials}
-      </AvatarFallback>
+      <AvatarFallback className='relative p-2.5 bg-accent rounded-full'>{initials}</AvatarFallback>
     </Avatar>
   );
 };
