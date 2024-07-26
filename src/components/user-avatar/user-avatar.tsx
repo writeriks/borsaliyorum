@@ -12,7 +12,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
   const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(profileImage as string)}`;
 
   const initials = user?.displayName
-    .split(' ')
+    ?.split(' ')
     .map(n => n[0])
     .join('');
 
