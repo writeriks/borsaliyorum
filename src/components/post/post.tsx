@@ -9,18 +9,27 @@ import { useRouter } from 'next/navigation';
 import useFetchContentOwner from '@/hooks/useFetchContentOwner';
 import ContentOptions from '@/components/content/content-options';
 import ContentAction from '@/components/content/content-actions';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 export interface PostProp {
   post: PostType;
 }
 
 const Post: React.FC<PostProp> = ({ post }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const currentUser = useSelector(userReducerSelector.getUser);
   const router = useRouter();
 
   const postOwner = useFetchContentOwner(post.userId);
 
   const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(post?.media?.src as string)}`;
+
+  const toggleReadMore = (e: React.MouseEvent<HTMLButtonElement>): void => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+  };
 
   return (
     <Card
@@ -36,7 +45,19 @@ const Post: React.FC<PostProp> = ({ post }) => {
           </div>
           <ContentOptions isCommentOwner={postOwner?.username === currentUser.username} />
         </div>
-        <p className='break-words break-all'>{post.content}</p>
+
+        <div className='break-words break-all'>
+          <p className={cn('overflow-hidden', isExpanded ? '' : 'line-clamp-3')}>{post.content}</p>
+          {post.content.length > 100 && (
+            <button
+              onClick={e => toggleReadMore(e)}
+              className='text-blue-500 text-xs hover:underline mt-2'
+            >
+              {isExpanded ? 'Küçült' : 'Devamını Oku'}
+            </button>
+          )}
+        </div>
+
         {post.isPositiveSentiment ? (
           <div className='flex items-center p-1 rounded-md bg-bullish text-bullish-foreground'>
             <TrendingUp />
