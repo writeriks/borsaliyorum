@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import NewPost from '@/components/new-post/new-post';
 import { Post as PostType } from '@/services/firebase-service/types/db-types/post';
 import Post from '@/components/post/post';

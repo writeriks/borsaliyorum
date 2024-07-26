@@ -1,7 +1,12 @@
 import React, { ChangeEvent } from 'react';
 
+//@ts-expect-error
+import imageResize from 'image-resize';
+
 import { Button } from '@/components/ui/button';
 import { ImagePlus } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 
 interface ImageUploaderProps {
   onImageUpload: (image: string) => void;
@@ -10,18 +15,47 @@ interface ImageUploaderProps {
   disabled?: boolean;
 }
 
+const IMAGE_SIZE_LIMIT = 3;
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImageUpload,
   fileInputRef,
   disabled,
   children,
 }) => {
-  const handleImageChange = (event: ChangeEvent<HTMLInputElement>): void => {
+  const dispatch = useDispatch();
+
+  const checkIfStorageLimitReached = (image: string | ArrayBuffer, limit: number): boolean => {
+    const bytes = new Blob([JSON.stringify(image)]).size;
+    const megabytes = bytes / (1024 * 1024);
+
+    return megabytes >= limit;
+  };
+  const handleImageChange = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = e => {
-        onImageUpload(e.target?.result as string);
+      reader.onload = async e => {
+        if (e.target?.result) {
+          const didReacStorageLimit = checkIfStorageLimitReached(
+            e.target?.result,
+            IMAGE_SIZE_LIMIT
+          );
+          if (didReacStorageLimit) {
+            dispatch(
+              setUINotification({
+                message: 'Maksimum 3MB boyutunda resim yükleyebilirsiniz.',
+                notificationType: UINotificationEnum.ERROR,
+              })
+            );
+            return;
+          }
+          const image = await imageResize(e.target?.result, {
+            format: 'png',
+            width: 640,
+          });
+
+          onImageUpload(image as string);
+        }
       };
       reader.readAsDataURL(file);
     }
