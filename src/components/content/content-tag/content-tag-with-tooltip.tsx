@@ -1,6 +1,7 @@
 import React from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { tickers } from '@/tickers';
+import ContentTag from '@/components/content/content-tag/content-tag';
 
 interface ContentTagWithTooltipProps {
   tag: string;
@@ -19,12 +20,7 @@ const ContentTagWithTooltip: React.FC<ContentTagWithTooltipProps> = ({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger>
-          <strong
-            key={`${lineIndex}-${offset}`}
-            className='bg-slate-300 dark:bg-slate-700 font-thin'
-          >
-            {tag}
-          </strong>
+          <ContentTag tag={tag} lineIndex={lineIndex} offset={offset} />
         </TooltipTrigger>
         <TooltipContent>
           <p>{tickerDisplay}</p>
