@@ -117,7 +117,7 @@ const Home = (): React.ReactNode => {
     <div className='flex min-w-full md:max-w-[800px] justify-between'>
       <div className='flex flex-col w-full min-1500:max-w-[720px] md:max-w-[720px]'>
         <NewPost />
-        <div className='lg:p-6 flex p-2 rounded-lg shadow-lg w-full self-start'>
+        <div className='lg:p-6 flex p-2 w-full self-start'>
           <Tabs
             defaultValue={FeedTab.LATEST}
             onValueChange={value => handleTabChange(value as FeedTab)}
