@@ -15,7 +15,7 @@ const NavigationBar = (): React.ReactNode => {
   const isHamburgerMenuOpen = useSelector(uiReducerSelector.getIsHamburgerMenuOpen);
 
   return (
-    <nav className='h-[60px] p-4 rounded-lg shadow-lg sticky bg-background top-0 z-50 border-1 border-black overflow-hidden'>
+    <nav className='h-[60px] p-4 sticky bg-background top-0 z-50 border-1 border-black overflow-hidden'>
       <div className='container mx-auto flex items-center justify-between'>
         <a href='/feed'>LOGO</a>
 

@@ -5,8 +5,8 @@ import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-sele
 import UserAvatar from '@/components/user-avatar/user-avatar';
 import { Comment as CommentType } from '@/services/firebase-service/types/db-types/comments';
 import useFetchContentOwner from '@/hooks/useFetchContentOwner';
-import ContentOptions from '@/components/content/content-options';
-import ContentAction from '@/components/content/content-actions';
+import ContentOptions from '@/components/content-actions/content-options';
+import ContentAction from '@/components/content-actions/content-actions';
 
 export interface CommentProp {
   comment: CommentType;
@@ -18,7 +18,7 @@ const Comment: React.FC<CommentProp> = ({ comment }) => {
   const commentor = useFetchContentOwner(comment.userId);
 
   return (
-    <Card className='w-full hover:bg-secondary cursor-pointer mt-1'>
+    <Card className='w-full hover:bg-accent cursor-pointer mt-1'>
       <CardContent className='p-4 flex flex-col items-start gap-4'>
         <div className='flex items-start gap-4 w-full'>
           {commentor && <UserAvatar user={commentor} />}

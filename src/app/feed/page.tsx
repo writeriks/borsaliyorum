@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import NewPost from '@/components/new-post/new-post';
 import { Post as PostType } from '@/services/firebase-service/types/db-types/post';
 import Post from '@/components/post/post';
@@ -114,10 +114,10 @@ const Home = (): React.ReactNode => {
   }, [fbAuthUser]);
 
   return (
-    <div className='flex min-w-full'>
-      <div className='flex flex-col w-full min-1500:w-3/4'>
+    <div className='flex min-w-full  justify-center'>
+      <div className='flex flex-col w-full max-w-3xl '>
         <NewPost />
-        <div className='lg:p-6 flex p-2 rounded-lg shadow-lg w-full self-start'>
+        <div className='lg:p-6 flex p-2 w-full self-start'>
           <Tabs
             defaultValue={FeedTab.LATEST}
             onValueChange={value => handleTabChange(value as FeedTab)}
@@ -144,7 +144,7 @@ const Home = (): React.ReactNode => {
           </Tabs>
         </div>
       </div>
-      <div className='lg:flex max-1500:hidden sticky top-52 h-[170px] flex-col lg:w-1/4'>
+      <div className='lg:flex max-1500:hidden sticky top-52 p-2 h-[260px] flex-col lg:w-[260px]'>
         <Discover />
       </div>
     </div>

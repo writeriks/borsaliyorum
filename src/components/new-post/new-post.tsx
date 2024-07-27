@@ -20,6 +20,7 @@ import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reduc
 import { Icons } from '@/components/ui/icons';
 import { MAX_CHARACTERS } from '@/services/api-service/post-api-service/constants';
 import postApiService from '@/services/api-service/post-api-service/post-api-service';
+import { cn } from '@/lib/utils';
 
 const NewPost = (): React.ReactElement => {
   const [content, setcontent] = useState('');
@@ -39,7 +40,7 @@ const NewPost = (): React.ReactElement => {
     onSuccess: () => {
       dispatch(
         setUINotification({
-          message: 'Gönnderi başarıyla oluşturuldu.',
+          message: 'Gönderi başarıyla oluşturuldu.',
           notificationType: UINotificationEnum.SUCCESS,
         })
       );
@@ -59,7 +60,8 @@ const NewPost = (): React.ReactElement => {
     },
   });
 
-  const isSubmitDisabled = cashTags.length === 0 || mutation.isPending;
+  const isContentLengthExceeded = MAX_CHARACTERS - content.length < 0;
+  const isSubmitDisabled = cashTags.length === 0 || mutation.isPending || isContentLengthExceeded;
 
   const handleToggle = (): void => {
     setIsBullish(!isBullish);
@@ -100,7 +102,7 @@ const NewPost = (): React.ReactElement => {
   };
 
   return (
-    <div className='lg:p-6 flex p-2 rounded-lg shadow-lg w-full self-start'>
+    <div className='lg:p-6 flex p-2 w-full self-start'>
       <div className='flex items-start w-10 lg:w-12'>
         <UserAvatar user={user} />
       </div>
@@ -108,7 +110,12 @@ const NewPost = (): React.ReactElement => {
         <div className='flex'>
           <PostEditor content={content} setContent={setcontent} onSetCashTags={handleSetCashTags} />
           {content ? (
-            <Label className='flex flex-col-reverse text-sm'>
+            <Label
+              className={cn(
+                'flex flex-col-reverse text-sm',
+                isContentLengthExceeded ? 'text-destructive' : ''
+              )}
+            >
               {MAX_CHARACTERS - content.length}
             </Label>
           ) : null}

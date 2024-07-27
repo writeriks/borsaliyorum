@@ -7,8 +7,9 @@ import Image from 'next/image';
 import { Post as PostType } from '@/services/firebase-service/types/db-types/post';
 import { useRouter } from 'next/navigation';
 import useFetchContentOwner from '@/hooks/useFetchContentOwner';
-import ContentOptions from '@/components/content/content-options';
-import ContentAction from '@/components/content/content-actions';
+import ContentOptions from '@/components/content-actions/content-options';
+import ContentAction from '@/components/content-actions/content-actions';
+import Content from '@/components/content/content';
 
 export interface PostProp {
   post: PostType;
@@ -22,10 +23,15 @@ const Post: React.FC<PostProp> = ({ post }) => {
 
   const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(post?.media?.src as string)}`;
 
+  /* TODO:
+  - Add styling for tags
+  - Add follow/unfollow button to top right of post
+  - Add post creation date or subtract from today's date and put 1d ago, 2d ago etc.
+  */
   return (
     <Card
       onClick={() => router.push(`post/${post.postId}`)}
-      className='w-full hover:bg-secondary cursor-pointer mb-8'
+      className='w-full cursor-pointer mb-2 overflow-hidden'
     >
       <CardContent className='p-4 flex flex-col items-start gap-4'>
         <div className='flex items-start gap-4 w-full'>
@@ -36,7 +42,11 @@ const Post: React.FC<PostProp> = ({ post }) => {
           </div>
           <ContentOptions isCommentOwner={postOwner?.username === currentUser.username} />
         </div>
-        <p>{post.content}</p>
+
+        <section className='p-2'>
+          <Content content={post.content} />
+        </section>
+
         {post.isPositiveSentiment ? (
           <div className='flex items-center p-1 rounded-md bg-bullish text-bullish-foreground'>
             <TrendingUp />
@@ -47,13 +57,14 @@ const Post: React.FC<PostProp> = ({ post }) => {
           </div>
         )}
 
-        {post?.media && (
+        {post?.media.src && (
           <Image
             src={proxyUrl}
             alt={post.media.alt}
+            layout='responsive'
             width={400}
-            height={300}
-            className='w-full rounded-md object-cover'
+            height={400}
+            className='rounded-md object-contain max-h-[400px] max-w-[400px]'
           />
         )}
       </CardContent>
