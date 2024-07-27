@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 import { useRouter } from 'next/navigation';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { tickers } from '@/tickers';
+import useOverflowDetection from '@/hooks/useOverflowDetection';
+import ContentTagWithTooltip from '@/components/content/content-tag/content-tag-with-tooltip';
+import ContentTag from '@/components/content/content-tag/content-tag';
 
 interface ContentProps {
   content: string;
@@ -11,17 +12,8 @@ interface ContentProps {
 
 const Content: React.FC<ContentProps> = ({ content }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isOverflowing, setIsOverflowing] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
-
+  const { isOverflowing, contentRef } = useOverflowDetection(content);
   const router = useRouter();
-
-  useEffect(() => {
-    const element = contentRef.current;
-    if (element) {
-      setIsOverflowing(element.scrollHeight > element.clientHeight);
-    }
-  }, [content]);
 
   const toggleReadMore = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.stopPropagation();
@@ -53,7 +45,7 @@ const Content: React.FC<ContentProps> = ({ content }) => {
       const matches = [...line.matchAll(regex)];
       let lastLineIndex = 0;
 
-      matches.forEach(match => {
+      matches.forEach((match, matchIndex) => {
         const [fullMatch, p1, p2, p3, p4] = match;
         const offset = match.index ?? 0;
 
@@ -65,30 +57,11 @@ const Content: React.FC<ContentProps> = ({ content }) => {
         const tag = symbol + (p2 || p3 || p4);
 
         parts.push(
-          <div onClick={e => onTagClick(e, tag)}>
+          <div key={`${lineIndex}-${matchIndex}`} onClick={e => onTagClick(e, tag)}>
             {tag.startsWith('$') ? (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <strong
-                      key={`${lineIndex}-${offset}`}
-                      className='bg-slate-300 dark:bg-slate-700 font-thin'
-                    >
-                      {tag}
-                    </strong>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{tickers.find(ticker => tag === `$${ticker.id}`)?.display ?? tag}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <ContentTagWithTooltip tag={tag} lineIndex={lineIndex} offset={offset} />
             ) : (
-              <strong
-                key={`${lineIndex}-${offset}`}
-                className='bg-slate-300 dark:bg-slate-700 font-thin'
-              >
-                {tag}
-              </strong>
+              <ContentTag tag={tag} lineIndex={lineIndex} offset={offset} />
             )}
           </div>
         );
