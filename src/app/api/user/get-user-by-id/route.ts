@@ -17,13 +17,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const userId = searchParams.get('userId');
 
     if (!userId) {
-      return NextResponse.json({ error: 'error on getting user' }, { status: 400 });
+      return NextResponse.json('', { status: 400, statusText: 'Bad request' });
     }
 
     const user = await firebaseOperations.getUsersFromFirebaseId(userId);
 
     if (!user) {
-      return new NextResponse(JSON.stringify({ error: 'User not found' }), { status: 404 });
+      return new NextResponse('', { status: 404, statusText: 'User not found' });
     }
 
     return new NextResponse(JSON.stringify(user), {

@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 import { useRouter } from 'next/navigation';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { tickers } from '@/tickers';
 
 interface ContentProps {
   content: string;
@@ -64,9 +66,30 @@ const Content: React.FC<ContentProps> = ({ content }) => {
 
         parts.push(
           <div onClick={e => onTagClick(e, tag)}>
-            <strong key={`${lineIndex}-${offset}`} className='bg-slate-700 font-thin'>
-              {tag}
-            </strong>
+            {tag.startsWith('$') ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <strong
+                      key={`${lineIndex}-${offset}`}
+                      className='bg-slate-300 dark:bg-slate-700 font-thin'
+                    >
+                      {tag}
+                    </strong>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{tickers.find(ticker => tag === `$${ticker.id}`)?.display ?? tag}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <strong
+                key={`${lineIndex}-${offset}`}
+                className='bg-slate-300 dark:bg-slate-700 font-thin'
+              >
+                {tag}
+              </strong>
+            )}
           </div>
         );
 

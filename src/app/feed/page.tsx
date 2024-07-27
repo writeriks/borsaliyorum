@@ -114,8 +114,8 @@ const Home = (): React.ReactNode => {
   }, [fbAuthUser]);
 
   return (
-    <div className='flex min-w-full md:max-w-[800px] justify-between'>
-      <div className='flex flex-col w-full min-1500:max-w-[720px] md:max-w-[720px]'>
+    <div className='flex min-w-full  justify-center'>
+      <div className='flex flex-col w-full max-w-3xl '>
         <NewPost />
         <div className='lg:p-6 flex p-2 w-full self-start'>
           <Tabs

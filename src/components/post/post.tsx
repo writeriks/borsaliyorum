@@ -31,7 +31,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
   return (
     <Card
       onClick={() => router.push(`post/${post.postId}`)}
-      className='w-full cursor-pointer mb-8 max-h-[640px] overflow-hidden'
+      className='w-full cursor-pointer mb-8 overflow-hidden'
     >
       <CardContent className='p-4 flex flex-col items-start gap-4'>
         <div className='flex items-start gap-4 w-full'>

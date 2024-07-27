@@ -1,3 +1,4 @@
+import { MAX_CHARACTERS } from '@/services/api-service/post-api-service/constants';
 import { auth, storageBucket } from '@/services/firebase-service/firebase-admin';
 import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 
@@ -11,6 +12,11 @@ export async function POST(request: Request): Promise<Response> {
     const body = await request.json();
     const imageData: string = body['imageData'];
     const post: Post = body['post'];
+
+    if (post.content.length > MAX_CHARACTERS) {
+      return new Response(null, { status: 400, statusText: 'Too many characters' });
+    }
+
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
