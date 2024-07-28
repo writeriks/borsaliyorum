@@ -10,13 +10,21 @@ import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 import { tickers } from '@/tickers';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 
-interface PostEditorProps {
+interface ContentInputProps {
   content: string;
   setContent: (content: string) => void;
   onSetCashTags?: (cashTag: string) => void;
+  placeholder?: string;
+  autoMention?: string;
 }
 
-const PostEditor: React.FC<PostEditorProps> = ({ content, setContent, onSetCashTags }) => {
+const ContentInput: React.FC<ContentInputProps> = ({
+  content,
+  setContent,
+  placeholder,
+  onSetCashTags,
+  autoMention,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [mentionSuggestions, setMentionSuggestions] = useState<SuggestionDataItem[]>([]);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -41,6 +49,16 @@ const PostEditor: React.FC<PostEditorProps> = ({ content, setContent, onSetCashT
     };
     fetchMentions();
   }, [refetch, debouncedSearchTerm]);
+
+  useEffect(() => {
+    if (autoMention) {
+      const autoMentionPrefix = `$(${autoMention}) `;
+      if (!content.startsWith(autoMentionPrefix)) {
+        setContent(autoMentionPrefix + content);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoMention]);
 
   const onMentionSearch = (
     search: string,
@@ -68,7 +86,7 @@ const PostEditor: React.FC<PostEditorProps> = ({ content, setContent, onSetCashT
   return (
     <MentionsInput
       autoFocus
-      placeholder='$TUPRS - Ne düşünüyorsun?'
+      placeholder={placeholder ? placeholder : 'Ne düşünüyorsun?'}
       className='mentions resize-none break-words break-all'
       value={content}
       onChange={e => setContent(e.target.value)}
@@ -101,4 +119,4 @@ const PostEditor: React.FC<PostEditorProps> = ({ content, setContent, onSetCashT
   );
 };
 
-export default PostEditor;
+export default ContentInput;

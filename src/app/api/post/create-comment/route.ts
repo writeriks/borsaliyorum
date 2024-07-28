@@ -3,7 +3,9 @@ import { auth, storageBucket } from '@/services/firebase-service/firebase-admin'
 import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
-import { MediaData, Post } from '@/services/firebase-service/types/db-types/post';
+import { Comment } from '@/services/firebase-service/types/db-types/comments';
+import { MediaData } from '@/services/firebase-service/types/db-types/post';
+
 import { randomUUID } from 'crypto';
 import { Timestamp } from 'firebase/firestore';
 
@@ -11,9 +13,9 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const body = await request.json();
     const imageData: string = body['imageData'];
-    const post: Post = body['post'];
+    const comment: Comment = body['comment'];
 
-    if (post.content.length > MAX_CHARACTERS) {
+    if (comment.content.length > MAX_CHARACTERS) {
       return new Response(null, { status: 400, statusText: 'Too many characters' });
     }
 
@@ -28,7 +30,7 @@ export async function POST(request: Request): Promise<Response> {
     if (imageData) {
       // Image Upload Workflow
       const base64Data = imageData.split(',')[1];
-      const media: MediaData = { src: '', alt: `${post.media.alt}` };
+      const media: MediaData = { src: '', alt: `${comment.media.alt}` };
       const fileName = `${randomUUID()}_${media.alt}.jpg`;
 
       const file = storageBucket.file(`images/${fileName}`);
@@ -48,15 +50,13 @@ export async function POST(request: Request): Promise<Response> {
         expires: '01-01-2100',
       });
 
-      post.media.src = downloadUrl[0];
+      comment.media.src = downloadUrl[0];
     }
 
-    post.createdAt = Timestamp.now();
-    post.commentCount = 0;
-    post.likeCount = 0;
-    post.repostCount = 0;
-    post.postId = randomUUID() + Date.now();
-    await firebaseGenericOperations.createDocumentWithAutoId(CollectionPath.Posts, post);
+    comment.createdAt = Timestamp.now();
+    comment.likeCount = 0;
+    comment.commentId = randomUUID() + Date.now();
+    await firebaseGenericOperations.createDocumentWithAutoId(CollectionPath.Comments, comment);
 
     return new Response(JSON.stringify({ message: 'Post created successfully' }), {
       status: 200,
