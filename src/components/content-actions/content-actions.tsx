@@ -1,7 +1,7 @@
 import { Heart, MessageCircle, Repeat } from 'lucide-react';
 
 export interface CommentProp {
-  likeCount: number;
+  likeCount?: number;
   isComment?: boolean;
   commentCount?: number;
   repostCount?: number;
@@ -9,9 +9,9 @@ export interface CommentProp {
 
 const ContentAction: React.FC<CommentProp> = ({
   isComment = false,
-  likeCount,
-  commentCount,
-  repostCount,
+  likeCount = 0,
+  commentCount = 0,
+  repostCount = 0,
 }) => {
   return (
     <>

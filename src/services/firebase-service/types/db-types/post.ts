@@ -11,9 +11,9 @@ export interface Post {
   postId?: PostId;
   userId: UserId;
   stockTickers: StockId[];
-  likeCount: number;
-  commentCount: number;
-  repostCount: number;
+  likeCount?: number;
+  commentCount?: number;
+  repostCount?: number;
   media: MediaData;
   content: string;
   createdAt?: Timestamp;

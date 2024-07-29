@@ -5,14 +5,14 @@ import { Timestamp } from 'firebase/firestore';
 export type CommentId = string;
 
 export interface Comment {
-  commentId: CommentId;
+  commentId?: CommentId;
   postId: PostId;
   userId: UserId;
-  likeCount: number;
-  media: MediaData | null;
+  likeCount?: number;
+  media: MediaData;
   content: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
   isPositiveSentiment: boolean;
 }
 

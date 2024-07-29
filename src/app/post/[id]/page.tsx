@@ -9,8 +9,8 @@ import { Post as PostType } from '@/services/firebase-service/types/db-types/pos
 import { useParams, useRouter } from 'next/navigation';
 import { MoveLeft } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import NewPost from '@/components/new-post/new-post';
 import postApiService from '@/services/api-service/post-api-service/post-api-service';
+import NewComment from '@/components/new-comment/new-comment';
 
 const PostDetail = (): React.ReactNode => {
   const comments: any[] = [
@@ -70,7 +70,7 @@ const PostDetail = (): React.ReactNode => {
           </Card>
           <Post post={post} />
           <div className='m-2'>
-            <NewPost />
+            <NewComment post={post}/>
           </div>
           {comments.map(comment => (
             <Comment key={comment.commentId} comment={comment} />

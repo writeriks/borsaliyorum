@@ -16,6 +16,7 @@ interface ImageUploaderProps {
 }
 
 const IMAGE_SIZE_LIMIT = 3;
+const IMAGE_COMPRESS_LIMIT = 0.3;
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImageUpload,
   fileInputRef,
@@ -24,35 +25,41 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 }) => {
   const dispatch = useDispatch();
 
-  const checkIfStorageLimitReached = (image: string | ArrayBuffer, limit: number): boolean => {
+  const getImageSize = (image: string | ArrayBuffer): number => {
     const bytes = new Blob([JSON.stringify(image)]).size;
     const megabytes = bytes / (1024 * 1024);
 
-    return megabytes >= limit;
+    return megabytes;
   };
+
+  const compressImage = async (image: string | ArrayBuffer): Promise<any> => {
+    return imageResize(image, {
+      format: 'png',
+      width: 640,
+    });
+  };
+
   const handleImageChange = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = async e => {
-        if (e.target?.result) {
-          const didReacStorageLimit = checkIfStorageLimitReached(
-            e.target?.result,
-            IMAGE_SIZE_LIMIT
-          );
-          if (didReacStorageLimit) {
+      reader.onload = async ({ target }) => {
+        if (target?.result) {
+          const imageSize = getImageSize(target?.result);
+          if (imageSize > IMAGE_SIZE_LIMIT) {
             dispatch(
               setUINotification({
-                message: 'Maksimum 3MB boyutunda resim yükleyebilirsiniz.',
+                message: 'En fazla 3MB boyutunda resim yükleyebilirsiniz.',
                 notificationType: UINotificationEnum.ERROR,
               })
             );
             return;
           }
-          const image = await imageResize(e.target?.result, {
-            format: 'png',
-            width: 640,
-          });
+
+          let image = target.result;
+          if (imageSize > IMAGE_COMPRESS_LIMIT) {
+            image = await compressImage(target.result);
+          }
 
           onImageUpload(image as string);
         }
