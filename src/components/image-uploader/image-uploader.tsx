@@ -16,6 +16,7 @@ interface ImageUploaderProps {
 }
 
 const IMAGE_SIZE_LIMIT = 3;
+const IMAGE_COMPRESS_LIMIT = 0.3;
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImageUpload,
   fileInputRef,
@@ -42,22 +43,22 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = async e => {
-        if (e.target?.result) {
-          const imageSize = getImageSize(e.target?.result);
+      reader.onload = async ({ target }) => {
+        if (target?.result) {
+          const imageSize = getImageSize(target?.result);
           if (imageSize > IMAGE_SIZE_LIMIT) {
             dispatch(
               setUINotification({
-                message: 'Maksimum 3MB boyutunda resim yükleyebilirsiniz.',
+                message: 'En fazla 3MB boyutunda resim yükleyebilirsiniz.',
                 notificationType: UINotificationEnum.ERROR,
               })
             );
             return;
           }
 
-          let image = e.target.result;
-          if (imageSize > 0.3) {
-            image = await compressImage(e.target.result);
+          let image = target.result;
+          if (imageSize > IMAGE_COMPRESS_LIMIT) {
+            image = await compressImage(target.result);
           }
 
           onImageUpload(image as string);

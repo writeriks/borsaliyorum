@@ -48,7 +48,7 @@ const NewComment: React.FC<NewCommentProps> = ({ post }) => {
     onSuccess: () => {
       dispatch(
         setUINotification({
-          message: 'Gönderi başarıyla oluşturuldu.',
+          message: 'Yorumunuz başarıyla oluşturuldu.',
           notificationType: UINotificationEnum.SUCCESS,
         })
       );
@@ -101,7 +101,7 @@ const NewComment: React.FC<NewCommentProps> = ({ post }) => {
       postId: post.postId as string,
       content,
       isPositiveSentiment: isBullish,
-      media: { src: '', alt: `${Date.now()}` } as MediaData,
+      media: { src: '', alt: 'Kullanıcı resmi' } as MediaData,
     };
     commentMutation.mutate({ comment, postImageData: imageData });
   };

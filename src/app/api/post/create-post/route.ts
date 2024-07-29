@@ -3,7 +3,7 @@ import { auth, storageBucket } from '@/services/firebase-service/firebase-admin'
 import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
-import { MediaData, Post } from '@/services/firebase-service/types/db-types/post';
+import { Post } from '@/services/firebase-service/types/db-types/post';
 import { randomUUID } from 'crypto';
 import { Timestamp } from 'firebase/firestore';
 
@@ -28,8 +28,7 @@ export async function POST(request: Request): Promise<Response> {
     if (imageData) {
       // Image Upload Workflow
       const base64Data = imageData.split(',')[1];
-      const media: MediaData = { src: '', alt: `${post.media.alt}` };
-      const fileName = `${randomUUID()}_${media.alt}.jpg`;
+      const fileName = `${randomUUID()}_${Date.now()}.jpg`;
 
       const file = storageBucket.file(`images/${fileName}`);
 

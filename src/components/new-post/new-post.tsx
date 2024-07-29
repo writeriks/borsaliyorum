@@ -97,7 +97,7 @@ const NewPost = (): React.ReactElement => {
       commentCount: 0,
       repostCount: 0,
       isPositiveSentiment: isBullish,
-      media: { src: '', alt: `${Date.now()}` } as MediaData,
+      media: { src: '', alt: 'Kullanıcı resmi' } as MediaData,
     };
     mutation.mutate({ post, postImageData: imageData });
   };
