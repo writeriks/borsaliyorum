@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { Button } from '@/components/ui/button';
 import firebaseAuthService from '@/services/firebase-service/firebase-auth-service';
-import { Bell, LogOut, Settings } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -10,7 +9,6 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
-import ThemeModeToggle from '@/components/theme-toggle/theme-toggle';
 import { useDispatch, useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
@@ -18,6 +16,8 @@ import UserAvatar from '@/components/user-avatar/user-avatar';
 import { setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
 import { LoadingSkeletons } from '@/app/constants';
+import LoginContainer from '@/components/user-profile-options/login-container';
+import UserSettings from '@/components/user-profile-options/user-settings';
 
 const UserProfileOptions = (): React.ReactNode => {
   const dispatch = useDispatch();
@@ -79,34 +79,11 @@ const UserProfileOptions = (): React.ReactNode => {
                 </SelectGroup>
               </SelectContent>
             </Select>
-            <div>
-              <Button
-                variant='secondary'
-                className='w-full justify-start bg-transparent dark:bg-transparent dark:hover:bg-accent'
-              >
-                <Bell className='mr-2 h-4 w-4' /> Bildirimler
-              </Button>
-            </div>
-            <div>
-              <Button
-                variant='secondary'
-                className='w-full justify-start bg-transparent dark:bg-transparent dark:hover:bg-accent'
-              >
-                <Settings className='mr-2 h-4 w-4' /> Ayarlar
-              </Button>
-            </div>
-            <ThemeModeToggle />
+            <UserSettings />
           </div>
         </div>
       ) : (
-        <div className='flex flex-col w-full h-full justify-center items-center'>
-          <Button
-            className='w-48 m-1 text-lg font-medium bg-blue-600 rounded-full text-white'
-            onClick={() => dispatch(setIsAuthModalOpen(true))}
-          >
-            Giriş Yap
-          </Button>
-        </div>
+        <LoginContainer setLoginModalOpen={() => dispatch(setIsAuthModalOpen(true))} />
       )}
     </div>
   );
