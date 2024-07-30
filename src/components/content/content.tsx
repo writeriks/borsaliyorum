@@ -46,7 +46,7 @@ const Content: React.FC<ContentProps> = ({ content }) => {
       let lastLineIndex = 0;
 
       matches.forEach((match, matchIndex) => {
-        const [fullMatch, p1, p2, p3, p4] = match;
+        const [fullMatch, _, p2, p3, p4] = match;
         const offset = match.index ?? 0;
 
         if (lastLineIndex < offset) {

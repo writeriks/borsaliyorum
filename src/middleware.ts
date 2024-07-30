@@ -24,5 +24,12 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  matcher: ['/', '/feed/:path*', '/stocks/:path*', '/profile/:path*'],
+  matcher: [
+    '/',
+    '/feed/:path*',
+    '/stocks/:path*',
+    '/profile/:path*',
+    '/users/:path*',
+    '/edit-profile',
+  ],
 };

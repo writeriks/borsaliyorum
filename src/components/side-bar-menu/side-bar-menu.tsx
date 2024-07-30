@@ -5,7 +5,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
-import UserProfileOptions from '@/components/user-profile-options/user-profile-options';
+import UserProfileOptionsMobile from '@/components/user-profile-options/user-profile-options-mobile';
 import { cn } from '@/lib/utils';
 
 const SideBarMenu: React.FC = () => {
@@ -20,7 +20,7 @@ const SideBarMenu: React.FC = () => {
     >
       <ul className='flex h-full flex-col items-center space-y-4 '>
         <li className='mt-16'>
-          <UserProfileOptions />
+          <UserProfileOptionsMobile />
         </li>
       </ul>
     </div>
