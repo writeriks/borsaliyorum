@@ -66,6 +66,7 @@ class TagService {
 
   /*
    * Creates a new tag with post count and last post date
+   * If the tag already exists, increments the post count and updates the last post date
    *
    * @param tagName - The name of the tag
    */
@@ -83,6 +84,7 @@ class TagService {
 
   /*
    * Updates existing tag with new post count and last post date
+   * If the last post date is within the last four hours, increments the post count in the last four hours
    *
    * @param tagDocument - The tag document to update
    */
