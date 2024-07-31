@@ -24,7 +24,7 @@ export async function POST(request: Request): Promise<Response> {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
     }
 
-    await auth.verifyIdToken(token);
+    const idToken = await auth.verifyIdToken(token);
 
     if (imageData) {
       // Image Upload Workflow
@@ -54,6 +54,7 @@ export async function POST(request: Request): Promise<Response> {
     comment.createdAt = Timestamp.now();
     comment.likeCount = 0;
     comment.commentId = randomUUID() + Date.now();
+    comment.userId = idToken.uid;
     await firebaseGenericOperations.createDocumentWithAutoId(CollectionPath.Comments, comment);
 
     return new Response(JSON.stringify({ message: 'Post created successfully' }), {

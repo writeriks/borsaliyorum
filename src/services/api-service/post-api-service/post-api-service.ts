@@ -109,6 +109,31 @@ class PostApiService {
 
     return response.json();
   };
+
+  getCommentsByPostId = async (
+    postId: string,
+    lastCommentId: string
+  ): Promise<{
+    comments: DocumentData[];
+    lastCommentId: string;
+  }> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch(
+      `/api/post/get-comments-by-post-id?postId=${encodeURIComponent(postId)}&lastCommentId=${encodeURIComponent(lastCommentId)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) throw new Error(response.statusText);
+
+    return response.json();
+  };
 }
 
 const postApiService = new PostApiService();

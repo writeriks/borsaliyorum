@@ -26,20 +26,21 @@ import useFetchContentOwner from '@/hooks/useFetchContentOwner';
 
 interface NewCommentProps {
   post: Post;
+  mention: {
+    username: string;
+  };
+  onSubmitted: () => void;
 }
 
-const NewComment: React.FC<NewCommentProps> = ({ post }) => {
-  const [content, setcontent] = useState('');
+const NewComment: React.FC<NewCommentProps> = ({ post, mention, onSubmitted }) => {
+  const [content, setContent] = useState('');
   const [isBullish, setIsBullish] = useState(true);
   const [imageData, setImageData] = useState<string>('');
   const [cashTags, setCashTags] = useState<string[]>([]);
 
   const postOwner = useFetchContentOwner(post.userId);
   const dispatch = useDispatch();
-  const currentUser = useSelector(userReducerSelector.getUser);
-
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const user = useSelector(userReducerSelector.getUser) as User;
 
   const commentMutation = useMutation({
@@ -53,10 +54,11 @@ const NewComment: React.FC<NewCommentProps> = ({ post }) => {
         })
       );
 
-      setcontent('');
+      setContent('');
       setCashTags([]);
       setIsBullish(true);
       setImageData('');
+      onSubmitted();
     },
     onError: () => {
       dispatch(
@@ -95,13 +97,24 @@ const NewComment: React.FC<NewCommentProps> = ({ post }) => {
     });
   }, [cashTags, content]);
 
+  useEffect(() => {
+    if (mention.username) {
+      const mentionPrefix = `@(${mention.username})`;
+      if (!content.includes(mentionPrefix)) {
+        setContent(content + mentionPrefix + ' ');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mention]);
+
   const submitComment = async (): Promise<void> => {
     const comment: Comment = {
-      userId: currentUser.userId,
+      userId: user.userId,
       postId: post.postId as string,
       content,
       isPositiveSentiment: isBullish,
       media: { src: '', alt: 'Kullanıcı resmi' } as MediaData,
+      username: user.username,
     };
     commentMutation.mutate({ comment, postImageData: imageData });
   };
@@ -114,9 +127,9 @@ const NewComment: React.FC<NewCommentProps> = ({ post }) => {
       <div className='flex flex-col ml-2 w-full justify-between'>
         <div className='flex'>
           <ContentInput
-            placeholder='Ne düşünüyorsun'
+            placeholder='Ne düşünüyorsun?'
             content={content}
-            setContent={setcontent}
+            setContent={setContent}
             onSetCashTags={handleSetCashTags}
             autoMention={postOwner?.username}
           />
