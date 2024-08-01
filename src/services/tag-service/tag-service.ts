@@ -24,6 +24,11 @@ class TagService {
         const symbol = fullMatch[0];
         const tagName = symbol + (p2 || p3 || p4);
 
+        if (this.getTagType(symbol) === TagsEnum.MENTION) {
+          // TODO: Handle Mentions
+          return;
+        }
+
         const { lastDocument } = await firebaseGenericOperations.getDocumentsWithQuery({
           collectionPath: CollectionPath.Tags,
           whereFields: [
@@ -35,9 +40,6 @@ class TagService {
           ],
         });
 
-        if (this.getTagType(symbol) === TagsEnum.MENTION) {
-          return;
-        }
         if (!lastDocument) {
           await this.createNewTag(tagName);
         } else {
