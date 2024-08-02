@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 
 import { auth } from '@/services/firebase-service/firebase-admin';
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
@@ -7,27 +7,28 @@ import { WhereFieldEnum } from '@/services/firebase-service/firebase-operations-
 import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 import { CommentsCollectionEnum } from '@/services/firebase-service/types/db-types/comments';
 import { DocumentData } from 'firebase/firestore';
+import { createResponse, ResponseStatus } from '@/app/api/api-utils/api-utils';
 
 export async function GET(request: NextRequest): Promise<Response> {
-  const { searchParams } = new URL(request.url);
-  const postId = searchParams.get('postId');
-  const lastCommentId = searchParams.get('lastCommentId');
-  const pageSize = 5;
-
-  if (!postId) {
-    return NextResponse.json({ error: 'error on getting post' }, { status: 400 });
-  }
-
-  const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-
-  if (!token) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-  }
-
-  await auth.verifyIdToken(token);
-
   try {
-    const lastCommentDocument = await firebaseGenericOperations.getDocumentsWithQuery({
+    const { searchParams } = new URL(request.url);
+    const postId = searchParams.get('postId');
+    const lastCommentId = searchParams.get('lastCommentId');
+    const pageSize = 5;
+
+    if (!postId) {
+      return createResponse(ResponseStatus.BAD_REQUEST);
+    }
+
+    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+
+    if (!token) {
+      return createResponse(ResponseStatus.UNAUTHORIZED);
+    }
+
+    await auth.verifyIdToken(token);
+
+    const { lastDocument } = await firebaseGenericOperations.getDocumentsWithQuery({
       collectionPath: CollectionPath.Comments,
       whereFields: [
         {
@@ -38,38 +39,30 @@ export async function GET(request: NextRequest): Promise<Response> {
       ],
     });
 
-    const comments = await firebaseGenericOperations.getDocumentsWithQuery({
-      collectionPath: CollectionPath.Comments,
-      whereFields: [
-        {
-          field: CommentsCollectionEnum.POST_ID,
-          operator: WhereFieldEnum.EQUALS,
-          value: postId,
-        },
-      ],
-      documentLimit: pageSize,
-      orderByField: PostsCollectionEnum.CREATED_AT,
-      orderByDirection: 'desc',
-      startAfterDocument: lastCommentDocument?.lastDocument as DocumentData,
+    const { lastDocument: lastDocumentOfList, documents } =
+      await firebaseGenericOperations.getDocumentsWithQuery({
+        collectionPath: CollectionPath.Comments,
+        whereFields: [
+          {
+            field: CommentsCollectionEnum.POST_ID,
+            operator: WhereFieldEnum.EQUALS,
+            value: postId,
+          },
+        ],
+        documentLimit: pageSize,
+        orderByField: PostsCollectionEnum.CREATED_AT,
+        orderByDirection: 'desc',
+        startAfterDocument: lastDocument as DocumentData,
+      });
+
+    const newLastCommentId = lastDocumentOfList?.data().commentId;
+
+    return createResponse(ResponseStatus.OK, {
+      comments: documents,
+      lastCommentId: newLastCommentId,
     });
-
-    const newLastCommentId = comments.lastDocument?.data().commentId;
-
-    return new NextResponse(
-      JSON.stringify({
-        comments: comments.documents,
-        lastCommentId: newLastCommentId,
-      }),
-      {
-        status: 200,
-        statusText: 'SUCCESS',
-      }
-    );
   } catch (error: any) {
     console.error('Error fetching comment:', error.message);
-    return new NextResponse(null, {
-      status: 500,
-      statusText: 'Internal Server Error',
-    });
+    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }

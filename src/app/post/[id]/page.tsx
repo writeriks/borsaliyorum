@@ -47,7 +47,7 @@ const PostDetail = (): React.ReactNode => {
         if (isNewCommentAdded) {
           const lastCommentIdOnScreen = comments[comments.length - 1]?.commentId ?? '';
           setLastCommentId(lastCommentIdOnScreen);
-          setComments([...data.comments, ...comments]);
+          setComments([data.comments[0], ...comments]);
           setIsNewCommentAdded(false);
         } else {
           setComments([...comments, ...data.comments]);
@@ -55,10 +55,10 @@ const PostDetail = (): React.ReactNode => {
         }
       }
     },
-    onError: () => {
+    onError: error => {
       dispatch(
         setUINotification({
-          message: 'Bir hata oluştu.',
+          message: error.message,
           notificationType: UINotificationEnum.ERROR,
         })
       );
