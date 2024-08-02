@@ -52,7 +52,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
 
   useEffect(() => {
     if (autoMention) {
-      const autoMentionPrefix = `$(${autoMention}) `;
+      const autoMentionPrefix = `@(${autoMention}) `;
       if (!content.startsWith(autoMentionPrefix)) {
         setContent(autoMentionPrefix + content);
       }
