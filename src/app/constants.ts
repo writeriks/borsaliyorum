@@ -6,4 +6,5 @@ export enum FeedTab {
 export enum LoadingSkeletons {
   POST = 'post',
   USER_PROFILE = 'userProfile',
+  DISCOVER = 'discover',
 }
