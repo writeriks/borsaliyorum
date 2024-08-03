@@ -1,6 +1,3 @@
-import { PostId } from '@/services/firebase-service/types/db-types/post';
-import { Timestamp } from 'firebase/firestore';
-
 export type TagId = string;
 
 // Tag Main Collection
@@ -8,18 +5,20 @@ export type TagsCollection = Tag[];
 
 export interface Tag {
   tagId: TagId;
-  postIds: PostId[]; // ????
-  name: string;
-  postCount: number;
-  createdAt: Timestamp;
+  totalPostCount: number;
+  postCountInLastFourHours: number;
+  createdAt: number;
+  lastPostDate: number;
+  type: TagsEnum;
 }
 
 export enum TagsCollectionEnum {
   TAG_ID = 'tagId',
-  NAME = 'name',
-  POST_IDS = 'postIds', // ???
-  POST_COUNT = 'postCount',
+  POST_COUNT = 'totalPostCount',
+  POST_COUNT_IN_LAST_FOUR_HOURS = 'postCountInLastFourHours',
+  LAST_POST_DATE = 'lastPostDate',
   CREATED_AT = 'createdAt',
+  TYPE = 'type',
 }
 
 export enum TagsEnum {

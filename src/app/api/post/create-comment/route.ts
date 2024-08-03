@@ -4,6 +4,7 @@ import firebaseGenericOperations from '@/services/firebase-service/firebase-gene
 
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import { Comment } from '@/services/firebase-service/types/db-types/comments';
+import tagService from '@/services/tag-service/tag-service';
 
 import { randomUUID } from 'crypto';
 import { Timestamp } from 'firebase/firestore';
@@ -56,6 +57,10 @@ export async function POST(request: Request): Promise<Response> {
     comment.commentId = randomUUID() + Date.now();
     comment.userId = idToken.uid;
     await firebaseGenericOperations.createDocumentWithAutoId(CollectionPath.Comments, comment);
+
+    await tagService.createTag(comment.content);
+
+    // TODO: Handle Mentions
 
     return new Response(JSON.stringify({ message: 'Post created successfully' }), {
       status: 200,
