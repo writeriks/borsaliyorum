@@ -5,10 +5,11 @@ import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-sele
 import UserAvatar from '@/components/user-avatar/user-avatar';
 import Image from 'next/image';
 import { Post as PostType } from '@/services/firebase-service/types/db-types/post';
-import { useRouter } from 'next/navigation';
 import useFetchContentOwner from '@/hooks/useFetchContentOwner';
 import ContentOptions from '@/components/content-actions/content-options';
-import ContentAction from '@/components/content-actions/content-actions';
+import ContentAction, {
+  Content as ContentType,
+} from '@/components/content-actions/content-actions';
 import Content from '@/components/content/content';
 
 export interface PostProp {
@@ -17,7 +18,6 @@ export interface PostProp {
 
 const Post: React.FC<PostProp> = ({ post }) => {
   const currentUser = useSelector(userReducerSelector.getUser);
-  const router = useRouter();
 
   const postOwner = useFetchContentOwner(post.userId);
 
@@ -29,10 +29,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
   - Add post creation date or subtract from today's date and put 1d ago, 2d ago etc.
   */
   return (
-    <Card
-      onClick={() => router.push(`post/${post.postId}`)}
-      className='w-full cursor-pointer mb-2 overflow-hidden'
-    >
+    <Card className='w-full cursor-pointer mb-2 overflow-hidden'>
       <CardContent className='p-4 flex flex-col items-start gap-4'>
         <div className='flex items-start gap-4 w-full'>
           {postOwner && <UserAvatar user={postOwner} />}
@@ -73,6 +70,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
           likeCount={post.likeCount}
           commentCount={post.commentCount}
           repostCount={post.repostCount}
+          content={post as ContentType}
         />
       </CardFooter>
     </Card>

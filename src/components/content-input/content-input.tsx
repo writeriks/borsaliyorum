@@ -58,7 +58,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoMention]);
+  }, [autoMention, content]);
 
   const onMentionSearch = (
     search: string,
@@ -85,6 +85,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
 
   return (
     <MentionsInput
+      id='mentionsInput'
       autoFocus
       placeholder={placeholder ? placeholder : 'Ne düşünüyorsun?'}
       className='mentions resize-none break-words break-all'
