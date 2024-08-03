@@ -47,7 +47,13 @@ const PostDetail = (): React.ReactNode => {
         if (isNewCommentAdded) {
           const lastCommentIdOnScreen = comments[comments.length - 1]?.commentId ?? '';
           setLastCommentId(lastCommentIdOnScreen);
-          setComments([data.comments[0], ...comments]);
+          // TODO: Temp solution. Instead this we should fetch comment by commentId
+          const commentByUser = (data.comments as CommentType[]).find(
+            cmt => cmt.userId === fbAuthUser?.uid
+          );
+          if (commentByUser) {
+            setComments([commentByUser, ...comments]);
+          }
           setIsNewCommentAdded(false);
         } else {
           setComments([...comments, ...data.comments]);

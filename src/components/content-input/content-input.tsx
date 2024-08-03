@@ -58,7 +58,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoMention]);
+  }, [autoMention, content]);
 
   const onMentionSearch = (
     search: string,
