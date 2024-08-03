@@ -14,7 +14,6 @@ import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-sele
 
 import { User } from '@/services/firebase-service/types/db-types/user';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
-import { Timestamp } from 'firebase/firestore';
 
 const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
   const dispatch = useDispatch();
@@ -58,7 +57,7 @@ const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
             email: '',
             profilePhoto: '',
             userId: '',
-            createdAt: Timestamp.now(),
+            createdAt: Date.now(),
           })
         );
         await queryClient.fetchQuery({

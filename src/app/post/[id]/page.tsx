@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 
 import Post from '@/components/post/post';
 import Comment from '@/components/comment/comment';
-import { Timestamp } from 'firebase/firestore';
 import { Post as PostType } from '@/services/firebase-service/types/db-types/post';
 import { useParams, useRouter } from 'next/navigation';
 import { MoveLeft } from 'lucide-react';
@@ -22,8 +21,8 @@ const PostDetail = (): React.ReactNode => {
       commentCount: 45,
       content: 'Excited about the new iPhone release! Apple stocks are going up!',
       media: { src: '' },
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
       isPositiveSentiment: true,
       repostCount: 0,
     },
@@ -35,8 +34,8 @@ const PostDetail = (): React.ReactNode => {
       commentCount: 30,
       media: { src: '' },
       content: 'Google announces major AI breakthrough! This could be huge for the tech industry.',
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
       isPositiveSentiment: false,
       repostCount: 0,
     },
@@ -70,7 +69,7 @@ const PostDetail = (): React.ReactNode => {
           </Card>
           <Post post={post} />
           <div className='m-2'>
-            <NewComment post={post}/>
+            <NewComment post={post} />
           </div>
           {comments.map(comment => (
             <Comment key={comment.commentId} comment={comment} />

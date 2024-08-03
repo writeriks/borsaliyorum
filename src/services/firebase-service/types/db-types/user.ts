@@ -1,5 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
-
 // User Main Collection
 export type UserCollection = User[];
 
@@ -10,17 +8,17 @@ export interface User {
   username: string;
   displayName: string;
   email: string;
-  birthday?: Timestamp;
+  birthday?: number;
   profilePhoto?: string;
   coverPhoto?: string;
   bio?: string;
   theme?: Theme;
   website?: string;
-  createdAt: Timestamp;
-  updatedAt?: Timestamp;
-  premiumEndDate?: Timestamp;
+  createdAt: number;
+  updatedAt?: number;
+  premiumEndDate?: number;
   isEmailVerified?: boolean;
-  lastReloadDate?: Timestamp;
+  lastReloadDate?: number;
   postsCount?: number;
   userFollowingCount?: number;
   userFollowersCount?: number;

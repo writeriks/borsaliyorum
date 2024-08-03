@@ -6,7 +6,6 @@ import {
   SecurityRolesCollectionEnum,
 } from '@/services/firebase-service/types/db-types/security-roles';
 import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
-import { Timestamp } from 'firebase/firestore';
 
 export async function POST(request: Request): Promise<Response> {
   const body = await request.json();
@@ -18,7 +17,7 @@ export async function POST(request: Request): Promise<Response> {
     // Create user document
     await firebaseGenericOperations.createDocumentWithCustomId(CollectionPath.Users, userId, {
       ...userData,
-      [UserEnum.CREATED_AT]: Timestamp.now(),
+      [UserEnum.CREATED_AT]: Date.now(),
       [UserEnum.USERNAME]: userData.username.toLowerCase(),
       [UserEnum.EMAIL]: userData.email.toLowerCase(),
     });

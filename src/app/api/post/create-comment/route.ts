@@ -7,7 +7,6 @@ import { Comment } from '@/services/firebase-service/types/db-types/comments';
 import tagService from '@/services/tag-service/tag-service';
 
 import { randomUUID } from 'crypto';
-import { Timestamp } from 'firebase/firestore';
 
 export async function POST(request: Request): Promise<Response> {
   try {
@@ -52,7 +51,7 @@ export async function POST(request: Request): Promise<Response> {
       comment.media.src = downloadUrl[0];
     }
 
-    comment.createdAt = Timestamp.now();
+    comment.createdAt = Date.now();
     comment.likeCount = 0;
     comment.commentId = randomUUID() + Date.now();
     await firebaseGenericOperations.createDocumentWithAutoId(CollectionPath.Comments, comment);

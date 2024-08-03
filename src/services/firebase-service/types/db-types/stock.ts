@@ -1,5 +1,4 @@
 import { PostId } from '@/services/firebase-service/types/db-types/post';
-import { Timestamp } from 'firebase/firestore';
 
 export type StockId = string;
 
@@ -17,7 +16,7 @@ export interface Stock {
   companyName: string;
   coverPhoto: string | null;
   positiveSentiment: number;
-  marketEnterDate: Timestamp;
+  marketEnterDate: number;
   stockType: StockType;
 }
 

@@ -1,10 +1,9 @@
 import { UserId } from '@/services/firebase-service/types/db-types/user';
-import { Timestamp } from 'firebase/firestore';
 
 export interface UserFollowers {
   followerId: UserId;
   followingId: UserId;
-  followedAt: Timestamp;
+  followedAt: number;
   isNotified: boolean; // May be removed
 }
 

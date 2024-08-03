@@ -1,6 +1,5 @@
 import { MediaData, PostId } from '@/services/firebase-service/types/db-types/post';
 import { UserId } from '@/services/firebase-service/types/db-types/user';
-import { Timestamp } from 'firebase/firestore';
 
 export type CommentId = string;
 
@@ -11,8 +10,8 @@ export interface Comment {
   likeCount?: number;
   media: MediaData;
   content: string;
-  createdAt?: Timestamp;
-  updatedAt?: Timestamp;
+  createdAt?: number;
+  updatedAt?: number;
   isPositiveSentiment: boolean;
 }
 

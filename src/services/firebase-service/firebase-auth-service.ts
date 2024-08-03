@@ -11,7 +11,6 @@ import {
   sendPasswordResetEmail,
 } from 'firebase/auth';
 import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
-import { Timestamp } from 'firebase/firestore';
 import store from '@/store/redux-store';
 import {
   UINotificationEnum,
@@ -58,7 +57,7 @@ class FirebaseAuthService {
         // If new user, add user to the user collection
         const customUser: User = {
           [UserEnum.USER_ID]: user.uid,
-          [UserEnum.CREATED_AT]: Timestamp.now(),
+          [UserEnum.CREATED_AT]: Date.now(),
           [UserEnum.EMAIL]: user.email as string,
           [UserEnum.USERNAME]: user.email as string,
           [UserEnum.DISPLAY_NAME]: user.displayName as string,
@@ -159,7 +158,7 @@ class FirebaseAuthService {
 
       const customUser: User = {
         [UserEnum.USER_ID]: user.uid,
-        [UserEnum.CREATED_AT]: Timestamp.now(),
+        [UserEnum.CREATED_AT]: Date.now(),
         [UserEnum.EMAIL]: user.email as string,
         [UserEnum.USERNAME]: username,
         [UserEnum.DISPLAY_NAME]: displayName,
