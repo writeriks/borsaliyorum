@@ -9,11 +9,12 @@ import { useParams, useRouter } from 'next/navigation';
 import { MoveLeft } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import postApiService from '@/services/api-service/post-api-service/post-api-service';
+import commentApiService from '@/services/api-service/comment-api-service/comment-api-service';
 import NewComment from '@/components/new-comment/new-comment';
 import useUser from '@/hooks/useUser';
 import Discover from '@/components/doscover/discover';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Comment as CommentType } from '@/services/firebase-service/types/db-types/comments';
+import { Comment as CommentType } from '@/services/firebase-service/types/db-types/comment';
 import { useDispatch } from 'react-redux';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 
@@ -48,7 +49,7 @@ const PostDetail = (): React.ReactNode => {
         return;
       }
 
-      return postApiService.getCommentsByPostId(postId, lastCommentId);
+      return commentApiService.getCommentsByPostId(postId, lastCommentId);
     },
     onSuccess: data => {
       if (data) {
@@ -111,6 +112,12 @@ const PostDetail = (): React.ReactNode => {
     setComments([userAddedComment, ...comments]);
   };
 
+  const handleCommentDelete = (deletedCommentId: string): void => {
+    const filteredComments = comments.filter(cmt => cmt.commentId !== deletedCommentId);
+
+    setComments([...filteredComments]);
+  };
+
   return (
     <div className='flex min-w-full justify-center'>
       <div className='flex flex-col w-full max-w-3xl '>
@@ -130,6 +137,7 @@ const PostDetail = (): React.ReactNode => {
             />
             {comments.map(comment => (
               <Comment
+                onDeleteClick={handleCommentDelete} // Remove comment from local state
                 onCommentClick={handleCommentClick}
                 key={comment.commentId}
                 comment={comment}

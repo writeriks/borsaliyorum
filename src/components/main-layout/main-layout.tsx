@@ -8,7 +8,6 @@ import { parse } from 'next-useragent';
 
 import NavigationBar from '@/components/nav-bar/nav-bar';
 import SideBarMenu from '@/components/side-bar-menu/side-bar-menu';
-import LeftMainAd from '@/components/ad-tags/left-main-ad/left-main-ad';
 import RightMainAd from '@/components/ad-tags/right-main-ad/right-main-ad';
 import InnerLeftMainAd from '@/components/ad-tags/inner-left-main-ad/inner-left-main-ad';
 import UserProfileOptions from '@/components/user-profile-options/user-profile-options';

@@ -8,3 +8,8 @@ export enum LoadingSkeletons {
   USER_PROFILE = 'userProfile',
   DISCOVER = 'discover',
 }
+
+export enum ContentType {
+  POST = 'post',
+  COMMENT = 'comment',
+}

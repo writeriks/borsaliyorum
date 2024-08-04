@@ -4,7 +4,7 @@ import { auth, storageBucket } from '@/services/firebase-service/firebase-admin'
 import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
-import { Comment } from '@/services/firebase-service/types/db-types/comments';
+import { Comment } from '@/services/firebase-service/types/db-types/comment';
 import tagService from '@/services/tag-service/tag-service';
 
 import { randomUUID } from 'crypto';
