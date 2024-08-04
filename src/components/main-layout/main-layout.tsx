@@ -8,7 +8,6 @@ import { parse } from 'next-useragent';
 
 import NavigationBar from '@/components/nav-bar/nav-bar';
 import SideBarMenu from '@/components/side-bar-menu/side-bar-menu';
-import LeftMainAd from '@/components/ad-tags/left-main-ad/left-main-ad';
 import RightMainAd from '@/components/ad-tags/right-main-ad/right-main-ad';
 import InnerLeftMainAd from '@/components/ad-tags/inner-left-main-ad/inner-left-main-ad';
 import UserProfileOptions from '@/components/user-profile-options/user-profile-options';
@@ -20,17 +19,22 @@ import useUINotification from '@/hooks/useUINotification';
 import useUser from '@/hooks/useUser';
 import { AuthModal } from '@/components/auth/auth-modal';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
-import { setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
+import { setIsAuthModalOpen, setIsNewPostModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
 import Discover from '@/components/doscover/discover';
 import useValidateSession from '@/hooks/useValidateSession';
+import TabBarController from '@/components/tab-bar-controller/tab-bar-controller';
+import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
+import NewPostTriggerMobile from '@/components/new-post/new-post-trigger-mobile';
+import NewPostDialog from '@/components/new-post/new-post-dialog';
 
 const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNode => {
   useValidateSession();
   const dispatch = useDispatch();
   useUINotification();
   useUser();
-
+  const currentUser = useSelector(userReducerSelector.getUser);
   const isAuthModalOpen = useSelector(uiReducerSelector.getIsAuthModalOpen);
+  const isNewPostModalOpen = useSelector(uiReducerSelector.getIsNewPostModalOpen);
 
   useEffect(() => {
     if (window) {
@@ -62,9 +66,24 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
           >
             <InnerTopAd />
             {children}
+
+            <NewPostDialog
+              isOpen={isNewPostModalOpen}
+              onNewPostModalOpenChange={() => dispatch(setIsNewPostModalOpen(!isNewPostModalOpen))}
+            />
+
+            {!!currentUser.userId && (
+              <div className='md:hidden'>
+                <div className='bottom-[60px] right-0 fixed'>
+                  <NewPostTriggerMobile />
+                </div>
+                <div className=' bottom-0 sticky'>
+                  <TabBarController />
+                </div>
+              </div>
+            )}
           </div>
         </div>
-        <div className='md:hidden'> ADD TAB CONTROLLER HERE</div>
         <Toaster richColors />
       </main>
 
