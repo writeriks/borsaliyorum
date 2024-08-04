@@ -144,7 +144,7 @@ const Home = (): React.ReactNode => {
           </Tabs>
         </div>
       </div>
-      <div className='lg:flex max-1500:hidden sticky top-52 p-2 h-[260px] flex-col lg:w-[260px] '>
+      <div className='lg:flex max-1500:hidden sticky ml-2 h-[260px] flex-col lg:w-[260px] '>
         <Discover />
       </div>
     </div>

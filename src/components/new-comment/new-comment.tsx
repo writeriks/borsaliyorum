@@ -115,11 +115,6 @@ const NewComment: React.FC<NewCommentProps> = ({ post, mention, onSubmit }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mention]);
 
-  /* const submitLocalComment = (comment: Comment, imgData: string): void => {
-    comment.media.src = imgData;
-    onSubmit(comment);
-  }; */
-
   const submitComment = async (): Promise<void> => {
     const comment: Comment = {
       userId: user.userId,
@@ -144,7 +139,6 @@ const NewComment: React.FC<NewCommentProps> = ({ post, mention, onSubmit }) => {
             content={content}
             setContent={setContent}
             onSetCashTags={handleSetCashTags}
-            /* autoMention={postOwner?.username} */
           />
           {content ? (
             <Label

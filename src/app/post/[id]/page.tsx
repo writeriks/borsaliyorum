@@ -19,6 +19,7 @@ import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reduc
 
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
 import { LoadingSkeletons } from '@/app/constants';
+import { Icons } from '@/components/ui/icons';
 
 const PostDetail = (): React.ReactNode => {
   const { back } = useRouter();
@@ -30,6 +31,7 @@ const PostDetail = (): React.ReactNode => {
   const [comments, setComments] = useState<CommentType[]>([]);
   const [newCommentsByUser, setNewCommentsByUser] = useState<CommentType[]>([]);
   const [lastCommentId, setLastCommentId] = useState('');
+  const [isLoadMoreClicked, setIsLoadMoreClicked] = useState(false);
   const [mention, setMention] = useState({ username: '' });
 
   const { refetch: getPostById } = useQuery({
@@ -57,9 +59,12 @@ const PostDetail = (): React.ReactNode => {
 
         setComments([...comments, ...(filteredNewComments as CommentType[])]);
         setLastCommentId(data.lastCommentId);
+        setIsLoadMoreClicked(false);
       }
     },
     onError: error => {
+      setIsLoadMoreClicked(false);
+
       dispatch(
         setUINotification({
           message: error.message,
@@ -77,6 +82,8 @@ const PostDetail = (): React.ReactNode => {
   }, [post]);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+
     const fetchPost = async (): Promise<void> => {
       const { data: result } = await getPostById();
 
@@ -133,7 +140,16 @@ const PostDetail = (): React.ReactNode => {
                 onClick={() => mutation.mutate()}
                 className='flex flex-row min-w-full items-center mt-1 text-sm justify-center cursor-pointer'
               >
-                <a>Daha Fazla Yükle</a>
+                {isLoadMoreClicked ? (
+                  <Icons.spinner className='h-4 w-4 animate-spin' />
+                ) : (
+                  <a
+                    className='p-4 text-blue-400 hover:underline'
+                    onClick={() => setIsLoadMoreClicked(true)}
+                  >
+                    Daha Fazla Yükle
+                  </a>
+                )}
               </div>
             ) : null}
             {mutation.isPending && <LoadingSkeleton type={LoadingSkeletons.POST} />}

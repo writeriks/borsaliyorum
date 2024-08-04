@@ -14,7 +14,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     const { searchParams } = new URL(request.url);
     const postId = searchParams.get('postId');
     const lastCommentId = searchParams.get('lastCommentId');
-    const pageSize = 20;
+    const pageSize = 5;
 
     if (!postId) {
       return createResponse(ResponseStatus.BAD_REQUEST);
