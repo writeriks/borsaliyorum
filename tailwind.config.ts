@@ -71,6 +71,10 @@ const config = {
           DEFAULT: 'hsl(var(--bullish))',
           foreground: 'hsl(var(--bullish-foreground))',
         },
+        description: {
+          DEFAULT: 'hsl(var(--description))',
+          foreground: 'hsl(var(--description))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

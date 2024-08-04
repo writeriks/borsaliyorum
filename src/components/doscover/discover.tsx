@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import discoverReducerSelector from '@/store/reducers/discover-reducer/discover-reducer-selector';
 import { setTrendingTags } from '@/store/reducers/discover-reducer/discover-slice';
 import { isWithinXHoursFromNow } from '@/services/util-service/util-service';
+import TrendingTopics from '@/components/doscover/trending-topics';
 
 const Discover: React.FC = () => {
   const trends = useSelector(discoverReducerSelector.getTrendingTags);
@@ -44,7 +45,7 @@ const Discover: React.FC = () => {
     if (isLoading) {
       return <LoadingSkeleton type={LoadingSkeletons.DISCOVER} />;
     } else if (trends.length) {
-      return trends.map(trend => <div key={trend.tagId}>{trend.tagId}</div>);
+      return <TrendingTopics trends={trends} />;
     }
     return <div>No Trends</div>;
   };
