@@ -10,7 +10,6 @@ import { auth } from '../../firebase-service/firebase-config';
 
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
-import { Timestamp } from 'firebase/firestore';
 import store from '@/store/redux-store';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
@@ -103,7 +102,7 @@ class UserApiService {
               ...userDocument,
               [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
               [UserEnum.EMAIL]: user.email,
-              [UserEnum.UPDATED_AT]: Timestamp.now(),
+              [UserEnum.UPDATED_AT]: Date.now(),
             }
           );
         }

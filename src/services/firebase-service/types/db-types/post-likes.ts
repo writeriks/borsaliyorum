@@ -1,12 +1,11 @@
 import { PostId } from '@/services/firebase-service/types/db-types/post';
 
 import { UserId } from '@/services/firebase-service/types/db-types/user';
-import { Timestamp } from 'firebase/firestore';
 
 export interface PostLikes {
   userId: UserId;
   postId: PostId;
-  likedAt: Timestamp;
+  likedAt: number;
 }
 
 export enum PostLikesEnum {

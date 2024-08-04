@@ -1,6 +1,5 @@
 import { StockId } from '@/services/firebase-service/types/db-types/stock';
 import { UserId } from '@/services/firebase-service/types/db-types/user';
-import { Timestamp } from 'firebase/firestore';
 
 // Post Main Collection
 export type PostCollection = Post[];
@@ -16,8 +15,8 @@ export interface Post {
   repostCount?: number;
   media: MediaData;
   content: string;
-  createdAt?: Timestamp;
-  updatedAt?: Timestamp;
+  createdAt?: number;
+  updatedAt?: number;
   isPositiveSentiment: boolean;
 }
 

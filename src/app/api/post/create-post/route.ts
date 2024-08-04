@@ -6,7 +6,6 @@ import { CollectionPath } from '@/services/firebase-service/types/collection-typ
 import { Post } from '@/services/firebase-service/types/db-types/post';
 import tagService from '@/services/tag-service/tag-service';
 import { randomUUID } from 'crypto';
-import { Timestamp } from 'firebase/firestore';
 
 export async function POST(request: Request): Promise<Response> {
   try {
@@ -51,7 +50,7 @@ export async function POST(request: Request): Promise<Response> {
       post.media.src = downloadUrl[0];
     }
 
-    post.createdAt = Timestamp.now();
+    post.createdAt = Date.now();
     post.commentCount = 0;
     post.likeCount = 0;
     post.repostCount = 0;
