@@ -92,7 +92,7 @@ const Home = (): React.ReactNode => {
     activeTab === FeedTab.LATEST ? mutationForDate : mutationForLike;
 
   useInfiniteScroll({
-    isFetchingNextPage: getMutation().isPending,
+    shouldFetchNextPage: !getMutation().isPending,
     fetchNextPage: getMutation().mutate,
   });
 

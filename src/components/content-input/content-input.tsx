@@ -15,7 +15,6 @@ interface ContentInputProps {
   setContent: (content: string) => void;
   onSetCashTags?: (cashTag: string) => void;
   placeholder?: string;
-  autoMention?: string;
 }
 
 const ContentInput: React.FC<ContentInputProps> = ({
@@ -23,7 +22,6 @@ const ContentInput: React.FC<ContentInputProps> = ({
   setContent,
   placeholder,
   onSetCashTags,
-  autoMention,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [mentionSuggestions, setMentionSuggestions] = useState<SuggestionDataItem[]>([]);
@@ -49,16 +47,6 @@ const ContentInput: React.FC<ContentInputProps> = ({
     };
     fetchMentions();
   }, [refetch, debouncedSearchTerm]);
-
-  useEffect(() => {
-    if (autoMention) {
-      const autoMentionPrefix = `@(${autoMention}) `;
-      if (!content.startsWith(autoMentionPrefix)) {
-        setContent(autoMentionPrefix + content);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoMention, content]);
 
   const onMentionSearch = (
     search: string,

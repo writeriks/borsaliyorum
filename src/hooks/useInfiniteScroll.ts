@@ -1,23 +1,23 @@
 import { useEffect, useCallback } from 'react';
 
 type UseInfiniteScrollParams = {
-  isFetchingNextPage: boolean;
+  shouldFetchNextPage: boolean;
   fetchNextPage: () => void;
 };
 
 const useInfiniteScroll = ({
-  isFetchingNextPage,
+  shouldFetchNextPage,
   fetchNextPage,
 }: UseInfiniteScrollParams): void => {
   const handleScroll = useCallback(() => {
     if (
-      !isFetchingNextPage &&
+      shouldFetchNextPage &&
       window.innerHeight + document.documentElement.scrollTop + 10 >=
         document.documentElement.offsetHeight
     ) {
       fetchNextPage();
     }
-  }, [fetchNextPage, isFetchingNextPage]);
+  }, [fetchNextPage, shouldFetchNextPage]);
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
