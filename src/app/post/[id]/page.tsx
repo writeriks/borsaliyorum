@@ -12,13 +12,14 @@ import postApiService from '@/services/api-service/post-api-service/post-api-ser
 import NewComment from '@/components/new-comment/new-comment';
 import useUser from '@/hooks/useUser';
 import Discover from '@/components/doscover/discover';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Comment as CommentType } from '@/services/firebase-service/types/db-types/comments';
 import { useDispatch } from 'react-redux';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
-import useInfiniteScroll from '@/hooks/useInfiniteScroll';
+
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
 import { LoadingSkeletons } from '@/app/constants';
+import { Icons } from '@/components/ui/icons';
 
 const PostDetail = (): React.ReactNode => {
   const { back } = useRouter();
@@ -28,9 +29,16 @@ const PostDetail = (): React.ReactNode => {
   const dispatch = useDispatch();
 
   const [comments, setComments] = useState<CommentType[]>([]);
+  const [newCommentsByUser, setNewCommentsByUser] = useState<CommentType[]>([]);
   const [lastCommentId, setLastCommentId] = useState('');
+  const [isLoadMoreClicked, setIsLoadMoreClicked] = useState(false);
   const [mention, setMention] = useState({ username: '' });
-  const [isNewCommentAdded, setIsNewCommentAdded] = useState(false);
+
+  const { refetch: getPostById } = useQuery({
+    queryKey: ['get-post-by-id'],
+    queryFn: () => postApiService.getPostById(query.id as string),
+    enabled: false,
+  });
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -42,26 +50,21 @@ const PostDetail = (): React.ReactNode => {
 
       return postApiService.getCommentsByPostId(postId, lastCommentId);
     },
-    onSuccess: (data: any) => {
+    onSuccess: data => {
       if (data) {
-        if (isNewCommentAdded) {
-          const lastCommentIdOnScreen = comments[comments.length - 1]?.commentId ?? '';
-          setLastCommentId(lastCommentIdOnScreen);
-          // TODO: Temp solution. Instead this we should fetch comment by commentId
-          const commentByUser = (data.comments as CommentType[]).find(
-            cmt => cmt.userId === fbAuthUser?.uid
-          );
-          if (commentByUser) {
-            setComments([commentByUser, ...comments]);
-          }
-          setIsNewCommentAdded(false);
-        } else {
-          setComments([...comments, ...data.comments]);
-          setLastCommentId(data.lastCommentId);
-        }
+        const localCommentIds = newCommentsByUser.map(item => item.commentId);
+        const filteredNewComments = (data.comments as CommentType[]).filter(
+          item => !localCommentIds.includes(item.commentId) && item.userId
+        );
+
+        setComments([...comments, ...(filteredNewComments as CommentType[])]);
+        setLastCommentId(data.lastCommentId);
+        setIsLoadMoreClicked(false);
       }
     },
     onError: error => {
+      setIsLoadMoreClicked(false);
+
       dispatch(
         setUINotification({
           message: error.message,
@@ -79,8 +82,10 @@ const PostDetail = (): React.ReactNode => {
   }, [post]);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+
     const fetchPost = async (): Promise<void> => {
-      const result = await postApiService.getPostById(query.id as string);
+      const { data: result } = await getPostById();
 
       setPost(result);
     };
@@ -92,11 +97,6 @@ const PostDetail = (): React.ReactNode => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fbAuthUser, query.id]);
 
-  useInfiniteScroll({
-    isFetchingNextPage: mutation.isPending,
-    fetchNextPage: mutation.mutate,
-  });
-
   const handleCommentClick = (comment: CommentType): void => {
     setMention({
       username: comment.username,
@@ -106,11 +106,9 @@ const PostDetail = (): React.ReactNode => {
     input?.focus();
   };
 
-  const handleCommentSubmit = (): void => {
-    setLastCommentId('');
-    setIsNewCommentAdded(true);
-
-    mutation.mutate();
+  const handleCommentSubmit = (userAddedComment: CommentType): void => {
+    setNewCommentsByUser([userAddedComment, ...newCommentsByUser]);
+    setComments([userAddedComment, ...comments]);
   };
 
   return (
@@ -125,9 +123,11 @@ const PostDetail = (): React.ReactNode => {
               </span>
             </Card>
             <Post post={post} />
-            <div className='m-2'>
-              <NewComment onSubmitted={handleCommentSubmit} mention={mention} post={post} />
-            </div>
+            <NewComment
+              onSubmit={comment => handleCommentSubmit(comment)}
+              mention={mention}
+              post={post}
+            />
             {comments.map(comment => (
               <Comment
                 onCommentClick={handleCommentClick}
@@ -135,6 +135,23 @@ const PostDetail = (): React.ReactNode => {
                 comment={comment}
               />
             ))}
+            {comments.length && lastCommentId ? (
+              <div
+                onClick={() => mutation.mutate()}
+                className='flex flex-row min-w-full items-center mt-1 text-sm justify-center cursor-pointer'
+              >
+                {isLoadMoreClicked ? (
+                  <Icons.spinner className='h-4 w-4 animate-spin' />
+                ) : (
+                  <a
+                    className='p-4 text-blue-400 hover:underline'
+                    onClick={() => setIsLoadMoreClicked(true)}
+                  >
+                    Daha Fazla Yükle
+                  </a>
+                )}
+              </div>
+            ) : null}
             {mutation.isPending && <LoadingSkeleton type={LoadingSkeletons.POST} />}
           </div>
         ) : (

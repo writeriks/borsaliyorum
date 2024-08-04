@@ -8,6 +8,7 @@ import useFetchContentOwner from '@/hooks/useFetchContentOwner';
 import ContentOptions from '@/components/content-actions/content-options';
 import ContentAction from '@/components/content-actions/content-actions';
 import Content from '@/components/content/content';
+import Image from 'next/image';
 
 export interface CommentProp {
   comment: CommentType;
@@ -16,6 +17,7 @@ export interface CommentProp {
 
 const Comment: React.FC<CommentProp> = ({ comment, onCommentClick }) => {
   const currentUser = useSelector(userReducerSelector.getUser);
+  const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(comment?.media?.src as string)}`;
 
   const commentor = useFetchContentOwner(comment.userId);
 
@@ -41,6 +43,16 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick }) => {
           <div className='flex items-center p-1 rounded-md bg-destructive text-destructive-foreground'>
             <TrendingDown />
           </div>
+        )}
+        {comment?.media.src && (
+          <Image
+            src={!comment?.media?.src.includes('data') ? proxyUrl : comment.media.src}
+            alt={comment.media.alt}
+            layout='responsive'
+            width={400}
+            height={400}
+            className='rounded-md object-contain max-h-[400px] max-w-[400px]'
+          />
         )}
       </CardContent>
       <CardFooter className='flex items-center justify-between ml-24 mr-24'>

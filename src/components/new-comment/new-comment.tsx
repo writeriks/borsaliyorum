@@ -29,24 +29,33 @@ interface NewCommentProps {
   mention: {
     username: string;
   };
-  onSubmitted: () => void;
+  onSubmit: (comment: Comment) => void;
 }
 
-const NewComment: React.FC<NewCommentProps> = ({ post, mention, onSubmitted }) => {
+const NewComment: React.FC<NewCommentProps> = ({ post, mention, onSubmit }) => {
+  const postOwner = useFetchContentOwner(post.userId);
+
   const [content, setContent] = useState('');
   const [isBullish, setIsBullish] = useState(true);
   const [imageData, setImageData] = useState<string>('');
   const [cashTags, setCashTags] = useState<string[]>([]);
 
-  const postOwner = useFetchContentOwner(post.userId);
   const dispatch = useDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const user = useSelector(userReducerSelector.getUser) as User;
 
+  useEffect(() => {
+    if (postOwner) {
+      setContent(`@(${postOwner.username}) `);
+    }
+  }, [postOwner]);
+
   const commentMutation = useMutation({
     mutationFn: ({ comment, postImageData }: { comment: Comment; postImageData: string }) =>
       postApiService.createNewComment(comment, postImageData),
-    onSuccess: () => {
+    onSuccess: (data: Comment) => {
+      onSubmit(data);
+
       dispatch(
         setUINotification({
           message: 'Yorumunuz başarıyla oluşturuldu.',
@@ -58,7 +67,6 @@ const NewComment: React.FC<NewCommentProps> = ({ post, mention, onSubmitted }) =
       setCashTags([]);
       setIsBullish(true);
       setImageData('');
-      onSubmitted();
     },
     onError: () => {
       dispatch(
@@ -131,7 +139,6 @@ const NewComment: React.FC<NewCommentProps> = ({ post, mention, onSubmitted }) =
             content={content}
             setContent={setContent}
             onSetCashTags={handleSetCashTags}
-            autoMention={postOwner?.username}
           />
           {content ? (
             <Label

@@ -1,3 +1,4 @@
+import { createResponse, ResponseStatus } from '@/app/api/api-utils/api-utils';
 import { MAX_CHARACTERS } from '@/services/api-service/post-api-service/constants';
 import { auth, storageBucket } from '@/services/firebase-service/firebase-admin';
 import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
@@ -59,17 +60,8 @@ export async function POST(request: Request): Promise<Response> {
 
     await tagService.createTag(comment.content);
 
-    // TODO: Handle Mentions
-
-    return new Response(JSON.stringify({ message: 'Post created successfully' }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return createResponse(ResponseStatus.OK, comment);
   } catch (error) {
-    console.error('Error in POST handler:', error);
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }
