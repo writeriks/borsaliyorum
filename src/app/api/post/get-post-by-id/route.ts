@@ -46,7 +46,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       statusText: 'SUCCESS',
     });
   } catch (error: any) {
-    console.error('Error fetching user:', error.message);
+    console.error('Error fetching post:', error.message);
     return new NextResponse(null, {
       status: 500,
       statusText: 'Internal Server Error',

@@ -9,7 +9,7 @@ export type PostId = string;
 export interface Post {
   postId?: PostId;
   userId: UserId;
-  stockTickers: StockId[];
+  stockTickers?: StockId[];
   likeCount?: number;
   commentCount?: number;
   repostCount?: number;

@@ -3,8 +3,8 @@ import { WhereFieldEnum } from '@/services/firebase-service/firebase-operations-
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import { Tag, TagsCollectionEnum, TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 import { FirebaseSnapshot } from '@/services/firebase-service/types/types';
+import { isWithinXHoursFromNow } from '@/services/util-service/util-service';
 
-const FOUR_HOURS = 14400000;
 class TagService {
   /*
    * From given content, gets the cashtags and hashtags
@@ -91,8 +91,9 @@ class TagService {
    */
   private updateExistingTag = async (tagDocument: FirebaseSnapshot): Promise<void> => {
     const tag = tagDocument.data() as Tag;
-    const postCountInLastFourHours =
-      tag.lastPostDate + FOUR_HOURS > Date.now() ? tag.postCountInLastFourHours + 1 : 1;
+    const postCountInLastFourHours = isWithinXHoursFromNow(tag.lastPostDate, 4)
+      ? tag.postCountInLastFourHours + 1
+      : 1;
 
     const updatedTag: Tag = {
       ...tag,

@@ -7,6 +7,7 @@ export interface Comment {
   commentId?: CommentId;
   postId: PostId;
   userId: UserId;
+  username: string;
   likeCount?: number;
   media: MediaData;
   content: string;
