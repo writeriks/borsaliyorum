@@ -3,7 +3,6 @@ import { WhereFieldEnum } from '@/services/firebase-service/firebase-operations-
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import { Tag, TagsCollectionEnum, TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 import { FirebaseSnapshot } from '@/services/firebase-service/types/types';
-import { Timestamp } from 'firebase/firestore';
 
 const FOUR_HOURS = 14400000;
 class TagService {
@@ -77,8 +76,8 @@ class TagService {
       tagId: tagName,
       totalPostCount: 1,
       postCountInLastFourHours: 1,
-      createdAt: Timestamp.now(),
-      lastPostDate: Timestamp.now(),
+      createdAt: Date.now(),
+      lastPostDate: Date.now(),
       type: this.getTagType(tagName[0]),
     };
     await firebaseGenericOperations.createDocumentWithAutoId(CollectionPath.Tags, newTag);
@@ -93,13 +92,13 @@ class TagService {
   private updateExistingTag = async (tagDocument: FirebaseSnapshot): Promise<void> => {
     const tag = tagDocument.data() as Tag;
     const postCountInLastFourHours =
-      tag.lastPostDate.toMillis() + FOUR_HOURS > Date.now() ? tag.postCountInLastFourHours + 1 : 1;
+      tag.lastPostDate + FOUR_HOURS > Date.now() ? tag.postCountInLastFourHours + 1 : 1;
 
     const updatedTag: Tag = {
       ...tag,
       totalPostCount: tag.totalPostCount + 1,
       postCountInLastFourHours,
-      lastPostDate: Timestamp.now(),
+      lastPostDate: Date.now(),
     };
 
     await firebaseGenericOperations.updateDocumentById(

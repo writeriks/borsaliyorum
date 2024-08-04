@@ -1,5 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
-
 export type TagId = string;
 
 // Tag Main Collection
@@ -9,8 +7,8 @@ export interface Tag {
   tagId: TagId;
   totalPostCount: number;
   postCountInLastFourHours: number;
-  createdAt: Timestamp;
-  lastPostDate: Timestamp;
+  createdAt: number;
+  lastPostDate: number;
   type: TagsEnum;
 }
 
