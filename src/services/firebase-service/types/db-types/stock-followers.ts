@@ -1,11 +1,10 @@
 import { StockId } from '@/services/firebase-service/types/db-types/stock';
 import { UserId } from '@/services/firebase-service/types/db-types/user';
-import { Timestamp } from 'firebase/firestore';
 
 export interface StockFollowers {
   followerId: UserId;
   stockId: StockId;
-  followedAt: Timestamp;
+  followedAt: number;
   isNotified: boolean; // May be removed
 }
 

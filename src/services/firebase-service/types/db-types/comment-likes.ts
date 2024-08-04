@@ -1,11 +1,10 @@
 import { CommentId } from '@/services/firebase-service/types/db-types/comments';
 import { UserId } from '@/services/firebase-service/types/db-types/user';
-import { Timestamp } from 'firebase/firestore';
 
 export interface CommentLikes {
   userId: UserId;
   commentId: CommentId;
-  createdAt: Timestamp;
+  createdAt: number;
 }
 
 export enum CommentLikesEnum {

@@ -40,7 +40,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
 
   return (
     <>
-      <LeftMainAd />
       <main className='flex-grow text-base'>
         <SideBarMenu />
         <NavigationBar />
