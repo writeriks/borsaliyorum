@@ -103,7 +103,7 @@ const NewPost = (): React.ReactElement => {
   };
 
   return (
-    <div className='lg:p-6 flex p-2 w-full self-start'>
+    <div className='lg:p-6 flex p-2 w-full self-start border rounded'>
       <div className='flex items-start w-10 lg:w-12'>
         <UserAvatar user={user} />
       </div>
