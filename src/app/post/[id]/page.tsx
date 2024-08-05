@@ -138,7 +138,7 @@ const PostDetail = (): React.ReactNode => {
             />
             {comments.map(comment => (
               <Comment
-                onDeleteClick={handleCommentDelete} // Remove comment from local state
+                onDeleteClick={handleCommentDelete}
                 onCommentClick={handleCommentClick}
                 key={comment.commentId}
                 comment={comment}
