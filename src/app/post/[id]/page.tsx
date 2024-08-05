@@ -124,11 +124,12 @@ const PostDetail = (): React.ReactNode => {
         {post ? (
           <div className='lg:p-6 p-2 w-full self-start'>
             {/* TODO: when click back it should scroll to the previous post */}
-            <Card onClick={() => back()} className='cursor-pointer'>
-              <span className='inline-flex items-center justify-center p-3 bg-transparent'>
-                <MoveLeft className='mr-2 h-5 w-5' /> Geri
-              </span>
-            </Card>
+            <span
+              onClick={() => back()}
+              className='cursor-pointer inline-flex items-center justify-center p-3 bg-transparent'
+            >
+              <MoveLeft className='mr-2 h-5 w-5' /> Geri
+            </span>
             <Post post={post} />
             <NewComment
               onSubmit={comment => handleCommentSubmit(comment)}

@@ -61,8 +61,8 @@ const ContentOptions: React.FC<ContentProp> = ({ isContentOwner, content, onDele
         </DropdownMenuItem>
         {isContentOwner && (
           <DropdownMenuItem onClick={() => deleteCommentMutation.mutate()}>
-            <Trash className='h-4 w-4 mr-2' />
-            Sil
+            <Trash className='h-4 w-4 mr-2 text-destructive' />
+            <span className='text-destructive'>Sil</span>
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>
