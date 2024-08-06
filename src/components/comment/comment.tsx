@@ -3,19 +3,20 @@ import { TrendingDown, TrendingUp } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import UserAvatar from '@/components/user-avatar/user-avatar';
-import { Comment as CommentType } from '@/services/firebase-service/types/db-types/comments';
+import { Comment as CommentType } from '@/services/firebase-service/types/db-types/comment';
 import useFetchContentOwner from '@/hooks/useFetchContentOwner';
 import ContentOptions from '@/components/content-actions/content-options';
 import ContentAction from '@/components/content-actions/content-actions';
 import Content from '@/components/content/content';
 import Image from 'next/image';
 
-export interface CommentProp {
+interface CommentProp {
   comment: CommentType;
   onCommentClick: (comment: CommentType) => void;
+  onDeleteClick: (commentId: string) => void;
 }
 
-const Comment: React.FC<CommentProp> = ({ comment, onCommentClick }) => {
+const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick }) => {
   const currentUser = useSelector(userReducerSelector.getUser);
   const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(comment?.media?.src as string)}`;
 
@@ -30,7 +31,11 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick }) => {
             <div className='text-sm font-bold'>{commentor?.displayName}</div>
             <div className='text-xs text-muted-foreground'>{commentor?.username}</div>
           </div>
-          <ContentOptions isCommentOwner={commentor?.username === currentUser.username} />
+          <ContentOptions
+            onDeleteSuccess={onDeleteClick}
+            content={comment}
+            isContentOwner={commentor?.username === currentUser.username}
+          />
         </div>
         <section className='p-2'>
           <Content content={comment.content} />
@@ -56,12 +61,7 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick }) => {
         )}
       </CardContent>
       <CardFooter className='flex items-center justify-between ml-24 mr-24'>
-        <ContentAction
-          onCommentClick={onCommentClick}
-          content={comment}
-          isComment={true}
-          likeCount={comment.likeCount}
-        />
+        <ContentAction onCommentClick={onCommentClick} content={comment} />
       </CardFooter>
     </Card>
   );

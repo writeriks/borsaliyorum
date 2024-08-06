@@ -19,9 +19,9 @@ import { useMutation } from '@tanstack/react-query';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { Icons } from '@/components/ui/icons';
 import { MAX_CHARACTERS } from '@/services/api-service/post-api-service/constants';
-import postApiService from '@/services/api-service/post-api-service/post-api-service';
+import commentApiService from '@/services/api-service/comment-api-service/comment-api-service';
 import { cn } from '@/lib/utils';
-import { Comment } from '@/services/firebase-service/types/db-types/comments';
+import { Comment } from '@/services/firebase-service/types/db-types/comment';
 import useFetchContentOwner from '@/hooks/useFetchContentOwner';
 
 interface NewCommentProps {
@@ -52,7 +52,7 @@ const NewComment: React.FC<NewCommentProps> = ({ post, mention, onSubmit }) => {
 
   const commentMutation = useMutation({
     mutationFn: ({ comment, postImageData }: { comment: Comment; postImageData: string }) =>
-      postApiService.createNewComment(comment, postImageData),
+      commentApiService.createNewComment(comment, postImageData),
     onSuccess: (data: Comment) => {
       onSubmit(data);
 

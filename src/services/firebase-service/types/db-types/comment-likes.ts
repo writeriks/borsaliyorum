@@ -1,4 +1,4 @@
-import { CommentId } from '@/services/firebase-service/types/db-types/comments';
+import { CommentId } from '@/services/firebase-service/types/db-types/comment';
 import { UserId } from '@/services/firebase-service/types/db-types/user';
 
 export interface CommentLikes {

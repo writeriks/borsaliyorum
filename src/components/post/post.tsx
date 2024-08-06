@@ -37,7 +37,12 @@ const Post: React.FC<PostProp> = ({ post }) => {
             <div className='text-sm font-bold'>{postOwner?.displayName}</div>
             <div className='text-xs text-muted-foreground'>{postOwner?.username}</div>
           </div>
-          <ContentOptions isCommentOwner={postOwner?.username === currentUser.username} />
+          {/* TODO Implement post delete logic */}
+          <ContentOptions
+            onDeleteSuccess={() => console.log('TODO: Implement')}
+            content={post}
+            isContentOwner={postOwner?.username === currentUser.username}
+          />
         </div>
 
         <section className='p-2'>
@@ -66,12 +71,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
         )}
       </CardContent>
       <CardFooter className='flex items-center justify-between ml-16 mr-16'>
-        <ContentAction
-          likeCount={post.likeCount}
-          commentCount={post.commentCount}
-          repostCount={post.repostCount}
-          content={post as ContentType}
-        />
+        <ContentAction content={post as ContentType} />
       </CardFooter>
     </Card>
   );

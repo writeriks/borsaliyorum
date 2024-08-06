@@ -1,5 +1,4 @@
 import { auth } from '@/services/firebase-service/firebase-config';
-import { Comment } from '@/services/firebase-service/types/db-types/comments';
 import { Post } from '@/services/firebase-service/types/db-types/post';
 import { DocumentData } from 'firebase/firestore';
 
@@ -12,27 +11,6 @@ class PostApiService {
     const idToken = await auth.currentUser?.getIdToken();
 
     const response = await fetch('/api/post/create-post', {
-      method: 'POST',
-      body: JSON.stringify(requestBody),
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) throw new Error(response.statusText);
-
-    return response.json();
-  };
-
-  createNewComment = async (comment: Comment, imageData: string): Promise<any> => {
-    const requestBody = {
-      comment,
-      imageData,
-    };
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch('/api/post/create-comment', {
       method: 'POST',
       body: JSON.stringify(requestBody),
       headers: {
@@ -106,34 +84,6 @@ class PostApiService {
     });
 
     if (!response.ok) throw new Error(response.statusText);
-
-    return response.json();
-  };
-
-  getCommentsByPostId = async (
-    postId: string,
-    lastCommentId: string
-  ): Promise<{
-    comments: DocumentData[];
-    lastCommentId: string;
-  }> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch(
-      `/api/post/get-comments-by-post-id?postId=${encodeURIComponent(postId)}&lastCommentId=${encodeURIComponent(lastCommentId)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message);
-    }
 
     return response.json();
   };

@@ -5,7 +5,7 @@ import { CollectionPath } from '@/services/firebase-service/types/collection-typ
 import { PostsCollectionEnum } from '@/services/firebase-service/types/db-types/post';
 import { WhereFieldEnum } from '@/services/firebase-service/firebase-operations-types';
 import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
-import { CommentsCollectionEnum } from '@/services/firebase-service/types/db-types/comments';
+import { CommentsCollectionEnum } from '@/services/firebase-service/types/db-types/comment';
 import { DocumentData } from 'firebase/firestore';
 import { createResponse, ResponseStatus } from '@/app/api/api-utils/api-utils';
 
