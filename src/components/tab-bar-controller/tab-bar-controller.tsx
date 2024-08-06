@@ -8,12 +8,13 @@ enum ActiveTabEnum {
   PROFILE = 'profile',
 }
 
-const TabBarController = () => {
+const TabBarController: React.FC = () => {
   const [activeTab, setActiveTab] = useState('feed');
-  const path = window.location.pathname;
+
+  const path = window.location.pathname.split('/')[1];
 
   useEffect(() => {
-    switch (path.split('/')[1]) {
+    switch (path) {
       case ActiveTabEnum.DISCOVER:
         setActiveTab(ActiveTabEnum.DISCOVER);
         break;
@@ -31,7 +32,7 @@ const TabBarController = () => {
     }
   }, [path]);
 
-  const onTabClick = (tab: ActiveTabEnum) => {
+  const onTabClick = (tab: ActiveTabEnum): void => {
     setActiveTab(tab);
     window.location.pathname = `/${tab}`;
   };

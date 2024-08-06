@@ -4,7 +4,7 @@ import { Pencil } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { setIsNewPostModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
 
-const NewPostTriggerMobile = () => {
+const NewPostTriggerMobile: React.FC = () => {
   const dispatch = useDispatch();
   return (
     <Button
@@ -14,7 +14,7 @@ const NewPostTriggerMobile = () => {
       onClick={() => dispatch(setIsNewPostModalOpen(true))}
     >
       <Pencil className='w-7 h-7 text-white' />
-      <span className='sr-only'>New Post</span>
+      <span className='sr-only'>Yeni Gönderi</span>
     </Button>
   );
 };
