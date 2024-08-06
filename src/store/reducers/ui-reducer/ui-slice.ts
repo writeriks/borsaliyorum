@@ -26,6 +26,7 @@ export interface UIState {
   refetchUserStocks: boolean;
   uiNotification: UINotificationType;
   isAuthModalOpen: boolean;
+  isNewPostModalOpen: boolean;
 }
 
 export const initialState: UIState = {
@@ -37,6 +38,7 @@ export const initialState: UIState = {
     message: 'message',
   },
   isAuthModalOpen: false,
+  isNewPostModalOpen: false,
 };
 
 const uiSlice = createSlice({
@@ -58,10 +60,19 @@ const uiSlice = createSlice({
     setIsAuthModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isAuthModalOpen = action.payload;
     },
+
+    setIsNewPostModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isNewPostModalOpen = action.payload;
+    },
   },
 });
 
-export const { setIsAuthLoading, setIsAuthModalOpen, toggleHamburgerMenuOpen, setUINotification } =
-  uiSlice.actions;
+export const {
+  setIsAuthLoading,
+  setIsAuthModalOpen,
+  toggleHamburgerMenuOpen,
+  setUINotification,
+  setIsNewPostModalOpen,
+} = uiSlice.actions;
 
 export default uiSlice.reducer;

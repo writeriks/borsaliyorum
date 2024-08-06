@@ -25,6 +25,7 @@
     --bullish: 143, 71%, 45%;
     --bullish-foreground: 0, 0%, 100%;
     --description: 214deg 12.07% 50.11%;
+    --blue-primary: 221.21deg 83.19% 53.33%;
     --ring: 213 13% 16%;
     --radius: 0.5rem;
 
@@ -106,6 +107,7 @@
     --bullish: 143, 71%, 45%;
     --bullish-foreground: 0, 0%, 100%;
     --description: 214deg 12.07% 50.11%;
+    --blue-primary: 221.21deg 83.19% 53.33%;
   }
 }
 

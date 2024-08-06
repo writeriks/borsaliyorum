@@ -75,6 +75,10 @@ const config = {
           DEFAULT: 'hsl(var(--description))',
           foreground: 'hsl(var(--description))',
         },
+        bluePrimary: {
+          DEFAULT: 'hsl(var(--blue-primary))',
+          foreground: 'hsl(var(--blue-primary))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

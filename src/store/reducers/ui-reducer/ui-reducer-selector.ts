@@ -12,6 +12,8 @@ class UiReducerSelector {
   getIsHamburgerMenuOpen = createSelector(this.getUiReducer, ui => ui.isHamburgerMenuOpen);
 
   getIsAuthModalOpen = createSelector(this.getUiReducer, ui => ui.isAuthModalOpen);
+
+  getIsNewPostModalOpen = createSelector(this.getUiReducer, ui => ui.isNewPostModalOpen);
 }
 
 const uiReducerSelector = new UiReducerSelector();
