@@ -15,6 +15,7 @@ import postApiService from '@/services/api-service/post-api-service/post-api-ser
 import { FeedTab, LoadingSkeletons } from '@/app/constants';
 import useInfiniteScroll from '@/hooks/useInfiniteScroll';
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
+import { trpc } from '@/server/client';
 
 const Home = (): React.ReactNode => {
   const [postsByDate, setPostsByDate] = useState<PostType[]>([]);
@@ -27,6 +28,9 @@ const Home = (): React.ReactNode => {
   const { fbAuthUser } = useUser();
 
   const dispatch = useDispatch();
+
+  const test = trpc.test.getTest.useQuery();
+  console.log('🚀 ~ Home ~ data:', test);
 
   const setPosts = (data: any): void => {
     if (activeTab === FeedTab.LATEST) {
