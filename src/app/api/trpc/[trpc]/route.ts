@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
 import { appRouter } from '@/server';
 
-export const runtime = 'edge';
-
 async function handleRequest(request: NextRequest): Promise<NextResponse> {
   const response = await fetchRequestHandler({
     endpoint: '/api/trpc',

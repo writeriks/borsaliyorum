@@ -29,8 +29,8 @@ const Home = (): React.ReactNode => {
 
   const dispatch = useDispatch();
 
-  const test = trpc.test.getTest.useQuery();
-  console.log('🚀 ~ Home ~ data:', test);
+  const { data: userData } = trpc.user.getUser.useQuery({ email: 'emirhaktan@gmail.com' });
+  console.log('🚀 ~ Home ~ userData:', userData);
 
   const setPosts = (data: any): void => {
     if (activeTab === FeedTab.LATEST) {

@@ -17,6 +17,7 @@ model User {
   createdAt  DateTime @default(now())
   bacin      String   @default("bacin")
   email      String   @unique
+  username   String   @unique
 }
 
 model Anan {
