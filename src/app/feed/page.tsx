@@ -37,10 +37,13 @@ const Home = (): React.ReactNode => {
       console.log('🚀 ~ Home ~ error:', error.message);
     },
   });
-  const { refetch } = trpc.user.getUser.useQuery({ email: 'emir@emir.com' }, { enabled: false });
+  const { refetch } = trpc.user.getUser.useQuery({ email: 'test@emir.com' }, { enabled: false });
 
   useEffect(() => {
     const createNewUser = async (): Promise<void> => {
+      const { data: user2 } = await refetch();
+      console.log('🚀 ~ createNewUser ~ user2:', user2);
+
       await mutation.mutateAsync({
         email: 'test@emir.com',
         name: 'test',
@@ -48,9 +51,7 @@ const Home = (): React.ReactNode => {
         surname: 'öztürk',
         username: 'test',
       });
-
-      const { data: user } = await refetch();
-      console.log('🚀 ~ createNewUser ~ user:', user);
+      console.log('here');
     };
     createNewUser();
 
