@@ -1,11 +1,11 @@
-import { procedure, trpcServer } from '@/server/trpc';
+import { trpcServer } from '@/server/trpc';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 
 const prisma = new PrismaClient();
 export const createUserRouter = trpcServer.router({
-  createUser: procedure
+  createUser: trpcServer.procedure
     .input(
       z.object({
         email: z.string(),
@@ -46,7 +46,7 @@ export const createUserRouter = trpcServer.router({
         } else {
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
-            message: 'An unexpected error occurred',
+            message: 'Bilinmenyen bir hata oluştu.',
           });
         }
       }

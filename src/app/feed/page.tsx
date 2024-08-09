@@ -37,6 +37,7 @@ const Home = (): React.ReactNode => {
       console.log('🚀 ~ Home ~ error:', error.message);
     },
   });
+
   const { refetch } = trpc.user.getUser.useQuery({ email: 'test@emir.com' }, { enabled: false });
 
   useEffect(() => {
