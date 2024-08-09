@@ -51,7 +51,6 @@ const Home = (): React.ReactNode => {
         surname: 'öztürk',
         username: 'test',
       });
-      console.log('here');
     };
     createNewUser();
 
