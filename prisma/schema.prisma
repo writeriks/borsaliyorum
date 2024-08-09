@@ -14,7 +14,7 @@ model User {
   secondName String
   anan       String?
   baban      String?
-  createdAt  DateTime @default(now())
+  createdAt  Float
   bacin      String   @default("bacin")
   email      String   @unique
   username   String   @unique

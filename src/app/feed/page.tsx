@@ -29,8 +29,33 @@ const Home = (): React.ReactNode => {
 
   const dispatch = useDispatch();
 
-  const { data: userData } = trpc.user.getUser.useQuery({ email: 'emirhaktan@gmail.com' });
-  console.log('🚀 ~ Home ~ userData:', userData);
+  const mutation = trpc.user.createUser.useMutation({
+    onSuccess: data => {
+      console.log('🚀 ~ Home ~ data:', data);
+    },
+    onError: error => {
+      console.log('🚀 ~ Home ~ error:', error.message);
+    },
+  });
+  const { refetch } = trpc.user.getUser.useQuery({ email: 'emir@emir.com' }, { enabled: false });
+
+  useEffect(() => {
+    const createNewUser = async (): Promise<void> => {
+      await mutation.mutateAsync({
+        email: 'test@emir.com',
+        name: 'test',
+        secondName: 'test',
+        surname: 'öztürk',
+        username: 'test',
+      });
+
+      const { data: user } = await refetch();
+      console.log('🚀 ~ createNewUser ~ user:', user);
+    };
+    createNewUser();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const setPosts = (data: any): void => {
     if (activeTab === FeedTab.LATEST) {
