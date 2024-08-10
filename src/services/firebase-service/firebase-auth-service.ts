@@ -142,10 +142,12 @@ class FirebaseAuthService {
     try {
       store.dispatch(setIsAuthLoading(true));
 
+      console.log('checking if user exist');
       await queryClient.fetchQuery({
         queryKey: ['check-if-user-exist', username, email, displayName],
         queryFn: () => userApiService.checkIfUserExist(username, email, displayName),
       });
+      console.log('done checking if user exist');
 
       const result = await createUserWithEmailAndPassword(auth, email, password);
       const { user } = result;

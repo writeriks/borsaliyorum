@@ -15,7 +15,6 @@ import postApiService from '@/services/api-service/post-api-service/post-api-ser
 import { FeedTab, LoadingSkeletons } from '@/app/constants';
 import useInfiniteScroll from '@/hooks/useInfiniteScroll';
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
-import { trpc } from '@/server/client';
 
 const Home = (): React.ReactNode => {
   const [postsByDate, setPostsByDate] = useState<PostType[]>([]);
@@ -28,35 +27,6 @@ const Home = (): React.ReactNode => {
   const { fbAuthUser } = useUser();
 
   const dispatch = useDispatch();
-
-  const mutation = trpc.user.createUser.useMutation({
-    onSuccess: data => {
-      console.log('🚀 ~ Home ~ data:', data);
-    },
-    onError: error => {
-      console.log('🚀 ~ Home ~ error:', error.message);
-    },
-  });
-
-  const { refetch } = trpc.user.getUser.useQuery({ email: 'test@emir.com' }, { enabled: false });
-
-  useEffect(() => {
-    const createNewUser = async (): Promise<void> => {
-      const { data: user2 } = await refetch();
-      console.log('🚀 ~ createNewUser ~ user2:', user2);
-
-      await mutation.mutateAsync({
-        email: 'test@emir.com',
-        name: 'test',
-        secondName: 'test',
-        surname: 'öztürk',
-        username: 'test',
-      });
-    };
-    createNewUser();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const setPosts = (data: any): void => {
     if (activeTab === FeedTab.LATEST) {

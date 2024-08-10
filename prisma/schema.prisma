@@ -8,20 +8,67 @@ datasource db {
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  name       String
-  surname    String
-  secondName String
-  anan       String?
-  baban      String?
-  createdAt  Float
-  bacin      String   @default("bacin")
-  email      String   @unique
-  username   String   @unique
+  userId              String   @id @default(uuid()) @db.Uuid
+  username            String   @unique
+  displayName         String
+  email               String   @unique
+  birthday            Int?     // Optional field (UNIX timestamp)
+  profilePhoto        String?  // Optional field
+  coverPhoto          String?  // Optional field
+  bio                 String?  // Optional field
+  theme               String?  // Optional field, assuming theme is a string
+  website             String?  // Optional field
+  createdAt           Float      // Stored as a UNIX timestamp
+  updatedAt           Float?     // Optional field, UNIX timestamp
+  premiumEndDate      Int?     // Optional field, UNIX timestamp
+  isEmailVerified     Boolean? // Optional field
+  lastReloadDate      Float?     // Optional field, UNIX timestamp
+  postsCount          Int?     // Optional field
+  userFollowingCount  Int?     // Optional field
+  userFollowersCount  Int?     // Optional field
+  stockFollowingCount Int?     // Optional field
+
+  // Relation to Post
+  posts               Post[]   @relation("UserPosts")
+
+  @@index([email])
+  @@index([username])
 }
 
-model Anan {
-  id    Int    @id @default(autoincrement())
-  name  String
-  email String @unique
+model Post {
+  postId              String    @id @default(uuid()) @db.Uuid
+  userId              String    @db.Uuid
+  stockTickers        String[]  // Array of stock tickers; if no tickers, this should be an empty array
+  likeCount           Int?      // Optional field
+  commentCount        Int?      // Optional field
+  repostCount         Int?      // Optional field
+  media               String    // Assuming MediaData is stored as a string (e.g., JSON or URL)
+  content             String
+  createdAt           Int       // Stored as a UNIX timestamp
+  updatedAt           Int?      // Optional field, UNIX timestamp
+  isPositiveSentiment Boolean
+
+  // Foreign Key Relation
+  user                User      @relation("UserPosts", fields: [userId], references: [userId])
+
+  // Many-to-Many Relation with Stock
+  stocks              Stock[]   @relation("StockPosts")
+
+  @@index([userId])
+}
+
+model Stock {
+  stockId            String   @id @default(uuid()) @db.Uuid
+  ticker             String   @unique
+  postCount          Int
+  companyName        String
+  coverPhoto         String?  // Optional field, can be null
+  positiveSentiment  Int
+  marketEnterDate    Int      // Stored as a UNIX timestamp
+  stockType          String   // Assuming StockType is a string
+
+  // Many-to-Many Relation with Post
+  posts              Post[]   @relation("StockPosts")
+
+  @@index([ticker])
 }

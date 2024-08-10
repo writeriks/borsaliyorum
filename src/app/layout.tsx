@@ -7,7 +7,6 @@ import { ThemeProvider } from '@/components/theme-provider/theme-provider';
 import MainLayout from '@/components/main-layout/main-layout';
 
 import './globals.css';
-import TrpcProvider from '@/components/trpc-provider/trpc-provider';
 
 export const metadata: Metadata = {
   title: 'Türk Borsa ve Yatırım Sosyal Medya Platformu',
@@ -23,20 +22,18 @@ const RootLayout = ({
 }>): React.ReactNode => (
   <html lang='en'>
     <body className='min-h-screen flex flex-col lg:flex-row'>
-      <TrpcProvider>
-        <ClientQueryProvider>
-          <ReduxProvider>
-            <ThemeProvider
-              attribute='class'
-              defaultTheme='system'
-              enableSystem
-              disableTransitionOnChange
-            >
-              <MainLayout>{children}</MainLayout>
-            </ThemeProvider>
-          </ReduxProvider>
-        </ClientQueryProvider>
-      </TrpcProvider>
+      <ClientQueryProvider>
+        <ReduxProvider>
+          <ThemeProvider
+            attribute='class'
+            defaultTheme='system'
+            enableSystem
+            disableTransitionOnChange
+          >
+            <MainLayout>{children}</MainLayout>
+          </ThemeProvider>
+        </ReduxProvider>
+      </ClientQueryProvider>
     </body>
   </html>
 );
