@@ -5,6 +5,7 @@ export type UserId = string;
 
 export interface User {
   userId: UserId;
+  firebaseUserId: string;
   username: string;
   displayName: string;
   email: string;
@@ -17,7 +18,7 @@ export interface User {
   createdAt: number;
   updatedAt?: number;
   premiumEndDate?: number;
-  isEmailVerified?: boolean;
+  isEmailVerified: boolean;
   lastReloadDate?: number;
   postsCount?: number;
   userFollowingCount?: number;
@@ -32,6 +33,7 @@ export enum Theme {
 
 export enum UserEnum {
   USER_ID = 'userId',
+  FIREBASE_USER_ID = 'firebaseUserId',
   USERNAME = 'username',
   DISPLAY_NAME = 'displayName',
   EMAIL = 'email',

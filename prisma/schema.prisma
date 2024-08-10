@@ -7,26 +7,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum SecurityRole {
+  ADMIN
+  USER
+}
+
 model User {
   userId              String   @id @default(uuid()) @db.Uuid
+  firebaseUserId      String   @unique
   username            String   @unique
   displayName         String
   email               String   @unique
-  birthday            Int?     // Optional field (UNIX timestamp)
-  profilePhoto        String?  // Optional field
-  coverPhoto          String?  // Optional field
-  bio                 String?  // Optional field
-  theme               String?  // Optional field, assuming theme is a string
-  website             String?  // Optional field
-  createdAt           Float      // Stored as a UNIX timestamp
-  updatedAt           Float?     // Optional field, UNIX timestamp
-  premiumEndDate      Int?     // Optional field, UNIX timestamp
-  isEmailVerified     Boolean? // Optional field
-  lastReloadDate      Float?     // Optional field, UNIX timestamp
-  postsCount          Int?     // Optional field
-  userFollowingCount  Int?     // Optional field
-  userFollowersCount  Int?     // Optional field
-  stockFollowingCount Int?     // Optional field
+  birthday            Int?
+  profilePhoto        String?
+  coverPhoto          String?
+  bio                 String?
+  theme               String?
+  website             String?
+  createdAt           Float
+  updatedAt           Float?
+  premiumEndDate      Int?
+  isEmailVerified     Boolean
+  lastReloadDate      Float?
+  postsCount          Int       @default(0)
+  userFollowingCount  Int       @default(0)
+  userFollowersCount  Int       @default(0)
+  stockFollowingCount Int       @default(0)
+  securityRole        SecurityRole @default(USER)
 
   // Relation to Post
   posts               Post[]   @relation("UserPosts")

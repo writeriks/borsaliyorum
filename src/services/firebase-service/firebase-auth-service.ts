@@ -9,6 +9,7 @@ import {
   reauthenticateWithCredential,
   AuthCredential,
   sendPasswordResetEmail,
+  sendEmailVerification,
 } from 'firebase/auth';
 import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
 import store from '@/store/redux-store';
@@ -56,7 +57,8 @@ class FirebaseAuthService {
       } else {
         // If new user, add user to the user collection
         const customUser: User = {
-          [UserEnum.USER_ID]: user.uid,
+          [UserEnum.USER_ID]: '',
+          [UserEnum.FIREBASE_USER_ID]: user.uid,
           [UserEnum.CREATED_AT]: Date.now(),
           [UserEnum.EMAIL]: user.email as string,
           [UserEnum.USERNAME]: user.email as string,
@@ -142,25 +144,19 @@ class FirebaseAuthService {
     try {
       store.dispatch(setIsAuthLoading(true));
 
-      console.log('checking if user exist');
       await queryClient.fetchQuery({
         queryKey: ['check-if-user-exist', username, email, displayName],
         queryFn: () => userApiService.checkIfUserExist(username, email, displayName),
       });
-      console.log('done checking if user exist');
 
       const result = await createUserWithEmailAndPassword(auth, email, password);
       const { user } = result;
-      await userApiService.sendEmailVerification(user);
-
-      await queryClient.fetchQuery({
-        queryKey: ['validate-user', user],
-        queryFn: () => userApiService.validateUser(user),
-      });
+      await sendEmailVerification(user);
 
       const customUser: User = {
-        [UserEnum.USER_ID]: user.uid,
-        [UserEnum.CREATED_AT]: Date.now(),
+        [UserEnum.USER_ID]: '',
+        [UserEnum.FIREBASE_USER_ID]: user.uid,
+        [UserEnum.CREATED_AT]: 0,
         [UserEnum.EMAIL]: user.email as string,
         [UserEnum.USERNAME]: username,
         [UserEnum.DISPLAY_NAME]: displayName,
@@ -172,25 +168,30 @@ class FirebaseAuthService {
         queryFn: () => userApiService.addUser(customUser),
       });
 
+      await queryClient.fetchQuery({
+        queryKey: ['validate-user', user],
+        queryFn: () => userApiService.validateUser(user),
+      });
+
       store.dispatch(setIsAuthModalOpen(false));
+
+      store.dispatch(
+        setUINotification({
+          message: 'Hesabınız başarıyla oluşturuldu. Şimdi giriş yapabilirsiniz.',
+          notificationType: UINotificationEnum.SUCCESS,
+        })
+      );
+
       window.location.pathname = '/feed';
+
+      return true;
     } catch (error: any) {
       store.dispatch(setIsAuthModalOpen(false));
-      console.error('Error during signing up:', error);
       this.dispatchError(error);
       this.dispatchAuthLoading(false);
 
       return false;
     }
-
-    store.dispatch(
-      setUINotification({
-        message: 'Hesabınız başarıyla oluşturuldu. Şimdi giriş yapabilirsiniz.',
-        notificationType: UINotificationEnum.SUCCESS,
-      })
-    );
-
-    return true;
   };
 
   /**

@@ -1,10 +1,4 @@
-import {
-  User as FirebaseUser,
-  deleteUser,
-  sendEmailVerification,
-  updateEmail,
-  updatePassword,
-} from 'firebase/auth';
+import { User as FirebaseUser, deleteUser, updateEmail, updatePassword } from 'firebase/auth';
 
 import { auth } from '../../firebase-service/firebase-config';
 
@@ -15,18 +9,6 @@ import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reduc
 import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 
 class UserApiService {
-  /**
-   * Sends an email verification to the provided Firebase user.
-   * @param user - The Firebase user to send the email verification to.
-   */
-  sendEmailVerification = async (user: FirebaseUser): Promise<void> => {
-    try {
-      await sendEmailVerification(user);
-    } catch (error) {
-      console.error('Error sending email verification:', error);
-    }
-  };
-
   /**
    * Retrieves a user document by user ID.
    * @param userId - The ID of the user to retrieve.
@@ -159,11 +141,11 @@ class UserApiService {
 
   /**
    * Adds a new user document to Firestore.
-   * @param user - The user document to add.
+   * @param customUser - The user document to add.
    */
-  addUser = async (user: User): Promise<void> => {
+  addUser = async (customUser: User): Promise<void> => {
     const requestBody = {
-      user,
+      user: customUser,
     };
     const result = await fetch('/api/user/create-user', {
       method: 'POST',
