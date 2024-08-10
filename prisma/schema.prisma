@@ -45,14 +45,14 @@ model User {
 model Post {
   postId              String    @id @default(uuid()) @db.Uuid
   userId              String    @db.Uuid
-  stockTickers        String[]  // Array of stock tickers; if no tickers, this should be an empty array
-  likeCount           Int?      // Optional field
-  commentCount        Int?      // Optional field
-  repostCount         Int?      // Optional field
-  media               String    // Assuming MediaData is stored as a string (e.g., JSON or URL)
+  stockTickers        String[]
+  likeCount           Int?
+  commentCount        Int?
+  repostCount         Int?
+  media               String
   content             String
-  createdAt           Int       // Stored as a UNIX timestamp
-  updatedAt           Int?      // Optional field, UNIX timestamp
+  createdAt           Int
+  updatedAt           Int?
   isPositiveSentiment Boolean
 
   // Foreign Key Relation
