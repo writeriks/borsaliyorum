@@ -1,13 +1,13 @@
+import prisma from '@/services/prisma-service/prisma-client';
 import { User } from '@/services/firebase-service/types/db-types/user';
-import { PrismaClient } from '@prisma/client';
+import { SecurityRole } from '@prisma/client';
 
-const prisma = new PrismaClient();
 export async function POST(request: Request): Promise<Response> {
   try {
     const body = await request.json();
     const userData: User = body['user'];
 
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         firebaseUserId: userData.firebaseUserId,
         username: userData.username,
@@ -28,6 +28,7 @@ export async function POST(request: Request): Promise<Response> {
         userFollowingCount: 0,
         userFollowersCount: 0,
         stockFollowingCount: 0,
+        securityRole: SecurityRole.DEFAULT,
       },
     });
 

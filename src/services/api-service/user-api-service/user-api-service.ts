@@ -2,11 +2,9 @@ import { User as FirebaseUser, deleteUser, updateEmail, updatePassword } from 'f
 
 import { auth } from '../../firebase-service/firebase-config';
 
-import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
 import store from '@/store/redux-store';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
-import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 
 class UserApiService {
   /**
@@ -77,16 +75,24 @@ class UserApiService {
           user.email !== userDocument.email ||
           user.emailVerified !== userDocument.isEmailVerified
         ) {
-          await firebaseGenericOperations.updateDocumentById(
-            CollectionPath.Users,
-            userDocument.userId,
-            {
-              ...userDocument,
-              [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
-              [UserEnum.EMAIL]: user.email,
-              [UserEnum.UPDATED_AT]: Date.now(),
-            }
-          );
+          const idToken = await auth.currentUser?.getIdToken();
+
+          const updatedUser: User = {
+            ...userDocument,
+            [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
+            [UserEnum.EMAIL]: user.email!,
+          };
+
+          const result = await fetch('/api/user/update-user-email', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user: updatedUser }),
+          });
+
+          return result.json();
         }
       }
     } catch (error) {

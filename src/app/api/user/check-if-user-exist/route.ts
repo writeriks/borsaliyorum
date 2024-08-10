@@ -3,13 +3,11 @@ import {
   isValidEmail,
   isValidUsername,
 } from '@/app/utils/user-utils/user-utils';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/services/prisma-service/prisma-client';
 
 import { NextResponse } from 'next/server';
 
-const prisma = new PrismaClient();
 export async function POST(request: Request): Promise<Response> {
-  // Check if email or username is already taken
   try {
     const body = await request.json();
     const username = body['username'] as string;

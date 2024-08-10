@@ -9,7 +9,7 @@ datasource db {
 
 enum SecurityRole {
   ADMIN
-  USER
+  DEFAULT
 }
 
 model User {
@@ -33,10 +33,10 @@ model User {
   userFollowingCount  Int       @default(0)
   userFollowersCount  Int       @default(0)
   stockFollowingCount Int       @default(0)
-  securityRole        SecurityRole @default(USER)
+  securityRole        SecurityRole @default(DEFAULT)
 
   // Relation to Post
-  posts               Post[]   @relation("UserPosts")
+  posts               Post[]    @relation("UserPosts")
 
   @@index([email])
   @@index([username])
