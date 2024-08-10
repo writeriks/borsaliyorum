@@ -37,12 +37,12 @@ class UserApiService {
    * @param username - The username of the user to retrieve.
    * @returns  The user document array, or undefined if not found.
    */
-  getUsersByName = async (username: string): Promise<User[] | undefined> => {
+  getUsersByUserName = async (username: string): Promise<User[] | undefined> => {
     try {
       const idToken = await auth.currentUser?.getIdToken();
 
       const result = await fetch(
-        `/api/user/get-user-by-name?username=${encodeURIComponent(username)}`,
+        `/api/user/get-user-by-username?username=${encodeURIComponent(username)}`,
         {
           method: 'GET',
           headers: {

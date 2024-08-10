@@ -14,7 +14,7 @@ export async function POST(request: Request): Promise<Response> {
         displayName: userData.displayName,
         email: userData.email,
         birthday: null,
-        profilePhoto: null,
+        profilePhoto: userData.profilePhoto ?? null,
         coverPhoto: null,
         bio: null,
         theme: null,

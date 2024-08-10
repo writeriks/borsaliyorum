@@ -29,7 +29,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
 
   const { refetch } = useQuery({
     queryKey: ['fetch-mentions'],
-    queryFn: () => userApiService.getUsersByName(debouncedSearchTerm),
+    queryFn: () => userApiService.getUsersByUserName(debouncedSearchTerm),
     enabled: false,
   });
 
