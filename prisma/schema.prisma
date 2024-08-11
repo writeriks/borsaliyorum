@@ -7,76 +7,260 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum SecurityRole {
-  ADMIN
-  DEFAULT
-}
-
 model User {
-  userId              String   @id @default(uuid()) @db.Uuid
-  firebaseUserId      String   @unique
-  username            String   @unique
-  displayName         String
-  email               String   @unique
-  birthday            Int?
-  profilePhoto        String?
-  coverPhoto          String?
-  bio                 String?
-  theme               String?
-  website             String?
-  createdAt           Float
-  updatedAt           Float?
-  premiumEndDate      Int?
-  isEmailVerified     Boolean
-  lastReloadDate      Float?
-  postsCount          Int       @default(0)
-  userFollowingCount  Int       @default(0)
-  userFollowersCount  Int       @default(0)
-  stockFollowingCount Int       @default(0)
-  securityRole        SecurityRole @default(DEFAULT)
+  userId           Int       @id @default(autoincrement())
+  firebaseUserId   String    @unique
+  username         String    @unique
+  displayName      String
+  email            String    @unique
+  birthday         DateTime?
+  profilePhoto     String?
+  coverPhoto       String?
+  bio              String?
+  theme            String?
+  website          String?
+  createdAt        DateTime
+  updatedAt        DateTime?
+  premiumBeginDate DateTime?
+  premiumEndDate   DateTime?
+  isEmailVerified  Boolean
 
-  // Relation to Post
-  posts               Post[]    @relation("UserPosts")
+  // Relation to SecurityRole
+  securityRole SecurityRole[] @relation("UserRoles")
+
+  // Relations to UserFollowers
+  following UserFollowers[] @relation("Following")
+  followers UserFollowers[] @relation("Followers")
+
+  // Relations to UserBlocks
+  blocking  UserBlocks[] @relation("Blocking")
+  blockedBy UserBlocks[] @relation("BlockedBy")
+
+  // Relations to Posts
+  posts Post[] @relation("UserPosts")
+
+  // Relations to PostLikes
+  likedPosts PostLikes[] @relation("PostLikes")
+
+  // Relations to Comments
+  comments Comment[] @relation("UserComments")
+
+  // Relations to CommentLikes
+  likedComments CommentLikes[] @relation("CommentLikes")
+
+  // Relations to StockFollowers
+  stockFollowers StockFollowers[] @relation("UserStockFollowers")
+  notifications  Notification[]
 
   @@index([email])
+  @@index([firebaseUserId])
   @@index([username])
 }
 
+model SecurityRole {
+  role   RoleType @default(default)
+  userId Int
+  user   User     @relation("UserRoles", fields: [userId], references: [userId])
+
+  @@unique([role, userId]) // Ensures that each user can have only one role
+  @@index([userId])
+}
+
+enum RoleType {
+  default
+  admin
+}
+
 model Post {
-  postId              String    @id @default(uuid()) @db.Uuid
-  userId              String    @db.Uuid
-  stockTickers        String[]
-  likeCount           Int?
-  commentCount        Int?
-  repostCount         Int?
-  media               String
-  content             String
-  createdAt           Int
-  updatedAt           Int?
-  isPositiveSentiment Boolean
+  postId    Int       @id @default(autoincrement())
+  userId    Int
+  content   String
+  mediaUrl  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+  sentiment Sentiment
 
-  // Foreign Key Relation
-  user                User      @relation("UserPosts", fields: [userId], references: [userId])
+  // Relation to User
+  user User @relation("UserPosts", fields: [userId], references: [userId])
 
-  // Many-to-Many Relation with Stock
-  stocks              Stock[]   @relation("StockPosts")
+  // Relations to Stocks
+  stocks Stock[] @relation("PostStocks")
+
+  // Relations to PostLikes
+  likedBy PostLikes[] @relation("PostLikes")
+
+  // Relations to Comments
+  comments Comment[] @relation("PostComments")
+
+  // Relations to Tags
+  tags          Tag[]          @relation("PostTags")
+  notifications Notification[]
 
   @@index([userId])
-  @@index([createdAt])
+}
+
+model Comment {
+  commentId Int      @id @default(autoincrement())
+  postId    Int
+  userId    Int
+  content   String
+  mediaUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+
+  // Relations
+  post Post @relation("PostComments", fields: [postId], references: [postId])
+  user User @relation("UserComments", fields: [userId], references: [userId])
+
+  // Relations to CommentLikes
+  likedBy       CommentLikes[] @relation("CommentLikes")
+  notifications Notification[]
+
+  @@index([postId])
+  @@index([userId])
 }
 
 model Stock {
-  stockId            String   @id @default(uuid()) @db.Uuid
-  ticker             String   @unique
-  postCount          Int
-  companyName        String
-  coverPhoto         String?  // Optional field, can be null
-  positiveSentiment  Int
-  marketEnterDate    Int      // Stored as a UNIX timestamp
-  stockType          String   // Assuming StockType is a string
+  stockId     Int       @id @default(autoincrement())
+  ticker      String    @unique
+  companyName String
+  stockPhoto  String?
+  stockType   StockType
 
-  // Many-to-Many Relation with Post
-  posts              Post[]   @relation("StockPosts")
+  // Relations to Posts
+  posts Post[] @relation("PostStocks")
+
+  // Relations to StockFollowers
+  followers StockFollowers[] @relation("StockFollowers")
 
   @@index([ticker])
+}
+
+enum Sentiment {
+  bullish
+  bearish
+  neutral
+}
+
+enum StockType {
+  crypto
+  stock
+  other
+}
+
+model UserFollowers {
+  id          Int      @id @default(autoincrement())
+  followerId  Int
+  followingId Int
+  followedAt  DateTime @default(now())
+
+  // Relations to User
+  follower  User @relation("Followers", fields: [followerId], references: [userId])
+  following User @relation("Following", fields: [followingId], references: [userId])
+
+  @@unique([followerId, followingId]) // Ensures that a user can't follow the same person more than once
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model UserBlocks {
+  id        Int      @id @default(autoincrement())
+  blockerId Int
+  blockedId Int
+  blockedAt DateTime @default(now())
+
+  // Relations to User
+  blocker User @relation("Blocking", fields: [blockerId], references: [userId])
+  blocked User @relation("BlockedBy", fields: [blockedId], references: [userId])
+
+  @@unique([blockerId, blockedId]) // Ensures that a user can't block the same person more than once
+  @@index([blockerId])
+  @@index([blockedId])
+}
+
+model PostLikes {
+  userId  Int      @unique
+  postId  Int
+  likedAt DateTime @default(now())
+
+  // Relations
+  user          User           @relation("PostLikes", fields: [userId], references: [userId])
+  post          Post           @relation("PostLikes", fields: [postId], references: [postId])
+  notifications Notification[]
+
+  @@unique([userId, postId]) // Ensures a user can like a post only once
+  @@index([userId, postId])
+}
+
+model CommentLikes {
+  userId    Int
+  commentId Int
+  likedAt   DateTime @default(now())
+
+  // Relations
+  user    User    @relation("CommentLikes", fields: [userId], references: [userId])
+  comment Comment @relation("CommentLikes", fields: [commentId], references: [commentId])
+
+  @@unique([userId, commentId]) // Ensures a user can like a comment only once
+  @@index([userId, commentId])
+}
+
+model StockFollowers {
+  userId     Int
+  stockId    Int
+  followedAt DateTime @default(now())
+
+  // Relations
+  user  User  @relation("UserStockFollowers", fields: [userId], references: [userId])
+  stock Stock @relation("StockFollowers", fields: [stockId], references: [stockId])
+
+  @@unique([userId, stockId]) // Ensures a user can follow a stock only once
+  @@index([userId, stockId])
+}
+
+model Tag {
+  tagId     Int      @id @default(autoincrement())
+  tagName   String   @unique @db.VarChar(255)
+  createdAt DateTime @default(now())
+
+  // Relations to Posts
+  posts Post[] @relation("PostTags")
+
+  @@index([tagName])
+}
+
+model Notification {
+  notificationId Int              @id @default(autoincrement())
+  userId         Int
+  type           NotificationType
+  content        String
+  read           Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+
+  // Relations
+  user User @relation(fields: [userId], references: [userId])
+
+  // Optional fields to store references to related entities
+  postId    Int? // Optional post reference
+  commentId Int? // Optional comment reference
+  likeId    Int? // Optional like reference
+
+  // Relations to related entities
+  post    Post?      @relation(fields: [postId], references: [postId])
+  comment Comment?   @relation(fields: [commentId], references: [commentId])
+  like    PostLikes? @relation(fields: [likeId], references: [userId])
+
+  @@index([userId])
+  @@index([type])
+  @@index([postId])
+  @@index([commentId])
+  @@index([likeId])
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  FOLLOW
+  MENTION
 }

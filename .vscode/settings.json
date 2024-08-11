@@ -11,5 +11,8 @@
   "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,
   "js/ts.implicitProjectConfig.experimentalDecorators": true,
-  "typescript.preferences.importModuleSpecifier": "non-relative"
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  }
 }
