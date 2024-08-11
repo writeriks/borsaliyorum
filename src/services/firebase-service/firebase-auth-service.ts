@@ -53,7 +53,7 @@ class FirebaseAuthService {
 
       if (userDocument) {
         // When sign in with Google, email is automatically verified. Need to update in user collection
-        await userApiService.syncUser(user, userDocument);
+        await userApiService.syncGmailLogin(user, userDocument);
       } else {
         // If new user, add user to the user collection
         const customUser: User = {
@@ -118,7 +118,7 @@ class FirebaseAuthService {
         queryFn: () => userApiService.validateUser(user),
       });
       if (userDocument) {
-        await userApiService.syncUser(user, userDocument);
+        await userApiService.syncGmailLogin(user, userDocument);
       }
 
       window.location.pathname = '/feed';

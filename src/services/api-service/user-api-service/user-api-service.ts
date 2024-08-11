@@ -64,26 +64,26 @@ class UserApiService {
   };
 
   /**
-   * Syncs the Firebase user data with the user document in Firestore.
-   * @param user - The Firebase user to sync.
-   * @param userDocument - The user document to update.
+   * Syncs the User data with the user document in db.
+   * @param firebaseUser - The Firebase user to sync.
+   * @param user - The user document to update.
    */
-  syncUser = async (user: FirebaseUser, userDocument: User): Promise<void> => {
+  syncGmailLogin = async (firebaseUser: FirebaseUser, user: User): Promise<void> => {
     try {
       if (auth.currentUser) {
-        if (
-          user.email !== userDocument.email ||
-          user.emailVerified !== userDocument.isEmailVerified
-        ) {
+        if (firebaseUser.emailVerified !== user.isEmailVerified) {
           const idToken = await auth.currentUser?.getIdToken();
 
           const updatedUser: User = {
-            ...userDocument,
-            [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
-            [UserEnum.EMAIL]: user.email!,
+            ...user,
+            [UserEnum.PROFILE_PHOTO]: user.profilePhoto
+              ? user.profilePhoto
+              : firebaseUser.photoURL ?? undefined,
+            [UserEnum.IS_EMAIL_VERIFIED]: firebaseUser.emailVerified,
+            [UserEnum.DISPLAY_NAME]: user.displayName ?? firebaseUser.displayName,
           };
 
-          const result = await fetch('/api/user/update-user-email', {
+          const result = await fetch('/api/user/sync-gmail-login', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${idToken}`,

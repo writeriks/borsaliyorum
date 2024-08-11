@@ -25,20 +25,15 @@ export async function POST(request: Request): Promise<Response> {
         firebaseUserId: userData.firebaseUserId,
       },
       data: {
-        email: userData.email,
         isEmailVerified: userData.isEmailVerified,
         updatedAt: Date.now(),
+        profilePhoto: userData.profilePhoto,
+        displayName: userData.displayName,
       },
     });
 
-    return new Response(null, {
-      status: 200,
-      statusText: 'SUCCESS',
-    });
+    return createResponse(ResponseStatus.OK);
   } catch (error) {
-    return new Response(null, {
-      status: 500,
-      statusText: 'Internal Server Error',
-    });
+    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }
