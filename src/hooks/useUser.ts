@@ -33,7 +33,7 @@ const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
         }
 
         // login case
-        if (userData && !userState.username) {
+        if (userData) {
           // Add more data if needed
           const { displayName, username, email, profilePhoto, userId, createdAt } = userData;
           dispatch(

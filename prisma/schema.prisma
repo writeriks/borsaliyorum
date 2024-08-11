@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SecurityRole {
+  ADMIN
+  DEFAULT
+}
+
+model User {
+  userId              String   @id @default(uuid()) @db.Uuid
+  firebaseUserId      String   @unique
+  username            String   @unique
+  displayName         String
+  email               String   @unique
+  birthday            Int?
+  profilePhoto        String?
+  coverPhoto          String?
+  bio                 String?
+  theme               String?
+  website             String?
+  createdAt           Float
+  updatedAt           Float?
+  premiumEndDate      Int?
+  isEmailVerified     Boolean
+  lastReloadDate      Float?
+  postsCount          Int       @default(0)
+  userFollowingCount  Int       @default(0)
+  userFollowersCount  Int       @default(0)
+  stockFollowingCount Int       @default(0)
+  securityRole        SecurityRole @default(DEFAULT)
+
+  // Relation to Post
+  posts               Post[]    @relation("UserPosts")
+
+  @@index([email])
+  @@index([username])
+}
+
+model Post {
+  postId              String    @id @default(uuid()) @db.Uuid
+  userId              String    @db.Uuid
+  stockTickers        String[]
+  likeCount           Int?
+  commentCount        Int?
+  repostCount         Int?
+  media               String
+  content             String
+  createdAt           Int
+  updatedAt           Int?
+  isPositiveSentiment Boolean
+
+  // Foreign Key Relation
+  user                User      @relation("UserPosts", fields: [userId], references: [userId])
+
+  // Many-to-Many Relation with Stock
+  stocks              Stock[]   @relation("StockPosts")
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Stock {
+  stockId            String   @id @default(uuid()) @db.Uuid
+  ticker             String   @unique
+  postCount          Int
+  companyName        String
+  coverPhoto         String?  // Optional field, can be null
+  positiveSentiment  Int
+  marketEnterDate    Int      // Stored as a UNIX timestamp
+  stockType          String   // Assuming StockType is a string
+
+  // Many-to-Many Relation with Post
+  posts              Post[]   @relation("StockPosts")
+
+  @@index([ticker])
+}

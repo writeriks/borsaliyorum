@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import firebaseOperations from '@/services/firebase-service/firebase-operations';
 import { auth } from '@/services/firebase-service/firebase-admin';
+import prisma from '@/services/prisma-service/prisma-client';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -18,7 +18,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (!username) {
       return NextResponse.json({ error: 'error on getting username' }, { status: 400 });
     }
-    const filteredUsers = await firebaseOperations.getUsersFromFirebaseByName(username);
+
+    const filteredUsers = await prisma.user.findMany({
+      where: {
+        username: {
+          contains: username,
+          mode: 'insensitive',
+        },
+      },
+    });
 
     return new NextResponse(JSON.stringify(filteredUsers), {
       status: 200,

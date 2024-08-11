@@ -1,36 +1,36 @@
-import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
-
-import { CollectionPath } from '@/services/firebase-service/types/collection-types';
-import {
-  Role,
-  SecurityRolesCollectionEnum,
-} from '@/services/firebase-service/types/db-types/security-roles';
-import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
+import prisma from '@/services/prisma-service/prisma-client';
+import { User } from '@/services/firebase-service/types/db-types/user';
+import { SecurityRole } from '@prisma/client';
 
 export async function POST(request: Request): Promise<Response> {
-  const body = await request.json();
-  const userData: User = body['user'];
-
-  const { userId } = userData;
-
   try {
-    // Create user document
-    await firebaseGenericOperations.createDocumentWithCustomId(CollectionPath.Users, userId, {
-      ...userData,
-      [UserEnum.CREATED_AT]: Date.now(),
-      [UserEnum.USERNAME]: userData.username.toLowerCase(),
-      [UserEnum.EMAIL]: userData.email.toLowerCase(),
-    });
+    const body = await request.json();
+    const userData: User = body['user'];
 
-    // Create user role
-    await firebaseGenericOperations.createDocumentWithCustomId(
-      CollectionPath.SecurityRoles,
-      userId,
-      {
-        [SecurityRolesCollectionEnum.USER_ID]: userId,
-        [SecurityRolesCollectionEnum.ROLE]: Role.DEFAULT,
-      }
-    );
+    await prisma.user.create({
+      data: {
+        firebaseUserId: userData.firebaseUserId,
+        username: userData.username,
+        displayName: userData.displayName,
+        email: userData.email,
+        birthday: null,
+        profilePhoto: userData.profilePhoto ?? null,
+        coverPhoto: null,
+        bio: null,
+        theme: null,
+        website: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        premiumEndDate: null,
+        isEmailVerified: userData.isEmailVerified,
+        lastReloadDate: Date.now(),
+        postsCount: 0,
+        userFollowingCount: 0,
+        userFollowersCount: 0,
+        stockFollowingCount: 0,
+        securityRole: SecurityRole.DEFAULT,
+      },
+    });
 
     return new Response(null, {
       status: 200,

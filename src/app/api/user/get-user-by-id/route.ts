@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import firebaseOperations from '@/services/firebase-service/firebase-operations';
 import { auth } from '@/services/firebase-service/firebase-admin';
+import prisma from '@/services/prisma-service/prisma-client';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -20,7 +20,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json('', { status: 400, statusText: 'Bad request' });
     }
 
-    const user = await firebaseOperations.getUsersFromFirebaseId(userId);
+    const user = await prisma.user.findUnique({
+      where: {
+        firebaseUserId: userId,
+      },
+    });
 
     if (!user) {
       return new NextResponse('', { status: 404, statusText: 'User not found' });
@@ -31,7 +35,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       statusText: 'SUCCESS',
     });
   } catch (error: any) {
-    console.error('Error fetching user:', error.message);
     return new NextResponse(null, {
       status: 500,
       statusText: 'Internal Server Error',

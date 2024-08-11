@@ -1,32 +1,12 @@
-import {
-  User as FirebaseUser,
-  deleteUser,
-  sendEmailVerification,
-  updateEmail,
-  updatePassword,
-} from 'firebase/auth';
+import { User as FirebaseUser, deleteUser, updateEmail, updatePassword } from 'firebase/auth';
 
 import { auth } from '../../firebase-service/firebase-config';
 
-import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
 import store from '@/store/redux-store';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
-import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 
 class UserApiService {
-  /**
-   * Sends an email verification to the provided Firebase user.
-   * @param user - The Firebase user to send the email verification to.
-   */
-  sendEmailVerification = async (user: FirebaseUser): Promise<void> => {
-    try {
-      await sendEmailVerification(user);
-    } catch (error) {
-      console.error('Error sending email verification:', error);
-    }
-  };
-
   /**
    * Retrieves a user document by user ID.
    * @param userId - The ID of the user to retrieve.
@@ -57,12 +37,12 @@ class UserApiService {
    * @param username - The username of the user to retrieve.
    * @returns  The user document array, or undefined if not found.
    */
-  getUsersByName = async (username: string): Promise<User[] | undefined> => {
+  getUsersByUserName = async (username: string): Promise<User[] | undefined> => {
     try {
       const idToken = await auth.currentUser?.getIdToken();
 
       const result = await fetch(
-        `/api/user/get-user-by-name?username=${encodeURIComponent(username)}`,
+        `/api/user/get-user-by-username?username=${encodeURIComponent(username)}`,
         {
           method: 'GET',
           headers: {
@@ -84,27 +64,35 @@ class UserApiService {
   };
 
   /**
-   * Syncs the Firebase user data with the user document in Firestore.
-   * @param user - The Firebase user to sync.
-   * @param userDocument - The user document to update.
+   * Syncs the User data with the user document in db.
+   * @param firebaseUser - The Firebase user to sync.
+   * @param user - The user document to update.
    */
-  syncUser = async (user: FirebaseUser, userDocument: User): Promise<void> => {
+  syncGmailLogin = async (firebaseUser: FirebaseUser, user: User): Promise<void> => {
     try {
       if (auth.currentUser) {
-        if (
-          user.email !== userDocument.email ||
-          user.emailVerified !== userDocument.isEmailVerified
-        ) {
-          await firebaseGenericOperations.updateDocumentById(
-            CollectionPath.Users,
-            userDocument.userId,
-            {
-              ...userDocument,
-              [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
-              [UserEnum.EMAIL]: user.email,
-              [UserEnum.UPDATED_AT]: Date.now(),
-            }
-          );
+        if (firebaseUser.emailVerified !== user.isEmailVerified) {
+          const idToken = await auth.currentUser?.getIdToken();
+
+          const updatedUser: User = {
+            ...user,
+            [UserEnum.PROFILE_PHOTO]: user.profilePhoto
+              ? user.profilePhoto
+              : firebaseUser.photoURL ?? undefined,
+            [UserEnum.IS_EMAIL_VERIFIED]: firebaseUser.emailVerified,
+            [UserEnum.DISPLAY_NAME]: user.displayName ?? firebaseUser.displayName,
+          };
+
+          const result = await fetch('/api/user/sync-gmail-login', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user: updatedUser }),
+          });
+
+          return result.json();
         }
       }
     } catch (error) {
@@ -159,11 +147,11 @@ class UserApiService {
 
   /**
    * Adds a new user document to Firestore.
-   * @param user - The user document to add.
+   * @param customUser - The user document to add.
    */
-  addUser = async (user: User): Promise<void> => {
+  addUser = async (customUser: User): Promise<void> => {
     const requestBody = {
-      user,
+      user: customUser,
     };
     const result = await fetch('/api/user/create-user', {
       method: 'POST',
