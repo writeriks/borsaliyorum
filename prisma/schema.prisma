@@ -96,6 +96,7 @@ model Post {
   tags          Tag[]          @relation("PostTags")
   notifications Notification[]
 
+  @@index([createdAt])
   @@index([userId])
 }
 
@@ -118,14 +119,16 @@ model Comment {
 
   @@index([postId])
   @@index([userId])
+  @@index([createdAt])
 }
 
 model Stock {
-  stockId     Int       @id @default(autoincrement())
-  ticker      String    @unique
-  companyName String
-  stockPhoto  String?
-  stockType   StockType
+  stockId         Int       @id @default(autoincrement())
+  ticker          String    @unique
+  companyName     String
+  stockPhoto      String?
+  stockType       StockType
+  marketEntryDate DateTime?
 
   // Relations to Posts
   posts Post[] @relation("PostStocks")
@@ -190,6 +193,7 @@ model PostLikes {
 
   @@unique([userId, postId]) // Ensures a user can like a post only once
   @@index([userId, postId])
+  @@index([likedAt])
 }
 
 model CommentLikes {
@@ -227,6 +231,7 @@ model Tag {
   posts Post[] @relation("PostTags")
 
   @@index([tagName])
+  @@index([createdAt])
 }
 
 model Notification {

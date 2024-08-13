@@ -3,9 +3,86 @@ import { WhereFieldEnum } from '@/services/firebase-service/firebase-operations-
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import { Tag, TagsCollectionEnum, TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 import { FirebaseSnapshot } from '@/services/firebase-service/types/types';
+import prisma from '@/services/prisma-service/prisma-client';
 import { isWithinXHoursFromNow } from '@/services/util-service/util-service';
+import { Tag as DBTag } from '@prisma/client';
 
 class TagService {
+  /*
+   * From given content, gets the cashtags, hashtags and mentions
+   * @param content - The content to get tags from
+   *
+   * @returns The cashtags, hashtags and mentions
+   */
+  getTagsFromContent = (
+    content: string
+  ): { cashtags: string[]; hashtags: string[]; mentions: string[] } => {
+    const cashtags: string[] = [];
+    const hashtags: string[] = [];
+    const mentions: string[] = [];
+
+    // Regex to match cashtags, hashtags and mentions
+    const regex = /(\$\((.*?)\)|#\((.*?)\)|@\((.*?)\))/g;
+
+    content.split('\n').forEach(line => {
+      const matches = [...line.matchAll(regex)];
+
+      matches.forEach(async match => {
+        const [fullMatch, _, p2, p3, p4] = match;
+
+        const symbol = fullMatch[0];
+        const tagName = symbol + (p2 || p3 || p4);
+
+        switch (this.getTagType(symbol)) {
+          case TagsEnum.CASHTAG:
+            cashtags.push(tagName);
+            break;
+          case TagsEnum.HASHTAG:
+            hashtags.push(tagName);
+            break;
+          case TagsEnum.MENTION:
+            mentions.push(tagName);
+            break;
+        }
+      });
+    });
+
+    return { cashtags, hashtags, mentions };
+  };
+
+  /*
+   * Checks given tags in the database and creates the ones that do not exist
+   * @param hashtags - The hashtags to check and create
+   *
+   * @returns The created tags
+   */
+  createHashtags = async (hashtags: string[]): Promise<DBTag[]> => {
+    const existingTags = await prisma.tag.findMany({
+      where: {
+        tagName: {
+          in: hashtags,
+        },
+      },
+    });
+
+    const existingTagNames = existingTags.map(tag => tag.tagName);
+    const newTagNames = hashtags.filter(tagName => !existingTagNames.includes(tagName));
+
+    const newTags = await Promise.all(
+      newTagNames.map(tagName =>
+        prisma.tag.create({
+          data: {
+            tagName,
+            createdAt: new Date(),
+          },
+        })
+      )
+    );
+
+    return [...existingTags, ...newTags];
+  };
+
+  // TODO: Remove below functions once new comment logic is implemented.
   /*
    * From given content, gets the cashtags and hashtags
    * and creates tags or updates existing tags for them

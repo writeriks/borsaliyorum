@@ -8,12 +8,12 @@ export type PostId = string;
 
 export interface Post {
   postId?: PostId;
-  userId: UserId;
+  userId?: UserId;
   stockTickers?: StockId[];
   likeCount?: number;
   commentCount?: number;
   repostCount?: number;
-  media: MediaData;
+  media?: MediaData;
   content: string;
   createdAt?: number;
   updatedAt?: number;

@@ -8,13 +8,13 @@ import UserAvatar from '@/components/user-avatar/user-avatar';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { TrendingDown, TrendingUp, X } from 'lucide-react';
+import { Minus, TrendingDown, TrendingUp, X } from 'lucide-react';
 import ImageUploader from '@/components/image-uploader/image-uploader';
 import { User } from '@/services/firebase-service/types/db-types/user';
 
 import { useDispatch, useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
-import { MediaData, Post } from '@/services/firebase-service/types/db-types/post';
+
 import { useMutation } from '@tanstack/react-query';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { Icons } from '@/components/ui/icons';
@@ -22,22 +22,27 @@ import { MAX_CHARACTERS } from '@/services/api-service/post-api-service/constant
 import postApiService from '@/services/api-service/post-api-service/post-api-service';
 import { cn } from '@/lib/utils';
 import ContentInput from '@/components/content-input/content-input';
+import { Sentiment } from '@prisma/client';
 
 const NewPost = (): React.ReactElement => {
   const [content, setcontent] = useState('');
-  const [isBullish, setIsBullish] = useState(true);
+  const [sentiment, setSentiment] = useState<Sentiment>(Sentiment.bullish);
   const [imageData, setImageData] = useState<string>('');
   const [cashTags, setCashTags] = useState<string[]>([]);
 
   const dispatch = useDispatch();
-  const currentUser = useSelector(userReducerSelector.getUser);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const user = useSelector(userReducerSelector.getUser) as User;
+  const user = useSelector(userReducerSelector.getUser);
   const mutation = useMutation({
-    mutationFn: ({ post, postImageData }: { post: Post; postImageData: string }) =>
-      postApiService.createNewPost(post, postImageData),
+    mutationFn: ({
+      post,
+      postImageData,
+    }: {
+      post: { content: string; sentiment: Sentiment };
+      postImageData: string;
+    }) => postApiService.createNewPost(post, postImageData),
     onSuccess: () => {
       dispatch(
         setUINotification({
@@ -48,13 +53,13 @@ const NewPost = (): React.ReactElement => {
 
       setcontent('');
       setCashTags([]);
-      setIsBullish(true);
+      setSentiment(Sentiment.bullish);
       setImageData('');
     },
-    onError: () => {
+    onError: error => {
       dispatch(
         setUINotification({
-          message: 'Bir hata oluştu.',
+          message: error.message ?? 'Bir hata oluştu.',
           notificationType: UINotificationEnum.ERROR,
         })
       );
@@ -64,8 +69,37 @@ const NewPost = (): React.ReactElement => {
   const isContentLengthExceeded = MAX_CHARACTERS - content.length < 0;
   const isSubmitDisabled = cashTags.length === 0 || mutation.isPending || isContentLengthExceeded;
 
-  const handleToggle = (): void => {
-    setIsBullish(!isBullish);
+  const handleSentimentToggle = (): void => {
+    switch (sentiment) {
+      case Sentiment.bullish:
+        setSentiment(Sentiment.bearish);
+        break;
+      case Sentiment.bearish:
+        setSentiment(Sentiment.neutral);
+        break;
+      case Sentiment.neutral:
+        setSentiment(Sentiment.bullish);
+        break;
+      default:
+        break;
+    }
+  };
+  const getVariantForSentiment = (): 'bullish' | 'destructive' | 'secondary' => {
+    switch (sentiment) {
+      case Sentiment.bullish:
+        return 'bullish';
+      case Sentiment.bearish:
+        return 'destructive';
+      case Sentiment.neutral:
+      default:
+        return 'secondary';
+    }
+  };
+
+  const renderSentiment = {
+    [Sentiment.bullish]: <TrendingUp />,
+    [Sentiment.bearish]: <TrendingDown />,
+    [Sentiment.neutral]: <Minus />,
   };
 
   const handleRemoveImage = (): void => {
@@ -89,15 +123,9 @@ const NewPost = (): React.ReactElement => {
   }, [cashTags, content]);
 
   const submitPost = async (): Promise<void> => {
-    const post: Post = {
-      userId: currentUser.userId,
-      stockTickers: cashTags,
+    const post = {
       content,
-      likeCount: 0,
-      commentCount: 0,
-      repostCount: 0,
-      isPositiveSentiment: isBullish,
-      media: { src: '', alt: 'Kullanıcı resmi' } as MediaData,
+      sentiment,
     };
     mutation.mutate({ post, postImageData: imageData });
   };
@@ -148,21 +176,13 @@ const NewPost = (): React.ReactElement => {
 
         <div className='flex justify-between items-center mt-3'>
           <Button
-            id='is-bullish-toggle'
+            id='sentiment-toggle'
             className={`flex items-center px-4 py-2 text-lg rounded-full ml-1`}
-            variant={isBullish ? 'bullish' : 'destructive'}
-            onClick={handleToggle}
+            variant={getVariantForSentiment()}
+            onClick={() => handleSentimentToggle()}
             disabled={mutation.isPending}
           >
-            {isBullish ? (
-              <div className='flex items-center justify-between'>
-                <TrendingUp />
-              </div>
-            ) : (
-              <div className='flex items-center justify-between'>
-                <TrendingDown />
-              </div>
-            )}
+            {renderSentiment[sentiment]}
           </Button>
           <div className='flex space-x-2'>
             <ImageUploader
