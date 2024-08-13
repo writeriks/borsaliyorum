@@ -1,10 +1,9 @@
+import { createResponse, ResponseStatus } from '@/app/api/api-utils/api-utils';
 import { MAX_CHARACTERS } from '@/services/api-service/post-api-service/constants';
 import { auth, storageBucket } from '@/services/firebase-service/firebase-admin';
-import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
-
-import { CollectionPath } from '@/services/firebase-service/types/collection-types';
-import { Post } from '@/services/firebase-service/types/db-types/post';
+import prisma from '@/services/prisma-service/prisma-client';
 import tagService from '@/services/tag-service/tag-service';
+import { Post } from '@prisma/client';
 import { randomUUID } from 'crypto';
 
 export async function POST(request: Request): Promise<Response> {
@@ -14,17 +13,57 @@ export async function POST(request: Request): Promise<Response> {
     const post: Post = body['post'];
 
     if (post.content.length > MAX_CHARACTERS) {
-      return new Response(null, { status: 400, statusText: 'Too many characters' });
+      return createResponse(ResponseStatus.BAD_REQUEST, {
+        error: 'İzin verilenden fazla karakter girdiniz. Lütfen daha kısa bir içerik girin.',
+      });
+    }
+
+    const { cashtags, hashtags, mentions } = tagService.getTagsFromContent(post.content);
+
+    const stocksByCashtags = await prisma.stock.findMany({
+      where: {
+        ticker: {
+          in: cashtags,
+        },
+      },
+    });
+
+    if (!cashtags.length) {
+      return createResponse(
+        ResponseStatus.BAD_REQUEST,
+        'İçerkte herhangi bir hisse bulunamadı. Lütfen hisse etiketleyin.'
+      );
+    }
+
+    const isAnyCashtagInvalid = cashtags.some(
+      cashtag => !stocksByCashtags.find(stock => stock.ticker === cashtag)
+    );
+    if (isAnyCashtagInvalid) {
+      return createResponse(
+        ResponseStatus.BAD_REQUEST,
+        'İçerikte geçen hisselerden en az biri geçersiz. Lütfen geçerli hisse etiketleyin.'
+      );
     }
 
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return createResponse(ResponseStatus.UNAUTHORIZED);
     }
 
     const idToken = await auth.verifyIdToken(token);
 
+    const user = await prisma.user.findUnique({
+      where: {
+        firebaseUserId: idToken.uid,
+      },
+    });
+
+    if (!user) {
+      return createResponse(ResponseStatus.UNAUTHORIZED);
+    }
+
+    let downloadUrl: string | undefined;
     if (imageData) {
       // Image Upload Workflow
       const base64Data = imageData.split(',')[1];
@@ -42,30 +81,44 @@ export async function POST(request: Request): Promise<Response> {
       });
 
       // Get the download URL for the uploaded image
-      const downloadUrl = await file.getSignedUrl({
+      const imageUrl = await file.getSignedUrl({
         action: 'read',
         expires: '01-01-2100',
       });
 
-      post.media.src = downloadUrl[0];
+      downloadUrl = imageUrl[0];
     }
 
-    post.createdAt = Date.now();
-    post.commentCount = 0;
-    post.likeCount = 0;
-    post.repostCount = 0;
-    post.postId = randomUUID() + Date.now();
-    post.userId = idToken.uid;
-    await firebaseGenericOperations.createDocumentWithAutoId(CollectionPath.Posts, post);
-
-    await tagService.createTag(post.content);
-
-    // TODO : Handle Mentions
-
-    return new Response(JSON.stringify({ message: 'Post created successfully' }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
+    const postStocks = await prisma.stock.findMany({
+      where: {
+        ticker: {
+          in: cashtags,
+        },
+      },
     });
+
+    const postHashtags = await tagService.createHashtags(hashtags);
+
+    const newPost = await prisma.post.create({
+      data: {
+        userId: user.userId,
+        content: post.content,
+        mediaUrl: downloadUrl,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        sentiment: post.sentiment,
+        stocks: {
+          connect: postStocks.map(stock => ({ stockId: stock.stockId })),
+        },
+        tags: {
+          connect: postHashtags.map(tag => ({ tagId: tag.tagId })),
+        },
+      },
+    });
+
+    // TODO: Handle Mentions
+
+    return createResponse(ResponseStatus.OK, { newPost });
   } catch (error) {
     console.error('Error in POST handler:', error);
     return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
