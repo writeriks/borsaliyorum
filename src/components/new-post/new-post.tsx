@@ -34,7 +34,7 @@ const NewPost = (): React.ReactElement => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const user = useSelector(userReducerSelector.getUser) as User;
+  const user = useSelector(userReducerSelector.getUser);
   const mutation = useMutation({
     mutationFn: ({
       post,

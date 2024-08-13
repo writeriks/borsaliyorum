@@ -13,9 +13,10 @@ export async function POST(request: Request): Promise<Response> {
     const post: Post = body['post'];
 
     if (post.content.length > MAX_CHARACTERS) {
-      return createResponse(ResponseStatus.BAD_REQUEST, {
-        error: 'İzin verilenden fazla karakter girdiniz. Lütfen daha kısa bir içerik girin.',
-      });
+      return createResponse(
+        ResponseStatus.BAD_REQUEST,
+        'İzin verilenden fazla karakter girdiniz. Lütfen daha kısa bir içerik girin.'
+      );
     }
 
     const { cashtags, hashtags, mentions } = tagService.getTagsFromContent(post.content);
@@ -38,6 +39,7 @@ export async function POST(request: Request): Promise<Response> {
     const isAnyCashtagInvalid = cashtags.some(
       cashtag => !stocksByCashtags.find(stock => stock.ticker === cashtag)
     );
+
     if (isAnyCashtagInvalid) {
       return createResponse(
         ResponseStatus.BAD_REQUEST,
