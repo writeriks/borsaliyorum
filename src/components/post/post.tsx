@@ -4,13 +4,15 @@ import { useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import UserAvatar from '@/components/user-avatar/user-avatar';
 import Image from 'next/image';
-import { Post as PostType } from '@/services/firebase-service/types/db-types/post';
 import useFetchContentOwner from '@/hooks/useFetchContentOwner';
 import ContentOptions from '@/components/content-actions/content-options';
 import ContentAction, {
   Content as ContentType,
 } from '@/components/content-actions/content-actions';
 import Content from '@/components/content/content';
+import { formatDate } from '@/app/utils/content-utils/content-utils';
+import { Post as PostType } from '@prisma/client';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export interface PostProp {
   post: PostType;
@@ -21,7 +23,9 @@ const Post: React.FC<PostProp> = ({ post }) => {
 
   const postOwner = useFetchContentOwner(post.userId);
 
-  const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(post?.media?.src as string)}`;
+  const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(post.mediaUrl ?? '')}`;
+
+  const postDate = formatDate(post.createdAt.toString());
 
   /* TODO:
   - Add styling for tags
@@ -35,7 +39,18 @@ const Post: React.FC<PostProp> = ({ post }) => {
           {postOwner && <UserAvatar user={postOwner} />}
           <div className='space-y-1 flex-1'>
             <div className='text-sm font-bold'>{postOwner?.displayName}</div>
-            <div className='text-xs text-muted-foreground'>{postOwner?.username}</div>
+            <div className='text-xs text-muted-foreground'>
+              <span className='mr-1'>{postOwner?.username}</span>
+              <span className='font-bold'> · </span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <span className='ml-1 hover:underline'>{`${postDate.displayDate}`}</span>
+                  </TooltipTrigger>
+                  <TooltipContent>{postDate.fullDate}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
           {/* TODO Implement post delete logic */}
           <ContentOptions
@@ -49,7 +64,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
           <Content content={post.content} />
         </section>
 
-        {post.isPositiveSentiment ? (
+        {post.sentiment ? (
           <div className='flex items-center p-1 rounded-md bg-bullish text-bullish-foreground'>
             <TrendingUp />
           </div>
@@ -59,10 +74,10 @@ const Post: React.FC<PostProp> = ({ post }) => {
           </div>
         )}
 
-        {post?.media.src && (
+        {post?.mediaUrl && (
           <Image
             src={proxyUrl}
-            alt={post.media.alt}
+            alt='Gönderi resmi'
             layout='responsive'
             width={400}
             height={400}
@@ -71,7 +86,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
         )}
       </CardContent>
       <CardFooter className='flex items-center justify-between ml-16 mr-16'>
-        <ContentAction content={post as ContentType} />
+        <ContentAction content={post} />
       </CardFooter>
     </Card>
   );

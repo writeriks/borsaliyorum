@@ -1,6 +1,5 @@
 import { auth } from '@/services/firebase-service/firebase-config';
-import { Post } from '@/services/firebase-service/types/db-types/post';
-import { Sentiment } from '@prisma/client';
+import { Post, Sentiment } from '@prisma/client';
 import { DocumentData } from 'firebase/firestore';
 
 class PostApiService {
@@ -34,8 +33,8 @@ class PostApiService {
   getFeedByDate = async (
     lastPostId: string
   ): Promise<{
-    postsByDate: DocumentData[];
-    lastPostId: string;
+    postsByDate: Post[];
+    lastPostIdByDate: string;
   }> => {
     const idToken = await auth.currentUser?.getIdToken();
 
@@ -50,7 +49,10 @@ class PostApiService {
       }
     );
 
-    if (!response.ok) throw new Error(response.statusText);
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
 
     return response.json();
   };
@@ -58,8 +60,8 @@ class PostApiService {
   getFeedByLike = async (
     lastPostId: string
   ): Promise<{
-    postsByDate: DocumentData[];
-    lastPostId: string;
+    postsByLike: Post[];
+    lastPostIdByLike: string;
   }> => {
     const idToken = await auth.currentUser?.getIdToken();
 
@@ -74,7 +76,10 @@ class PostApiService {
       }
     );
 
-    if (!response.ok) throw new Error(response.statusText);
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
 
     return response.json();
   };
