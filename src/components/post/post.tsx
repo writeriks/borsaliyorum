@@ -6,9 +6,7 @@ import UserAvatar from '@/components/user-avatar/user-avatar';
 import Image from 'next/image';
 import useFetchContentOwner from '@/hooks/useFetchContentOwner';
 import ContentOptions from '@/components/content-actions/content-options';
-import ContentAction, {
-  Content as ContentType,
-} from '@/components/content-actions/content-actions';
+import ContentAction from '@/components/content-actions/content-actions';
 import Content from '@/components/content/content';
 import { formatDate } from '@/app/utils/content-utils/content-utils';
 import { Post as PostType } from '@prisma/client';

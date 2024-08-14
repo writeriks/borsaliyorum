@@ -1,6 +1,5 @@
 import { auth } from '@/services/firebase-service/firebase-config';
 import { Post, Sentiment } from '@prisma/client';
-import { DocumentData } from 'firebase/firestore';
 
 class PostApiService {
   createNewPost = async (
