@@ -1,9 +1,13 @@
 import { auth } from '@/services/firebase-service/firebase-config';
-import { Comment } from '@/services/firebase-service/types/db-types/comment';
+import { Sentiment } from '@prisma/client';
+
 import { DocumentData } from 'firebase/firestore';
 
 class CommentApiService {
-  createNewComment = async (comment: Comment, imageData: string): Promise<any> => {
+  createNewComment = async (
+    comment: { content: string; sentiment: Sentiment; postId: number },
+    imageData: string
+  ): Promise<any> => {
     const requestBody = {
       comment,
       imageData,

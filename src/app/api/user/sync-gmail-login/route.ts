@@ -1,7 +1,7 @@
-import { User } from '@/services/firebase-service/types/db-types/user';
 import { auth } from '@/services/firebase-service/firebase-admin';
 import prisma from '@/services/prisma-service/prisma-client';
 import { createResponse, ResponseStatus } from '@/app/api/api-utils/api-utils';
+import { User } from '@prisma/client';
 
 // TODO: Consider renaming route
 export async function POST(request: Request): Promise<Response> {
@@ -26,7 +26,7 @@ export async function POST(request: Request): Promise<Response> {
       },
       data: {
         isEmailVerified: userData.isEmailVerified,
-        updatedAt: Date.now(),
+        updatedAt: new Date(),
         profilePhoto: userData.profilePhoto,
         displayName: userData.displayName,
       },

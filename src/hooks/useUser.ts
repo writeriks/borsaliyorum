@@ -12,7 +12,6 @@ import { setIsAuthLoading, setIsAuthModalOpen } from '@/store/reducers/ui-reduce
 import { UserState, setUser } from '@/store/reducers/user-reducer/user-slice';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 
-import { User } from '@/services/firebase-service/types/db-types/user';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 
 const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
@@ -24,7 +23,7 @@ const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async user => {
       if (user) {
-        const userData = (await userApiService.getUserById(user.uid)) as User;
+        const userData = await userApiService.getUserById(user.uid);
         setFBAuthUser(auth.currentUser);
         // register case
         if (!userData) {
@@ -35,15 +34,16 @@ const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
         // login case
         if (userData) {
           // Add more data if needed
-          const { displayName, username, email, profilePhoto, userId, createdAt } = userData;
+          const { displayName, username, email, profilePhoto, createdAt, firebaseUserId } =
+            userData;
           dispatch(
             setUser({
               displayName,
               username,
               email,
               profilePhoto,
-              userId,
               createdAt,
+              userId: firebaseUserId,
             })
           );
 
@@ -55,9 +55,9 @@ const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
             username: '',
             displayName: '',
             email: '',
-            profilePhoto: '',
-            userId: '',
-            createdAt: Date.now(),
+            profilePhoto: null,
+            createdAt: null,
+            userId: null,
           })
         );
         await queryClient.fetchQuery({

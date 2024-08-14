@@ -1,5 +1,5 @@
 import prisma from '@/services/prisma-service/prisma-client';
-import { User } from '@/services/firebase-service/types/db-types/user';
+import { User } from '@prisma/client';
 
 export async function POST(request: Request): Promise<Response> {
   try {
