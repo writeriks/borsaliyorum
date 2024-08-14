@@ -22,7 +22,6 @@ import postApiService from '@/services/api-service/post-api-service/post-api-ser
 import { cn } from '@/lib/utils';
 import ContentInput from '@/components/content-input/content-input';
 import { Sentiment } from '@prisma/client';
-import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
 
 const NewPost = (): React.ReactElement => {
   const [content, setcontent] = useState('');
@@ -93,18 +92,6 @@ const NewPost = (): React.ReactElement => {
       case Sentiment.neutral:
       default:
         return 'secondary';
-    }
-  };
-
-  const getVariantTextForSentiment = (): string => {
-    switch (sentiment) {
-      case Sentiment.bullish:
-        return 'Yükselir';
-      case Sentiment.bearish:
-        return 'Düşer';
-      case Sentiment.neutral:
-      default:
-        return 'Nötr';
     }
   };
 
