@@ -18,6 +18,7 @@ import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
 import { LoadingSkeletons } from '@/app/constants';
 import LoginContainer from '@/components/user-profile-options/login-container';
 import UserSettings from '@/components/user-profile-options/user-settings';
+import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
 
 const UserProfileOptions = (): React.ReactNode => {
   const dispatch = useDispatch();
@@ -52,13 +53,21 @@ const UserProfileOptions = (): React.ReactNode => {
       {user.username ? (
         <div className='w-full h-full flex flex-col p-1'>
           <div>
-            <Select value='' onValueChange={onProfileSelectChange}>
+            <Select onValueChange={onProfileSelectChange}>
               <SelectTrigger className='w-full hover:bg-accent border-none h-[45px] text-secondary-foreground dark:bg-transparent dark:hover:bg-accent'>
                 <div className='flex items-center'>
                   <UserAvatar user={user} />
-                  <div className='ml-2 flex flex-col items-start'>
-                    <span className='text-sm'>{user.displayName}</span>
-                    <span className='text-xs'>{user.username}</span>
+                  <div className='ml-2 flex flex-col items-start break-words'>
+                    <TooltipWithEllipsis
+                      tooltipText={user.displayName}
+                      className='text-sm'
+                      tooltipSide='bottom'
+                    />
+                    <TooltipWithEllipsis
+                      tooltipText={user.username}
+                      className='text-xs'
+                      tooltipSide='bottom'
+                    />
                   </div>
                 </div>
               </SelectTrigger>
