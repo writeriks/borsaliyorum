@@ -14,13 +14,11 @@ import storage from 'redux-persist/lib/storage'; // defaults to localStorage for
 import uiSlice from '@/store/reducers/ui-reducer/ui-slice';
 import contextSlice from '@/store/reducers/context-reducer/context-slice';
 import userSlice from '@/store/reducers/user-reducer/user-slice';
-import discoverSlice from '@/store/reducers/discover-reducer/discover-slice';
 
 const rootReducer = combineReducers({
   ui: uiSlice,
   context: contextSlice,
   user: userSlice,
-  discover: discoverSlice,
 });
 
 const persistConfig = {
