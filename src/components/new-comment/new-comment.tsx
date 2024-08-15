@@ -42,7 +42,7 @@ const NewComment: React.FC<NewCommentProps> = ({ post, mention, onSubmit }) => {
 
   const dispatch = useDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const user = useSelector(userReducerSelector.getUser) as User;
+  const user = useSelector(userReducerSelector.getUser);
 
   useEffect(() => {
     if (postOwner) {

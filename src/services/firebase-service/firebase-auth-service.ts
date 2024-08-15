@@ -11,7 +11,6 @@ import {
   sendPasswordResetEmail,
   sendEmailVerification,
 } from 'firebase/auth';
-import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
 import store from '@/store/redux-store';
 import {
   UINotificationEnum,
@@ -21,6 +20,7 @@ import {
 } from '@/store/reducers/ui-reducer/ui-slice';
 import { queryClient } from '@/components/tanstack-provider/tanstack-provider';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
+import { User } from '@prisma/client';
 
 class FirebaseAuthService {
   genericErrorMessage = 'Bir hata oluştu.';
@@ -55,16 +55,15 @@ class FirebaseAuthService {
         // When sign in with Google, email is automatically verified. Need to update in user collection
         await userApiService.syncGmailLogin(user, userDocument);
       } else {
-        // If new user, add user to the user collection
-        const customUser: User = {
-          [UserEnum.USER_ID]: '',
-          [UserEnum.FIREBASE_USER_ID]: user.uid,
-          [UserEnum.CREATED_AT]: Date.now(),
-          [UserEnum.EMAIL]: user.email as string,
-          [UserEnum.USERNAME]: user.email as string,
-          [UserEnum.DISPLAY_NAME]: user.displayName as string,
-          [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
-          [UserEnum.PROFILE_PHOTO]: user.photoURL ?? undefined,
+        // If new user, add user to the database
+        const customUser: Partial<User> = {
+          firebaseUserId: user.uid,
+          createdAt: new Date(),
+          email: user.email as string,
+          username: user.email as string,
+          displayName: user.displayName as string,
+          isEmailVerified: user.emailVerified,
+          profilePhoto: user.photoURL,
         };
 
         await queryClient.fetchQuery({
@@ -153,14 +152,13 @@ class FirebaseAuthService {
       const { user } = result;
       await sendEmailVerification(user);
 
-      const customUser: User = {
-        [UserEnum.USER_ID]: '',
-        [UserEnum.FIREBASE_USER_ID]: user.uid,
-        [UserEnum.CREATED_AT]: 0,
-        [UserEnum.EMAIL]: user.email as string,
-        [UserEnum.USERNAME]: username,
-        [UserEnum.DISPLAY_NAME]: displayName,
-        [UserEnum.IS_EMAIL_VERIFIED]: user.emailVerified,
+      const customUser: Partial<User> = {
+        firebaseUserId: user.uid,
+        createdAt: new Date(),
+        email: user.email as string,
+        username: username,
+        displayName: displayName,
+        isEmailVerified: user.emailVerified,
       };
 
       await queryClient.fetchQuery({

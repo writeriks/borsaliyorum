@@ -72,7 +72,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
               onNewPostModalOpenChange={() => dispatch(setIsNewPostModalOpen(!isNewPostModalOpen))}
             />
 
-            {!!currentUser.userId && (
+            {!!currentUser.email && (
               <div className='md:hidden'>
                 <div className='bottom-[60px] right-0 fixed'>
                   <NewPostTriggerMobile />

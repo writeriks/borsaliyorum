@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { User } from '@/services/firebase-service/types/db-types/user';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
+import { User } from '@prisma/client';
 
 const useFetchContentOwner = (userId: string): User | undefined => {
   const [contentOwner, setContentOwner] = useState<User>();
