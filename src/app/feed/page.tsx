@@ -44,7 +44,7 @@ const Home = (): React.ReactNode => {
     }
   };
 
-  const dispatchError = (error: Error): void => {
+  const handleError = (error: Error): void => {
     dispatch(
       setUINotification({
         message: error.message ?? 'Bir hata oluştu.',
@@ -62,7 +62,7 @@ const Home = (): React.ReactNode => {
       return postApiService.getFeedByDate(lastPostIdForDate);
     },
     onSuccess: setPosts,
-    onError: dispatchError,
+    onError: handleError,
   });
 
   const mutationForLike = useMutation({
@@ -74,7 +74,7 @@ const Home = (): React.ReactNode => {
       return postApiService.getFeedByLike(lastPostIdForLike);
     },
     onSuccess: setPosts,
-    onError: dispatchError,
+    onError: handleError,
   });
 
   const getMutation = (): UseMutationResult<any, Error, void, unknown> =>

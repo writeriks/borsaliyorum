@@ -2,20 +2,20 @@
  * Formats a date string into a readable format showing the time difference
  * between now and the given date, or the full date if over 30 days.
  *
- * @param postDate - The date string to be formatted (parsable by Date).
+ * @param date - The date string to be formatted (parsable by Date).
  * @returns Object with:
  * - displayTime: Human-readable time difference ('Az önce', 'x dakika önce', etc.).
  * - fullDate: Full date string in 'Day, Month Date, Year, Time' format.
  */
 export const formatDate = (
-  postDate: string
+  date: string
 ): {
   displayDate: string;
   fullDate: string;
 } => {
   const now = Date.now();
-  const postTime = new Date(postDate).getTime();
-  const difference = now - postTime; // Difference in milliseconds
+  const time = new Date(date).getTime();
+  const difference = now - time; // Difference in milliseconds
 
   const minute = 60 * 1000;
   const hour = 60 * minute;
@@ -23,39 +23,30 @@ export const formatDate = (
   const week = 7 * day;
   const month = 30 * day;
 
-  let displayDate = '';
-  const datePart = new Date(postTime).toLocaleDateString('tr-TR', {
+  const datePart = new Date(time).toLocaleDateString('tr-TR', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
-  const timePart = new Date(postTime).toLocaleTimeString('tr-TR', {
+  const timePart = new Date(time).toLocaleTimeString('tr-TR', {
     hour: 'numeric',
     minute: 'numeric',
   });
 
   const fullDate = `${datePart},  ${timePart}`;
 
-  if (difference < minute) {
-    displayDate = 'Az önce';
-  } else if (difference < hour) {
-    const minutesAgo = Math.floor(difference / minute);
-    displayDate = `${minutesAgo} dakika önce`;
-  } else if (difference < day) {
-    const hoursAgo = Math.floor(difference / hour);
-    displayDate = `${hoursAgo} saat önce`;
-  } else if (difference < week) {
-    const daysAgo = Math.floor(difference / day);
-    displayDate = `${daysAgo} gün önce`;
-  } else if (difference < month) {
-    const weeksAgo = Math.floor(difference / week);
-    displayDate = `${weeksAgo} hafta önce`;
-  } else if (difference < 12 * month) {
-    const monthsAgo = Math.floor(difference / month);
-    displayDate = `${monthsAgo} ay önce`;
-  } else {
-    displayDate = datePart;
-  }
+  // Define an array of conditions with the corresponding messages
+  const timeFormats = [
+    { limit: minute, message: 'Az önce' },
+    { limit: hour, message: `${Math.floor(difference / minute)} dakika önce` },
+    { limit: day, message: `${Math.floor(difference / hour)} saat önce` },
+    { limit: week, message: `${Math.floor(difference / day)} gün önce` },
+    { limit: month, message: `${Math.floor(difference / week)} hafta önce` },
+    { limit: 12 * month, message: `${Math.floor(difference / month)} ay önce` },
+  ];
+
+  // Find the appropriate message based on the time difference
+  const displayDate = timeFormats.find(({ limit }) => difference < limit)?.message || datePart;
 
   return {
     displayDate,

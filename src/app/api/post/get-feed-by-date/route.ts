@@ -18,6 +18,10 @@ export async function GET(request: Request): Promise<Response> {
       },
     });
 
+    if (!currentUser) {
+      return createResponse(ResponseStatus.UNAUTHORIZED);
+    }
+
     const { searchParams } = new URL(request.url);
     const lastPostId = parseInt(searchParams.get('lastPostId') ?? '') || 0;
     const pageSize = 10;
