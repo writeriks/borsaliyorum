@@ -4,13 +4,14 @@ import { useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import UserAvatar from '@/components/user-avatar/user-avatar';
 import Image from 'next/image';
-import useFetchContentOwner from '@/hooks/useFetchContentOwner';
 import ContentOptions from '@/components/content-actions/content-options';
 import ContentAction from '@/components/content-actions/content-actions';
 import Content from '@/components/content/content';
 import { formatDate } from '@/app/utils/content-utils/content-utils';
 import { Post as PostType } from '@prisma/client';
 import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
+import { useQuery } from '@tanstack/react-query';
+import postApiService from '@/services/api-service/post-api-service/post-api-service';
 
 export interface PostProp {
   post: PostType;
@@ -19,7 +20,11 @@ export interface PostProp {
 const Post: React.FC<PostProp> = ({ post }) => {
   const currentUser = useSelector(userReducerSelector.getUser);
 
-  const postOwner = useFetchContentOwner(post.userId);
+  const { data: postOwner } = useQuery({
+    queryKey: ['get-post-owner'],
+    queryFn: async () => await postApiService.getPostOwnerById(post.userId),
+    enabled: !!post.userId,
+  });
 
   const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(post.mediaUrl ?? '')}`;
 
@@ -72,8 +77,8 @@ const Post: React.FC<PostProp> = ({ post }) => {
             src={proxyUrl}
             alt='Gönderi resmi'
             layout='responsive'
-            width={400}
-            height={400}
+            width={600}
+            height={600}
             className='rounded-md object-contain max-h-[400px] max-w-[400px]'
           />
         )}

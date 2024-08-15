@@ -6,12 +6,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Ellipsis, Trash, UserRoundX } from 'lucide-react';
-import { Post } from '@/services/firebase-service/types/db-types/post';
 import { Comment } from '@/services/firebase-service/types/db-types/comment';
 import { useMutation } from '@tanstack/react-query';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { useDispatch } from 'react-redux';
 import commentApiService from '@/services/api-service/comment-api-service/comment-api-service';
+import { Post } from '@prisma/client';
 
 interface ContentProp {
   isContentOwner: boolean;

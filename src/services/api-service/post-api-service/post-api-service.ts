@@ -1,5 +1,5 @@
 import { auth } from '@/services/firebase-service/firebase-config';
-import { Post, Sentiment } from '@prisma/client';
+import { Post, Sentiment, User } from '@prisma/client';
 
 class PostApiService {
   createNewPost = async (
@@ -87,6 +87,22 @@ class PostApiService {
     const idToken = await auth.currentUser?.getIdToken();
 
     const response = await fetch(`/api/post/get-post-by-id?postId=${encodeURIComponent(postId)}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) throw new Error(response.statusText);
+
+    return response.json();
+  };
+
+  getPostOwnerById = async (userId: number): Promise<User> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch(`/api/post/get-post-owner?userId=${encodeURIComponent(userId)}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${idToken}`,

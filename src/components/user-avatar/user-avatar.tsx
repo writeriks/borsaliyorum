@@ -1,17 +1,16 @@
 import React from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { UserState } from '@/store/reducers/user-reducer/user-slice';
 
 interface UserAvatarProps {
-  user: UserState;
+  user: { profilePhoto: string | null; displayName: string };
 }
 
 const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
-  const profileImage = user?.profilePhoto;
+  const profileImage = user.profilePhoto;
   const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(profileImage as string)}`;
 
-  const initials = user?.displayName
+  const initials = user.displayName
     ?.split(' ')
     .map(n => n[0])
     .join('');

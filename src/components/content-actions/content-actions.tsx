@@ -1,20 +1,16 @@
-import { Post } from '@/services/firebase-service/types/db-types/post';
-import { Comment } from '@/services/firebase-service/types/db-types/comment';
+import { Post, Comment } from '@prisma/client';
 import { Heart, MessageCircle, Repeat } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-export interface Content extends Comment, Post {
-  postId: string;
-}
 interface ContentProp {
-  content: Content;
-  onCommentClick?: (content: Content) => void;
+  content: Post | Comment;
+  onCommentClick?: (content: Post | Comment) => void;
 }
 
 const ContentAction: React.FC<ContentProp> = ({ content, onCommentClick }) => {
   const router = useRouter();
 
-  const isComment = !!content.commentId;
+  const isComment = 'commentId' in content;
 
   const handleCommentClick = (): void => {
     if (isComment && onCommentClick) {
@@ -24,6 +20,7 @@ const ContentAction: React.FC<ContentProp> = ({ content, onCommentClick }) => {
     }
   };
 
+  // TODO: Implement fetching like count, comment count, repost count
   return (
     <>
       {/* TODO: send like request when user clicks comment's comment icon */}
