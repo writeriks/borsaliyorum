@@ -74,12 +74,26 @@ class TagService {
           data: {
             tagName,
             createdAt: new Date(),
+            updatedAt: new Date(),
           },
         })
       )
     );
 
-    return [...existingTags, ...newTags];
+    const updatedExistingTags = await Promise.all(
+      existingTags.map(tag =>
+        prisma.tag.update({
+          where: {
+            tagId: tag.tagId,
+          },
+          data: {
+            updatedAt: new Date(),
+          },
+        })
+      )
+    );
+
+    return [...updatedExistingTags, ...newTags];
   };
 
   // TODO: Remove below functions once new comment logic is implemented.

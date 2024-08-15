@@ -226,6 +226,7 @@ model Tag {
   tagId     Int      @id @default(autoincrement())
   tagName   String   @unique @db.VarChar(255)
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 
   // Relations to Posts
   posts Post[] @relation("PostTags")

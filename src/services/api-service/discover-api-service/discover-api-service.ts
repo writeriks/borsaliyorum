@@ -1,12 +1,12 @@
 import { auth } from '@/services/firebase-service/firebase-config';
-import { Tag } from '@/services/firebase-service/types/db-types/tag';
+import { TrendingTopicsType } from '@/services/tag-service/constants';
 
 class DiscoverApiService {
   /*
    * Get trending tags
    * @returns  Array of trending tags
    */
-  getTrends = async (): Promise<Tag[]> => {
+  getTrends = async (): Promise<TrendingTopicsType> => {
     const idToken = await auth.currentUser?.getIdToken();
 
     const response = await fetch('/api/discover/get-trends', {

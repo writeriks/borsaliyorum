@@ -1,40 +1,64 @@
-import { Label } from '@/components/ui/label';
-import { Tag } from '@/services/firebase-service/types/db-types/tag';
+import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
+import { TrendingTopicsType } from '@/services/tag-service/constants';
 import { TrendingUp } from 'lucide-react';
 import React from 'react';
 
 interface TrendingTopicsProps {
-  trends: Tag[];
+  trends: TrendingTopicsType;
 }
 
 const TrendingTopics: React.FC<TrendingTopicsProps> = ({ trends }) => {
   return (
-    <section id='trending-topics' className='flex flex-col'>
-      <div className='p-1 flex flex-col border rounded-lg '>
-        <a href='/discover' className='text-lg pl-3 mb-2 cursor-pointer font-bold'>
-          En Aktif Konular
-        </a>
-        <Label className='text-xs pl-3 mb-2 text-description'>
-          Son 4 saatte en çok konuşulan konular
-        </Label>
-        {trends.map((trend, index) => (
-          <p
-            key={trend.tagId}
-            className='flex justify-between items-center text-sm hover:bg-secondary/80 w-full font-bold cursor-pointer p-2'
-          >
-            <a
-              href={
-                trend.tagId[0] === '#' ? `/tags/${trend.tagId.slice(1)}` : `/stocks/${trend.tagId}`
-              }
-              className='block max-w-[180px] truncate'
+    <div id='discovery'>
+      <section id='trending-stocks' className='flex flex-col mb-2'>
+        <div className='p-1 flex flex-col border rounded-lg '>
+          <a href='/discover' className='text-lg pl-3 mb-2 cursor-pointer font-bold'>
+            En Aktif Hisseler 🔥
+          </a>
+          {trends.mostActiveStocks.map((stock, index) => (
+            <p
+              key={stock.stockId}
+              className='flex justify-between items-center text-sm hover:bg-secondary/80 w-full font-bold cursor-pointer p-2'
             >
-              {index + 1}. {trend.tagId}
-            </a>
-            <TrendingUp />
-          </p>
-        ))}
-      </div>
-    </section>
+              <a href={`/stocks/${stock.ticker}`} className='max-w-[180px] truncate flex'>
+                {index + 1}.&nbsp;
+                <TooltipWithEllipsis
+                  tooltipText={stock.ticker}
+                  maxWidth='170'
+                  className='hover:underline'
+                  tooltipSide='bottom'
+                />
+              </a>
+              <TrendingUp />
+            </p>
+          ))}
+        </div>
+      </section>
+      <section id='trending-stocks' className='flex flex-col'>
+        <div className='p-1 flex flex-col border rounded-lg '>
+          <a href='/discover' className='text-lg pl-3 mb-2 cursor-pointer font-bold'>
+            En Aktif Konular 🔥
+          </a>
+          {trends.mostActiveTags.map((tag, index) => (
+            <p
+              key={tag.tagId}
+              className='flex justify-between items-center text-sm hover:bg-secondary/80 w-full font-bold cursor-pointer p-2'
+            >
+              <a href={`/tags/${tag.tagName.slice(1)}`} className='max-w-[180px] truncate flex'>
+                {index + 1}.&nbsp;
+                <TooltipWithEllipsis
+                  tooltipText={tag.tagName}
+                  maxWidth='170'
+                  className='hover:underline'
+                  tooltipSide='bottom'
+                />
+              </a>
+              <TrendingUp />
+            </p>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 };
 

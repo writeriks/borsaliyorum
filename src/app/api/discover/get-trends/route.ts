@@ -1,9 +1,5 @@
 import { auth } from '@/services/firebase-service/firebase-admin';
-import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
-import { WhereFieldEnum } from '@/services/firebase-service/firebase-operations-types';
-import { CollectionPath } from '@/services/firebase-service/types/collection-types';
-import { TagsCollectionEnum } from '@/services/firebase-service/types/db-types/tag';
-import { FOUR_HOURS } from '@/services/tag-service/constants';
+import prisma from '@/services/prisma-service/prisma-client';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request): Promise<Response> {
@@ -15,23 +11,47 @@ export async function GET(request: Request): Promise<Response> {
     }
     await auth.verifyIdToken(token);
 
-    const pageSize = 10;
-
-    const { documents } = await firebaseGenericOperations.getDocumentsWithQuery({
-      collectionPath: CollectionPath.Tags,
-      whereFields: [
-        {
-          field: TagsCollectionEnum.LAST_POST_DATE,
-          operator: WhereFieldEnum.GREATER_THAN,
-          value: Date.now() - FOUR_HOURS,
+    const mostActiveTags = await prisma.tag.findMany({
+      include: {
+        posts: {
+          select: {
+            updatedAt: true,
+          },
+          orderBy: {
+            updatedAt: 'desc',
+          },
         },
-      ],
-      orderByField: TagsCollectionEnum.POST_COUNT_IN_LAST_FOUR_HOURS,
-      orderByDirection: 'desc',
-      documentLimit: pageSize,
+      },
+      orderBy: {
+        posts: {
+          _count: 'desc',
+        },
+      },
+      take: 5,
     });
 
-    return new NextResponse(JSON.stringify(documents), {
+    const mostActiveStocks = await prisma.stock.findMany({
+      include: {
+        posts: {
+          select: {
+            updatedAt: true,
+          },
+          orderBy: {
+            updatedAt: 'desc',
+          },
+        },
+      },
+      orderBy: {
+        posts: {
+          _count: 'desc',
+        },
+      },
+      take: 5,
+    });
+
+    const trending = { mostActiveStocks, mostActiveTags };
+
+    return new NextResponse(JSON.stringify(trending), {
       status: 200,
       statusText: 'SUCCESS',
     });
