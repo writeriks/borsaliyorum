@@ -29,6 +29,8 @@ const Home = (): React.ReactNode => {
   const dispatch = useDispatch();
 
   const setPosts = (data: any): void => {
+    if (!data) return;
+
     if (activeTab === FeedTab.LATEST) {
       const dataByDate = data.postsByDate ?? [];
 
@@ -42,50 +44,37 @@ const Home = (): React.ReactNode => {
     }
   };
 
+  const handleError = (error: Error): void => {
+    dispatch(
+      setUINotification({
+        message: error.message ?? 'Bir hata oluştu.',
+        notificationType: UINotificationEnum.ERROR,
+      })
+    );
+  };
+
   const mutationForDate = useMutation({
     mutationFn: async () => {
-      if (lastPostIdForDate === undefined) {
+      if (lastPostIdForDate === undefined || lastPostIdForDate === null) {
         return;
       }
 
       return postApiService.getFeedByDate(lastPostIdForDate);
     },
-    onSuccess: (data: any) => {
-      if (data) {
-        setPosts(data);
-      }
-    },
-    onError: () => {
-      dispatch(
-        setUINotification({
-          message: 'Bir hata oluştu.',
-          notificationType: UINotificationEnum.ERROR,
-        })
-      );
-    },
+    onSuccess: setPosts,
+    onError: handleError,
   });
 
   const mutationForLike = useMutation({
     mutationFn: async () => {
-      if (lastPostIdForLike === undefined) {
+      if (lastPostIdForLike === undefined || lastPostIdForLike === null) {
         return;
       }
 
       return postApiService.getFeedByLike(lastPostIdForLike);
     },
-    onSuccess: (data: any) => {
-      if (data) {
-        setPosts(data);
-      }
-    },
-    onError: () => {
-      dispatch(
-        setUINotification({
-          message: 'Bir hata oluştu.',
-          notificationType: UINotificationEnum.ERROR,
-        })
-      );
-    },
+    onSuccess: setPosts,
+    onError: handleError,
   });
 
   const getMutation = (): UseMutationResult<any, Error, void, unknown> =>

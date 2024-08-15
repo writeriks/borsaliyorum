@@ -1,90 +1,74 @@
+import prisma from '@/services/prisma-service/prisma-client';
 import { auth } from '@/services/firebase-service/firebase-admin';
-import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
-import { WhereFieldEnum } from '@/services/firebase-service/firebase-operations-types';
-import { CollectionPath } from '@/services/firebase-service/types/collection-types';
-import { PostsCollectionEnum } from '@/services/firebase-service/types/db-types/post';
-import { UserFollowersEnum } from '@/services/firebase-service/types/db-types/user-followers';
-import { DocumentData } from '@firebase/firestore';
-import { NextResponse } from 'next/server';
+import { createResponse, ResponseStatus } from '@/app/api/api-utils/api-utils';
 
 export async function GET(request: Request): Promise<Response> {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return createResponse(ResponseStatus.UNAUTHORIZED);
     }
-
-    const { searchParams } = new URL(request.url);
-    const lastPostId = searchParams.get('lastPostId');
-
-    const pageSize = 5;
 
     const decodedToken = await auth.verifyIdToken(token);
 
-    const followingUsers = await firebaseGenericOperations.getDocumentsWithQuery({
-      collectionPath: CollectionPath.UsersFollowers,
-      whereFields: [
-        {
-          field: UserFollowersEnum.FOLLOWER_ID,
-          operator: WhereFieldEnum.EQUALS,
-          value: decodedToken.uid,
-        },
-      ],
+    const currentUser = await prisma.user.findUnique({
+      where: {
+        firebaseUserId: decodedToken.uid,
+      },
     });
 
-    const followingUserIds = followingUsers.documents.map(doc => doc.followingId);
+    if (!currentUser) {
+      return createResponse(ResponseStatus.UNAUTHORIZED);
+    }
+
+    const { searchParams } = new URL(request.url);
+    const lastPostId = parseInt(searchParams.get('lastPostId') ?? '') || 0;
+    const pageSize = 10;
+
+    // Fetch the IDs of the users the current user is following
+    const followingUsers = await prisma.userFollowers.findMany({
+      where: {
+        followerId: currentUser?.userId,
+      },
+      select: {
+        followingId: true,
+      },
+    });
+
+    const followingUserIds = followingUsers.map(user => user.followingId);
 
     if (followingUserIds.length === 0) {
-      return new NextResponse(JSON.stringify([]), {
-        status: 200,
-        statusText: 'SUCCESS',
+      return createResponse(ResponseStatus.OK, {
+        postsByDate: [],
+        lastPostIdByDate: null,
       });
     }
 
-    const lastPostDocumentByDate = await firebaseGenericOperations.getDocumentsWithQuery({
-      collectionPath: CollectionPath.Posts,
-      whereFields: [
-        {
-          field: PostsCollectionEnum.POST_ID,
-          operator: WhereFieldEnum.EQUALS,
-          value: lastPostId,
+    // Fetch posts by following users, paginated and ordered by created date
+    const postsByDate = await prisma.post.findMany({
+      where: {
+        userId: {
+          in: followingUserIds,
         },
-      ],
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: pageSize,
+      cursor: lastPostId ? { postId: lastPostId } : undefined,
+      skip: lastPostId ? 1 : 0, // Skip the last post if cursor is set
     });
 
-    const postsByDate = await firebaseGenericOperations.getDocumentsWithQuery({
-      collectionPath: CollectionPath.Posts,
-      whereFields: [
-        {
-          field: PostsCollectionEnum.USER_ID,
-          operator: WhereFieldEnum.IN,
-          value: followingUserIds,
-        },
-      ],
-      documentLimit: pageSize,
-      orderByField: PostsCollectionEnum.CREATED_AT,
-      orderByDirection: 'desc',
-      startAfterDocument: lastPostDocumentByDate?.lastDocument as DocumentData,
+    const newLastPostIdByDate =
+      postsByDate.length > 0 ? postsByDate[postsByDate.length - 1].postId : null;
+
+    return createResponse(ResponseStatus.OK, {
+      postsByDate,
+      lastPostIdByDate: newLastPostIdByDate,
     });
-
-    const newLastPostIdByDate = postsByDate.lastDocument?.data().postId;
-
-    return new NextResponse(
-      JSON.stringify({
-        postsByDate: postsByDate.documents,
-        lastPostIdByDate: newLastPostIdByDate,
-      }),
-      {
-        status: 200,
-        statusText: 'SUCCESS',
-      }
-    );
   } catch (error) {
     console.error('Error in GET handler:', error);
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }
