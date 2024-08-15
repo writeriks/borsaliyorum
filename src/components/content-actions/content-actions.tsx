@@ -1,20 +1,22 @@
-import { Post, Comment } from '@prisma/client';
+import { Post, Comment, User } from '@prisma/client';
 import { Heart, MessageCircle, Repeat } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface ContentProp {
   content: Post | Comment;
-  onCommentClick?: (content: Post | Comment) => void;
+  commentor?: User;
+  onCommentClick?: (commentor: User) => void;
 }
 
-const ContentAction: React.FC<ContentProp> = ({ content, onCommentClick }) => {
+const ContentAction: React.FC<ContentProp> = ({ content, onCommentClick, commentor }) => {
   const router = useRouter();
 
   const isComment = 'commentId' in content;
 
   const handleCommentClick = (): void => {
     if (isComment && onCommentClick) {
-      onCommentClick(content);
+      console.log('comment clicked');
+      onCommentClick(commentor as User);
     } else {
       router.push(`post/${content.postId}`);
     }

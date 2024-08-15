@@ -56,7 +56,9 @@ const UserProfileOptions = (): React.ReactNode => {
             <Select onValueChange={onProfileSelectChange}>
               <SelectTrigger className='w-full hover:bg-accent border-none h-[45px] text-secondary-foreground dark:bg-transparent dark:hover:bg-accent'>
                 <div className='flex items-center'>
-                  <UserAvatar user={user} />
+                  <UserAvatar
+                    user={{ profilePhoto: user.profilePhoto ?? '', displayName: user.displayName }}
+                  />
                   <div className='ml-2 flex flex-col items-start break-words'>
                     <TooltipWithEllipsis
                       tooltipText={user.displayName}

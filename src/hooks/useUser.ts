@@ -72,6 +72,7 @@ const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
           );
 
           dispatch(setIsAuthModalOpen(false));
+          dispatch(setIsAuthLoading(false));
         }
       } else {
         dispatch(

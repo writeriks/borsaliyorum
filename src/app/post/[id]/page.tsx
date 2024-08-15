@@ -4,23 +4,22 @@ import React, { useEffect, useState } from 'react';
 
 import Post from '@/components/post/post';
 import Comment from '@/components/comment/comment';
-import { Post as PostType } from '@/services/firebase-service/types/db-types/post';
+
 import { useParams, useRouter } from 'next/navigation';
 import { MoveLeft } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import postApiService from '@/services/api-service/post-api-service/post-api-service';
 import commentApiService from '@/services/api-service/comment-api-service/comment-api-service';
 import NewComment from '@/components/new-comment/new-comment';
 import useUser from '@/hooks/useUser';
 import Discover from '@/components/doscover/discover';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Comment as CommentType } from '@/services/firebase-service/types/db-types/comment';
 import { useDispatch } from 'react-redux';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
 import { LoadingSkeletons } from '@/app/constants';
 import { Icons } from '@/components/ui/icons';
+import { Comment as CommentType, Post as PostType, User } from '@prisma/client';
 
 const PostDetail = (): React.ReactNode => {
   const { back } = useRouter();
@@ -98,9 +97,9 @@ const PostDetail = (): React.ReactNode => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fbAuthUser, query.id]);
 
-  const handleCommentClick = (comment: CommentType): void => {
+  const handleCommentClick = (commentor: User): void => {
     setMention({
-      username: comment.username,
+      username: commentor.username,
     });
 
     const input = document.getElementById('mentionsInput');
@@ -134,7 +133,8 @@ const PostDetail = (): React.ReactNode => {
             <NewComment
               onSubmit={comment => handleCommentSubmit(comment)}
               mention={mention}
-              post={post}
+              postOwnerId={post.userId}
+              postId={post.postId}
             />
             {comments.map(comment => (
               <Comment

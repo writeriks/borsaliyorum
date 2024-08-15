@@ -1,11 +1,11 @@
 import { auth } from '@/services/firebase-service/firebase-config';
-import { Sentiment } from '@prisma/client';
+import { User } from '@prisma/client';
 
 import { DocumentData } from 'firebase/firestore';
 
 class CommentApiService {
   createNewComment = async (
-    comment: { content: string; sentiment: Sentiment; postId: number },
+    comment: { postId: number; content: string },
     imageData: string
   ): Promise<any> => {
     const requestBody = {
@@ -29,7 +29,7 @@ class CommentApiService {
   };
 
   getCommentsByPostId = async (
-    postId: string,
+    postId: number,
     lastCommentId: string
   ): Promise<{
     comments: DocumentData[];
@@ -52,6 +52,25 @@ class CommentApiService {
       const error = await response.json();
       throw new Error(error.message);
     }
+
+    return response.json();
+  };
+
+  getCommentOwnerById = async (userId: number): Promise<User> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch(
+      `/api/comment/get-comment-owner?userId=${encodeURIComponent(userId)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) throw new Error(response.statusText);
 
     return response.json();
   };

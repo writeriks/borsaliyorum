@@ -1,5 +1,5 @@
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { TrendingDown, TrendingUp } from 'lucide-react';
+import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import UserAvatar from '@/components/user-avatar/user-avatar';
@@ -8,7 +8,7 @@ import ContentOptions from '@/components/content-actions/content-options';
 import ContentAction from '@/components/content-actions/content-actions';
 import Content from '@/components/content/content';
 import { formatDate } from '@/app/utils/content-utils/content-utils';
-import { Post as PostType } from '@prisma/client';
+import { Post as PostType, Sentiment } from '@prisma/client';
 import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
 import { useQuery } from '@tanstack/react-query';
 import postApiService from '@/services/api-service/post-api-service/post-api-service';
@@ -29,6 +29,24 @@ const Post: React.FC<PostProp> = ({ post }) => {
   const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(post.mediaUrl ?? '')}`;
 
   const postDate = formatDate(post.createdAt.toString());
+
+  const renderSentiment = {
+    [Sentiment.bullish]: (
+      <div className='flex items-center p-1 rounded-md bg-bullish text-bullish-foreground'>
+        <TrendingUp />
+      </div>
+    ),
+    [Sentiment.bearish]: (
+      <div className='flex items-center p-1  rounded-md bg-destructive text-destructive-foreground'>
+        <TrendingDown />
+      </div>
+    ),
+    [Sentiment.neutral]: (
+      <div className='flex items-center p-1  rounded-md bg-destructive text-destructive-foreground'>
+        <Minus />
+      </div>
+    ),
+  };
 
   /* TODO:
   - Add styling for tags
@@ -62,15 +80,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
           <Content content={post.content} />
         </section>
 
-        {post.sentiment ? (
-          <div className='flex items-center p-1 rounded-md bg-bullish text-bullish-foreground'>
-            <TrendingUp />
-          </div>
-        ) : (
-          <div className='flex items-center p-1  rounded-md bg-destructive text-destructive-foreground'>
-            <TrendingDown />
-          </div>
-        )}
+        {renderSentiment[post.sentiment]}
 
         {post?.mediaUrl && (
           <Image
