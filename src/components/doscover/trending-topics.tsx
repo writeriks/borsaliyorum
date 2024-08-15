@@ -6,7 +6,7 @@ import React from 'react';
 interface TrendingTopicsProps {
   trends: TrendingTopicsType;
 }
-/* test */
+
 const TrendingTopics: React.FC<TrendingTopicsProps> = ({ trends }) => {
   return (
     <div id='discovery'>
