@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Minus, TrendingDown, TrendingUp, X } from 'lucide-react';
 import ImageUploader from '@/components/image-uploader/image-uploader';
-import { User } from '@/services/firebase-service/types/db-types/user';
 
 import { useDispatch, useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';

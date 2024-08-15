@@ -1,10 +1,10 @@
 import React from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User } from '@/services/firebase-service/types/db-types/user';
+import { UserState } from '@/store/reducers/user-reducer/user-slice';
 
 interface UserAvatarProps {
-  user: User;
+  user: UserState;
 }
 
 const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {

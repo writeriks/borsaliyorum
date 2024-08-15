@@ -2,9 +2,9 @@ import { User as FirebaseUser, deleteUser, updateEmail, updatePassword } from 'f
 
 import { auth } from '../../firebase-service/firebase-config';
 
-import { User, UserEnum } from '@/services/firebase-service/types/db-types/user';
 import store from '@/store/redux-store';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
+import { User } from '@prisma/client';
 
 class UserApiService {
   /**
@@ -76,11 +76,9 @@ class UserApiService {
 
           const updatedUser: User = {
             ...user,
-            [UserEnum.PROFILE_PHOTO]: user.profilePhoto
-              ? user.profilePhoto
-              : firebaseUser.photoURL ?? undefined,
-            [UserEnum.IS_EMAIL_VERIFIED]: firebaseUser.emailVerified,
-            [UserEnum.DISPLAY_NAME]: user.displayName ?? firebaseUser.displayName,
+            profilePhoto: user.profilePhoto ? user.profilePhoto : firebaseUser.photoURL ?? null,
+            isEmailVerified: firebaseUser.emailVerified,
+            displayName: user.displayName ?? firebaseUser.displayName,
           };
 
           const result = await fetch('/api/user/sync-gmail-login', {
@@ -146,10 +144,10 @@ class UserApiService {
   };
 
   /**
-   * Adds a new user document to Firestore.
+   * Adds a new user document to the database.
    * @param customUser - The user document to add.
    */
-  addUser = async (customUser: User): Promise<void> => {
+  addUser = async (customUser: Partial<User>): Promise<void> => {
     const requestBody = {
       user: customUser,
     };
