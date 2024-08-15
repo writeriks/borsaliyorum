@@ -20,7 +20,7 @@ export async function GET(request: Request): Promise<Response> {
 
     const { searchParams } = new URL(request.url);
     const lastPostId = parseInt(searchParams.get('lastPostId') ?? '') || 0;
-    const pageSize = 2;
+    const pageSize = 10;
 
     // Fetch the IDs of the users the current user is following
     const followingUsers = await prisma.userFollowers.findMany({

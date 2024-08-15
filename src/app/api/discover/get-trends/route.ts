@@ -15,7 +15,7 @@ export async function GET(request: Request): Promise<Response> {
     }
     await auth.verifyIdToken(token);
 
-    const pageSize = 5;
+    const pageSize = 10;
 
     const { documents } = await firebaseGenericOperations.getDocumentsWithQuery({
       collectionPath: CollectionPath.Tags,
