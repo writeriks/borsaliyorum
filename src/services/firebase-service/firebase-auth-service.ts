@@ -55,7 +55,7 @@ class FirebaseAuthService {
         // When sign in with Google, email is automatically verified. Need to update in user collection
         await userApiService.syncGmailLogin(user, userDocument);
       } else {
-        // If new user, add user to the user collection
+        // If new user, add user to the database
         const customUser: Partial<User> = {
           firebaseUserId: user.uid,
           createdAt: new Date(),

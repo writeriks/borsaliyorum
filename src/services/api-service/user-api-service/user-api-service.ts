@@ -144,7 +144,7 @@ class UserApiService {
   };
 
   /**
-   * Adds a new user document to Firestore.
+   * Adds a new user document to the database.
    * @param customUser - The user document to add.
    */
   addUser = async (customUser: Partial<User>): Promise<void> => {
