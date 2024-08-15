@@ -10,7 +10,7 @@ import ContentAction from '@/components/content-actions/content-actions';
 import Content from '@/components/content/content';
 import { formatDate } from '@/app/utils/content-utils/content-utils';
 import { Post as PostType } from '@prisma/client';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
 
 export interface PostProp {
   post: PostType;
@@ -40,14 +40,9 @@ const Post: React.FC<PostProp> = ({ post }) => {
             <div className='text-xs text-muted-foreground'>
               <span className='mr-1'>{postOwner?.username}</span>
               <span className='font-bold'> · </span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <span className='ml-1 hover:underline'>{`${postDate.displayDate}`}</span>
-                  </TooltipTrigger>
-                  <TooltipContent>{postDate.fullDate}</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <TooltipWithEllipsis tooltipText={postDate.fullDate}>
+                <span className='ml-1 hover:underline'>{`${postDate.displayDate}`}</span>
+              </TooltipWithEllipsis>
             </div>
           </div>
           {/* TODO Implement post delete logic */}

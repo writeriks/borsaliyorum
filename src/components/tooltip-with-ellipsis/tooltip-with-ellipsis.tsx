@@ -7,6 +7,7 @@ interface TooltipWithEllipsisProps {
   tooltipSide?: 'top' | 'right' | 'bottom' | 'left';
   maxWidth?: string;
   className?: string;
+  children?: React.ReactNode;
 }
 
 const TooltipWithEllipsis: React.FC<TooltipWithEllipsisProps> = ({
@@ -14,6 +15,7 @@ const TooltipWithEllipsis: React.FC<TooltipWithEllipsisProps> = ({
   tooltipSide = 'top',
   maxWidth = '150px',
   className,
+  children,
 }) => {
   const textRef = useRef<HTMLParagraphElement>(null);
   const [isOverflowed, setIsOverflowed] = useState(false);
@@ -27,22 +29,31 @@ const TooltipWithEllipsis: React.FC<TooltipWithEllipsisProps> = ({
 
   return (
     <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <p
-            ref={textRef}
-            style={{ maxWidth }}
-            className={cn('truncate overflow-hidden text-ellipsis whitespace-nowrap', className)}
-          >
-            {tooltipText}
-          </p>
-        </TooltipTrigger>
-        {isOverflowed && (
+      {children ? (
+        <Tooltip>
+          <TooltipTrigger asChild>{children}</TooltipTrigger>
           <TooltipContent side={tooltipSide}>
             <p>{tooltipText}</p>
           </TooltipContent>
-        )}
-      </Tooltip>
+        </Tooltip>
+      ) : (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p
+              ref={textRef}
+              style={{ maxWidth }}
+              className={cn('truncate overflow-hidden text-ellipsis whitespace-nowrap', className)}
+            >
+              {tooltipText}
+            </p>
+          </TooltipTrigger>
+          {isOverflowed && (
+            <TooltipContent side={tooltipSide}>
+              <p>{tooltipText}</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
+      )}
     </TooltipProvider>
   );
 };
