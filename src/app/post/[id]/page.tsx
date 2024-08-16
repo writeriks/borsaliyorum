@@ -111,7 +111,7 @@ const PostDetail = (): React.ReactNode => {
     setComments([userAddedComment, ...comments]);
   };
 
-  const handleCommentDelete = (deletedCommentId: string): void => {
+  const handleCommentDelete = (deletedCommentId: number): void => {
     const filteredComments = comments.filter(cmt => cmt.commentId !== deletedCommentId);
 
     setComments([...filteredComments]);

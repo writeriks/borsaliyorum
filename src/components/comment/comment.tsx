@@ -14,7 +14,7 @@ import { Comment as CommentType, User } from '@prisma/client';
 interface CommentProp {
   comment: CommentType;
   onCommentClick: (commentor: User) => void;
-  onDeleteClick: (commentId: string) => void;
+  onDeleteClick: (commentId: number) => void;
 }
 
 const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick }) => {

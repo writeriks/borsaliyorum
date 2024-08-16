@@ -76,9 +76,9 @@ class CommentApiService {
   };
 
   deleteComment = async (
-    commentId: string,
-    userId: string
-  ): Promise<{ deletedCommentId: string }> => {
+    commentId: number,
+    userId: number
+  ): Promise<{ deletedCommentId: number }> => {
     const idToken = await auth.currentUser?.getIdToken();
 
     const response = await fetch(

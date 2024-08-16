@@ -6,17 +6,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Ellipsis, Trash, UserRoundX } from 'lucide-react';
-import { Comment } from '@/services/firebase-service/types/db-types/comment';
 import { useMutation } from '@tanstack/react-query';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { useDispatch } from 'react-redux';
 import commentApiService from '@/services/api-service/comment-api-service/comment-api-service';
-import { Post } from '@prisma/client';
+import { Post, Comment } from '@prisma/client';
 
 interface ContentProp {
   isContentOwner: boolean;
   content: Comment | Post;
-  onDeleteSuccess: (contentId: string) => void;
+  onDeleteSuccess: (contentId: number) => void;
 }
 
 const ContentOptions: React.FC<ContentProp> = ({ isContentOwner, content, onDeleteSuccess }) => {
@@ -26,7 +25,7 @@ const ContentOptions: React.FC<ContentProp> = ({ isContentOwner, content, onDele
     mutationFn: async () => {
       return commentApiService.deleteComment((content as Comment).commentId!, content.userId);
     },
-    onSuccess: (data: { deletedCommentId: string }) => {
+    onSuccess: (data: { deletedCommentId: number }) => {
       onDeleteSuccess(data.deletedCommentId);
       dispatch(
         setUINotification({
