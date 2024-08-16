@@ -1,10 +1,10 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 import { auth } from '@/services/firebase-service/firebase-admin';
-import { createResponse, ResponseStatus } from '@/app/api/api-utils/api-utils';
+import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import prisma from '@/services/prisma-service/prisma-client';
 
-export async function GET(request: NextRequest): Promise<Response> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
     const postId = searchParams.get('postId');
@@ -39,7 +39,6 @@ export async function GET(request: NextRequest): Promise<Response> {
       comments,
     });
   } catch (error: any) {
-    console.error('Error fetching comment:', error.message);
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }

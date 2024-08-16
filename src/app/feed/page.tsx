@@ -5,7 +5,7 @@ import NewPost from '@/components/new-post/new-post';
 
 import Post from '@/components/post/post';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Discover from '@/components/doscover/discover';
+import Discover from '@/components/discover/discover';
 
 import { useDispatch } from 'react-redux';
 import { useMutation, UseMutationResult } from '@tanstack/react-query';

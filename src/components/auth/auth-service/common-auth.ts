@@ -1,4 +1,4 @@
-import { isValidUsername } from '@/app/utils/user-utils/user-utils';
+import { isValidUsername } from '@/utils/user-utils/user-utils';
 import { z } from 'zod';
 
 const passwordConstants = {

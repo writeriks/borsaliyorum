@@ -1,13 +1,14 @@
 import { auth } from '@/services/firebase-service/firebase-admin';
 import prisma from '@/services/prisma-service/prisma-client';
+import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { NextResponse } from 'next/server';
 
-export async function GET(request: Request): Promise<Response> {
+export async function GET(request: Request): Promise<NextResponse> {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return createResponse(ResponseStatus.UNAUTHORIZED);
     }
     await auth.verifyIdToken(token);
 
@@ -51,15 +52,8 @@ export async function GET(request: Request): Promise<Response> {
 
     const trending = { mostActiveStocks, mostActiveTags };
 
-    return new NextResponse(JSON.stringify(trending), {
-      status: 200,
-      statusText: 'SUCCESS',
-    });
+    return createResponse(ResponseStatus.OK, trending);
   } catch (error) {
-    console.error('Error in GET handler:', error);
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }

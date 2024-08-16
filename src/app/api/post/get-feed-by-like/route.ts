@@ -1,8 +1,9 @@
 import prisma from '@/services/prisma-service/prisma-client';
 import { auth } from '@/services/firebase-service/firebase-admin';
-import { createResponse, ResponseStatus } from '@/app/api/api-utils/api-utils';
+import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
+import { NextResponse } from 'next/server';
 
-export async function GET(request: Request): Promise<Response> {
+export async function GET(request: Request): Promise<NextResponse> {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
@@ -70,7 +71,6 @@ export async function GET(request: Request): Promise<Response> {
       lastPostIdByLike: newLastPostIdByLike,
     });
   } catch (error) {
-    console.error('Error in GET handler:', error);
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }

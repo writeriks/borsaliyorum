@@ -1,7 +1,9 @@
 import prisma from '@/services/prisma-service/prisma-client';
+import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { User } from '@prisma/client';
+import { NextResponse } from 'next/server';
 
-export async function POST(request: Request): Promise<Response> {
+export async function POST(request: Request): Promise<NextResponse> {
   try {
     const body = await request.json();
     const userData: User = body['user'];
@@ -31,14 +33,8 @@ export async function POST(request: Request): Promise<Response> {
       },
     });
 
-    return new Response(null, {
-      status: 200,
-      statusText: 'SUCCESS',
-    });
+    return createResponse(ResponseStatus.OK);
   } catch (error) {
-    return new Response(null, {
-      status: 500,
-      statusText: 'Internal Server Error',
-    });
+    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }

@@ -8,9 +8,9 @@ import { User } from '@prisma/client';
 
 class UserApiService {
   /**
-   * Retrieves a user document by user ID.
+   * Retrieves a user by user ID.
    * @param userId - The ID of the user to retrieve.
-   * @returns  The user document, or undefined if not found.
+   * @returns  The user, or undefined if not found.
    */
   getUserById = async (userId: string): Promise<User | undefined> => {
     try {
@@ -33,9 +33,34 @@ class UserApiService {
   };
 
   /**
+   * Retrieves entry (post or comment) owner by user ID.
+   * @param userId - The ID of the user to retrieve.
+   * @returns  The user, or undefined if not found.
+   */
+  getEntryOwner = async (userId: number): Promise<User | undefined> => {
+    try {
+      const idToken = await auth.currentUser?.getIdToken();
+
+      const result = await fetch(`/api/user/get-entry-owner?userId=${encodeURIComponent(userId)}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const user = await result.json();
+
+      return user ? user : undefined;
+    } catch (error) {
+      console.error('Error getting user:', error);
+    }
+  };
+
+  /**
    * Sends a request to public api to fetch users searched by username.
    * @param username - The username of the user to retrieve.
-   * @returns  The user document array, or undefined if not found.
+   * @returns  The user array, or undefined if not found.
    */
   getUsersByUserName = async (username: string): Promise<User[] | undefined> => {
     try {
@@ -64,9 +89,9 @@ class UserApiService {
   };
 
   /**
-   * Syncs the User data with the user document in db.
+   * Syncs the firebase user with the user in db.
    * @param firebaseUser - The Firebase user to sync.
-   * @param user - The user document to update.
+   * @param user - The user to update.
    */
   syncGmailLogin = async (firebaseUser: FirebaseUser, user: User): Promise<void> => {
     try {
@@ -144,8 +169,8 @@ class UserApiService {
   };
 
   /**
-   * Adds a new user document to the database.
-   * @param customUser - The user document to add.
+   * Adds a new user to the database.
+   * @param customUser - The user to add.
    */
   addUser = async (customUser: Partial<User>): Promise<void> => {
     const requestBody = {
@@ -181,8 +206,8 @@ class UserApiService {
     });
 
     if (!result.ok) {
-      const errorData = await result.json();
-      throw new Error(errorData.error || 'Bir hata oluştu.');
+      const error = await result.json();
+      throw new Error(error.message || 'Bir hata oluştu.');
     }
   };
 
@@ -202,8 +227,8 @@ class UserApiService {
     });
 
     if (!result.ok) {
-      const errorData = await result.json();
-      throw new Error(errorData.error || 'Bir hata oluştu.');
+      const error = await result.json();
+      throw new Error(error.message || 'Bir hata oluştu.');
     }
   };
 
@@ -216,8 +241,8 @@ class UserApiService {
     });
 
     if (!result.ok) {
-      const errorData = await result.json();
-      throw new Error(errorData.error || 'Bir hata oluştu.');
+      const error = await result.json();
+      throw new Error(error.message || 'Bir hata oluştu.');
     }
   };
 

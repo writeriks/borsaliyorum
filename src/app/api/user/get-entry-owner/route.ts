@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/services/firebase-service/firebase-admin';
-import { createResponse, ResponseStatus } from '@/app/api/api-utils/api-utils';
+import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import prisma from '@/services/prisma-service/prisma-client';
 
-export async function GET(request: NextRequest): Promise<Response> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
@@ -32,11 +32,8 @@ export async function GET(request: NextRequest): Promise<Response> {
       return createResponse(ResponseStatus.NOT_FOUND, 'Kullanıcı bulunamadı');
     }
 
-    return new NextResponse(JSON.stringify(user), {
-      status: 200,
-      statusText: 'SUCCESS',
-    });
+    return createResponse(ResponseStatus.OK, user);
   } catch (error: any) {
-    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR, 'Bir hata oluştu');
+    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }

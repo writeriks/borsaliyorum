@@ -3,12 +3,13 @@ import { useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import UserAvatar from '@/components/user-avatar/user-avatar';
 
-import ContentOptions from '@/components/content-actions/content-options';
-import ContentAction from '@/components/content-actions/content-actions';
+import EntryOptions from '@/components/entry-actions/entry-options';
+import EntryActions from '@/components/entry-actions/entry-actions';
 import Content from '@/components/content/content';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import commentApiService from '@/services/api-service/comment-api-service/comment-api-service';
+import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { Comment as CommentType, User } from '@prisma/client';
 
 interface CommentProp {
@@ -22,8 +23,8 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick
   const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(comment.mediaUrl ?? '')}`;
 
   const { data: commentor } = useQuery({
-    queryKey: ['get-comment-owner-by-id'],
-    queryFn: async () => await commentApiService.getCommentOwnerById(comment.userId),
+    queryKey: [`get-entry-owner-${comment.userId}`],
+    queryFn: async () => await userApiService.getEntryOwner(comment.userId),
   });
 
   return (
@@ -35,10 +36,10 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick
             <div className='text-sm font-bold'>{commentor?.displayName}</div>
             <div className='text-xs text-muted-foreground'>{commentor?.username}</div>
           </div>
-          <ContentOptions
+          <EntryOptions
             onDeleteSuccess={onDeleteClick}
-            content={comment}
-            isContentOwner={commentor?.username === currentUser.username}
+            entry={comment}
+            isEntryOwner={commentor?.username === currentUser.username}
           />
         </div>
         <section className='p-2'>
@@ -56,7 +57,7 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick
         )}
       </CardContent>
       <CardFooter className='flex items-center justify-between ml-24 mr-24'>
-        <ContentAction onCommentClick={onCommentClick} commentor={commentor} content={comment} />
+        <EntryActions onCommentClick={onCommentClick} commentor={commentor} entry={comment} />
       </CardFooter>
     </Card>
   );

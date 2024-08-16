@@ -11,7 +11,7 @@ import postApiService from '@/services/api-service/post-api-service/post-api-ser
 import commentApiService from '@/services/api-service/comment-api-service/comment-api-service';
 import NewComment from '@/components/new-comment/new-comment';
 import useUser from '@/hooks/useUser';
-import Discover from '@/components/doscover/discover';
+import Discover from '@/components/discover/discover';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';

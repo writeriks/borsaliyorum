@@ -1,4 +1,4 @@
-import { createResponse, ResponseStatus } from '@/app/api/api-utils/api-utils';
+import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { MAX_CHARACTERS } from '@/services/api-service/post-api-service/constants';
 import { auth, storageBucket } from '@/services/firebase-service/firebase-admin';
 import prisma from '@/services/prisma-service/prisma-client';
@@ -6,8 +6,9 @@ import tagService from '@/services/tag-service/tag-service';
 import { Comment } from '@prisma/client';
 
 import { randomUUID } from 'crypto';
+import { NextResponse } from 'next/server';
 
-export async function POST(request: Request): Promise<Response> {
+export async function POST(request: Request): Promise<NextResponse> {
   try {
     const body = await request.json();
     const imageData: string = body['imageData'];
@@ -16,7 +17,7 @@ export async function POST(request: Request): Promise<Response> {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return createResponse(ResponseStatus.UNAUTHORIZED);
     }
 
     const idToken = await auth.verifyIdToken(token);
@@ -110,7 +111,6 @@ export async function POST(request: Request): Promise<Response> {
 
     return createResponse(ResponseStatus.OK, newComment);
   } catch (error) {
-    console.log('🚀 ~ POST ~ error:', error);
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }

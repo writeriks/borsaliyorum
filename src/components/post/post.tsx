@@ -4,14 +4,14 @@ import { useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import UserAvatar from '@/components/user-avatar/user-avatar';
 import Image from 'next/image';
-import ContentOptions from '@/components/content-actions/content-options';
-import ContentAction from '@/components/content-actions/content-actions';
+import EntryOptions from '@/components/entry-actions/entry-options';
+import EntryActions from '@/components/entry-actions/entry-actions';
 import Content from '@/components/content/content';
-import { formatDate } from '@/app/utils/content-utils/content-utils';
+import { formatDate } from '@/utils/content-utils/content-utils';
 import { Post as PostType, Sentiment } from '@prisma/client';
 import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
 import { useQuery } from '@tanstack/react-query';
-import postApiService from '@/services/api-service/post-api-service/post-api-service';
+import userApiService from '@/services/api-service/user-api-service/user-api-service';
 
 export interface PostProp {
   post: PostType;
@@ -21,10 +21,12 @@ const Post: React.FC<PostProp> = ({ post }) => {
   const currentUser = useSelector(userReducerSelector.getUser);
 
   const { data: postOwner } = useQuery({
-    queryKey: ['get-post-owner'],
-    queryFn: async () => await postApiService.getPostOwnerById(post.userId),
+    queryKey: [`get-entry-owner-${post.userId}`],
+    queryFn: async () => await userApiService.getEntryOwner(post.userId),
     enabled: !!post.userId,
   });
+
+  console.log('post.userId', post.userId);
 
   const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(post.mediaUrl ?? '')}`;
 
@@ -69,10 +71,10 @@ const Post: React.FC<PostProp> = ({ post }) => {
             </div>
           </div>
           {/* TODO Implement post delete logic */}
-          <ContentOptions
+          <EntryOptions
             onDeleteSuccess={() => console.log('TODO: Implement')}
-            content={post}
-            isContentOwner={postOwner?.username === currentUser.username}
+            entry={post}
+            isEntryOwner={postOwner?.username === currentUser.username}
           />
         </div>
 
@@ -94,7 +96,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
         )}
       </CardContent>
       <CardFooter className='flex items-center justify-between ml-16 mr-16'>
-        <ContentAction content={post} />
+        <EntryActions entry={post} />
       </CardFooter>
     </Card>
   );

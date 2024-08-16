@@ -98,22 +98,6 @@ class PostApiService {
 
     return response.json();
   };
-
-  getPostOwnerById = async (userId: number): Promise<User> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch(`/api/post/get-post-owner?userId=${encodeURIComponent(userId)}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) throw new Error(response.statusText);
-
-    return response.json();
-  };
 }
 
 const postApiService = new PostApiService();

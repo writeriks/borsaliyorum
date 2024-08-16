@@ -19,7 +19,7 @@ import { Icons } from '@/components/ui/icons';
 import { MAX_CHARACTERS } from '@/services/api-service/post-api-service/constants';
 import commentApiService from '@/services/api-service/comment-api-service/comment-api-service';
 import { cn } from '@/lib/utils';
-import postApiService from '@/services/api-service/post-api-service/post-api-service';
+import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { Comment } from '@prisma/client';
 
 interface NewCommentProps {
@@ -33,8 +33,8 @@ interface NewCommentProps {
 
 const NewComment: React.FC<NewCommentProps> = ({ postOwnerId, postId, mention, onSubmit }) => {
   const { data: postOwner } = useQuery({
-    queryKey: ['get-post-owner'],
-    queryFn: async () => await postApiService.getPostOwnerById(postOwnerId),
+    queryKey: [`get-entry-owner-${postOwnerId}`],
+    queryFn: async () => await userApiService.getEntryOwner(postOwnerId),
     enabled: !!postOwnerId,
   });
 

@@ -1,46 +1,34 @@
-import {
-  isValidDisplayName,
-  isValidEmail,
-  isValidUsername,
-} from '@/app/utils/user-utils/user-utils';
 import prisma from '@/services/prisma-service/prisma-client';
-
+import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
+import { isValidUsername, isValidEmail, isValidDisplayName } from '@/utils/user-utils/user-utils';
 import { NextResponse } from 'next/server';
 
-export async function POST(request: Request): Promise<Response> {
+export async function POST(request: Request): Promise<NextResponse> {
   try {
     const body = await request.json();
     const username = body['username'] as string;
     const email = body['email'] as string;
     const displayName = body['displayName'] as string;
 
-    const badRequestProps = {
-      status: 400,
-      statusText: 'Bad Request',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-      },
-    };
-
     // Check if username is valid
     if (!isValidUsername(username)) {
       const message = 'Geçersiz kullanıcı adı.';
 
-      return NextResponse.json({ error: message }, badRequestProps);
+      return createResponse(ResponseStatus.BAD_REQUEST, message);
     }
 
     // Check if email is valid
     if (!isValidEmail(email)) {
       const message = 'Geçersiz e-posta.';
 
-      return NextResponse.json({ error: message }, badRequestProps);
+      return createResponse(ResponseStatus.BAD_REQUEST, message);
     }
 
     // Check if display name is valid
     if (!isValidDisplayName(displayName)) {
       const message = 'Geçersiz ad soyad.';
 
-      return NextResponse.json({ error: message }, badRequestProps);
+      return createResponse(ResponseStatus.BAD_REQUEST, message);
     }
 
     // check if email is taken
@@ -53,7 +41,7 @@ export async function POST(request: Request): Promise<Response> {
     if (emailUser && emailUser.email === email) {
       const message = 'Bu e-posta adresi ile bir kullanıcı zaten mevcut.';
 
-      return NextResponse.json({ error: message }, badRequestProps);
+      return createResponse(ResponseStatus.BAD_REQUEST, message);
     }
 
     // check if email is taken
@@ -67,17 +55,11 @@ export async function POST(request: Request): Promise<Response> {
       const message =
         'Bu kullanıcı adı daha önce alınmış. Lütfen farklı bir kullanıcı adı ile tekrar deneyin.';
 
-      return NextResponse.json({ error: message }, badRequestProps);
+      return createResponse(ResponseStatus.BAD_REQUEST, message);
     }
 
-    return new Response(null, {
-      status: 200,
-      statusText: 'SUCCESS',
-    });
+    return createResponse(ResponseStatus.OK);
   } catch (error) {
-    return new Response(null, {
-      status: 500,
-      statusText: 'Internal Server Error',
-    });
+    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }

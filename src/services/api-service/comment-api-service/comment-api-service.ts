@@ -1,7 +1,5 @@
 import { auth } from '@/services/firebase-service/firebase-config';
-import { User } from '@prisma/client';
-
-import { DocumentData } from 'firebase/firestore';
+import { Comment } from '@prisma/client';
 
 class CommentApiService {
   createNewComment = async (
@@ -32,7 +30,7 @@ class CommentApiService {
     postId: number,
     lastCommentId: string
   ): Promise<{
-    comments: DocumentData[];
+    comments: Comment[];
     lastCommentId: string;
   }> => {
     const idToken = await auth.currentUser?.getIdToken();
@@ -52,25 +50,6 @@ class CommentApiService {
       const error = await response.json();
       throw new Error(error.message);
     }
-
-    return response.json();
-  };
-
-  getCommentOwnerById = async (userId: number): Promise<User> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch(
-      `/api/comment/get-comment-owner?userId=${encodeURIComponent(userId)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) throw new Error(response.statusText);
 
     return response.json();
   };

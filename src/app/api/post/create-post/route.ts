@@ -1,12 +1,13 @@
-import { createResponse, ResponseStatus } from '@/app/api/api-utils/api-utils';
+import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { MAX_CHARACTERS } from '@/services/api-service/post-api-service/constants';
 import { auth, storageBucket } from '@/services/firebase-service/firebase-admin';
 import prisma from '@/services/prisma-service/prisma-client';
 import tagService from '@/services/tag-service/tag-service';
 import { Post } from '@prisma/client';
 import { randomUUID } from 'crypto';
+import { NextResponse } from 'next/server';
 
-export async function POST(request: Request): Promise<Response> {
+export async function POST(request: Request): Promise<NextResponse> {
   try {
     const body = await request.json();
     const imageData: string = body['imageData'];
@@ -122,10 +123,6 @@ export async function POST(request: Request): Promise<Response> {
 
     return createResponse(ResponseStatus.OK, { newPost });
   } catch (error) {
-    console.error('Error in POST handler:', error);
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }
