@@ -171,7 +171,7 @@ const NewComment: React.FC<NewCommentProps> = ({ postOwnerId, postId, mention, o
           )}
         </div>
 
-        <div className='flex justify-between items-center mt-3'>
+        <div className='flex justify-end items-center mt-3'>
           <div className='flex space-x-2'>
             <ImageUploader
               fileInputRef={fileInputRef}
@@ -179,7 +179,7 @@ const NewComment: React.FC<NewCommentProps> = ({ postOwnerId, postId, mention, o
               disabled={commentMutation.isPending}
             />
             <Button
-              className='flex items-center p-2 w-10 h-10 text-lg rounded-full '
+              className='flex items-center p-2 w-8 h-8 text-sm font-bold rounded-full '
               variant='default'
               disabled={commentMutation.isPending}
             >
@@ -187,7 +187,7 @@ const NewComment: React.FC<NewCommentProps> = ({ postOwnerId, postId, mention, o
             </Button>
 
             <Button
-              className='flex items-center min-w-24 px-4 text-lg py-2 rounded-full'
+              className='flex bg-bluePrimary items-center h-8 px-4 text-sm text-white font-bold py-2 rounded-full'
               variant='default'
               onClick={submitComment}
               disabled={isSubmitDisabled}

@@ -20,7 +20,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return createResponse(ResponseStatus.UNAUTHORIZED);
     }
 
-    await auth.verifyIdToken(token);
+    const decodedToken = await auth.verifyIdToken(token);
+
+    const currentUser = await prisma.user.findUnique({
+      where: {
+        firebaseUserId: decodedToken.uid,
+      },
+    });
+
+    if (!currentUser) {
+      return createResponse(ResponseStatus.UNAUTHORIZED);
+    }
 
     const user = await prisma.user.findUnique({
       where: {
@@ -32,7 +42,31 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return createResponse(ResponseStatus.NOT_FOUND, 'Kullanıcı bulunamadı');
     }
 
-    return createResponse(ResponseStatus.OK, user);
+    // Check if the current user is following the specified user
+    const isUserFollowed = await prisma.userFollowers.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: currentUser.userId,
+          followingId: userIdToNumber,
+        },
+      },
+    });
+
+    // Check if the current user has blocked the specified user
+    const isUserBlocked = await prisma.userBlocks.findUnique({
+      where: {
+        blockerId_blockedId: {
+          blockerId: currentUser.userId,
+          blockedId: userIdToNumber,
+        },
+      },
+    });
+
+    return createResponse(ResponseStatus.OK, {
+      ...user,
+      isUserFollowed: !!isUserFollowed,
+      isUserBlocked: !!isUserBlocked,
+    });
   } catch (error: any) {
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }

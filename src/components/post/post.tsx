@@ -15,9 +15,10 @@ import userApiService from '@/services/api-service/user-api-service/user-api-ser
 
 export interface PostProp {
   post: PostType;
+  onPostClick?: (post: PostType) => void;
 }
 
-const Post: React.FC<PostProp> = ({ post }) => {
+const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
   const currentUser = useSelector(userReducerSelector.getUser);
 
   const { data: postOwner } = useQuery({
@@ -25,8 +26,6 @@ const Post: React.FC<PostProp> = ({ post }) => {
     queryFn: async () => await userApiService.getEntryOwner(post.userId),
     enabled: !!post.userId,
   });
-
-  console.log('post.userId', post.userId);
 
   const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(post.mediaUrl ?? '')}`;
 
@@ -44,7 +43,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
       </div>
     ),
     [Sentiment.neutral]: (
-      <div className='flex items-center p-1  rounded-md bg-destructive text-destructive-foreground'>
+      <div className='flex items-center p-1  rounded-md bg-secondary text-destructive-foreground'>
         <Minus />
       </div>
     ),
@@ -72,6 +71,8 @@ const Post: React.FC<PostProp> = ({ post }) => {
           </div>
           {/* TODO Implement post delete logic */}
           <EntryOptions
+            isBlocked={postOwner?.isUserBlocked ?? false}
+            isFollowed={postOwner?.isUserFollowed ?? false}
             onDeleteSuccess={() => console.log('TODO: Implement')}
             entry={post}
             isEntryOwner={postOwner?.username === currentUser.username}
@@ -96,7 +97,7 @@ const Post: React.FC<PostProp> = ({ post }) => {
         )}
       </CardContent>
       <CardFooter className='flex items-center justify-between ml-16 mr-16'>
-        <EntryActions entry={post} />
+        <EntryActions onPostClick={onPostClick} entry={post} />
       </CardFooter>
     </Card>
   );

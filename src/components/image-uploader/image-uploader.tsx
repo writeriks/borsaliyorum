@@ -77,7 +77,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   return (
     <>
       <Button
-        className='flex items-center p-1 w-10 h-10 rounded-full'
+        className='flex items-center p-1 w-8 h-8 rounded-full'
         variant='default'
         onClick={handleImageUpload}
         disabled={disabled}

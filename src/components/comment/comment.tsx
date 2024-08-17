@@ -37,6 +37,8 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick
             <div className='text-xs text-muted-foreground'>{commentor?.username}</div>
           </div>
           <EntryOptions
+            isBlocked={commentor?.isUserBlocked ?? false}
+            isFollowed={commentor?.isUserFollowed ?? false}
             onDeleteSuccess={onDeleteClick}
             entry={comment}
             isEntryOwner={commentor?.username === currentUser.username}

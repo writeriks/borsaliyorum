@@ -6,9 +6,10 @@ interface EntryProp {
   entry: Post | Comment;
   commentor?: User;
   onCommentClick?: (commentor: User) => void;
+  onPostClick?: (post: Post) => void;
 }
 
-const EntryActions: React.FC<EntryProp> = ({ entry, onCommentClick, commentor }) => {
+const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, onPostClick }) => {
   const router = useRouter();
 
   const isComment = 'commentId' in entry;
@@ -17,7 +18,7 @@ const EntryActions: React.FC<EntryProp> = ({ entry, onCommentClick, commentor })
     if (isComment && onCommentClick) {
       onCommentClick(commentor as User);
     } else {
-      router.push(`post/${entry.postId}`);
+      onPostClick?.(entry as Post);
     }
   };
 

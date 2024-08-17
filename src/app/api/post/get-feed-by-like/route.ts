@@ -46,11 +46,24 @@ export async function GET(request: Request): Promise<NextResponse> {
       });
     }
 
+    // Fetch the IDs of users that have blocked the current user
+    const blockedUsers = await prisma.userBlocks.findMany({
+      where: {
+        blockerId: currentUser.userId,
+      },
+      select: {
+        blockedId: true,
+      },
+    });
+
+    const blockedUserIds = blockedUsers.map(user => user.blockedId);
+
     // Fetch posts by following users, paginated and ordered by like count
     const postsByLike = await prisma.post.findMany({
       where: {
         userId: {
           in: followingUserIds,
+          notIn: blockedUserIds,
         },
       },
       orderBy: {

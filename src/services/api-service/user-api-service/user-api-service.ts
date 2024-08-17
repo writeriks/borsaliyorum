@@ -6,6 +6,11 @@ import store from '@/store/redux-store';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { User } from '@prisma/client';
 
+export type ExtendedUser = User & {
+  isUserFollowed: boolean;
+  isUserBlocked: boolean;
+};
+
 class UserApiService {
   /**
    * Retrieves a user by user ID.
@@ -37,7 +42,7 @@ class UserApiService {
    * @param userId - The ID of the user to retrieve.
    * @returns  The user, or undefined if not found.
    */
-  getEntryOwner = async (userId: number): Promise<User | undefined> => {
+  getEntryOwner = async (userId: number): Promise<ExtendedUser | undefined> => {
     try {
       const idToken = await auth.currentUser?.getIdToken();
 
@@ -257,6 +262,106 @@ class UserApiService {
     } catch (error) {
       console.error('Error updating user:', error);
     }
+  };
+
+  /**
+   * Follows a user.
+   * @param userId - The ID of the user to follow.
+   * @returns The response from the follow operation.
+   */
+  followUser = async (userId: number): Promise<void> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch('/api/user/follow-user', {
+      method: 'POST',
+      body: JSON.stringify({ userId }),
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
+
+  /**
+   * Unfollows a user.
+   * @param userId - The ID of the user to unfollow.
+   * @returns The response from the unfollow operation.
+   */
+  unfollowUser = async (userId: number): Promise<any> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch('/api/user/unfollow-user', {
+      method: 'POST',
+      body: JSON.stringify({ userId }),
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
+
+  /**
+   * Blocks a user.
+   * @param userId - The ID of the user to block.
+   * @returns The response from the block operation.
+   */
+  blockUser = async (userId: number): Promise<void> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch('/api/user/block-user', {
+      method: 'POST',
+      body: JSON.stringify({ userId }),
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
+
+  /**
+   * Blocks a user.
+   * @param userId - The ID of the user to block.
+   * @returns The response from the block operation.
+   */
+  unblockUser = async (userId: number): Promise<void> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch('/api/user/unblock-user', {
+      method: 'POST',
+      body: JSON.stringify({ userId }),
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
   };
 }
 

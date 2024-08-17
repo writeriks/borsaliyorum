@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -19,7 +19,11 @@ import useUINotification from '@/hooks/useUINotification';
 import useUser from '@/hooks/useUser';
 import { AuthModal } from '@/components/auth/auth-modal';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
-import { setIsAuthModalOpen, setIsNewPostModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
+import {
+  setIsAuthModalOpen,
+  setIsNewPostModalOpen,
+  toggleHamburgerMenuOpen,
+} from '@/store/reducers/ui-reducer/ui-slice';
 import Discover from '@/components/discover/discover';
 import useValidateSession from '@/hooks/useValidateSession';
 import TabBarController from '@/components/tab-bar-controller/tab-bar-controller';
@@ -35,6 +39,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
   const currentUser = useSelector(userReducerSelector.getUser);
   const isAuthModalOpen = useSelector(uiReducerSelector.getIsAuthModalOpen);
   const isNewPostModalOpen = useSelector(uiReducerSelector.getIsNewPostModalOpen);
+  const isHamburgerMenuOpen = useSelector(uiReducerSelector.getIsHamburgerMenuOpen);
 
   useEffect(() => {
     if (window) {
@@ -47,6 +52,10 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
       <main className='flex-grow text-base'>
         <SideBarMenu />
         <NavigationBar />
+
+        {isHamburgerMenuOpen && (
+          <div className='bg-black bg-opacity-50 fixed z-40 w-screen h-screen'></div>
+        )}
 
         <div id='main-container' className='flex w-full flex-col md:flex-row lg:flex-row'>
           <div

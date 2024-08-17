@@ -1,54 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server';
-
+import prisma from '@/services/prisma-service/prisma-client';
 import { auth } from '@/services/firebase-service/firebase-admin';
-import { CollectionPath } from '@/services/firebase-service/types/collection-types';
-import { WhereFieldEnum } from '@/services/firebase-service/firebase-operations-types';
-import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
-import { CommentsCollectionEnum } from '@/services/firebase-service/types/db-types/comment';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
-    const commentId = searchParams.get('commentId');
-    const userId = searchParams.get('userId');
+    const commentId = parseInt(searchParams.get('commentId') ?? '');
+    const userId = parseInt(searchParams.get('userId') ?? '');
 
+    // Validate input
     if (!commentId || !userId) {
       return createResponse(ResponseStatus.BAD_REQUEST);
     }
 
+    // Verify and decode token
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-
     if (!token) {
       return createResponse(ResponseStatus.UNAUTHORIZED);
     }
 
-    const idToken = await auth.verifyIdToken(token);
+    const decodedToken = await auth.verifyIdToken(token);
 
-    if (idToken.uid !== userId) {
+    const currentUser = await prisma.user.findUnique({
+      where: {
+        firebaseUserId: decodedToken.uid,
+      },
+    });
+
+    if (!currentUser) {
       return createResponse(ResponseStatus.UNAUTHORIZED);
     }
 
-    const { lastDocument } = await firebaseGenericOperations.getDocumentsWithQuery({
-      collectionPath: CollectionPath.Comments,
-      whereFields: [
-        {
-          field: CommentsCollectionEnum.COMMENT_ID,
-          operator: WhereFieldEnum.EQUALS,
-          value: commentId,
-        },
-      ],
+    if (currentUser.userId !== userId) {
+      return createResponse(ResponseStatus.UNAUTHORIZED);
+    }
+
+    // Check if the comment exists and if it belongs to the user
+    const comment = await prisma.comment.findUnique({
+      where: {
+        commentId: commentId,
+      },
     });
 
-    const deletedCommentId = lastDocument?.data().commentId ?? '';
-
-    if (deletedCommentId) {
-      await firebaseGenericOperations.deleteDocumentById(CollectionPath.Comments, deletedCommentId);
-      return createResponse(ResponseStatus.OK, { deletedCommentId });
-    } else {
-      return createResponse(ResponseStatus.NOT_FOUND);
+    if (!comment) {
+      return createResponse(ResponseStatus.BAD_REQUEST, 'Yorum bulunamadı.');
     }
-  } catch (error: any) {
-    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
+
+    if (comment.userId !== userId) {
+      return createResponse(ResponseStatus.UNAUTHORIZED);
+    }
+
+    // Delete the comment
+    await prisma.comment.delete({
+      where: {
+        commentId: commentId,
+      },
+    });
+
+    return createResponse(ResponseStatus.OK, { deletedCommentId: commentId });
+  } catch (error) {
+    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR, 'Internal server error.');
   }
 }

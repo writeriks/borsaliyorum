@@ -12,22 +12,30 @@ import { useMutation, UseMutationResult } from '@tanstack/react-query';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import useUser from '@/hooks/useUser';
 import postApiService from '@/services/api-service/post-api-service/post-api-service';
-import { FeedTab, LoadingSkeletons } from '@/app/constants';
+import { ActiveScreen, FeedTab, LoadingSkeletons } from '@/app/constants';
 import useInfiniteScroll from '@/hooks/useInfiniteScroll';
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
 import { Post as PostType } from '@prisma/client';
+import useScrollToPost from '@/hooks/useScrollToPost';
+import PostDetail from '@/components/post/post-detail';
+import { useRouter } from 'next/navigation';
 
 const Home = (): React.ReactNode => {
   const [postsByDate, setPostsByDate] = useState<PostType[]>([]);
   const [postsByLike, setPostsByLike] = useState<PostType[]>([]);
+  const [selectedPost, setSelectedPost] = useState<PostType>();
   const [lastPostIdForDate, setLastPostIdForDate] = useState('');
   const [lastPostIdForLike, setLastPostIdForLike] = useState('');
   const [activeTab, setActiveTab] = useState<FeedTab>(FeedTab.LATEST);
   const [isLikeTabClicked, setIsLikeTabClicked] = useState(false);
+  const [activeScreen, setActiveScreen] = useState(ActiveScreen.FEED);
 
   const { fbAuthUser } = useUser();
+  const router = useRouter();
 
   const dispatch = useDispatch();
+
+  const { saveScrollPosition } = useScrollToPost(activeScreen, setActiveScreen);
 
   const setPosts = (data: any): void => {
     if (!data) return;
@@ -56,7 +64,11 @@ const Home = (): React.ReactNode => {
 
   const mutationForDate = useMutation({
     mutationFn: async () => {
-      if (lastPostIdForDate === undefined || lastPostIdForDate === null) {
+      if (
+        lastPostIdForDate === undefined ||
+        lastPostIdForDate === null ||
+        activeScreen === ActiveScreen.POST_DETAIL
+      ) {
         return;
       }
 
@@ -68,7 +80,11 @@ const Home = (): React.ReactNode => {
 
   const mutationForLike = useMutation({
     mutationFn: async () => {
-      if (lastPostIdForLike === undefined || lastPostIdForLike === null) {
+      if (
+        lastPostIdForLike === undefined ||
+        lastPostIdForLike === null ||
+        activeScreen === ActiveScreen.POST_DETAIL
+      ) {
         return;
       }
 
@@ -103,9 +119,24 @@ const Home = (): React.ReactNode => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fbAuthUser]);
 
-  return (
-    <div className='flex min-w-full  justify-center'>
-      <div className='flex flex-col w-full max-w-3xl '>
+  const handlePostClick = (post: PostType): void => {
+    saveScrollPosition(); // Save the scroll position before navigating away
+    setSelectedPost(post);
+    setActiveScreen(ActiveScreen.POST_DETAIL);
+    // TODO: Handle refresh case when in post detail.
+    history.pushState({}, '', `?post=${post.postId}`);
+  };
+
+  const handlePostDetailBackClick = (): void => {
+    setActiveScreen(ActiveScreen.FEED);
+    history.back(); // This will trigger the popstate event
+  };
+
+  return activeScreen === ActiveScreen.POST_DETAIL ? (
+    <PostDetail onBackClick={handlePostDetailBackClick} post={selectedPost!} />
+  ) : (
+    <div className='flex min-w-full justify-center'>
+      <div className='flex flex-col w-full max-w-2xl '>
         <NewPost />
         <div className='w-full self-start'>
           <Tabs
@@ -121,13 +152,13 @@ const Home = (): React.ReactNode => {
             </TabsList>
             <TabsContent value={FeedTab.LATEST}>
               {postsByDate.map(post => (
-                <Post key={post.postId} post={post} />
+                <Post onPostClick={handlePostClick} key={post.postId} post={post} />
               ))}
               {getMutation().isPending && <LoadingSkeleton type={LoadingSkeletons.POST} />}
             </TabsContent>
             <TabsContent value={FeedTab.POPULAR}>
               {postsByLike.map(post => (
-                <Post key={post.postId} post={post} />
+                <Post onPostClick={handlePostClick} key={post.postId} post={post} />
               ))}
               {getMutation().isPending && <LoadingSkeleton type={LoadingSkeletons.POST} />}
             </TabsContent>

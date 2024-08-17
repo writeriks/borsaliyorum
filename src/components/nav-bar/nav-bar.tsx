@@ -19,7 +19,7 @@ const NavigationBar = (): React.ReactNode => {
       <div className='container mx-auto flex items-center justify-between'>
         <a href='/feed'>LOGO</a>
 
-        <div className='z-40 md:hidden'>
+        <div id='hamburger-menu' className='z-40 md:hidden'>
           <button
             title='hamburger menu'
             className='transform transition duration-300 ease-in-out'

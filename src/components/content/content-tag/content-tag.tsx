@@ -7,7 +7,7 @@ interface ContentTagProps {
 }
 
 const ContentTag: React.FC<ContentTagProps> = ({ tag, lineIndex, offset }) => (
-  <strong key={`${lineIndex}-${offset}`} className='bg-slate-300 dark:bg-slate-700 font-thin'>
+  <strong key={`${lineIndex}-${offset}`} className='bg-slate-300 dark:bg-slate-700'>
     {tag}
   </strong>
 );
