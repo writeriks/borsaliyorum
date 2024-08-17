@@ -20,7 +20,7 @@ import useUser from '@/hooks/useUser';
 import { AuthModal } from '@/components/auth/auth-modal';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
 import { setIsAuthModalOpen, setIsNewPostModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
-import Discover from '@/components/doscover/discover';
+import Discover from '@/components/discover/discover';
 import useValidateSession from '@/hooks/useValidateSession';
 import TabBarController from '@/components/tab-bar-controller/tab-bar-controller';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';

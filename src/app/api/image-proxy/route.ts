@@ -1,3 +1,4 @@
+import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { NextRequest, NextResponse } from 'next/server';
 
 /* Buffer to return image to client */
@@ -6,7 +7,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const imageUrl = searchParams.get('imageUrl');
 
   if (!imageUrl) {
-    return NextResponse.json({ error: 'Image URL is required' }, { status: 400 });
+    return createResponse(ResponseStatus.BAD_REQUEST, 'Image URL is required');
   }
 
   try {
@@ -26,7 +27,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       headers,
     });
   } catch (error: any) {
-    console.error('Error fetching image:', error.message);
-    return NextResponse.json({ error: 'Error fetching image' }, { status: 500 });
+    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }

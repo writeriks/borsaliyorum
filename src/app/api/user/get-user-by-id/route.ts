@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { auth } from '@/services/firebase-service/firebase-admin';
 import prisma from '@/services/prisma-service/prisma-client';
+import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-      return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return createResponse(ResponseStatus.UNAUTHORIZED);
     }
 
     await auth.verifyIdToken(token);
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const userId = searchParams.get('userId');
 
     if (!userId) {
-      return NextResponse.json('', { status: 400, statusText: 'Bad request' });
+      return createResponse(ResponseStatus.BAD_REQUEST);
     }
 
     const user = await prisma.user.findUnique({
@@ -27,17 +28,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     });
 
     if (!user) {
-      return new NextResponse('', { status: 404, statusText: 'User not found' });
+      return createResponse(ResponseStatus.NOT_FOUND);
     }
 
-    return new NextResponse(JSON.stringify(user), {
-      status: 200,
-      statusText: 'SUCCESS',
-    });
+    return createResponse(ResponseStatus.OK, user);
   } catch (error: any) {
-    return new NextResponse(null, {
-      status: 500,
-      statusText: 'Internal Server Error',
-    });
+    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }

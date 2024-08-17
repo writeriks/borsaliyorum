@@ -1,11 +1,9 @@
 import { auth } from '@/services/firebase-service/firebase-config';
-import { Sentiment } from '@prisma/client';
-
-import { DocumentData } from 'firebase/firestore';
+import { Comment } from '@prisma/client';
 
 class CommentApiService {
   createNewComment = async (
-    comment: { content: string; sentiment: Sentiment; postId: number },
+    comment: { postId: number; content: string },
     imageData: string
   ): Promise<any> => {
     const requestBody = {
@@ -29,10 +27,10 @@ class CommentApiService {
   };
 
   getCommentsByPostId = async (
-    postId: string,
+    postId: number,
     lastCommentId: string
   ): Promise<{
-    comments: DocumentData[];
+    comments: Comment[];
     lastCommentId: string;
   }> => {
     const idToken = await auth.currentUser?.getIdToken();
@@ -57,9 +55,9 @@ class CommentApiService {
   };
 
   deleteComment = async (
-    commentId: string,
-    userId: string
-  ): Promise<{ deletedCommentId: string }> => {
+    commentId: number,
+    userId: number
+  ): Promise<{ deletedCommentId: number }> => {
     const idToken = await auth.currentUser?.getIdToken();
 
     const response = await fetch(

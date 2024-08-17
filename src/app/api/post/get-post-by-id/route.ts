@@ -1,55 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { auth } from '@/services/firebase-service/firebase-admin';
-import { CollectionPath } from '@/services/firebase-service/types/collection-types';
-import { PostsCollectionEnum } from '@/services/firebase-service/types/db-types/post';
-import { WhereFieldEnum } from '@/services/firebase-service/firebase-operations-types';
-import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
+import prisma from '@/services/prisma-service/prisma-client';
+import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 
-export async function GET(request: NextRequest): Promise<Response> {
-  const { searchParams } = new URL(request.url);
-  const postId = searchParams.get('postId');
-
-  if (!postId) {
-    return NextResponse.json({ error: 'error on getting post' }, { status: 400 });
-  }
-
-  const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-
-  if (!token) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-  }
-
-  await auth.verifyIdToken(token);
-
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const response = await firebaseGenericOperations.getDocumentsWithQuery({
-      collectionPath: CollectionPath.Posts,
-      whereFields: [
-        {
-          field: PostsCollectionEnum.POST_ID,
-          operator: WhereFieldEnum.EQUALS,
-          value: postId,
-        },
-      ],
-      documentLimit: 1,
-    });
+    const { searchParams } = new URL(request.url);
+    const postId = searchParams.get('postId');
 
-    const post = response.documents[0];
-
-    if (!post) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    if (!postId) {
+      return createResponse(ResponseStatus.BAD_REQUEST);
     }
 
-    return new NextResponse(JSON.stringify(post), {
-      status: 200,
-      statusText: 'SUCCESS',
+    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+
+    if (!token) {
+      return createResponse(ResponseStatus.UNAUTHORIZED);
+    }
+
+    await auth.verifyIdToken(token);
+
+    const postIdToNumber = parseInt(postId ?? '');
+    const post = await prisma.post.findUnique({
+      where: {
+        postId: postIdToNumber,
+      },
     });
+
+    if (!post) {
+      return createResponse(ResponseStatus.NOT_FOUND);
+    }
+
+    return createResponse(ResponseStatus.OK, post);
   } catch (error: any) {
-    console.error('Error fetching post:', error.message);
-    return new NextResponse(null, {
-      status: 500,
-      statusText: 'Internal Server Error',
-    });
+    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }

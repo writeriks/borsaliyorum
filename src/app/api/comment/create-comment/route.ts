@@ -1,32 +1,66 @@
-import { createResponse, ResponseStatus } from '@/app/api/api-utils/api-utils';
+import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { MAX_CHARACTERS } from '@/services/api-service/post-api-service/constants';
 import { auth, storageBucket } from '@/services/firebase-service/firebase-admin';
-import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
-
-import { CollectionPath } from '@/services/firebase-service/types/collection-types';
-import { Comment } from '@/services/firebase-service/types/db-types/comment';
+import prisma from '@/services/prisma-service/prisma-client';
 import tagService from '@/services/tag-service/tag-service';
+import { Comment } from '@prisma/client';
 
 import { randomUUID } from 'crypto';
+import { NextResponse } from 'next/server';
 
-export async function POST(request: Request): Promise<Response> {
+export async function POST(request: Request): Promise<NextResponse> {
   try {
     const body = await request.json();
     const imageData: string = body['imageData'];
     const comment: Comment = body['comment'];
 
-    if (comment.content.length > MAX_CHARACTERS) {
-      return new Response(null, { status: 400, statusText: 'Too many characters' });
-    }
-
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return createResponse(ResponseStatus.UNAUTHORIZED);
     }
 
     const idToken = await auth.verifyIdToken(token);
 
+    const user = await prisma.user.findUnique({
+      where: {
+        firebaseUserId: idToken.uid,
+      },
+    });
+
+    if (!user) {
+      return createResponse(ResponseStatus.UNAUTHORIZED);
+    }
+
+    if (comment.content.length > MAX_CHARACTERS) {
+      return createResponse(
+        ResponseStatus.BAD_REQUEST,
+        'İzin verilenden fazla karakter girdiniz. Lütfen daha kısa bir içerik girin.'
+      );
+    }
+
+    const { cashtags, hashtags, mentions } = tagService.getTagsFromContent(comment.content);
+
+    const stocksByCashtags = await prisma.stock.findMany({
+      where: {
+        ticker: {
+          in: cashtags,
+        },
+      },
+    });
+
+    const isAnyCashtagInvalid = cashtags.some(
+      cashtag => !stocksByCashtags.find(stock => stock.ticker === cashtag)
+    );
+
+    if (isAnyCashtagInvalid) {
+      return createResponse(
+        ResponseStatus.BAD_REQUEST,
+        'Var olmayan bir hisse girdiniz. Lütfen geçerli bir hisse etiketleyin.'
+      );
+    }
+
+    let downloadUrl: string | undefined;
     if (imageData) {
       // Image Upload Workflow
       const base64Data = imageData.split(',')[1];
@@ -44,23 +78,38 @@ export async function POST(request: Request): Promise<Response> {
       });
 
       // Get the download URL for the uploaded image
-      const downloadUrl = await file.getSignedUrl({
+      const imageUrl = await file.getSignedUrl({
         action: 'read',
         expires: '01-01-2100',
       });
 
-      comment.media.src = downloadUrl[0];
+      downloadUrl = imageUrl[0];
     }
 
-    comment.createdAt = Date.now();
-    comment.likeCount = 0;
-    comment.commentId = randomUUID() + Date.now();
-    comment.userId = idToken.uid;
-    await firebaseGenericOperations.createDocumentWithAutoId(CollectionPath.Comments, comment);
+    await tagService.createHashtags(hashtags);
 
-    await tagService.createTag(comment.content);
+    const newComment = await prisma.comment.create({
+      data: {
+        content: comment.content,
+        mediaUrl: downloadUrl,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        post: {
+          connect: {
+            postId: comment.postId,
+          },
+        },
+        user: {
+          connect: {
+            userId: user.userId,
+          },
+        },
+      },
+    });
 
-    return createResponse(ResponseStatus.OK, comment);
+    // TODO: Handle Mentions
+
+    return createResponse(ResponseStatus.OK, newComment);
   } catch (error) {
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }

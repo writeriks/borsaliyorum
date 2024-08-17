@@ -1,13 +1,13 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 import { auth } from '@/services/firebase-service/firebase-admin';
 import { CollectionPath } from '@/services/firebase-service/types/collection-types';
 import { WhereFieldEnum } from '@/services/firebase-service/firebase-operations-types';
 import firebaseGenericOperations from '@/services/firebase-service/firebase-generic-operations';
 import { CommentsCollectionEnum } from '@/services/firebase-service/types/db-types/comment';
-import { createResponse, ResponseStatus } from '@/app/api/api-utils/api-utils';
+import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 
-export async function DELETE(request: NextRequest): Promise<Response> {
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
     const commentId = searchParams.get('commentId');
@@ -49,7 +49,6 @@ export async function DELETE(request: NextRequest): Promise<Response> {
       return createResponse(ResponseStatus.NOT_FOUND);
     }
   } catch (error: any) {
-    console.error('Error deleting comment:', error.message);
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }

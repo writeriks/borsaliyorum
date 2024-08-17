@@ -37,10 +37,22 @@ const ResponseStatusText = {
  */
 export const createResponse = (
   status: ResponseStatus,
-  data?: string | Object
+  data?: string | Object,
+  customHeaders?: Object
 ): NextResponse<any> => {
   const statusText = ResponseStatusText[status];
   let responseData = null;
+
+  const commonHeaders = {
+    'Content-Type': 'application/json; charset=utf-8',
+  };
+
+  const headers = customHeaders
+    ? {
+        ...commonHeaders,
+        ...customHeaders,
+      }
+    : commonHeaders;
 
   switch (status) {
     case ResponseStatus.OK:
@@ -69,8 +81,6 @@ export const createResponse = (
   return NextResponse.json(responseData ?? '', {
     status,
     statusText,
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-    },
+    headers,
   });
 };

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import useUser from '@/hooks/useUser';
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
 import { LoadingSkeletons } from '@/app/constants';
-import TrendingTopics from '@/components/doscover/trending-topics';
+import TrendingTopics from '@/components/discover/trending-topics';
 
 const Discover: React.FC = () => {
   const { fbAuthUser } = useUser();

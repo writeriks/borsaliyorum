@@ -1,8 +1,8 @@
 import { auth } from '@/services/firebase-service/firebase-admin';
-import { createResponse, ResponseStatus } from '@/app/api/api-utils/api-utils';
+import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import prisma from '@/services/prisma-service/prisma-client';
 
-export async function DELETE(request: Request): Promise<Response> {
+export async function DELETE(request: Request): Promise<NextResponse> {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 

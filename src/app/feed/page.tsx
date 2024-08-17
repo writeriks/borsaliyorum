@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import NewPost from '@/components/new-post/new-post';
-import { Post as PostType } from '@/services/firebase-service/types/db-types/post';
+
 import Post from '@/components/post/post';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Discover from '@/components/doscover/discover';
+import Discover from '@/components/discover/discover';
 
 import { useDispatch } from 'react-redux';
 import { useMutation, UseMutationResult } from '@tanstack/react-query';
@@ -15,6 +15,7 @@ import postApiService from '@/services/api-service/post-api-service/post-api-ser
 import { FeedTab, LoadingSkeletons } from '@/app/constants';
 import useInfiniteScroll from '@/hooks/useInfiniteScroll';
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
+import { Post as PostType } from '@prisma/client';
 
 const Home = (): React.ReactNode => {
   const [postsByDate, setPostsByDate] = useState<PostType[]>([]);

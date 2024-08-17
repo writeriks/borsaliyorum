@@ -20,7 +20,7 @@ const Content: React.FC<ContentProps> = ({ content }) => {
     setIsExpanded(!isExpanded);
   };
 
-  const onTagClick = (e: React.MouseEvent<HTMLDivElement>, tag: string): void => {
+  const onTagClick = (e: React.MouseEvent<HTMLSpanElement>, tag: string): void => {
     e.stopPropagation();
     const tagType = tag[0];
     switch (tagType) {
@@ -57,13 +57,13 @@ const Content: React.FC<ContentProps> = ({ content }) => {
         const tag = symbol + (p2 || p3 || p4);
 
         parts.push(
-          <div key={`${lineIndex}-${matchIndex}`} onClick={e => onTagClick(e, tag)}>
+          <span key={`${lineIndex}-${matchIndex}`} onClick={e => onTagClick(e, tag)}>
             {tag.startsWith('$') ? (
               <ContentTagWithTooltip tag={tag} lineIndex={lineIndex} offset={offset} />
             ) : (
               <ContentTag tag={tag} lineIndex={lineIndex} offset={offset} />
             )}
-          </div>
+          </span>
         );
 
         lastLineIndex = offset + fullMatch.length;

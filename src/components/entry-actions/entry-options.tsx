@@ -6,27 +6,26 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Ellipsis, Trash, UserRoundX } from 'lucide-react';
-import { Post } from '@/services/firebase-service/types/db-types/post';
-import { Comment } from '@/services/firebase-service/types/db-types/comment';
 import { useMutation } from '@tanstack/react-query';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { useDispatch } from 'react-redux';
 import commentApiService from '@/services/api-service/comment-api-service/comment-api-service';
+import { Post, Comment } from '@prisma/client';
 
-interface ContentProp {
-  isContentOwner: boolean;
-  content: Comment | Post;
-  onDeleteSuccess: (contentId: string) => void;
+interface EntryProp {
+  isEntryOwner: boolean;
+  entry: Comment | Post;
+  onDeleteSuccess: (entryId: number) => void;
 }
 
-const ContentOptions: React.FC<ContentProp> = ({ isContentOwner, content, onDeleteSuccess }) => {
+const EntryOptions: React.FC<EntryProp> = ({ isEntryOwner, entry, onDeleteSuccess }) => {
   const dispatch = useDispatch();
 
   const deleteCommentMutation = useMutation({
     mutationFn: async () => {
-      return commentApiService.deleteComment((content as Comment).commentId!, content.userId);
+      return commentApiService.deleteComment((entry as Comment).commentId!, entry.userId);
     },
-    onSuccess: (data: { deletedCommentId: string }) => {
+    onSuccess: (data: { deletedCommentId: number }) => {
       onDeleteSuccess(data.deletedCommentId);
       dispatch(
         setUINotification({
@@ -59,7 +58,7 @@ const ContentOptions: React.FC<ContentProp> = ({ isContentOwner, content, onDele
           <UserRoundX className='h-4 w-4 mr-2' />
           Engelle
         </DropdownMenuItem>
-        {isContentOwner && (
+        {isEntryOwner && (
           <DropdownMenuItem onClick={() => deleteCommentMutation.mutate()}>
             <Trash className='h-4 w-4 mr-2 text-destructive' />
             <span className='text-destructive'>Sil</span>
@@ -70,4 +69,4 @@ const ContentOptions: React.FC<ContentProp> = ({ isContentOwner, content, onDele
   );
 };
 
-export default ContentOptions;
+export default EntryOptions;

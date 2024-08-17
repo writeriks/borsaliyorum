@@ -1,15 +1,16 @@
 import { auth } from '@/services/firebase-service/firebase-admin';
 import prisma from '@/services/prisma-service/prisma-client';
-import { createResponse, ResponseStatus } from '@/app/api/api-utils/api-utils';
+import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { User } from '@prisma/client';
+import { NextResponse } from 'next/server';
 
 // TODO: Consider renaming route
-export async function POST(request: Request): Promise<Response> {
+export async function POST(request: Request): Promise<NextResponse> {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return createResponse(ResponseStatus.UNAUTHORIZED);
     }
 
     const idToken = await auth.verifyIdToken(token);

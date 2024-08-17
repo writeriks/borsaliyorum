@@ -132,7 +132,9 @@ const NewPost = (): React.ReactElement => {
   return (
     <div className='lg:p-6 flex p-2 w-full self-start md:border rounded'>
       <div className='flex items-start w-10 lg:w-12'>
-        <UserAvatar user={user} />
+        <UserAvatar
+          user={{ profilePhoto: user.profilePhoto ?? '', displayName: user.displayName }}
+        />
       </div>
       <div className='flex flex-col ml-2 w-full justify-between'>
         <div className='flex'>
