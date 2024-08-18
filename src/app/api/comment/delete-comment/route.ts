@@ -51,15 +51,22 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
       return createResponse(ResponseStatus.UNAUTHORIZED);
     }
 
-    // Delete the comment
-    await prisma.comment.delete({
-      where: {
-        commentId: commentId,
-      },
-    });
+    // Use a transaction to delete the comment likes and the comment atomically
+    await prisma.$transaction([
+      prisma.commentLikes.deleteMany({
+        where: {
+          commentId: commentId,
+        },
+      }),
+      prisma.comment.delete({
+        where: {
+          commentId: commentId,
+        },
+      }),
+    ]);
 
     return createResponse(ResponseStatus.OK, { deletedCommentId: commentId });
   } catch (error) {
-    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR, 'Internal server error.');
+    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }

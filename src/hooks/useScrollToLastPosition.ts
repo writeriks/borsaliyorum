@@ -1,7 +1,7 @@
 import { ActiveScreen } from '@/app/constants';
 import { useEffect, useRef } from 'react';
 
-const useScrollToPost = (
+const useScrollToLastPosition = (
   activeScreen: ActiveScreen,
   setActiveScreen: React.Dispatch<React.SetStateAction<ActiveScreen>>
 ): {
@@ -36,4 +36,4 @@ const useScrollToPost = (
   return { saveScrollPosition };
 };
 
-export default useScrollToPost;
+export default useScrollToLastPosition;

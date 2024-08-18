@@ -1,6 +1,7 @@
 import { auth } from '@/services/firebase-service/firebase-admin';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import prisma from '@/services/prisma-service/prisma-client';
+import { NextResponse } from 'next/server';
 
 export async function DELETE(request: Request): Promise<NextResponse> {
   try {

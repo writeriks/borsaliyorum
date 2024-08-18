@@ -8,7 +8,6 @@ import { User } from '@prisma/client';
 
 export type ExtendedUser = User & {
   isUserFollowed: boolean;
-  isUserBlocked: boolean;
 };
 
 class UserApiService {

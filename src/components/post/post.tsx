@@ -71,7 +71,6 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
           </div>
           {/* TODO Implement post delete logic */}
           <EntryOptions
-            isBlocked={postOwner?.isUserBlocked ?? false}
             isFollowed={postOwner?.isUserFollowed ?? false}
             onDeleteSuccess={() => console.log('TODO: Implement')}
             entry={post}

@@ -46,8 +46,8 @@ export async function GET(request: Request): Promise<NextResponse> {
       });
     }
 
-    // Fetch the IDs of users that have blocked the current user
-    const blockedUsers = await prisma.userBlocks.findMany({
+    // Fetch the IDs of users that have blocked by the current user
+    const blockedUsersByCurrentUser = await prisma.userBlocks.findMany({
       where: {
         blockerId: currentUser.userId,
       },
@@ -56,7 +56,20 @@ export async function GET(request: Request): Promise<NextResponse> {
       },
     });
 
-    const blockedUserIds = blockedUsers.map(user => user.blockedId);
+    // Fetch the IDs of users who have blocked the current user
+    const usersWhoBlockedCurrentUser = await prisma.userBlocks.findMany({
+      where: {
+        blockedId: currentUser.userId,
+      },
+      select: {
+        blockerId: true,
+      },
+    });
+
+    const blockedUserIds = [
+      ...blockedUsersByCurrentUser.map(user => user.blockedId),
+      ...usersWhoBlockedCurrentUser.map(user => user.blockerId),
+    ];
 
     // Fetch posts by following users, paginated and ordered by like count
     const postsByLike = await prisma.post.findMany({

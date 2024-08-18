@@ -16,9 +16,8 @@ import { ActiveScreen, FeedTab, LoadingSkeletons } from '@/app/constants';
 import useInfiniteScroll from '@/hooks/useInfiniteScroll';
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
 import { Post as PostType } from '@prisma/client';
-import useScrollToPost from '@/hooks/useScrollToPost';
+import useScrollToLastPosition from '@/hooks/useScrollToLastPosition';
 import PostDetail from '@/components/post/post-detail';
-import { useRouter } from 'next/navigation';
 
 const Home = (): React.ReactNode => {
   const [postsByDate, setPostsByDate] = useState<PostType[]>([]);
@@ -31,11 +30,10 @@ const Home = (): React.ReactNode => {
   const [activeScreen, setActiveScreen] = useState(ActiveScreen.FEED);
 
   const { fbAuthUser } = useUser();
-  const router = useRouter();
 
   const dispatch = useDispatch();
 
-  const { saveScrollPosition } = useScrollToPost(activeScreen, setActiveScreen);
+  const { saveScrollPosition } = useScrollToLastPosition(activeScreen, setActiveScreen);
 
   const setPosts = (data: any): void => {
     if (!data) return;
@@ -64,11 +62,7 @@ const Home = (): React.ReactNode => {
 
   const mutationForDate = useMutation({
     mutationFn: async () => {
-      if (
-        lastPostIdForDate === undefined ||
-        lastPostIdForDate === null ||
-        activeScreen === ActiveScreen.POST_DETAIL
-      ) {
+      if (lastPostIdForDate == null || activeScreen === ActiveScreen.POST_DETAIL) {
         return;
       }
 
@@ -80,11 +74,7 @@ const Home = (): React.ReactNode => {
 
   const mutationForLike = useMutation({
     mutationFn: async () => {
-      if (
-        lastPostIdForLike === undefined ||
-        lastPostIdForLike === null ||
-        activeScreen === ActiveScreen.POST_DETAIL
-      ) {
+      if (lastPostIdForLike == null || activeScreen === ActiveScreen.POST_DETAIL) {
         return;
       }
 

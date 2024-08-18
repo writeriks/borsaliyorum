@@ -52,20 +52,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
     });
 
-    // Check if the current user has blocked the specified user
-    const isUserBlocked = await prisma.userBlocks.findUnique({
-      where: {
-        blockerId_blockedId: {
-          blockerId: currentUser.userId,
-          blockedId: userIdToNumber,
-        },
-      },
-    });
-
     return createResponse(ResponseStatus.OK, {
       ...user,
       isUserFollowed: !!isUserFollowed,
-      isUserBlocked: !!isUserBlocked,
     });
   } catch (error: any) {
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);

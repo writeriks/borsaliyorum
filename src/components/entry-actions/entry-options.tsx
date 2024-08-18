@@ -17,7 +17,6 @@ import { useEffect, useState } from 'react';
 interface EntryProp {
   isEntryOwner: boolean;
   isFollowed: boolean;
-  isBlocked: boolean;
   entry: Comment | Post;
   onDeleteSuccess: (entryId: number) => void;
 }
@@ -25,14 +24,13 @@ interface EntryProp {
 const EntryOptions: React.FC<EntryProp> = ({
   isEntryOwner,
   isFollowed,
-  isBlocked,
   entry,
   onDeleteSuccess,
 }) => {
   const dispatch = useDispatch();
   const [isUserFollowed, setIsUserFollowed] = useState(isFollowed);
 
-  const handleError = (error: Error) => {
+  const handleError = (error: Error): void => {
     dispatch(
       setUINotification({
         message: error.message ?? 'Bir hata oluştu.',
@@ -115,7 +113,7 @@ const EntryOptions: React.FC<EntryProp> = ({
           )
         )}
 
-        {!isEntryOwner && !isBlocked && (
+        {!isEntryOwner && (
           <DropdownMenuItem onClick={() => blockUserMutation.mutate()}>
             <Ban className='h-4 w-4 mr-2' />
             Engelle
