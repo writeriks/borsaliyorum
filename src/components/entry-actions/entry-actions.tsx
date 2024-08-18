@@ -1,6 +1,5 @@
 import { Post, Comment, User } from '@prisma/client';
 import { Heart, MessageCircle, Repeat } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 interface EntryProp {
   entry: Post | Comment;
@@ -10,8 +9,6 @@ interface EntryProp {
 }
 
 const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, onPostClick }) => {
-  const router = useRouter();
-
   const isComment = 'commentId' in entry;
 
   const handleCommentClick = (): void => {

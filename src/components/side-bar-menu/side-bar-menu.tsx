@@ -37,6 +37,7 @@ const SideBarMenu: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.body.style.overflow = '';
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHamburgerMenuOpen]);
 
   return (

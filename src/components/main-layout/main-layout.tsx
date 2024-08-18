@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -19,11 +19,7 @@ import useUINotification from '@/hooks/useUINotification';
 import useUser from '@/hooks/useUser';
 import { AuthModal } from '@/components/auth/auth-modal';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
-import {
-  setIsAuthModalOpen,
-  setIsNewPostModalOpen,
-  toggleHamburgerMenuOpen,
-} from '@/store/reducers/ui-reducer/ui-slice';
+import { setIsAuthModalOpen, setIsNewPostModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
 import Discover from '@/components/discover/discover';
 import useValidateSession from '@/hooks/useValidateSession';
 import TabBarController from '@/components/tab-bar-controller/tab-bar-controller';

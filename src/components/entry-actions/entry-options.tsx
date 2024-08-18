@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Ban, Ellipsis, Trash, UserMinus, UserPlus, UserRoundX } from 'lucide-react';
+import { Ban, Ellipsis, Trash, UserMinus, UserPlus } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { useDispatch } from 'react-redux';
