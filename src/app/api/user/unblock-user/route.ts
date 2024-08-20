@@ -57,7 +57,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       },
     });
 
-    return createResponse(ResponseStatus.OK, 'Engelleme kaldırıldı.');
+    return createResponse(ResponseStatus.OK);
   } catch (error) {
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
