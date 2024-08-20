@@ -35,6 +35,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
   const currentUser = useSelector(userReducerSelector.getUser);
   const isAuthModalOpen = useSelector(uiReducerSelector.getIsAuthModalOpen);
   const isNewPostModalOpen = useSelector(uiReducerSelector.getIsNewPostModalOpen);
+  const isHamburgerMenuOpen = useSelector(uiReducerSelector.getIsHamburgerMenuOpen);
 
   useEffect(() => {
     if (window) {
@@ -47,6 +48,10 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
       <main className='flex-grow text-base'>
         <SideBarMenu />
         <NavigationBar />
+
+        {isHamburgerMenuOpen && (
+          <div className='bg-black bg-opacity-50 fixed z-40 w-screen h-screen'></div>
+        )}
 
         <div id='main-container' className='flex w-full flex-col md:flex-row lg:flex-row'>
           <div

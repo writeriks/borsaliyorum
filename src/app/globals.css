@@ -48,12 +48,11 @@
     }
 
     .mentions--multiLine .mentions__control {
-      font-family: monospace;
+      font-family: inherit;
       font-size: 11pt;
     }
     .mentions--multiLine .mentions__highlighter {
       padding: 8px;
-      font-weight: 900;
     }
     .mentions--multiLine .mentions__input {
       padding: 9px;

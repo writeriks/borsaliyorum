@@ -9,6 +9,8 @@ import useDebounce from '@/hooks/userDebounce';
 import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 import { tickers } from '@/tickers';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
+import { useSelector } from 'react-redux';
+import contextReducerSelector from '@/store/reducers/context-reducer/context-reducer-selector';
 
 interface ContentInputProps {
   content: string;
@@ -26,6 +28,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [mentionSuggestions, setMentionSuggestions] = useState<SuggestionDataItem[]>([]);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const isMobile = useSelector(contextReducerSelector.getIsMobile);
 
   const { refetch } = useQuery({
     queryKey: ['fetch-mentions'],
@@ -74,7 +77,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
   return (
     <MentionsInput
       id='mentionsInput'
-      autoFocus
+      autoFocus={!isMobile}
       placeholder={placeholder ? placeholder : 'Ne düşünüyorsun?'}
       className='mentions resize-none break-words break-all'
       value={content}

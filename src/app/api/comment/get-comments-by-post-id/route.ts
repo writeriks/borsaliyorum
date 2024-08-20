@@ -17,26 +17,66 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return createResponse(ResponseStatus.UNAUTHORIZED);
     }
 
-    await auth.verifyIdToken(token);
+    const decodedToken = await auth.verifyIdToken(token);
+
+    const currentUser = await prisma.user.findUnique({
+      where: {
+        firebaseUserId: decodedToken.uid,
+      },
+    });
+
+    if (!currentUser) {
+      return createResponse(ResponseStatus.UNAUTHORIZED);
+    }
 
     if (!postId) {
       return createResponse(ResponseStatus.BAD_REQUEST);
     }
 
-    // TODO: Handle logic for fetching comments
+    // Fetch the IDs of users that have blocked by the current user
+    const blockedUsersByCurrentUser = await prisma.userBlocks.findMany({
+      where: {
+        blockerId: currentUser.userId,
+      },
+      select: {
+        blockedId: true,
+      },
+    });
+
+    // Fetch the IDs of users who have blocked the current user
+    const usersWhoBlockedCurrentUser = await prisma.userBlocks.findMany({
+      where: {
+        blockedId: currentUser.userId,
+      },
+      select: {
+        blockerId: true,
+      },
+    });
+
+    const blockedUserIds = [
+      ...blockedUsersByCurrentUser.map(user => user.blockedId),
+      ...usersWhoBlockedCurrentUser.map(user => user.blockerId),
+    ];
+
     const comments = await prisma.comment.findMany({
       where: {
         postId: parseInt(postId),
-        /* commentId: { gt: lastCommentId }, */
+        userId: { notIn: blockedUserIds },
       },
       take: pageSize,
+      cursor: lastCommentId ? { commentId: parseInt(lastCommentId) } : undefined,
+      skip: lastCommentId ? 1 : 0, // Skip the last comment if cursor is set
       orderBy: {
         createdAt: 'asc',
       },
     });
 
+    // Determine the new lastCommentId for the next page
+    const newLastCommentId = comments.length > 0 ? comments[comments.length - 1].commentId : null;
+
     return createResponse(ResponseStatus.OK, {
       comments,
+      lastCommentId: newLastCommentId,
     });
   } catch (error: any) {
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);

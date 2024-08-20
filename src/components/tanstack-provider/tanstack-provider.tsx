@@ -19,7 +19,7 @@ export const queryClient = new QueryClient({
 const ClientQueryProvider = ({ children }: { children: React.ReactNode }): React.ReactNode => (
   <QueryClientProvider client={queryClient}>
     {children}
-    <ReactQueryDevtools initialIsOpen={false} />
+    {/* <ReactQueryDevtools initialIsOpen={false} /> */}
   </QueryClientProvider>
 );
 

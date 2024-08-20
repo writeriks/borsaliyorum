@@ -178,21 +178,21 @@ const NewPost = (): React.ReactElement => {
         <div className='flex justify-between items-center mt-3'>
           <Button
             id='sentiment-toggle'
-            className={`flex items-center px-4 py-2 text-lg rounded-full ml-1`}
+            className={`flex h-8 items-center px-2 py-2 text-lg rounded-full ml-1`}
             variant={getVariantForSentiment()}
             onClick={() => handleSentimentToggle()}
             disabled={mutation.isPending}
           >
             {renderSentiment[sentiment]}
           </Button>
-          <div className='flex space-x-2'>
+          <div className='flex h-8 space-x-2'>
             <ImageUploader
               fileInputRef={fileInputRef}
               onImageUpload={setImageData}
               disabled={mutation.isPending}
             />
             <Button
-              className='flex items-center p-2 w-10 h-10 text-lg rounded-full '
+              className='flex h-8 items-center p-2 w-8 text-sm font-bold rounded-full '
               variant='default'
               disabled={mutation.isPending}
             >
@@ -200,7 +200,7 @@ const NewPost = (): React.ReactElement => {
             </Button>
 
             <Button
-              className='flex items-center min-w-24 px-4 text-lg py-2 rounded-full'
+              className='flex bg-bluePrimary h-8 items-center px-4 text-sm text-white font-bold py-2 rounded-full'
               variant='default'
               onClick={submitPost}
               disabled={isSubmitDisabled}

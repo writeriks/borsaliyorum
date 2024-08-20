@@ -1,23 +1,21 @@
 import { Post, Comment, User } from '@prisma/client';
 import { Heart, MessageCircle, Repeat } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 interface EntryProp {
   entry: Post | Comment;
   commentor?: User;
   onCommentClick?: (commentor: User) => void;
+  onPostClick?: (post: Post) => void;
 }
 
-const EntryActions: React.FC<EntryProp> = ({ entry, onCommentClick, commentor }) => {
-  const router = useRouter();
-
+const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, onPostClick }) => {
   const isComment = 'commentId' in entry;
 
   const handleCommentClick = (): void => {
     if (isComment && onCommentClick) {
       onCommentClick(commentor as User);
     } else {
-      router.push(`post/${entry.postId}`);
+      onPostClick?.(entry as Post);
     }
   };
 

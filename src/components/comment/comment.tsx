@@ -8,7 +8,6 @@ import EntryActions from '@/components/entry-actions/entry-actions';
 import Content from '@/components/content/content';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
-import commentApiService from '@/services/api-service/comment-api-service/comment-api-service';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { Comment as CommentType, User } from '@prisma/client';
 
@@ -37,6 +36,7 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick
             <div className='text-xs text-muted-foreground'>{commentor?.username}</div>
           </div>
           <EntryOptions
+            isFollowed={commentor?.isUserFollowed ?? false}
             onDeleteSuccess={onDeleteClick}
             entry={comment}
             isEntryOwner={commentor?.username === currentUser.username}
