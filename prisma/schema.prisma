@@ -182,7 +182,7 @@ model UserBlocks {
 }
 
 model PostLikes {
-  userId  Int      @unique
+  userId  Int
   postId  Int
   likedAt DateTime @default(now())
 
@@ -255,7 +255,7 @@ model Notification {
   // Relations to related entities
   post    Post?      @relation(fields: [postId], references: [postId])
   comment Comment?   @relation(fields: [commentId], references: [commentId])
-  like    PostLikes? @relation(fields: [likeId], references: [userId])
+  like    PostLikes? @relation(fields: [userId, postId], references: [userId, postId])
 
   @@index([userId])
   @@index([type])
