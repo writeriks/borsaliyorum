@@ -55,7 +55,7 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
   - Add post creation date or subtract from today's date and put 1d ago, 2d ago etc.
   */
   return (
-    <Card className='w-full cursor-pointer mb-2 overflow-hidden'>
+    <Card className='w-full mb-2 overflow-hidden'>
       <CardContent className='p-4 flex flex-col items-start gap-4'>
         <div className='flex items-start gap-4 w-full'>
           {postOwner && <UserAvatar user={postOwner} />}
@@ -96,7 +96,7 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
         )}
       </CardContent>
       <CardFooter className='flex items-center justify-between ml-16 mr-16'>
-        <EntryActions onPostClick={onPostClick} entry={post} />
+        <EntryActions onPostClick={onPostClick} entry={post as any} />
       </CardFooter>
     </Card>
   );

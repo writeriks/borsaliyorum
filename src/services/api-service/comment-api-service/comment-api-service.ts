@@ -78,6 +78,26 @@ class CommentApiService {
 
     return response.json();
   };
+
+  toggleCommentLike = async (commentId: number): Promise<any> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch('/api/comment/like-comment', {
+      method: 'POST',
+      body: JSON.stringify({ commentId }),
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
 }
 
 const commentApiService = new CommentApiService();
