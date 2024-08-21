@@ -1,4 +1,5 @@
 import prisma from '@/services/prisma-service/prisma-client';
+import { Post } from '@prisma/client';
 
 class FeedService {
   // Fetch the IDs of users blocked by the current user and who have blocked the current user
@@ -35,7 +36,7 @@ class FeedService {
     lastPostId: number,
     pageSize: number,
     orderByCondition: object
-  ): Promise<any> => {
+  ): Promise<Post[]> => {
     return prisma.post.findMany({
       where: {
         userId: { in: followingUserIds, notIn: blockedUserIds },
@@ -47,21 +48,40 @@ class FeedService {
     });
   };
 
-  // Fetch the total like count for posts
-  getTotalLikeCounts = async (postIds: number[]): Promise<Record<number, number>> => {
-    const likeCounts = await prisma.postLikes.groupBy({
-      by: ['postId'],
-      _count: { postId: true },
-      where: { postId: { in: postIds } },
-    });
+  // Fetch the total like count for posts or comments
+  getTotalLikeCounts = async (
+    entryIds: number[],
+    isComment = false
+  ): Promise<Record<number, number>> => {
+    if (isComment) {
+      const likeCounts = await prisma.commentLikes.groupBy({
+        by: ['commentId'],
+        _count: { commentId: true },
+        where: { commentId: { in: entryIds } },
+      });
 
-    return likeCounts.reduce(
-      (acc, likeCount) => {
-        acc[likeCount.postId] = likeCount._count.postId;
-        return acc;
-      },
-      {} as Record<number, number>
-    );
+      return likeCounts.reduce(
+        (acc, likeCount) => {
+          acc[likeCount.commentId] = likeCount._count.commentId;
+          return acc;
+        },
+        {} as Record<number, number>
+      );
+    } else {
+      const likeCounts = await prisma.postLikes.groupBy({
+        by: ['postId'],
+        _count: { postId: true },
+        where: { postId: { in: entryIds } },
+      });
+
+      return likeCounts.reduce(
+        (acc, likeCount) => {
+          acc[likeCount.postId] = likeCount._count.postId;
+          return acc;
+        },
+        {} as Record<number, number>
+      );
+    }
   };
 
   // Fetch the total comment count for posts
@@ -81,14 +101,27 @@ class FeedService {
     );
   };
 
-  // Fetch likes by the current user for posts
-  getLikesByCurrentUser = async (postIds: number[], userId: number): Promise<Set<number>> => {
-    const likedPosts = await prisma.postLikes.findMany({
-      where: { postId: { in: postIds }, userId },
-      select: { postId: true },
-    });
+  // Fetch likes by the current user for posts or comments
+  getLikesByCurrentUser = async (
+    entryIds: number[],
+    userId: number,
+    isComment = false
+  ): Promise<Set<number>> => {
+    if (isComment) {
+      const likedComments = await prisma.commentLikes.findMany({
+        where: { commentId: { in: entryIds }, userId },
+        select: { commentId: true },
+      });
 
-    return new Set(likedPosts.map(like => like.postId));
+      return new Set(likedComments.map(like => like.commentId));
+    } else {
+      const likedPosts = await prisma.postLikes.findMany({
+        where: { postId: { in: entryIds }, userId },
+        select: { postId: true },
+      });
+
+      return new Set(likedPosts.map(like => like.postId));
+    }
   };
 }
 

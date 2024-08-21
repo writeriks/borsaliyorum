@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/services/firebase-service/firebase-admin';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import prisma from '@/services/prisma-service/prisma-client';
+import feedService from '@/services/feed-service/feed-service';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -33,30 +34,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return createResponse(ResponseStatus.BAD_REQUEST);
     }
 
-    // Fetch the IDs of users that have blocked by the current user
-    const blockedUsersByCurrentUser = await prisma.userBlocks.findMany({
-      where: {
-        blockerId: currentUser.userId,
-      },
-      select: {
-        blockedId: true,
-      },
-    });
-
-    // Fetch the IDs of users who have blocked the current user
-    const usersWhoBlockedCurrentUser = await prisma.userBlocks.findMany({
-      where: {
-        blockedId: currentUser.userId,
-      },
-      select: {
-        blockerId: true,
-      },
-    });
-
-    const blockedUserIds = [
-      ...blockedUsersByCurrentUser.map(user => user.blockedId),
-      ...usersWhoBlockedCurrentUser.map(user => user.blockerId),
-    ];
+    // Get blocked users
+    const blockedUserIds = await feedService.getBlockedUserIds(currentUser.userId);
 
     const comments = await prisma.comment.findMany({
       where: {
@@ -71,26 +50,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
     });
 
-    // Fetch the likes for the current user for these posts
+    // Fetch the likes for the current user for these comments
     const commentIds = comments.map(comment => comment.commentId);
-    const likedComments = await prisma.commentLikes.findMany({
-      where: {
-        commentId: {
-          in: commentIds,
-        },
-        userId: currentUser.userId,
-      },
-      select: {
-        commentId: true,
-      },
-    });
+    const likeCountMap = await feedService.getTotalLikeCounts(commentIds, true);
 
-    const likedCommentIds = new Set(likedComments.map(like => like.commentId));
+    // Get current user's likes
+    const likedCommentsIds = await feedService.getLikesByCurrentUser(
+      commentIds,
+      currentUser.userId,
+      true
+    );
 
-    // Add likedByCurrentUser flag to each comment
+    // Add likeCount and likedByCurrentUser flag to each comment
     const commentsWithLikeInfo = comments.map(comment => ({
       ...comment,
-      likedByCurrentUser: likedCommentIds.has(comment.commentId),
+      likedByCurrentUser: likedCommentsIds.has(comment.commentId),
+      likeCount: likeCountMap[comment.commentId] || 0,
     }));
 
     // Determine the new lastCommentId for the next page

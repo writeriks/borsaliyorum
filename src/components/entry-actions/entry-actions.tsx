@@ -27,6 +27,8 @@ interface EntryProp {
 
 const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, onPostClick }) => {
   const [isLiked, setIsLiked] = useState<boolean>(entry.likedByCurrentUser);
+  const [likeCount, setLikeCount] = useState<number>(entry.likeCount ?? 0);
+
   const dispatch = useDispatch();
   const isComment = 'commentId' in entry;
 
@@ -48,6 +50,7 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
     },
     onSuccess: data => {
       setIsLiked(!data.isUnlike);
+      setLikeCount(data.isUnlike ? likeCount - 1 : likeCount + 1);
     },
     onError: (error: Error): void => {
       dispatch(
@@ -59,7 +62,7 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
     },
   });
 
-  // TODO: Implement fetching like count, comment count, repost count
+  // TODO: Implement repost count
   return (
     <>
       <div className='inline-flex'>
@@ -70,7 +73,7 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
           onClick={() => likeMutation.mutate()}
           className='h-5 w-5 hover:text-red-500'
         />
-        <span className='ml-1 text-xs flex items-center'>{entry.likeCount}</span>
+        <span className='ml-1 text-xs flex items-center'>{likeCount}</span>
       </div>
       <div onClick={handleCommentClick} className='inline-flex'>
         <MessageCircle className='h-5 w-5 hover:cursor-pointer hover:text-blue-500' />

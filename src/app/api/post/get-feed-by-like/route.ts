@@ -2,6 +2,7 @@ import prisma from '@/services/prisma-service/prisma-client';
 import { auth } from '@/services/firebase-service/firebase-admin';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { NextResponse } from 'next/server';
+import feedService from '@/services/feed-service/feed-service';
 
 export async function GET(request: Request): Promise<NextResponse> {
   try {
@@ -27,95 +28,57 @@ export async function GET(request: Request): Promise<NextResponse> {
     const lastPostId = parseInt(searchParams.get('lastPostId') ?? '') || 0;
     const pageSize = 10;
 
-    // Fetch the IDs of the users the current user is following
-    const followingUsers = await prisma.userFollowers.findMany({
-      where: {
-        followerId: currentUser?.userId,
-      },
-      select: {
-        followingId: true,
-      },
-    });
-
-    const followingUserIds = followingUsers.map(user => user.followingId);
+    // Get following users
+    const followingUserIds = await feedService.getFollowingUserIds(currentUser.userId);
 
     if (followingUserIds.length === 0) {
       return createResponse(ResponseStatus.OK, {
-        postsByLike: [],
-        lastPostIdByLike: null,
+        postsByDate: [],
+        lastPostIdByDate: null,
       });
     }
 
-    // Fetch the IDs of users that have blocked by the current user
-    const blockedUsersByCurrentUser = await prisma.userBlocks.findMany({
-      where: {
-        blockerId: currentUser.userId,
-      },
-      select: {
-        blockedId: true,
-      },
-    });
+    // Get blocked users
+    const blockedUserIds = await feedService.getBlockedUserIds(currentUser.userId);
 
-    // Fetch the IDs of users who have blocked the current user
-    const usersWhoBlockedCurrentUser = await prisma.userBlocks.findMany({
-      where: {
-        blockedId: currentUser.userId,
+    const orderByCondition = {
+      likedBy: {
+        _count: 'desc',
       },
-      select: {
-        blockerId: true,
-      },
-    });
-
-    const blockedUserIds = [
-      ...blockedUsersByCurrentUser.map(user => user.blockedId),
-      ...usersWhoBlockedCurrentUser.map(user => user.blockerId),
-    ];
+    };
 
     // Fetch posts by following users, paginated and ordered by like count
-    const postsByLike = await prisma.post.findMany({
-      where: {
-        userId: {
-          in: followingUserIds,
-          notIn: blockedUserIds,
-        },
-      },
-      orderBy: {
-        likedBy: {
-          _count: 'desc',
-        },
-      },
-      take: pageSize,
-      cursor: lastPostId ? { postId: lastPostId } : undefined,
-      skip: lastPostId ? 1 : 0, // Skip the last post from the previous page
-    });
+    const postsByLike = await feedService.getPostsByFollowingUsers(
+      followingUserIds,
+      blockedUserIds,
+      lastPostId,
+      pageSize,
+      orderByCondition
+    );
 
     // Fetch the likes for the current user for these posts
     const postIds = postsByLike.map(post => post.postId);
-    const likedPosts = await prisma.postLikes.findMany({
-      where: {
-        postId: {
-          in: postIds,
-        },
-        userId: currentUser.userId,
-      },
-      select: {
-        postId: true,
-      },
-    });
 
-    const likedPostIds = new Set(likedPosts.map(like => like.postId));
+    // Get likes and comments count for posts
+    const likeCountMap = await feedService.getTotalLikeCounts(postIds);
+    const commentCountMap = await feedService.getTotalCommentCounts(postIds);
 
-    // Add likedByCurrentUser flag to each post
-    const postsWithLikeInfo = postsByLike.map(post => ({
+    // Get current user's likes
+    const likedPostIds = await feedService.getLikesByCurrentUser(postIds, currentUser.userId);
+
+    // Add like, comment info, and likedByCurrentUser flag to each post
+    const postsWithLikeAndCommentInfo = postsByLike.map(post => ({
       ...post,
       likedByCurrentUser: likedPostIds.has(post.postId),
+      likeCount: likeCountMap[post.postId] || 0,
+      commentCount: commentCountMap[post.postId] || 0,
     }));
 
     const newLastPostIdByLike =
       postsByLike.length > 0 ? postsByLike[postsByLike.length - 1].postId : null;
 
     return createResponse(ResponseStatus.OK, {
-      postsByLike: postsWithLikeInfo,
+      postsByLike: postsWithLikeAndCommentInfo,
       lastPostIdByLike: newLastPostIdByLike,
     });
   } catch (error) {
