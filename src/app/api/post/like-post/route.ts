@@ -25,7 +25,6 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     const body = await request.json();
     const postId = body['postId'];
-    console.log('🚀 ~ POST ~ postId:', postId);
 
     // Check if the post exists
     const post = await prisma.post.findUnique({
@@ -33,7 +32,6 @@ export async function POST(request: Request): Promise<NextResponse> {
         postId: postId,
       },
     });
-    console.log('🚀 ~ POST ~ post:', post);
 
     if (!post) {
       return createResponse(ResponseStatus.NOT_FOUND, 'Gönderi bulunamadı.');
@@ -48,7 +46,6 @@ export async function POST(request: Request): Promise<NextResponse> {
         },
       },
     });
-    console.log('🚀 ~ POST ~ existingLike:', existingLike);
 
     let isUnlike = false;
 
@@ -77,7 +74,6 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     return createResponse(ResponseStatus.OK, { isUnlike });
   } catch (error) {
-    console.log(error);
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }
