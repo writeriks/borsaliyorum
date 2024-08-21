@@ -71,11 +71,33 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
     });
 
+    // Fetch the likes for the current user for these posts
+    const commentIds = comments.map(comment => comment.commentId);
+    const likedComments = await prisma.commentLikes.findMany({
+      where: {
+        commentId: {
+          in: commentIds,
+        },
+        userId: currentUser.userId,
+      },
+      select: {
+        commentId: true,
+      },
+    });
+
+    const likedCommentIds = new Set(likedComments.map(like => like.commentId));
+
+    // Add likedByCurrentUser flag to each comment
+    const commentsWithLikeInfo = comments.map(comment => ({
+      ...comment,
+      likedByCurrentUser: likedCommentIds.has(comment.commentId),
+    }));
+
     // Determine the new lastCommentId for the next page
     const newLastCommentId = comments.length > 0 ? comments[comments.length - 1].commentId : null;
 
     return createResponse(ResponseStatus.OK, {
-      comments,
+      comments: commentsWithLikeInfo,
       lastCommentId: newLastCommentId,
     });
   } catch (error: any) {

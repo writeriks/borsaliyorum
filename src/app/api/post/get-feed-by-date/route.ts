@@ -87,11 +87,33 @@ export async function GET(request: Request): Promise<NextResponse> {
       skip: lastPostId ? 1 : 0, // Skip the last post if cursor is set
     });
 
+    // Fetch the likes for the current user for these posts
+    const postIds = postsByDate.map(post => post.postId);
+    const likedPosts = await prisma.postLikes.findMany({
+      where: {
+        postId: {
+          in: postIds,
+        },
+        userId: currentUser.userId,
+      },
+      select: {
+        postId: true,
+      },
+    });
+
+    const likedPostIds = new Set(likedPosts.map(like => like.postId));
+
+    // Add likedByCurrentUser flag to each post
+    const postsWithLikeInfo = postsByDate.map(post => ({
+      ...post,
+      likedByCurrentUser: likedPostIds.has(post.postId),
+    }));
+
     const newLastPostIdByDate =
       postsByDate.length > 0 ? postsByDate[postsByDate.length - 1].postId : null;
 
     return createResponse(ResponseStatus.OK, {
-      postsByDate,
+      postsByDate: postsWithLikeInfo,
       lastPostIdByDate: newLastPostIdByDate,
     });
   } catch (error) {
