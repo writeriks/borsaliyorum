@@ -47,7 +47,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       },
     });
 
-    let isUnlike = false;
+    let didLike = false;
 
     if (existingLike) {
       // If the user has already liked the post, unlike it
@@ -59,8 +59,6 @@ export async function POST(request: Request): Promise<NextResponse> {
           },
         },
       });
-
-      isUnlike = true;
     } else {
       // If the user hasn't liked the post, like it
       await prisma.postLikes.create({
@@ -70,9 +68,11 @@ export async function POST(request: Request): Promise<NextResponse> {
           likedAt: new Date(),
         },
       });
+
+      didLike = true;
     }
 
-    return createResponse(ResponseStatus.OK, { isUnlike });
+    return createResponse(ResponseStatus.OK, { didLike });
   } catch (error) {
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }

@@ -2,7 +2,12 @@ import prisma from '@/services/prisma-service/prisma-client';
 import { Post } from '@prisma/client';
 
 class FeedService {
-  // Fetch the IDs of users blocked by the current user and who have blocked the current user
+  /**
+   * Fetches the IDs of users who are blocked by the current user or who have blocked the current user.
+   *
+   * @param userId - The ID of the current user.
+   * @returns A promise that resolves to an array of user IDs.
+   */
   getBlockedUserIds = async (userId: number): Promise<number[]> => {
     const blockedUsersByCurrentUser = await prisma.userBlocks.findMany({
       where: { blockerId: userId },
@@ -20,7 +25,12 @@ class FeedService {
     ];
   };
 
-  // Fetch the IDs of users the current user is following
+  /**
+   * Fetches the IDs of users that the current user is following.
+   *
+   * @param userId - The ID of the current user.
+   * @returns A promise that resolves to an array of user IDs.
+   */
   getFollowingUserIds = async (userId: number): Promise<number[]> => {
     const followingUsers = await prisma.userFollowers.findMany({
       where: { followerId: userId },
@@ -29,7 +39,16 @@ class FeedService {
     return followingUsers.map(user => user.followingId);
   };
 
-  // Fetch posts by following users, excluding blocked users
+  /**
+   * Fetches posts by users that the current user is following, excluding posts from blocked users.
+   *
+   * @param followingUserIds - An array of user IDs that the current user is following.
+   * @param blockedUserIds - An array of user IDs that the current user has blocked or is blocked by.
+   * @param lastPostId - The ID of the last post for pagination.
+   * @param pageSize - The number of posts to retrieve.
+   * @param orderByCondition - The condition for ordering the posts.
+   * @returns A promise that resolves to an array of posts.
+   */
   getPostsByFollowingUsers = async (
     followingUserIds: number[],
     blockedUserIds: number[],
@@ -48,7 +67,13 @@ class FeedService {
     });
   };
 
-  // Fetch the total like count for posts or comments
+  /**
+   * Fetches the total like count for posts or comments.
+   *
+   * @param entryIds - An array of IDs for the posts or comments.
+   * @param isComment - A boolean indicating whether the IDs are for comments (true) or posts (false).
+   * @returns A promise that resolves to an object where keys are entry IDs and values are like counts.
+   */
   getTotalLikeCounts = async (
     entryIds: number[],
     isComment = false
@@ -84,7 +109,12 @@ class FeedService {
     }
   };
 
-  // Fetch the total comment count for posts
+  /**
+   * Fetches the total comment count for a set of posts.
+   *
+   * @param postIds - An array of post IDs.
+   * @returns A promise that resolves to an object where keys are post IDs and values are comment counts.
+   */
   getTotalCommentCounts = async (postIds: number[]): Promise<Record<number, number>> => {
     const commentCounts = await prisma.comment.groupBy({
       by: ['postId'],
@@ -101,7 +131,14 @@ class FeedService {
     );
   };
 
-  // Fetch likes by the current user for posts or comments
+  /**
+   * Fetches the likes by the current user for a set of posts or comments.
+   *
+   * @param entryIds - An array of IDs for the posts or comments.
+   * @param userId - The ID of the current user.
+   * @param isComment - A boolean indicating whether the IDs are for comments (true) or posts (false).
+   * @returns A promise that resolves to a set of entry IDs liked by the user.
+   */
   getLikesByCurrentUser = async (
     entryIds: number[],
     userId: number,

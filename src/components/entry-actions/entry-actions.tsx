@@ -49,8 +49,8 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
       }
     },
     onSuccess: data => {
-      setIsLiked(!data.isUnlike);
-      setLikeCount(data.isUnlike ? likeCount - 1 : likeCount + 1);
+      setIsLiked(data.didLike);
+      setLikeCount(data.didLike ? likeCount + 1 : likeCount - 1);
     },
     onError: (error: Error): void => {
       dispatch(
