@@ -57,7 +57,11 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick
         )}
       </CardContent>
       <CardFooter className='flex items-center justify-between ml-24 mr-24'>
-        <EntryActions onCommentClick={onCommentClick} commentor={commentor} entry={comment} />
+        <EntryActions
+          onCommentClick={onCommentClick}
+          commentor={commentor}
+          entry={comment as any}
+        />
       </CardFooter>
     </Card>
   );
