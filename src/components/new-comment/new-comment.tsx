@@ -129,7 +129,7 @@ const NewComment: React.FC<NewCommentProps> = ({ postOwnerId, postId, mention, o
     <div className='lg:p-6 flex p-2 w-full self-start border bg-card rounded'>
       <div className='flex items-start w-10 lg:w-12'>
         <UserAvatar
-          user={{ profilePhoto: user.profilePhoto ?? '', displayName: user.displayName }}
+          user={{ profilePhoto: user.profilePhoto ?? '', displayName: user.displayName, username: user.username }}
         />
       </div>
       <div className='flex flex-col ml-2 w-full justify-between'>

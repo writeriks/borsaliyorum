@@ -60,7 +60,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
           >
             <UserProfileOptions />
             {currentUser.email && (
-              <div className='lg:flex top-[230px] sticky  flex-col lg:w-[260px] lg:h-[260px] p-2'>
+              <div className='lg:flex min-1500:hidden sticky ml-2 h-[260px] flex-col lg:w-[260px] '>
                 <Discover />
               </div>
             )}

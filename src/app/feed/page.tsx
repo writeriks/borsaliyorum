@@ -122,10 +122,8 @@ const Home = (): React.ReactNode => {
     history.back(); // This will trigger the popstate event
   };
 
-  return activeScreen === ActiveScreen.POST_DETAIL ? (
-    <PostDetail onBackClick={handlePostDetailBackClick} post={selectedPost!} />
-  ) : (
-    <div className='flex min-w-full justify-center'>
+  const renderScreen = {
+    [ActiveScreen.FEED]: (
       <div className='flex flex-col w-full max-w-2xl '>
         <NewPost />
         <div className='w-full self-start'>
@@ -155,6 +153,15 @@ const Home = (): React.ReactNode => {
           </Tabs>
         </div>
       </div>
+    ),
+    [ActiveScreen.POST_DETAIL]: (
+      <PostDetail onBackClick={handlePostDetailBackClick} post={selectedPost!} />
+    ),
+  };
+
+  return (
+    <div className='flex min-w-full justify-center'>
+      {renderScreen[activeScreen]}
       <div className='lg:flex max-1500:hidden sticky ml-2 h-[260px] flex-col lg:w-[260px] '>
         <Discover />
       </div>
