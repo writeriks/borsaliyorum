@@ -96,7 +96,7 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
           <Heart
             cursor='pointer'
             onClick={() => likeMutation.mutate()}
-            className='h-5 w-5 hover:text-red-500'
+            className='h-5 w-5 sm:hover:text-red-500'
           />
         )}
 
@@ -119,7 +119,7 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
             <Repeat
               cursor='pointer'
               onClick={() => repostMutation.mutate()}
-              className='h-5 w-5 hover:text-green-500'
+              className='h-5 w-5 sm:hover:text-green-500'
             />
           )}
           <span className='ml-1 text-xs flex items-center'>{repostCount}</span>
