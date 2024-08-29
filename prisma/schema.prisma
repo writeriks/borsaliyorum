@@ -52,6 +52,9 @@ model User {
   stockFollowers StockFollowers[] @relation("UserStockFollowers")
   notifications  Notification[]
 
+  // Repost relation
+  reposts Repost[] @relation("UserReposts")
+
   @@index([email])
   @@index([firebaseUserId])
   @@index([username])
@@ -96,8 +99,26 @@ model Post {
   tags          Tag[]          @relation("PostTags")
   notifications Notification[]
 
+  // Repost relation
+  reposts Repost[] @relation("PostReposts")
+
   @@index([createdAt])
   @@index([userId])
+}
+
+model Repost {
+  repostedBy   Int // User who reposted
+  repostedFrom Int // Original poster
+  postId       Int // Original post being reposted
+  repostDate   DateTime @default(now()) // Date of the repost
+
+  // Relations
+  user         User @relation("UserReposts", fields: [repostedBy], references: [userId])
+  originalPost Post @relation("PostReposts", fields: [postId], references: [postId])
+
+  @@unique([repostedBy, postId])
+  @@index([repostedBy, postId])
+  @@index([postId])
 }
 
 model Comment {
