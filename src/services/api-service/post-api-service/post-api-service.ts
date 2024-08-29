@@ -118,6 +118,26 @@ class PostApiService {
 
     return response.json();
   };
+
+  toggleRepost = async (postId: number): Promise<any> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch('/api/post/repost', {
+      method: 'POST',
+      body: JSON.stringify({ postId }),
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
 }
 
 const postApiService = new PostApiService();

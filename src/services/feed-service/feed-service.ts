@@ -56,15 +56,41 @@ class FeedService {
     pageSize: number,
     orderByCondition: object
   ): Promise<Post[]> => {
-    return prisma.post.findMany({
+    // Fetch posts from followed users and their reposts, excluding blocked users
+    const postsWithReposts = await prisma.post.findMany({
       where: {
-        userId: { in: followingUserIds, notIn: blockedUserIds },
+        OR: [
+          // Posts by users the current user follows
+          {
+            userId: {
+              in: followingUserIds,
+              notIn: blockedUserIds,
+            },
+          },
+          // Reposts made by users the current user follows, excluding reposts from blocked users
+          {
+            reposts: {
+              some: {
+                repostedBy: {
+                  in: followingUserIds,
+                  notIn: blockedUserIds,
+                },
+              },
+            },
+          },
+        ],
       },
       orderBy: orderByCondition,
       take: pageSize,
       cursor: lastPostId ? { postId: lastPostId } : undefined,
       skip: lastPostId ? 1 : 0,
+      include: {
+        reposts: true,
+      },
     });
+
+    // Return the sorted and paginated results
+    return postsWithReposts;
   };
 
   /**
@@ -107,6 +133,28 @@ class FeedService {
         {} as Record<number, number>
       );
     }
+  };
+
+  /**
+   * Fetches the total repost count for posts.
+   *
+   * @param postIds - An array of post IDs.
+   * @returns A promise that resolves to an object where keys are post IDs and values are repost counts.
+   */
+  getTotalRepostCounts = async (postIds: number[]): Promise<Record<number, number>> => {
+    const repostCounts = await prisma.repost.groupBy({
+      by: ['postId'],
+      _count: { postId: true },
+      where: { postId: { in: postIds } },
+    });
+
+    return repostCounts.reduce(
+      (acc, repostCount) => {
+        acc[repostCount.postId] = repostCount._count.postId;
+        return acc;
+      },
+      {} as Record<number, number>
+    );
   };
 
   /**
@@ -159,6 +207,25 @@ class FeedService {
 
       return new Set(likedPosts.map(like => like.postId));
     }
+  };
+
+  /**
+   * Fetches the reposts by the current user for a set of posts.
+   *
+   * @param postIds - An array of post IDs to check if the user reposted.
+   * @param userId - The ID of the current user.
+   * @returns A promise that resolves to a set of post IDs reposted by the user.
+   */
+  getRepostsByCurrentUser = async (postIds: number[], userId: number): Promise<Set<number>> => {
+    const repostedPosts = await prisma.repost.findMany({
+      where: {
+        postId: { in: postIds },
+        repostedBy: userId,
+      },
+      select: { postId: true },
+    });
+
+    return new Set(repostedPosts.map(repost => repost.postId));
   };
 }
 
