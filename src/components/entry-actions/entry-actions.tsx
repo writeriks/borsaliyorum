@@ -80,7 +80,6 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
     onError: handleError,
   });
 
-  // TODO: Implement repost count
   return (
     <>
       <div className='inline-flex'>
