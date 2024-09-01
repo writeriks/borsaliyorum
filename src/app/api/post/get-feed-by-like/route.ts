@@ -53,7 +53,8 @@ export async function GET(request: Request): Promise<NextResponse> {
       blockedUserIds,
       lastPostId,
       pageSize,
-      orderByCondition
+      orderByCondition,
+      currentUser.userId
     );
 
     // Fetch the likes for the current user for these posts

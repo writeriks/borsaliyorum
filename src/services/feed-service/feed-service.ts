@@ -54,8 +54,10 @@ class FeedService {
     blockedUserIds: number[],
     lastPostId: number,
     pageSize: number,
-    orderByCondition: object
+    orderByCondition: object,
+    currentUserId?: number
   ): Promise<Post[]> => {
+    const blockedUsersWithCurrentUser = blockedUserIds.concat(currentUserId ?? -1);
     // Fetch posts from followed users and their reposts, excluding blocked users
     const postsWithReposts = await prisma.post.findMany({
       where: {
@@ -64,7 +66,7 @@ class FeedService {
           {
             userId: {
               in: followingUserIds,
-              notIn: blockedUserIds,
+              notIn: blockedUsersWithCurrentUser,
             },
           },
           // Reposts made by users the current user follows, excluding reposts from blocked users
@@ -73,7 +75,10 @@ class FeedService {
               some: {
                 repostedBy: {
                   in: followingUserIds,
-                  notIn: blockedUserIds,
+                  notIn: blockedUsersWithCurrentUser,
+                },
+                repostedFrom: {
+                  notIn: blockedUsersWithCurrentUser, // Exclude the current user from reposts by themselves
                 },
               },
             },
@@ -89,8 +94,32 @@ class FeedService {
       },
     });
 
-    // Return the sorted and paginated results
-    return postsWithReposts;
+    // Duplicate posts that have been reposted by followed users
+    const transformedPosts = postsWithReposts.flatMap(post => {
+      const repostEntries = post.reposts
+        .filter(repost => followingUserIds.includes(repost.repostedBy)) // Filter reposts by followed users
+        .map(repost => ({
+          ...post,
+          isRepost: true,
+          repostedBy: repost.repostedBy, // The user who reposted
+          repostDate: repost.repostDate, // The date of the repost
+          reposts: post.reposts.filter(r => r.repostedBy !== currentUserId),
+        }));
+
+      // Return the original post along with all repost entries (duplicates)
+      return [
+        {
+          ...post,
+          isRepost: false, // Mark as the original post
+          repostedBy: null,
+          repostDate: null,
+        },
+        ...repostEntries,
+      ];
+    });
+
+    // Return paginated and sorted results
+    return transformedPosts;
   };
 
   /**

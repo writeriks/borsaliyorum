@@ -41,7 +41,13 @@ const Home = (): React.ReactNode => {
     if (activeTab === FeedTab.LATEST) {
       const dataByDate = data.postsByDate ?? [];
 
-      setPostsByDate([...postsByDate, ...dataByDate]);
+      const sortedPosts = dataByDate.sort((a: any, b: any) => {
+        const dateA = a.isRepost ? new Date(a.repostDate as Date) : new Date(a.createdAt);
+        const dateB = b.isRepost ? new Date(b.repostDate as Date) : new Date(b.createdAt);
+        return dateB.getTime() - dateA.getTime();
+      });
+
+      setPostsByDate([...postsByDate, ...sortedPosts]);
       setLastPostIdForDate(data.lastPostIdByDate);
     } else {
       const dataByLike = data.postsByLike ?? [];

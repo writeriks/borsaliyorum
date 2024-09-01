@@ -12,16 +12,19 @@ import { Post as PostType, Sentiment, Repost } from '@prisma/client';
 import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
 import { useQuery } from '@tanstack/react-query';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
+import { useRouter } from 'next/navigation';
 
 export interface PostProp {
   post: PostType & {
     reposts?: Repost[];
+    isRepost?: boolean;
   };
   onPostClick?: (post: PostType) => void;
 }
 
 const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
   const currentUser = useSelector(userReducerSelector.getUser);
+  const router = useRouter();
 
   const { data: postOwner } = useQuery({
     queryKey: [`get-entry-owner-${post.userId}`],
@@ -59,7 +62,7 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
 
   return (
     <Card className='w-full mb-2 overflow-hidden'>
-      {!!post?.reposts?.length && repostOwner?.isUserFollowed && (
+      {!!post?.reposts?.length && post.isRepost && repostOwner?.isUserFollowed && (
         <CardHeader className='p-2 text-slate-400'>
           <div className='inline-flex items-center'>
             <Repeat className='h-4 w-4 ml-2 text-green-500' />
@@ -74,7 +77,12 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
 
       <CardContent className='p-4 flex flex-col items-start gap-4'>
         <div className='flex items-start gap-4 w-full'>
-          {postOwner && <UserAvatar user={postOwner} isClickAllowed />}
+          {postOwner && (
+            <UserAvatar
+              user={postOwner}
+              onUserAvatarClick={() => router.push(`/user/${postOwner.username}`)}
+            />
+          )}
           <div className='space-y-1 flex-1'>
             <div className='text-sm font-bold'>
               <a className='hover:underline' href={`/users/${postOwner?.username}`}>

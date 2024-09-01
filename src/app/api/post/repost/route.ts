@@ -2,6 +2,7 @@ import prisma from '@/services/prisma-service/prisma-client';
 import { auth } from '@/services/firebase-service/firebase-admin';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { NextResponse } from 'next/server';
+
 export async function POST(request: Request): Promise<NextResponse> {
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
