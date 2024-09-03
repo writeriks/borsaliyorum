@@ -9,7 +9,6 @@ import { MoveLeft } from 'lucide-react';
 import commentApiService from '@/services/api-service/comment-api-service/comment-api-service';
 import NewComment from '@/components/new-comment/new-comment';
 import useUser from '@/hooks/useUser';
-import Discover from '@/components/discover/discover';
 import { useMutation } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
@@ -108,57 +107,52 @@ const PostDetail: React.FC<PostDetailProp> = ({ post, onBackClick }) => {
   };
 
   return (
-    <div className='flex min-w-full justify-center'>
-      <div className='flex flex-col w-full max-w-2xl '>
-        {post ? (
-          <div className='lg:p-6 p-2 w-full self-start'>
-            <span
-              onClick={onBackClick}
-              className='cursor-pointer inline-flex items-center justify-center p-3 bg-transparent'
-            >
-              <MoveLeft className='mr-2 h-5 w-5' /> Geri
-            </span>
-            <Post post={post} />
-            <NewComment
-              onSubmit={comment => handleCommentSubmit(comment)}
-              mention={mention}
-              postOwnerId={post.userId}
-              postId={post.postId}
+    <div className='flex flex-col w-full max-w-2xl '>
+      {post ? (
+        <div className='lg:p-6 p-2 w-full self-start'>
+          <span
+            onClick={onBackClick}
+            className='cursor-pointer inline-flex items-center justify-center p-3 bg-transparent'
+          >
+            <MoveLeft className='mr-2 h-5 w-5' /> Geri
+          </span>
+          <Post post={post} />
+          <NewComment
+            onSubmit={comment => handleCommentSubmit(comment)}
+            mention={mention}
+            postOwnerId={post.userId}
+            postId={post.postId}
+          />
+          {comments.map(comment => (
+            <Comment
+              onDeleteClick={handleCommentDelete}
+              onCommentClick={handleCommentClick}
+              key={comment.commentId}
+              comment={comment}
             />
-            {comments.map(comment => (
-              <Comment
-                onDeleteClick={handleCommentDelete}
-                onCommentClick={handleCommentClick}
-                key={comment.commentId}
-                comment={comment}
-              />
-            ))}
-            {comments.length && lastCommentId ? (
-              <div
-                onClick={() => mutation.mutate()}
-                className='flex flex-row min-w-full items-center mt-1 text-sm justify-center cursor-pointer'
-              >
-                {isLoadMoreClicked ? (
-                  <Icons.spinner className='h-4 w-4 animate-spin' />
-                ) : (
-                  <a
-                    className='p-4 text-blue-400 hover:underline'
-                    onClick={() => setIsLoadMoreClicked(true)}
-                  >
-                    Daha Fazla Yükle
-                  </a>
-                )}
-              </div>
-            ) : null}
-            {mutation.isPending && <LoadingSkeleton type={LoadingSkeletons.POST} />}
-          </div>
-        ) : (
-          <LoadingSkeleton type={LoadingSkeletons.POST} />
-        )}
-      </div>
-      <div className='lg:flex max-1500:hidden sticky top-52 p-2 h-[260px] flex-col lg:w-[260px]'>
-        <Discover />
-      </div>
+          ))}
+          {comments.length && lastCommentId ? (
+            <div
+              onClick={() => mutation.mutate()}
+              className='flex flex-row min-w-full items-center mt-1 text-sm justify-center cursor-pointer'
+            >
+              {isLoadMoreClicked ? (
+                <Icons.spinner className='h-4 w-4 animate-spin' />
+              ) : (
+                <a
+                  className='p-4 text-blue-400 hover:underline'
+                  onClick={() => setIsLoadMoreClicked(true)}
+                >
+                  Daha Fazla Yükle
+                </a>
+              )}
+            </div>
+          ) : null}
+          {mutation.isPending && <LoadingSkeleton type={LoadingSkeletons.POST} />}
+        </div>
+      ) : (
+        <LoadingSkeleton type={LoadingSkeletons.POST} />
+      )}
     </div>
   );
 };

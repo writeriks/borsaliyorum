@@ -9,6 +9,7 @@ import { useDispatch } from 'react-redux';
 
 type ExtendedPost = Post & {
   likedByCurrentUser: boolean;
+  repostedByCurrentUser: boolean;
   commentCount: number;
   repostCount: number;
   likeCount: number;
@@ -28,9 +29,22 @@ interface EntryProp {
 const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, onPostClick }) => {
   const [isLiked, setIsLiked] = useState<boolean>(entry.likedByCurrentUser);
   const [likeCount, setLikeCount] = useState<number>(entry.likeCount ?? 0);
+  const [isReposted, setIsReposted] = useState<boolean>(
+    (entry as ExtendedPost).repostedByCurrentUser
+  );
+  const [repostCount, setRepostCount] = useState<number>((entry as ExtendedPost).repostCount ?? 0);
 
   const dispatch = useDispatch();
   const isComment = 'commentId' in entry;
+
+  const handleError = (error: Error): void => {
+    dispatch(
+      setUINotification({
+        message: error.message ?? 'Bir hata oluştu.',
+        notificationType: UINotificationEnum.ERROR,
+      })
+    );
+  };
 
   const handleCommentClick = (): void => {
     if (isComment && onCommentClick) {
@@ -52,27 +66,39 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
       setIsLiked(data.didLike);
       setLikeCount(data.didLike ? likeCount + 1 : likeCount - 1);
     },
-    onError: (error: Error): void => {
-      dispatch(
-        setUINotification({
-          message: error.message ?? 'Bir hata oluştu.',
-          notificationType: UINotificationEnum.ERROR,
-        })
-      );
-    },
+    onError: handleError,
   });
 
-  // TODO: Implement repost count
+  const repostMutation = useMutation({
+    mutationFn: async () => {
+      return postApiService.toggleRepost(entry.postId);
+    },
+    onSuccess: data => {
+      setIsReposted(data.didRepost);
+      setRepostCount(data.didRepost ? repostCount + 1 : repostCount - 1);
+    },
+    onError: handleError,
+  });
+
   return (
     <>
       <div className='inline-flex'>
-        <Heart
-          fill={isLiked ? '#EF4444' : 'transparent'}
-          color={isLiked ? '#EF4444' : '#F1F2F4'}
-          cursor='pointer'
-          onClick={() => likeMutation.mutate()}
-          className='h-5 w-5 hover:text-red-500'
-        />
+        {isLiked ? (
+          <Heart
+            fill='#EF4444'
+            color='#EF4444'
+            cursor='pointer'
+            onClick={() => likeMutation.mutate()}
+            className='h-5 w-5'
+          />
+        ) : (
+          <Heart
+            cursor='pointer'
+            onClick={() => likeMutation.mutate()}
+            className='h-5 w-5 sm:hover:text-red-500'
+          />
+        )}
+
         <span className='ml-1 text-xs flex items-center'>{likeCount}</span>
       </div>
       <div onClick={handleCommentClick} className='inline-flex'>
@@ -81,8 +107,21 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
       </div>
       {!isComment && (
         <div className='inline-flex'>
-          <Repeat className='h-5 w-5 hover:cursor-pointer hover:text-green-500' />
-          <span className='ml-1 text-xs flex items-center'>{entry.repostCount}</span>
+          {isReposted ? (
+            <Repeat
+              color='#22C55E'
+              cursor='pointer'
+              onClick={() => repostMutation.mutate()}
+              className='h-5 w-5'
+            />
+          ) : (
+            <Repeat
+              cursor='pointer'
+              onClick={() => repostMutation.mutate()}
+              className='h-5 w-5 sm:hover:text-green-500'
+            />
+          )}
+          <span className='ml-1 text-xs flex items-center'>{repostCount}</span>
         </div>
       )}
     </>

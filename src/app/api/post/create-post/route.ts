@@ -20,6 +20,14 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
+    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+
+    if (!token) {
+      return createResponse(ResponseStatus.UNAUTHORIZED);
+    }
+
+    const idToken = await auth.verifyIdToken(token);
+
     const { cashtags, hashtags, mentions } = tagService.getTagsFromContent(post.content);
 
     const stocksByCashtags = await prisma.stock.findMany({
@@ -47,14 +55,6 @@ export async function POST(request: Request): Promise<NextResponse> {
         'İçerikte geçen hisselerden en az biri geçersiz. Lütfen geçerli hisse etiketleyin.'
       );
     }
-
-    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-
-    if (!token) {
-      return createResponse(ResponseStatus.UNAUTHORIZED);
-    }
-
-    const idToken = await auth.verifyIdToken(token);
 
     const user = await prisma.user.findUnique({
       where: {

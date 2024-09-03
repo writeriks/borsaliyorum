@@ -54,17 +54,72 @@ class FeedService {
     blockedUserIds: number[],
     lastPostId: number,
     pageSize: number,
-    orderByCondition: object
+    orderByCondition: object,
+    currentUserId?: number
   ): Promise<Post[]> => {
-    return prisma.post.findMany({
+    const blockedUsersWithCurrentUser = blockedUserIds.concat(currentUserId ?? -1);
+    // Fetch posts from followed users and their reposts, excluding blocked users
+    const postsWithReposts = await prisma.post.findMany({
       where: {
-        userId: { in: followingUserIds, notIn: blockedUserIds },
+        OR: [
+          // Posts by users the current user follows
+          {
+            userId: {
+              in: followingUserIds,
+              notIn: blockedUsersWithCurrentUser,
+            },
+          },
+          // Reposts made by users the current user follows, excluding reposts from blocked users
+          {
+            reposts: {
+              some: {
+                repostedBy: {
+                  in: followingUserIds,
+                  notIn: blockedUsersWithCurrentUser,
+                },
+                repostedFrom: {
+                  notIn: blockedUsersWithCurrentUser, // Exclude the current user from reposts by themselves
+                },
+              },
+            },
+          },
+        ],
       },
       orderBy: orderByCondition,
       take: pageSize,
       cursor: lastPostId ? { postId: lastPostId } : undefined,
       skip: lastPostId ? 1 : 0,
+      include: {
+        reposts: true,
+      },
     });
+
+    // Duplicate posts that have been reposted by followed users
+    const transformedPosts = postsWithReposts.flatMap(post => {
+      const repostEntries = post.reposts
+        .filter(repost => followingUserIds.includes(repost.repostedBy)) // Filter reposts by followed users
+        .map(repost => ({
+          ...post,
+          isRepost: true,
+          repostedBy: repost.repostedBy, // The user who reposted
+          repostDate: repost.repostDate, // The date of the repost
+          reposts: post.reposts.filter(r => r.repostedBy !== currentUserId),
+        }));
+
+      // Return the original post along with all repost entries (duplicates)
+      return [
+        {
+          ...post,
+          isRepost: false, // Mark as the original post
+          repostedBy: null,
+          repostDate: null,
+        },
+        ...repostEntries,
+      ];
+    });
+
+    // Return paginated and sorted results
+    return transformedPosts;
   };
 
   /**
@@ -107,6 +162,28 @@ class FeedService {
         {} as Record<number, number>
       );
     }
+  };
+
+  /**
+   * Fetches the total repost count for posts.
+   *
+   * @param postIds - An array of post IDs.
+   * @returns A promise that resolves to an object where keys are post IDs and values are repost counts.
+   */
+  getTotalRepostCounts = async (postIds: number[]): Promise<Record<number, number>> => {
+    const repostCounts = await prisma.repost.groupBy({
+      by: ['postId'],
+      _count: { postId: true },
+      where: { postId: { in: postIds } },
+    });
+
+    return repostCounts.reduce(
+      (acc, repostCount) => {
+        acc[repostCount.postId] = repostCount._count.postId;
+        return acc;
+      },
+      {} as Record<number, number>
+    );
   };
 
   /**
@@ -159,6 +236,25 @@ class FeedService {
 
       return new Set(likedPosts.map(like => like.postId));
     }
+  };
+
+  /**
+   * Fetches the reposts by the current user for a set of posts.
+   *
+   * @param postIds - An array of post IDs to check if the user reposted.
+   * @param userId - The ID of the current user.
+   * @returns A promise that resolves to a set of post IDs reposted by the user.
+   */
+  getRepostsByCurrentUser = async (postIds: number[], userId: number): Promise<Set<number>> => {
+    const repostedPosts = await prisma.repost.findMany({
+      where: {
+        postId: { in: postIds },
+        repostedBy: userId,
+      },
+      select: { postId: true },
+    });
+
+    return new Set(repostedPosts.map(repost => repost.postId));
   };
 }
 

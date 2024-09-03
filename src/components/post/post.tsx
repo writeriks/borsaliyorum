@@ -1,5 +1,5 @@
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Minus, Repeat, TrendingDown, TrendingUp } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import UserAvatar from '@/components/user-avatar/user-avatar';
@@ -8,23 +8,34 @@ import EntryOptions from '@/components/entry-actions/entry-options';
 import EntryActions from '@/components/entry-actions/entry-actions';
 import Content from '@/components/content/content';
 import { formatDate } from '@/utils/content-utils/content-utils';
-import { Post as PostType, Sentiment } from '@prisma/client';
+import { Post as PostType, Sentiment, Repost } from '@prisma/client';
 import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
 import { useQuery } from '@tanstack/react-query';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
+import { useRouter } from 'next/navigation';
 
 export interface PostProp {
-  post: PostType;
+  post: PostType & {
+    reposts?: Repost[];
+    isRepost?: boolean;
+  };
   onPostClick?: (post: PostType) => void;
 }
 
 const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
   const currentUser = useSelector(userReducerSelector.getUser);
+  const router = useRouter();
 
   const { data: postOwner } = useQuery({
     queryKey: [`get-entry-owner-${post.userId}`],
     queryFn: async () => await userApiService.getEntryOwner(post.userId),
     enabled: !!post.userId,
+  });
+
+  const { data: repostOwner } = useQuery({
+    queryKey: [`get-entry-owner-${post?.reposts?.[0]?.repostedBy ?? 0}`],
+    queryFn: async () => await userApiService.getEntryOwner(post?.reposts?.[0]?.repostedBy ?? 0),
+    enabled: !!post?.reposts?.[0]?.repostedBy ?? false,
   });
 
   const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(post.mediaUrl ?? '')}`;
@@ -49,20 +60,40 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
     ),
   };
 
-  /* TODO:
-  - Add styling for tags
-  - Add follow/unfollow button to top right of post
-  - Add post creation date or subtract from today's date and put 1d ago, 2d ago etc.
-  */
   return (
     <Card className='w-full mb-2 overflow-hidden'>
+      {!!post?.reposts?.length && post.isRepost && repostOwner?.isUserFollowed && (
+        <CardHeader className='p-2 text-slate-400'>
+          <div className='inline-flex items-center'>
+            <Repeat className='h-4 w-4 ml-2 text-green-500' />
+            <span className='ml-2 text-sm flex '>
+              <a className='hover:underline' href={`/users/${repostOwner?.username}`}>
+                {repostOwner?.displayName} tarafından yeniden yayınlandı.
+              </a>
+            </span>
+          </div>
+        </CardHeader>
+      )}
+
       <CardContent className='p-4 flex flex-col items-start gap-4'>
         <div className='flex items-start gap-4 w-full'>
-          {postOwner && <UserAvatar user={postOwner} />}
+          {postOwner && (
+            <UserAvatar
+              user={postOwner}
+              onUserAvatarClick={() => router.push(`/user/${postOwner.username}`)}
+            />
+          )}
           <div className='space-y-1 flex-1'>
-            <div className='text-sm font-bold'>{postOwner?.displayName}</div>
+            <div className='text-sm font-bold'>
+              <a className='hover:underline' href={`/users/${postOwner?.username}`}>
+                {postOwner?.displayName}
+              </a>
+            </div>
             <div className='text-xs text-muted-foreground'>
-              <span className='mr-1'>{postOwner?.username}</span>
+              <a className='hover:underline' href={`/users/${postOwner?.username}`}>
+                <span className='mr-1'>{postOwner?.username}</span>
+              </a>
+
               <span className='font-bold'> · </span>
               <TooltipWithEllipsis tooltipText={postDate.fullDate}>
                 <span className='ml-1 hover:underline'>{`${postDate.displayDate}`}</span>
