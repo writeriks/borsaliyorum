@@ -56,11 +56,11 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
         <div id='main-container' className='flex w-full flex-col md:flex-row lg:flex-row'>
           <div
             id='left-section'
-            className='hidden md:flex md:min-w-64 lg:flex flex-col lg:min-w-64'
+            className='hidden md:flex md:min-w-64 lg:flex flex-col lg:min-w-64 ml-2'
           >
             <UserProfileOptions />
             {currentUser.email && (
-              <div className='lg:flex min-1500:hidden sticky ml-2 h-[260px] flex-col lg:w-[260px] '>
+              <div className='lg:flex min-1500:hidden h-[260px] flex-col lg:min-w-64 '>
                 <Discover />
               </div>
             )}

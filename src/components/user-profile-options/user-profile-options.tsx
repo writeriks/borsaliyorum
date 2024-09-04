@@ -49,7 +49,10 @@ const UserProfileOptions = (): React.ReactNode => {
   return isAuthLoading ? (
     <LoadingSkeleton type={LoadingSkeletons.USER_PROFILE} />
   ) : (
-    <div id='user-profile-section' className='flex flex-col top-[60px] h-[170px] sticky'>
+    <div
+      id='user-profile-section'
+      className='flex flex-col top-[60px] h-[170px] sticky bg-background'
+    >
       {user.username ? (
         <div className='w-full h-full flex flex-col p-1'>
           <div>

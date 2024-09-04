@@ -39,7 +39,7 @@ const TabBarController: React.FC = () => {
 
   return (
     <div className='flex h-full flex-col mt-12 '>
-      <nav className='fixed bottom-0 z-10 flex w-full bg-background shadow-lg'>
+      <nav className='fixed -bottom-1 py-1 z-10 flex w-full bg-background shadow-lg'>
         <button
           className={`flex-1 py-1 text-center transition-colors ${
             activeTab === 'feed'
