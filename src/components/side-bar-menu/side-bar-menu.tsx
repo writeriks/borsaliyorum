@@ -5,13 +5,21 @@ import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
-import UserProfileOptionsMobile from '@/components/user-profile-options/user-profile-options-mobile';
 import { cn } from '@/lib/utils';
-import { toggleHamburgerMenuOpen } from '@/store/reducers/ui-reducer/ui-slice';
+import { ActiveSideBar, toggleHamburgerMenuOpen } from '@/store/reducers/ui-reducer/ui-slice';
+import ProfileBar from '@/components/side-bar-menu/profile-bar/profile-bar';
+import DiscoverBar from '@/components/side-bar-menu/discover-bar/discover-bar';
 
 const SideBarMenu: React.FC = () => {
   const dispatch = useDispatch();
   const isHamburgerMenuOpen = useSelector(uiReducerSelector.getIsHamburgerMenuOpen);
+  const activeSideBar = useSelector(uiReducerSelector.getActiveSideBar);
+
+  const renderActiveSideBar = {
+    [ActiveSideBar.PROFILE]: <ProfileBar />,
+    [ActiveSideBar.DISCOVER]: <DiscoverBar />,
+  };
+
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   const handleClickOutside = (event: MouseEvent): void => {
@@ -44,15 +52,11 @@ const SideBarMenu: React.FC = () => {
     <div
       ref={sidebarRef}
       className={cn(
-        'min-1500:hidden md:min-w-64 fixed right-0 top-0 z-50 h-screen w-64 transform dark:bg-background bg-white transition-transform ease-in-out',
-        isHamburgerMenuOpen ? 'translate-x-0' : 'translate-x-64'
+        'min-1500:hidden md:min-w-80 fixed right-0 top-0 z-50 h-screen w-80 transform dark:bg-background bg-white transition-transform ease-in-out',
+        isHamburgerMenuOpen ? 'translate-x-0' : 'translate-x-80'
       )}
     >
-      <ul className='flex h-full flex-col items-center space-y-4'>
-        <li className='mt-16'>
-          <UserProfileOptionsMobile />
-        </li>
-      </ul>
+      {renderActiveSideBar[activeSideBar]}
     </div>
   );
 };

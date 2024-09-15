@@ -20,11 +20,17 @@ type UINotificationType = {
     | 'bottom-center'
     | 'bottom-right';
 };
+
+export enum ActiveSideBar {
+  DISCOVER = 'discover',
+  PROFILE = 'profile',
+}
 export interface UIState {
   isAuthLoading: boolean;
   isHamburgerMenuOpen: boolean;
   refetchUserStocks: boolean;
   uiNotification: UINotificationType;
+  activeSideBar: ActiveSideBar;
   isAuthModalOpen: boolean;
   isNewPostModalOpen: boolean;
 }
@@ -33,6 +39,7 @@ export const initialState: UIState = {
   isAuthLoading: false,
   isHamburgerMenuOpen: false,
   refetchUserStocks: false,
+  activeSideBar: ActiveSideBar.PROFILE,
   uiNotification: {
     notificationType: UINotificationEnum.DEFAULT,
     message: 'message',
@@ -53,6 +60,10 @@ const uiSlice = createSlice({
       state.isHamburgerMenuOpen = !state.isHamburgerMenuOpen;
     },
 
+    setActiveSideBar: (state, action: PayloadAction<ActiveSideBar>) => {
+      state.activeSideBar = action.payload;
+    },
+
     setUINotification: (state, action: PayloadAction<UINotificationType>) => {
       state.uiNotification = action.payload;
     },
@@ -71,6 +82,7 @@ export const {
   setIsAuthLoading,
   setIsAuthModalOpen,
   toggleHamburgerMenuOpen,
+  setActiveSideBar,
   setUINotification,
   setIsNewPostModalOpen,
 } = uiSlice.actions;

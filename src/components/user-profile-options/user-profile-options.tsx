@@ -30,7 +30,7 @@ const UserProfileOptions = (): React.ReactNode => {
     dispatch(setIsAuthModalOpen(false));
   };
 
-  const onProfileSelectChange = (value: any): void => {
+  const onProfileSelectChange = (value: string): void => {
     switch (value) {
       case 'view-profile':
         // TODO: route to profile

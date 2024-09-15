@@ -4,7 +4,11 @@ import React from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
 
-import { toggleHamburgerMenuOpen } from '@/store/reducers/ui-reducer/ui-slice';
+import {
+  ActiveSideBar,
+  setActiveSideBar,
+  toggleHamburgerMenuOpen,
+} from '@/store/reducers/ui-reducer/ui-slice';
 
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
 import { cn } from '@/lib/utils';
@@ -13,6 +17,11 @@ const NavigationBar = (): React.ReactNode => {
   const dispatch = useDispatch();
 
   const isHamburgerMenuOpen = useSelector(uiReducerSelector.getIsHamburgerMenuOpen);
+
+  const handleClickHamburgerMenu = (): void => {
+    dispatch(toggleHamburgerMenuOpen());
+    dispatch(setActiveSideBar(ActiveSideBar.PROFILE));
+  };
 
   return (
     <nav className='h-[60px] p-4 sticky bg-background top-0 z-50 border-1 border-black overflow-hidden'>
@@ -23,7 +32,7 @@ const NavigationBar = (): React.ReactNode => {
           <button
             title='hamburger menu'
             className='transform transition duration-300 ease-in-out'
-            onClick={() => dispatch(toggleHamburgerMenuOpen())}
+            onClick={() => handleClickHamburgerMenu()}
           >
             <svg
               className={cn(
