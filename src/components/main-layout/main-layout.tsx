@@ -59,8 +59,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
             className='hidden md:flex md:min-w-64 lg:flex flex-col lg:min-w-64 ml-2'
           >
             <UserProfileOptions />
+
             {currentUser.email && (
-              <div className='lg:flex min-1500:hidden h-[260px] flex-col lg:min-w-64 '>
+              <div className='lg:flex min-1500:hidden top-[250px] sticky h-[260px] flex-col lg:min-w-64'>
                 <Discover />
               </div>
             )}

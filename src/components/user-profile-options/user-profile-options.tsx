@@ -51,7 +51,7 @@ const UserProfileOptions = (): React.ReactNode => {
   ) : (
     <div
       id='user-profile-section'
-      className='flex flex-col top-[60px] h-[170px] sticky bg-background'
+      className='flex flex-col top-[60px] h-[170px] sticky bg-background z-50'
     >
       {user.username ? (
         <div className='w-full h-full flex flex-col p-1'>
