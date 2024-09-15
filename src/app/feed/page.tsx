@@ -168,7 +168,7 @@ const Home = (): React.ReactNode => {
   return (
     <div className='flex min-w-full justify-center'>
       {renderScreen[activeScreen]}
-      <div className='lg:flex max-1500:hidden sticky ml-2 h-[260px] flex-col lg:w-[260px] '>
+      <div className='lg:flex max-1500:hidden sticky top-[200px] ml-2 h-[260px] flex-col lg:w-[260px] '>
         <Discover />
       </div>
     </div>

@@ -75,10 +75,10 @@ class FeedService {
               some: {
                 repostedBy: {
                   in: followingUserIds,
-                  notIn: blockedUsersWithCurrentUser,
+                  notIn: blockedUserIds,
                 },
                 repostedFrom: {
-                  notIn: blockedUsersWithCurrentUser, // Exclude the current user from reposts by themselves
+                  notIn: blockedUserIds,
                 },
               },
             },
@@ -118,8 +118,10 @@ class FeedService {
       ];
     });
 
-    // Return paginated and sorted results
-    return transformedPosts;
+    // Return paginated results filtering current user posts if they are not repost
+    return transformedPosts.filter(
+      post => post.userId !== currentUserId || (post.isRepost && post.userId === currentUserId)
+    );
   };
 
   /**

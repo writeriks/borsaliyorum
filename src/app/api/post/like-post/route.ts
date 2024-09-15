@@ -72,6 +72,8 @@ export async function POST(request: Request): Promise<NextResponse> {
       didLike = true;
     }
 
+    // TODO: Handle Mentions
+
     return createResponse(ResponseStatus.OK, { didLike });
   } catch (error) {
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
