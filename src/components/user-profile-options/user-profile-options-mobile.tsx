@@ -30,16 +30,18 @@ const UserProfileOptionsMobile = (): React.ReactNode => {
       {user.username ? (
         <div className='w-full h-full flex flex-col p-1'>
           <div>
-            <UserAvatar
-              user={{
-                profilePhoto: user.profilePhoto ?? '',
-                displayName: user.displayName,
-                username: user.username,
-              }}
-            />
-            <div className='ml-2 flex flex-col items-start'>
-              <span className='text-sm'>{user.displayName}</span>
-              <span className='text-xs'>{user.username}</span>
+            <div className='flex'>
+              <UserAvatar
+                user={{
+                  profilePhoto: user.profilePhoto ?? '',
+                  displayName: user.displayName,
+                  username: user.username,
+                }}
+              />
+              <div className='ml-2 flex flex-col items-start'>
+                <span className='text-sm'>{user.displayName}</span>
+                <span className='text-xs'>{user.username}</span>
+              </div>
             </div>
 
             <Button

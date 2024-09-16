@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+
 import { Home, Compass, Search, User } from 'lucide-react';
+
+import {
+  ActiveSideBar,
+  setActiveSideBar,
+  toggleHamburgerMenuOpen,
+} from '@/store/reducers/ui-reducer/ui-slice';
 
 enum ActiveTabEnum {
   FEED = 'feed',
@@ -10,6 +18,8 @@ enum ActiveTabEnum {
 
 const TabBarController: React.FC = () => {
   const [activeTab, setActiveTab] = useState('feed');
+
+  const dispatch = useDispatch();
 
   const path = window.location.pathname.split('/')[1];
 
@@ -34,7 +44,13 @@ const TabBarController: React.FC = () => {
 
   const onTabClick = (tab: ActiveTabEnum): void => {
     setActiveTab(tab);
-    window.location.pathname = `/${tab}`;
+
+    if (tab == ActiveTabEnum.DISCOVER) {
+      dispatch(toggleHamburgerMenuOpen());
+      dispatch(setActiveSideBar(ActiveSideBar.DISCOVER));
+    } else {
+      window.location.pathname = `/${tab}`;
+    }
   };
 
   return (
