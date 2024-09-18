@@ -1,16 +1,32 @@
-import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
-import { TrendingTopicsType } from '@/services/tag-service/constants';
-import { toggleHamburgerMenuOpen } from '@/store/reducers/ui-reducer/ui-slice';
-import { TrendingUp } from 'lucide-react';
 import React from 'react';
-import { useDispatch } from 'react-redux';
+
+import { useDispatch, useSelector } from 'react-redux';
+import { useRouter } from 'next/navigation';
+
+import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
+import { TrendingUp } from 'lucide-react';
+
+import { toggleHamburgerMenuOpen } from '@/store/reducers/ui-reducer/ui-slice';
+import contextReducerSelector from '@/store/reducers/context-reducer/context-reducer-selector';
+
+import { TrendingTopicsType } from '@/services/tag-service/constants';
 
 interface TrendingTopicsProps {
   trends: TrendingTopicsType;
 }
 
 const TrendingTopics: React.FC<TrendingTopicsProps> = ({ trends }) => {
+  const isMobile = useSelector(contextReducerSelector.getIsMobile);
   const dispatch = useDispatch();
+
+  const router = useRouter();
+  const handleTagClick = (ticker: string): void => {
+    if (isMobile) {
+      dispatch(toggleHamburgerMenuOpen());
+    }
+
+    router.push(`/stocks/${ticker}`);
+  };
   return (
     <div id='discovery'>
       <section id='trending-stocks' className='flex flex-col mb-2'>
@@ -21,9 +37,8 @@ const TrendingTopics: React.FC<TrendingTopicsProps> = ({ trends }) => {
               key={stock.stockId}
               className='flex justify-between items-center text-sm hover:bg-secondary/80 w-full font-bold cursor-pointer p-2'
             >
-              <a
-                onClick={() => dispatch(toggleHamburgerMenuOpen())}
-                href={`/stocks/${stock.ticker}`}
+              <span
+                onClick={e => handleTagClick(stock.ticker)}
                 className='max-w-[180px] truncate flex'
               >
                 {index + 1}.&nbsp;
@@ -33,7 +48,7 @@ const TrendingTopics: React.FC<TrendingTopicsProps> = ({ trends }) => {
                   className='hover:underline'
                   tooltipSide='bottom'
                 />
-              </a>
+              </span>
               <TrendingUp />
             </p>
           ))}
