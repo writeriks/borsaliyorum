@@ -1,5 +1,5 @@
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Minus, Repeat, TrendingDown, TrendingUp } from 'lucide-react';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import UserAvatar from '@/components/user-avatar/user-avatar';
@@ -32,12 +32,6 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
     enabled: !!post.userId,
   });
 
-  const { data: repostOwner } = useQuery({
-    queryKey: [`get-entry-owner-${post?.reposts?.[0]?.repostedBy ?? 0}`],
-    queryFn: async () => await userApiService.getEntryOwner(post?.reposts?.[0]?.repostedBy ?? 0),
-    enabled: !!post?.reposts?.[0]?.repostedBy ?? false,
-  });
-
   const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(post.mediaUrl ?? '')}`;
 
   const postDate = formatDate(post.createdAt.toString());
@@ -62,19 +56,6 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
 
   return (
     <Card className='w-full mb-2 overflow-hidden'>
-      {!!post?.reposts?.length && post.isRepost && repostOwner?.isUserFollowed && (
-        <CardHeader className='p-2 text-slate-400'>
-          <div className='inline-flex items-center'>
-            <Repeat className='h-4 w-4 ml-2 text-green-500' />
-            <span className='ml-2 text-sm flex '>
-              <a className='hover:underline' href={`/users/${repostOwner?.username}`}>
-                {repostOwner?.displayName} tarafından yeniden yayınlandı.
-              </a>
-            </span>
-          </div>
-        </CardHeader>
-      )}
-
       <CardContent className='p-4 flex flex-col items-start gap-4'>
         <div className='flex items-start gap-4 w-full'>
           {postOwner && (

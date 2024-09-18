@@ -3,7 +3,7 @@ import postApiService from '@/services/api-service/post-api-service/post-api-ser
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { Post, Comment, User } from '@prisma/client';
 import { useMutation } from '@tanstack/react-query';
-import { Heart, MessageCircle, Repeat } from 'lucide-react';
+import { Heart, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 
@@ -29,10 +29,6 @@ interface EntryProp {
 const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, onPostClick }) => {
   const [isLiked, setIsLiked] = useState<boolean>(entry.likedByCurrentUser);
   const [likeCount, setLikeCount] = useState<number>(entry.likeCount ?? 0);
-  const [isReposted, setIsReposted] = useState<boolean>(
-    (entry as ExtendedPost).repostedByCurrentUser
-  );
-  const [repostCount, setRepostCount] = useState<number>((entry as ExtendedPost).repostCount ?? 0);
 
   const dispatch = useDispatch();
   const isComment = 'commentId' in entry;
@@ -69,17 +65,6 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
     onError: handleError,
   });
 
-  const repostMutation = useMutation({
-    mutationFn: async () => {
-      return postApiService.toggleRepost(entry.postId);
-    },
-    onSuccess: data => {
-      setIsReposted(data.didRepost);
-      setRepostCount(data.didRepost ? repostCount + 1 : repostCount - 1);
-    },
-    onError: handleError,
-  });
-
   return (
     <>
       <div className='inline-flex'>
@@ -105,25 +90,6 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
         <MessageCircle className='h-5 w-5 hover:cursor-pointer hover:text-blue-500' />
         {!isComment && <span className='ml-1 text-xs flex items-center'>{entry.commentCount}</span>}
       </div>
-      {!isComment && (
-        <div className='inline-flex'>
-          {isReposted ? (
-            <Repeat
-              color='#22C55E'
-              cursor='pointer'
-              onClick={() => repostMutation.mutate()}
-              className='h-5 w-5'
-            />
-          ) : (
-            <Repeat
-              cursor='pointer'
-              onClick={() => repostMutation.mutate()}
-              className='h-5 w-5 sm:hover:text-green-500'
-            />
-          )}
-          <span className='ml-1 text-xs flex items-center'>{repostCount}</span>
-        </div>
-      )}
     </>
   );
 };
