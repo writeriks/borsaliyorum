@@ -23,8 +23,12 @@ import { cn } from '@/lib/utils';
 import ContentInput from '@/components/content-input/content-input';
 import { Sentiment } from '@prisma/client';
 
-const NewPost = (): React.ReactElement => {
-  const [content, setcontent] = useState('');
+interface NewPostProps {
+  ticker?: string;
+}
+
+const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
+  const [content, setContent] = useState('');
   const [sentiment, setSentiment] = useState<Sentiment>(Sentiment.bullish);
   const [imageData, setImageData] = useState<string>('');
   const [cashTags, setCashTags] = useState<string[]>([]);
@@ -50,7 +54,7 @@ const NewPost = (): React.ReactElement => {
         })
       );
 
-      setcontent('');
+      setContent('');
       setCashTags([]);
       setSentiment(Sentiment.bullish);
       setImageData('');
@@ -121,6 +125,16 @@ const NewPost = (): React.ReactElement => {
     });
   }, [cashTags, content]);
 
+  useEffect(() => {
+    if (ticker) {
+      const mentionPrefix = `$(${ticker})`;
+      if (!content.includes(mentionPrefix)) {
+        setContent(content + mentionPrefix + ' ');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ticker]);
+
   const submitPost = async (): Promise<void> => {
     const post = {
       content,
@@ -145,7 +159,7 @@ const NewPost = (): React.ReactElement => {
           <ContentInput
             placeholder='Ne Düşünüyorsun?'
             content={content}
-            setContent={setcontent}
+            setContent={setContent}
             onSetCashTags={handleSetCashTags}
           />
           {content ? (

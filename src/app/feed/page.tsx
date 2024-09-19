@@ -130,34 +130,31 @@ const Home = (): React.ReactNode => {
 
   const renderScreen = {
     [ActiveScreen.FEED]: (
-      <div className='flex flex-col w-full max-w-2xl '>
-        <NewPost />
-        <div className='w-full self-start'>
-          <Tabs
-            defaultValue={FeedTab.LATEST}
-            onValueChange={value => handleTabChange(value as FeedTab)}
-            className='mt-2 w-full'
-          >
-            <TabsList className='w-full'>
-              <TabsTrigger className='mr-10' value={FeedTab.LATEST}>
-                En Son Gönderiler
-              </TabsTrigger>
-              <TabsTrigger value={FeedTab.POPULAR}>En Popüler Gönderiler</TabsTrigger>
-            </TabsList>
-            <TabsContent value={FeedTab.LATEST}>
-              {postsByDate.map(post => (
-                <Post onPostClick={handlePostClick} key={post.postId} post={post} />
-              ))}
-              {getMutation().isPending && <LoadingSkeleton type={LoadingSkeletons.POST} />}
-            </TabsContent>
-            <TabsContent value={FeedTab.POPULAR}>
-              {postsByLike.map(post => (
-                <Post onPostClick={handlePostClick} key={post.postId} post={post} />
-              ))}
-              {getMutation().isPending && <LoadingSkeleton type={LoadingSkeletons.POST} />}
-            </TabsContent>
-          </Tabs>
-        </div>
+      <div className='w-full self-start'>
+        <Tabs
+          defaultValue={FeedTab.LATEST}
+          onValueChange={value => handleTabChange(value as FeedTab)}
+          className='mt-2 w-full'
+        >
+          <TabsList className='w-full'>
+            <TabsTrigger className='mr-10' value={FeedTab.LATEST}>
+              En Son Gönderiler
+            </TabsTrigger>
+            <TabsTrigger value={FeedTab.POPULAR}>En Popüler Gönderiler</TabsTrigger>
+          </TabsList>
+          <TabsContent value={FeedTab.LATEST}>
+            {postsByDate.map(post => (
+              <Post onPostClick={handlePostClick} key={post.postId} post={post} />
+            ))}
+            {getMutation().isPending && <LoadingSkeleton type={LoadingSkeletons.POST} />}
+          </TabsContent>
+          <TabsContent value={FeedTab.POPULAR}>
+            {postsByLike.map(post => (
+              <Post onPostClick={handlePostClick} key={post.postId} post={post} />
+            ))}
+            {getMutation().isPending && <LoadingSkeleton type={LoadingSkeletons.POST} />}
+          </TabsContent>
+        </Tabs>
       </div>
     ),
     [ActiveScreen.POST_DETAIL]: (
@@ -167,8 +164,11 @@ const Home = (): React.ReactNode => {
 
   return (
     <div className='flex min-w-full justify-center'>
-      {renderScreen[activeScreen]}
-      <div className='lg:flex max-1500:hidden sticky top-[200px] ml-2 h-[260px] flex-col lg:w-[260px] '>
+      <div className='flex flex-col w-full max-w-2xl '>
+        <NewPost />
+        {renderScreen[activeScreen]}
+      </div>
+      <div className='lg:flex max-1500:hidden sticky top-12 ml-2 h-[260px] flex-col lg:w-[260px] '>
         <Discover />
       </div>
     </div>
