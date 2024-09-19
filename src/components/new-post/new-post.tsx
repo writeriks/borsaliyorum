@@ -28,6 +28,7 @@ interface NewPostProps {
 }
 
 const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
+  console.log('🚀 ~ ticker:', ticker);
   const [content, setContent] = useState('');
   const [sentiment, setSentiment] = useState<Sentiment>(Sentiment.bullish);
   const [imageData, setImageData] = useState<string>('');
@@ -71,6 +72,8 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
 
   const isContentLengthExceeded = MAX_CHARACTERS - content.length < 0;
   const isSubmitDisabled = cashTags.length === 0 || mutation.isPending || isContentLengthExceeded;
+  console.log('🚀 ~ cashTags:', cashTags);
+  console.log('🚀 ~ isSubmitDisabled:', isSubmitDisabled);
 
   const handleSentimentToggle = (): void => {
     switch (sentiment) {
@@ -129,6 +132,7 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
     if (ticker) {
       const mentionPrefix = `$(${ticker})`;
       if (!content.includes(mentionPrefix)) {
+        setCashTags([...cashTags, ticker]);
         setContent(content + mentionPrefix + ' ');
       }
     }
