@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 import { useRouter } from 'next/navigation';
 import useOverflowDetection from '@/hooks/useOverflowDetection';
 import ContentTagWithTooltip from '@/components/content/content-tag/content-tag-with-tooltip';
 import ContentTag from '@/components/content/content-tag/content-tag';
+import tagService from '@/services/tag-service/tag-service';
 
 interface ContentProps {
   content: string;
@@ -22,19 +22,7 @@ const Content: React.FC<ContentProps> = ({ content }) => {
 
   const onTagClick = (e: React.MouseEvent<HTMLSpanElement>, tag: string): void => {
     e.stopPropagation();
-    const tagType = tag[0];
-    switch (tagType) {
-      case TagsEnum.CASHTAG:
-        router.replace(`stocks/${tag}`);
-        break;
-      case TagsEnum.MENTION:
-        router.replace(`users/${tag}`);
-        break;
-      case TagsEnum.HASHTAG:
-      default:
-        router.replace(`tags/${tag.replace(TagsEnum.HASHTAG, '')}`);
-        break;
-    }
+    tagService.navigateToPageByTagName(tag, router);
   };
 
   const renderContent = (text: string): React.ReactNode => {

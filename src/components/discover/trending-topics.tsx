@@ -10,6 +10,7 @@ import { toggleHamburgerMenuOpen } from '@/store/reducers/ui-reducer/ui-slice';
 import contextReducerSelector from '@/store/reducers/context-reducer/context-reducer-selector';
 
 import { TrendingTopicsType } from '@/services/tag-service/constants';
+import tagService from '@/services/tag-service/tag-service';
 
 interface TrendingTopicsProps {
   trends: TrendingTopicsType;
@@ -20,12 +21,12 @@ const TrendingTopics: React.FC<TrendingTopicsProps> = ({ trends }) => {
   const dispatch = useDispatch();
 
   const router = useRouter();
-  const handleTagClick = (ticker: string): void => {
+  const handleTagClick = (tag: string): void => {
     if (isMobile) {
       dispatch(toggleHamburgerMenuOpen());
     }
 
-    router.push(`/stocks/${ticker}`);
+    tagService.navigateToPageByTagName(tag, router);
   };
   return (
     <div id='discovery'>
@@ -63,7 +64,7 @@ const TrendingTopics: React.FC<TrendingTopicsProps> = ({ trends }) => {
               className='flex justify-between items-center text-sm hover:bg-secondary/80 w-full font-bold cursor-pointer p-2'
             >
               <a
-                onClick={() => dispatch(toggleHamburgerMenuOpen())}
+                onClick={() => handleTagClick(tag.tagName)}
                 href={`/tags/${tag.tagName.slice(1)}`}
                 className='max-w-[180px] truncate flex'
               >

@@ -168,7 +168,7 @@ const Home = (): React.ReactNode => {
         <NewPost />
         {renderScreen[activeScreen]}
       </div>
-      <div className='lg:flex max-1500:hidden sticky top-12 ml-2 h-[260px] flex-col lg:w-[260px] '>
+      <div className='lg:flex max-1500:hidden sticky top-[156px] ml-2 h-[260px] flex-col lg:w-[260px] '>
         <Discover />
       </div>
     </div>
