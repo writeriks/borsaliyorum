@@ -1,9 +1,11 @@
-import prisma from '@/services/prisma-service/prisma-client';
-import { auth } from '@/services/firebase-service/firebase-admin';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { NextResponse } from 'next/server';
 
-export async function POST(request: Request): Promise<NextResponse> {
+export async function POST(): Promise<NextResponse> {
+  return createResponse(ResponseStatus.BAD_REQUEST);
+
+  /*
+    COMMENT THIS AS REPOST FUNCTIONALITY IS RETREACTED
   try {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
@@ -78,5 +80,5 @@ export async function POST(request: Request): Promise<NextResponse> {
     return createResponse(ResponseStatus.OK, { didRepost });
   } catch (error) {
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
-  }
+  } */
 }
