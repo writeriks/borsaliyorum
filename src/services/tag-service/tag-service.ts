@@ -2,6 +2,7 @@ import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 import prisma from '@/services/prisma-service/prisma-client';
 
 import { Tag as DBTag } from '@prisma/client';
+import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
 class TagService {
   /*
@@ -106,6 +107,28 @@ class TagService {
       case TagsEnum.HASHTAG:
       default:
         return TagsEnum.HASHTAG;
+    }
+  };
+
+  /*
+   * Navigate to page by tag name
+   *
+   * @param tag - The tag to navigate to
+   * @param router - The router instance
+   */
+  navigateToPageByTagName = (tag: string, router: AppRouterInstance): void => {
+    const tagType = tag[0];
+    switch (tagType) {
+      case TagsEnum.CASHTAG:
+        router.replace(`stocks/${tag}`);
+        break;
+      case TagsEnum.MENTION:
+        router.replace(`users/${tag}`);
+        break;
+      case TagsEnum.HASHTAG:
+      default:
+        router.replace(`tags/${tag.replace(TagsEnum.HASHTAG, '')}`);
+        break;
     }
   };
 }
