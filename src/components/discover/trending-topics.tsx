@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
-import { useRouter } from 'next/navigation';
 
 import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
 import { TrendingUp } from 'lucide-react';
@@ -20,13 +19,12 @@ const TrendingTopics: React.FC<TrendingTopicsProps> = ({ trends }) => {
   const isMobile = useSelector(contextReducerSelector.getIsMobile);
   const dispatch = useDispatch();
 
-  const router = useRouter();
   const handleTagClick = (tag: string): void => {
     if (isMobile) {
       dispatch(toggleHamburgerMenuOpen());
     }
 
-    tagService.navigateToPageByTagName(tag, router);
+    tagService.navigateToPageByTagName(tag);
   };
   return (
     <div id='discovery'>

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import discoverApiService from '@/services/api-service/discover-api-service/discover-api-service';
 import { useQuery } from '@tanstack/react-query';
