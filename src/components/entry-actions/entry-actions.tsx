@@ -67,7 +67,7 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
 
   return (
     <>
-      <div className='inline-flex'>
+      <div className='inline-flex px-4'>
         {isLiked ? (
           <Heart
             fill='#EF4444'
