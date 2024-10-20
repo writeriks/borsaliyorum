@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import discoverApiService from '@/services/api-service/discover-api-service/discover-api-service';
 import { useQuery } from '@tanstack/react-query';
@@ -15,7 +17,6 @@ const Discover: React.FC = () => {
     enabled: !!fbAuthUser,
   });
 
-  // TODO: Create components and style them
   const renderTrends = (): React.ReactNode => {
     if (isLoading) {
       return <LoadingSkeleton type={LoadingSkeletons.DISCOVER} />;

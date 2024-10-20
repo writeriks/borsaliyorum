@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
 import useOverflowDetection from '@/hooks/useOverflowDetection';
 import ContentTagWithTooltip from '@/components/content/content-tag/content-tag-with-tooltip';
 import ContentTag from '@/components/content/content-tag/content-tag';
@@ -13,7 +12,6 @@ interface ContentProps {
 const Content: React.FC<ContentProps> = ({ content }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { isOverflowing, contentRef } = useOverflowDetection(content);
-  const router = useRouter();
 
   const toggleReadMore = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.stopPropagation();
@@ -22,7 +20,7 @@ const Content: React.FC<ContentProps> = ({ content }) => {
 
   const onTagClick = (e: React.MouseEvent<HTMLSpanElement>, tag: string): void => {
     e.stopPropagation();
-    tagService.navigateToPageByTagName(tag, router);
+    tagService.navigateToPageByTagName(tag);
   };
 
   const renderContent = (text: string): React.ReactNode => {

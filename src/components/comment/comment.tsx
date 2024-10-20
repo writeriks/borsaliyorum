@@ -1,10 +1,10 @@
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import EntryFooter from '@/components/entry-footer/entry-footer';
 import { useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import UserAvatar from '@/components/user-avatar/user-avatar';
 
 import EntryOptions from '@/components/entry-actions/entry-options';
-import EntryActions from '@/components/entry-actions/entry-actions';
 import Content from '@/components/content/content';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
@@ -56,13 +56,7 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick
           />
         )}
       </CardContent>
-      <CardFooter className='flex items-center justify-between ml-24 mr-24'>
-        <EntryActions
-          onCommentClick={onCommentClick}
-          commentor={commentor}
-          entry={comment as any}
-        />
-      </CardFooter>
+      <EntryFooter onCommentClick={onCommentClick} commentor={commentor} entry={comment as any} />
     </Card>
   );
 };

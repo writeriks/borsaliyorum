@@ -1,11 +1,10 @@
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import UserAvatar from '@/components/user-avatar/user-avatar';
 import Image from 'next/image';
 import EntryOptions from '@/components/entry-actions/entry-options';
-import EntryActions from '@/components/entry-actions/entry-actions';
 import Content from '@/components/content/content';
 import { formatDate } from '@/utils/content-utils/content-utils';
 import { Post as PostType, Sentiment, Repost } from '@prisma/client';
@@ -13,6 +12,7 @@ import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with
 import { useQuery } from '@tanstack/react-query';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { useRouter } from 'next/navigation';
+import EntryFooter from '@/components/entry-footer/entry-footer';
 
 export interface PostProp {
   post: PostType & {
@@ -107,9 +107,7 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
           />
         )}
       </CardContent>
-      <CardFooter className='flex items-center justify-between ml-16 mr-16'>
-        <EntryActions onPostClick={onPostClick} entry={post as any} />
-      </CardFooter>
+      <EntryFooter onPostClick={onPostClick} entry={post as any} />
     </Card>
   );
 };
