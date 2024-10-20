@@ -9,10 +9,8 @@ interface StockDetailPageProps {
   params: { id: string };
 }
 
-// Server-side arrow function component
-const StockDetailPage = async ({ params }: StockDetailPageProps): Promise<React.ReactNode> => {
-  const stockId = decodeURIComponent(params.id).substring(1); // Decode the ID if necessary
-
+const StockPage = async ({ params }: StockDetailPageProps): Promise<React.ReactNode> => {
+  const stockId = decodeURIComponent(params.id).substring(1);
   const stock = await prisma.stock.findUnique({
     where: { ticker: `$${stockId}` },
   });
@@ -33,4 +31,4 @@ const StockDetailPage = async ({ params }: StockDetailPageProps): Promise<React.
   );
 };
 
-export default StockDetailPage;
+export default StockPage;

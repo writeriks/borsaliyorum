@@ -56,13 +56,6 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick
           />
         )}
       </CardContent>
-      {/* <CardFooter className='flex justify-end'>
-        <EntryActions
-          onCommentClick={onCommentClick}
-          commentor={commentor}
-          entry={comment as any}
-        />
-      </CardFooter> */}
       <EntryFooter onCommentClick={onCommentClick} commentor={commentor} entry={comment as any} />
     </Card>
   );

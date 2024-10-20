@@ -17,7 +17,6 @@ const Discover: React.FC = () => {
     enabled: !!fbAuthUser,
   });
 
-  // TODO: Create components and style them
   const renderTrends = (): React.ReactNode => {
     if (isLoading) {
       return <LoadingSkeleton type={LoadingSkeletons.DISCOVER} />;

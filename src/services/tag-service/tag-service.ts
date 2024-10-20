@@ -2,7 +2,6 @@ import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 import prisma from '@/services/prisma-service/prisma-client';
 
 import { Tag as DBTag } from '@prisma/client';
-import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
 class TagService {
   /*
