@@ -111,6 +111,18 @@ const Home = (): React.ReactNode => {
   useEffect(() => {
     if (!fbAuthUser) return;
 
+    const postId = new URLSearchParams(window.location.search).get('post');
+
+    if (postId) {
+      (async () => {
+        const post = await postApiService.getPostById(postId);
+        if (post) {
+          setSelectedPost(post);
+          setActiveScreen(ActiveScreen.POST_DETAIL);
+        }
+      })();
+    }
+
     getMutation().mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fbAuthUser]);
