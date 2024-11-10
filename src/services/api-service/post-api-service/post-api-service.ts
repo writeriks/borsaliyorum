@@ -70,6 +70,41 @@ class PostApiService {
   };
 
   /**
+   * Fetches the stock feed sorted by date.
+   *
+   * @param lastPostId - The ID of the last post retrieved for pagination purposes.
+   * @param ticker - The ticker symbol of the stock.
+   * @returns A promise that resolves to an object containing the posts sorted by date and the last post ID.
+   */
+  getStockFeedByDate = async (
+    lastPostId: string,
+    ticker: string
+  ): Promise<{
+    postsByDate: Post[];
+    lastPostIdByDate: string;
+  }> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch(
+      `/api/stock/get-feed-by-date?ticker=${encodeURIComponent(ticker)}&lastPostId=${encodeURIComponent(lastPostId)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
+
+  /**
    * Fetches the user's feed sorted by like count.
    *
    * @param lastPostId - The ID of the last post retrieved for pagination purposes.
@@ -85,6 +120,41 @@ class PostApiService {
 
     const response = await fetch(
       `/api/post/get-feed-by-like?lastPostId=${encodeURIComponent(lastPostId)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
+
+  /**
+   * Fetches the user's feed sorted by like count.
+   *
+   * @param lastPostId - The ID of the last post retrieved for pagination purposes.
+   * @param ticker - The ticker symbol of the stock.
+   * @returns A promise that resolves to an object containing the posts sorted by like count and the last post ID.
+   */
+  getStockFeedByLike = async (
+    lastPostId: string,
+    ticker: string
+  ): Promise<{
+    postsByLike: Post[];
+    lastPostIdByLike: string;
+  }> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch(
+      `/api/stock/get-feed-by-like?ticker=${encodeURIComponent(ticker)}&lastPostId=${encodeURIComponent(lastPostId)}`,
       {
         method: 'GET',
         headers: {
