@@ -47,11 +47,11 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
     if (activeScreen === ActiveScreen.POST_DETAIL) return;
 
     if (activeTab === FeedTab.LATEST && lastPostIdForDate !== null) {
-      return postApiService.getStockFeedByDate(lastPostIdForDate, stock!.ticker);
+      return postApiService.getFeedByDate(lastPostIdForDate);
     }
 
     if (activeTab === FeedTab.POPULAR && lastPostIdForLike !== null) {
-      return postApiService.getStockFeedByLike(lastPostIdForLike, stock!.ticker);
+      return postApiService.getFeedByLike(lastPostIdForLike);
     }
   };
 
@@ -63,7 +63,7 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
     }
   };
 
-  const setPosts = (data: any): void => {
+  const setPostsForStockFeed = (data: any): void => {
     if (!data) return;
 
     if (activeTab === FeedTab.LATEST) {
@@ -76,6 +76,30 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
 
       setPostsByLike(prevPostsByLike => [...prevPostsByLike, ...dataByLike]);
       setLastPostIdForLike(data.lastPostIdByLike);
+    }
+  };
+
+  const setPostsForUserFeed = (data: any): void => {
+    if (!data) return;
+
+    if (activeTab === FeedTab.LATEST) {
+      const dataByDate = data.postsByDate ?? [];
+
+      setPostsByDate(prevPostsByDate => [...prevPostsByDate, ...dataByDate]);
+      setLastPostIdForDate(data.lastPostIdByDate);
+    } else {
+      const dataByLike = data.postsByLike ?? [];
+
+      setPostsByLike(prevPostsByLike => [...prevPostsByLike, ...dataByLike]);
+      setLastPostIdForLike(data.lastPostIdByLike);
+    }
+  };
+
+  const setPosts = (data: any): void => {
+    if (stock) {
+      setPostsForStockFeed(data);
+    } else {
+      setPostsForUserFeed(data);
     }
   };
 
