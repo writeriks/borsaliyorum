@@ -65,21 +65,15 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     // Get likes, reposts and comments count for posts
     const likeCountMap = await feedService.getTotalLikeCounts(postIds);
-    const repostCountMap = await feedService.getTotalRepostCounts(postIds);
     const commentCountMap = await feedService.getTotalCommentCounts(postIds);
 
     // Get current user's likes
     const likedPostIds = await feedService.getLikesByCurrentUser(postIds, currentUser.userId);
 
-    // Get current user's reposts
-    const repostedPostIds = await feedService.getRepostsByCurrentUser(postIds, currentUser.userId);
-
     // Add like, comment info, and likedByCurrentUser flag to each post
     const postsWithLikeAndCommentInfo = stockPostsByLike.map(post => ({
       ...post,
       likedByCurrentUser: likedPostIds.has(post.postId),
-      repostedByCurrentUser: repostedPostIds.has(post.postId),
-      repostCount: repostCountMap[post.postId] || 0,
       likeCount: likeCountMap[post.postId] || 0,
       commentCount: commentCountMap[post.postId] || 0,
     }));

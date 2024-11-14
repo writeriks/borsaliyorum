@@ -1,14 +1,15 @@
+import React, { useEffect, useState } from 'react';
 import { ActiveScreen, FeedTab } from '@/app/constants';
 import FeedTabs from '@/components/feed-tabs/feed-tabs';
-import PostDetailModal from '@/components/post-detail-modal/post-detail-modal';
+import NewPost from '@/components/new-post/new-post';
+import PostDetail from '@/components/post/post-detail';
 import useInfiniteScroll from '@/hooks/useInfiniteScroll';
 import useScrollToLastPosition from '@/hooks/useScrollToLastPosition';
 import useUser from '@/hooks/useUser';
 import postApiService from '@/services/api-service/post-api-service/post-api-service';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { Post, Stock } from '@prisma/client';
-import { useMutation } from '@tanstack/react-query';
-import React, { useEffect, useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 
 interface FeedProps {
@@ -29,6 +30,8 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
   const dispatch = useDispatch();
 
   const { saveScrollPosition } = useScrollToLastPosition(activeScreen, setActiveScreen);
+
+  const tickerWithoutDollarSign = stock?.ticker.substring(1);
 
   const fetchStockFeed = async (): Promise<any> => {
     if (activeScreen === ActiveScreen.POST_DETAIL) return;
@@ -144,16 +147,21 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
     history.back(); // This will trigger the popstate event
   };
 
+  const postId = new URLSearchParams(window.location.search).get('post');
+  const { refetch: getPostById } = useQuery({
+    queryKey: ['get-post-by-id'],
+    queryFn: () => postApiService.getPostById(postId!),
+    enabled: false,
+  });
+
   useEffect(() => {
     if (!fbAuthUser) return;
 
-    const postId = new URLSearchParams(window.location.search).get('post');
-
     if (postId) {
       (async () => {
-        const post = await postApiService.getPostById(postId);
-        if (post) {
-          setSelectedPost(post);
+        const { data } = await getPostById();
+        if (data) {
+          setSelectedPost(data);
           setActiveScreen(ActiveScreen.POST_DETAIL);
         }
       })();
@@ -165,16 +173,19 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
   return (
     <>
       {activeScreen === ActiveScreen.FEED ? (
-        <FeedTabs
-          activeTab={activeTab}
-          postsByDate={postsByDate}
-          postsByLike={postsByLike}
-          onTabChange={handleTabChange}
-          onPostClick={handlePostClick}
-          isLoading={mutation.isPending}
-        />
+        <>
+          <NewPost ticker={tickerWithoutDollarSign} />
+          <FeedTabs
+            activeTab={activeTab}
+            postsByDate={postsByDate}
+            postsByLike={postsByLike}
+            onTabChange={handleTabChange}
+            onPostClick={handlePostClick}
+            isLoading={mutation.isPending}
+          />
+        </>
       ) : (
-        <PostDetailModal post={selectedPost!} onBackClick={handlePostDetailBackClick} />
+        <PostDetail onBackClick={handlePostDetailBackClick} post={selectedPost!} />
       )}
     </>
   );

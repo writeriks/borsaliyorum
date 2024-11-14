@@ -63,7 +63,6 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     // Get likes, reposts and comments count for posts
     const likeCountMap = await feedService.getTotalLikeCounts(postIds);
-    const repostCountMap = await feedService.getTotalRepostCounts(postIds);
     const commentCountMap = await feedService.getTotalCommentCounts(postIds);
 
     // Get current user's likes
@@ -73,7 +72,6 @@ export async function GET(request: Request): Promise<NextResponse> {
     const postsWithLikeAndCommentInfo = stockPostsByDate.map(post => ({
       ...post,
       likedByCurrentUser: likedPostIds.has(post.postId),
-      repostCount: repostCountMap[post.postId] || 0,
       likeCount: likeCountMap[post.postId] || 0,
       commentCount: commentCountMap[post.postId] || 0,
     }));
