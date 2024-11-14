@@ -137,7 +137,6 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
 
   const handlePostClick = (post: Post): void => {
     saveScrollPosition(); // Save the scroll position before navigating away
-    setSelectedPost(post);
     setActiveScreen(ActiveScreen.POST_DETAIL);
     history.pushState({}, '', `?post=${post.postId}`);
   };
@@ -145,6 +144,14 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
   const handlePostDetailBackClick = (): void => {
     setActiveScreen(ActiveScreen.FEED);
     history.back(); // This will trigger the popstate event
+
+    // Reset the selected post
+    setSelectedPost(undefined);
+    setLastPostIdForDate('');
+    setLastPostIdForLike('');
+    setPostsByDate([]);
+    setPostsByLike([]);
+    mutation.mutate();
   };
 
   const postId = new URLSearchParams(window.location.search).get('post');
@@ -165,10 +172,11 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
           setActiveScreen(ActiveScreen.POST_DETAIL);
         }
       })();
+    } else {
+      mutation.mutate();
     }
-    mutation.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fbAuthUser]);
+  }, [fbAuthUser, postId]);
 
   return (
     <>
