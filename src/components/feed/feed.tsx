@@ -22,6 +22,7 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
   const [selectedPost, setSelectedPost] = useState<Post>();
   const [activeTab, setActiveTab] = useState<FeedTab>(FeedTab.LATEST);
   const [isLikeTabClicked, setIsLikeTabClicked] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [lastPostIdForDate, setLastPostIdForDate] = useState('');
   const [lastPostIdForLike, setLastPostIdForLike] = useState('');
   const [activeScreen, setActiveScreen] = useState(ActiveScreen.FEED);
@@ -145,7 +146,7 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
     setActiveScreen(ActiveScreen.FEED);
     history.back(); // This will trigger the popstate event
 
-    // Reset the selected post
+    // Reset all posts and trigger refetch to fetch the new feed.
     setSelectedPost(undefined);
     setLastPostIdForDate('');
     setLastPostIdForLike('');
@@ -172,7 +173,9 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
           setActiveScreen(ActiveScreen.POST_DETAIL);
         }
       })();
-    } else {
+    } else if (isInitialLoad) {
+      // fetch first time feed on page load
+      setIsInitialLoad(false);
       mutation.mutate();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
