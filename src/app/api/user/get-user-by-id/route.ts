@@ -33,6 +33,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return createResponse(ResponseStatus.OK, user);
   } catch (error: any) {
-    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
+    return createResponse(ResponseStatus.BAD_REQUEST, error);
   }
 }

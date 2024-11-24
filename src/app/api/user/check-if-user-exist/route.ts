@@ -60,6 +60,6 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     return createResponse(ResponseStatus.OK);
   } catch (error) {
-    return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
+    return createResponse(ResponseStatus.BAD_REQUEST, error as any);
   }
 }
