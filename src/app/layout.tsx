@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/components/theme-provider/theme-provider';
 import MainLayout from '@/components/main-layout/main-layout';
 
 import './globals.css';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 export const metadata: Metadata = {
   title: 'Türk Borsa ve Yatırım Sosyal Medya Platformu',
@@ -30,7 +31,9 @@ const RootLayout = ({
             enableSystem
             disableTransitionOnChange
           >
-            <MainLayout>{children}</MainLayout>
+            <TooltipProvider>
+              <MainLayout>{children}</MainLayout>
+            </TooltipProvider>
           </ThemeProvider>
         </ReduxProvider>
       </ClientQueryProvider>

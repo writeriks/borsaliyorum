@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 interface TooltipWithEllipsisProps {
@@ -29,34 +29,30 @@ const TooltipWithEllipsis: React.FC<TooltipWithEllipsisProps> = ({
     }
   }, [tooltipText]);
 
-  return (
-    <TooltipProvider>
-      {children ? (
-        <Tooltip>
-          <TooltipTrigger asChild>{children}</TooltipTrigger>
-          <TooltipContent side={tooltipSide}>
-            <p>{tooltipText}</p>
-          </TooltipContent>
-        </Tooltip>
-      ) : (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <p
-              ref={textRef}
-              style={{ maxWidth }}
-              className={cn('truncate overflow-hidden text-ellipsis whitespace-nowrap', className)}
-            >
-              {tooltipText}
-            </p>
-          </TooltipTrigger>
-          {isOverflowed && (
-            <TooltipContent side={tooltipSide}>
-              <p>{tooltipText}</p>
-            </TooltipContent>
-          )}
-        </Tooltip>
+  return children ? (
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side={tooltipSide}>
+        <span>{tooltipText}</span>
+      </TooltipContent>
+    </Tooltip>
+  ) : (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span
+          ref={textRef}
+          style={{ maxWidth }}
+          className={cn('truncate overflow-hidden text-ellipsis whitespace-nowrap', className)}
+        >
+          {tooltipText}
+        </span>
+      </TooltipTrigger>
+      {isOverflowed && (
+        <TooltipContent side={tooltipSide}>
+          <span>{tooltipText}</span>
+        </TooltipContent>
       )}
-    </TooltipProvider>
+    </Tooltip>
   );
 };
 
