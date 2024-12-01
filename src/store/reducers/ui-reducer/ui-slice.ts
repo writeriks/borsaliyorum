@@ -29,7 +29,7 @@ export interface UIState {
   isAuthLoading: boolean;
   isHamburgerMenuOpen: boolean;
   refetchUserStocks: boolean;
-  uiNotification: UINotificationType;
+  uiNotification: UINotificationType | null;
   activeSideBar: ActiveSideBar;
   isAuthModalOpen: boolean;
   isNewPostModalOpen: boolean;
@@ -40,10 +40,7 @@ export const initialState: UIState = {
   isHamburgerMenuOpen: false,
   refetchUserStocks: false,
   activeSideBar: ActiveSideBar.PROFILE,
-  uiNotification: {
-    notificationType: UINotificationEnum.DEFAULT,
-    message: 'message',
-  },
+  uiNotification: null,
   isAuthModalOpen: false,
   isNewPostModalOpen: false,
 };

@@ -12,7 +12,7 @@ interface StockDetailPageProps {
 const StockPage = async ({ params }: StockDetailPageProps): Promise<React.ReactNode> => {
   const stockId = decodeURIComponent(params.id).substring(1);
   const stock = await prisma.stock.findUnique({
-    where: { ticker: `$${stockId}` },
+    where: { ticker: `${stockId}` },
   });
 
   if (!stock) {

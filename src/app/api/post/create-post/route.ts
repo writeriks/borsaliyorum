@@ -29,11 +29,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     const idToken = await auth.verifyIdToken(token);
 
     const { cashtags, hashtags, mentions } = tagService.getTagsFromContent(post.content);
+    const stockTickers = cashtags.map(cashtag => cashtag.replace('$', ''));
 
     const stocksByCashtags = await prisma.stock.findMany({
       where: {
         ticker: {
-          in: cashtags,
+          in: stockTickers,
         },
       },
     });
@@ -45,7 +46,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    const isAnyCashtagInvalid = cashtags.some(
+    const isAnyCashtagInvalid = stockTickers.some(
       cashtag => !stocksByCashtags.find(stock => stock.ticker === cashtag)
     );
 
@@ -95,7 +96,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const postStocks = await prisma.stock.findMany({
       where: {
         ticker: {
-          in: cashtags,
+          in: stockTickers,
         },
       },
     });

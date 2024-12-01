@@ -104,6 +104,7 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
             width={600}
             height={600}
             className='rounded-md object-contain max-h-[400px] max-w-[400px]'
+            priority
           />
         )}
       </CardContent>

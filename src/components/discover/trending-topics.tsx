@@ -37,12 +37,12 @@ const TrendingTopics: React.FC<TrendingTopicsProps> = ({ trends }) => {
               className='flex justify-between items-center text-sm hover:bg-secondary/80 w-full font-bold cursor-pointer p-2'
             >
               <span
-                onClick={() => handleTagClick(stock.ticker)}
+                onClick={() => handleTagClick(`$${stock.ticker}`)}
                 className='max-w-[180px] truncate flex'
               >
                 {index + 1}.&nbsp;
                 <TooltipWithEllipsis
-                  tooltipText={stock.ticker}
+                  tooltipText={`$${stock.ticker}`}
                   maxWidth='170'
                   className='hover:underline'
                   tooltipSide='bottom'

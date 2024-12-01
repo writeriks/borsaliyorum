@@ -46,7 +46,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         },
         AND: {
           userId: {
-            notIn: blockedUsersWithCurrentUser,
+            notIn: blockedUserIds,
           },
         },
       },

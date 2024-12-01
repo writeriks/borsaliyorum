@@ -31,7 +31,7 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
 
   const { saveScrollPosition } = useScrollToLastPosition(activeScreen, setActiveScreen);
 
-  const tickerWithoutDollarSign = stock?.ticker.substring(1);
+  const tickerWithoutDollarSign = stock?.ticker;
 
   const fetchStockFeed = async (): Promise<any> => {
     if (activeScreen === ActiveScreen.POST_DETAIL) return;
