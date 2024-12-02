@@ -8,7 +8,9 @@ interface UserAvatarProps {
 
 const UserAvatar: React.FC<UserAvatarProps> = ({ user, onUserAvatarClick }) => {
   const profileImage = user.profilePhoto;
-  const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(profileImage as string)}`;
+  const proxyUrl = profileImage
+    ? `/api/image-proxy?imageUrl=${encodeURIComponent(profileImage)}`
+    : undefined;
 
   const initials = user.displayName
     ?.split(' ')
@@ -17,8 +19,13 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, onUserAvatarClick }) => {
 
   return (
     <Avatar style={{ cursor: 'pointer' }} onClick={() => onUserAvatarClick?.()}>
-      <AvatarImage className='rounded-full' src={proxyUrl} alt='profile picture' />
-      <AvatarFallback className='relative p-2.5 bg-accent rounded-full'>{initials}</AvatarFallback>
+      {proxyUrl ? (
+        <AvatarImage className='rounded-full' src={proxyUrl} alt='profile picture' />
+      ) : (
+        <AvatarFallback className='relative p-2.5 bg-accent rounded-full'>
+          {initials}
+        </AvatarFallback>
+      )}
     </Avatar>
   );
 };

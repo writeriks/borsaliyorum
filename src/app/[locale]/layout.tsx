@@ -8,6 +8,7 @@ import ReduxProvider from '../../components/redux-provider/redux-provider';
 import ClientQueryProvider from '@/components/tanstack-provider/tanstack-provider';
 import { ThemeProvider } from '@/components/theme-provider/theme-provider';
 import MainLayout from '@/components/main-layout/main-layout';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 import '../globals.css';
 
@@ -43,7 +44,9 @@ const RootLayout = async ({
                 enableSystem
                 disableTransitionOnChange
               >
-                <MainLayout>{children}</MainLayout>
+                <TooltipProvider>
+                  <MainLayout>{children}</MainLayout>
+                </TooltipProvider>
               </ThemeProvider>
             </ReduxProvider>
           </ClientQueryProvider>
