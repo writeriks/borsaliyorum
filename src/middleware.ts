@@ -1,6 +1,15 @@
+import createMiddleware from 'next-intl/middleware';
+import { routing } from './i18n/routing';
 import { NextResponse, NextRequest } from 'next/server';
 
-export async function middleware(request: NextRequest): Promise<NextResponse> {
+const intlMiddleware = createMiddleware(routing);
+
+export default async function middleware(request: NextRequest): Promise<NextResponse> {
+  const intlResponse = intlMiddleware(request);
+  if (intlResponse) {
+    return intlResponse;
+  }
+
   const cookie = request.headers.get('Cookie');
   const token = cookie?.split('identity=')[1];
   const path = request.nextUrl.pathname;
@@ -31,5 +40,6 @@ export const config = {
     '/profile/:path*',
     '/users/:path*',
     '/edit-profile',
+    '/(tr|en)/:path*',
   ],
 };
