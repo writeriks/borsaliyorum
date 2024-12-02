@@ -18,7 +18,7 @@ const Home = (): React.ReactNode => {
     handleCookieCheck();
   }, []);
 
-  return <div> {t('title')}</div>;
+  return <div>{t('title')}</div>;
 };
 
 export default Home;
