@@ -11,8 +11,8 @@ import { Post as PostType, Sentiment, Repost } from '@prisma/client';
 import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
 import { useQuery } from '@tanstack/react-query';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
-import { useRouter } from 'next/navigation';
 import EntryFooter from '@/components/entry-footer/entry-footer';
+import { useRouter } from '@/i18n/routing';
 
 export interface PostProp {
   post: PostType & {

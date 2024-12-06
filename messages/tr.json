@@ -1,5 +1,9 @@
 {
   "HomePage": {
     "title": "Ana Sayfa, günün en aktif hisseleri için yaklaşık 10 gönderi göster."
+  },
+  "Feed": {
+    "latestPosts": "En Son Gönderiler",
+    "popularPosts": "En Popüler Gönderiler"
   }
 }

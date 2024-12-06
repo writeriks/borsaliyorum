@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { notFound } from 'next/navigation';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 
 import ReduxProvider from '../../components/redux-provider/redux-provider';
@@ -30,12 +30,13 @@ const RootLayout = async ({
     notFound();
   }
 
+  setRequestLocale(locale);
   const messages = await getMessages();
 
   return (
     <html lang={locale}>
       <body className='min-h-screen flex flex-col lg:flex-row'>
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <ClientQueryProvider>
             <ReduxProvider>
               <ThemeProvider
