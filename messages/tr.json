@@ -8,5 +8,13 @@
   },
   "Common": {
     "placeholder": "Ne düşünüyorsun?"
+  },
+  "NewPost": {
+    "successMessage": "Gönderi başarıyla oluşturuldu.",
+    "errorMessage": "Bir hata oluştu.",
+    "sending": "Gönderiliyor",
+    "send": "Gönder",
+    "gif": "gif",
+    "uploadedAlt": "yüklendi"
   }
 }

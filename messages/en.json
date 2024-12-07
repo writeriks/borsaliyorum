@@ -8,5 +8,13 @@
   },
   "Common": {
     "placeholder": "What's on your mind?"
+  },
+  "NewPost": {
+    "successMessage": "Post successfully created.",
+    "errorMessage": "An error occurred.",
+    "sending": "Sending",
+    "send": "Send",
+    "gif": "GIF",
+    "uploadedAlt": "uploaded"
   }
 }
