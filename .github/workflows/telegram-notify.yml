@@ -14,6 +14,7 @@ jobs:
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          parse_mode: 'Markdown'
           message: |
             🚨 **New Pull Request Alert!** 🚨
             **Title:** ${{ github.event.pull_request.title }}
@@ -26,4 +27,4 @@ jobs:
               || '' 
             }}
             ---
-            📈 Investing in great features! I'm bullish on those 📈
+            📈 Let's keep investing in great features! 📈
