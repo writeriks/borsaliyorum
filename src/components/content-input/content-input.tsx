@@ -11,6 +11,7 @@ import { tickers } from '@/tickers';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { useSelector } from 'react-redux';
 import contextReducerSelector from '@/store/reducers/context-reducer/context-reducer-selector';
+import { useTranslations } from 'next-intl';
 
 interface ContentInputProps {
   content: string;
@@ -29,6 +30,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
   const [mentionSuggestions, setMentionSuggestions] = useState<SuggestionDataItem[]>([]);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const isMobile = useSelector(contextReducerSelector.getIsMobile);
+  const t = useTranslations('Common');
 
   const { refetch } = useQuery({
     queryKey: ['fetch-mentions'],
@@ -78,7 +80,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
     <MentionsInput
       id='mentionsInput'
       autoFocus={!isMobile}
-      placeholder={placeholder ? placeholder : 'Ne düşünüyorsun?'}
+      placeholder={placeholder ? placeholder : t('placeholder')}
       className='mentions resize-none break-words break-all'
       value={content}
       onChange={e => setContent(e.target.value)}

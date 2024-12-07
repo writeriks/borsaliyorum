@@ -5,5 +5,8 @@
   "Feed": {
     "latestPosts": "En Son Gönderiler",
     "popularPosts": "En Popüler Gönderiler"
+  },
+  "Common": {
+    "placeholder": "Ne düşünüyorsun?"
   }
 }

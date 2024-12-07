@@ -22,6 +22,7 @@ import postApiService from '@/services/api-service/post-api-service/post-api-ser
 import { cn } from '@/lib/utils';
 import ContentInput from '@/components/content-input/content-input';
 import { Sentiment } from '@prisma/client';
+import { useTranslations } from 'next-intl';
 
 interface NewPostProps {
   ticker?: string;
@@ -32,6 +33,7 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
   const [sentiment, setSentiment] = useState<Sentiment>(Sentiment.bullish);
   const [imageData, setImageData] = useState<string>('');
   const [cashTags, setCashTags] = useState<string[]>([]);
+  const t = useTranslations('Common');
 
   const dispatch = useDispatch();
 
@@ -158,7 +160,7 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
       <div className='flex flex-col ml-2 w-full justify-between'>
         <div className='flex'>
           <ContentInput
-            placeholder='Ne Düşünüyorsun?'
+            placeholder={t('placeholder')}
             content={content}
             setContent={setContent}
             onSetCashTags={handleSetCashTags}
