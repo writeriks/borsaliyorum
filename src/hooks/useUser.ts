@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -16,6 +15,7 @@ import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-sele
 
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from '@/i18n/routing';
 
 const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
   const dispatch = useDispatch();
