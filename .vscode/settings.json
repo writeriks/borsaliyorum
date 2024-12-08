@@ -14,5 +14,6 @@
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"
-  }
+  },
+  "i18n-ally.localesPaths": ["messages", "public/locales", "src/i18n"]
 }
