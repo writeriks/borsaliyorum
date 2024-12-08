@@ -13,6 +13,7 @@ import { useQuery } from '@tanstack/react-query';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { useRouter } from 'next/navigation';
 import EntryFooter from '@/components/entry-footer/entry-footer';
+import postApiService from '@/services/api-service/post-api-service/post-api-service';
 
 export interface PostProp {
   post: PostType & {
@@ -32,9 +33,16 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
     enabled: !!post.userId,
   });
 
-  const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(post.mediaUrl ?? '')}`;
+  const { data: fetchedPost } = useQuery({
+    queryKey: [`get-post-by-id-${post.postId}`],
+    queryFn: () => postApiService.getPostById(post.postId.toString()),
+  });
 
-  const postDate = formatDate(post.createdAt.toString());
+  if (!fetchedPost) return <></>;
+
+  const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(fetchedPost?.mediaUrl ?? '')}`;
+
+  const postDate = formatDate(fetchedPost ? fetchedPost.createdAt.toString() : '');
 
   const renderSentiment = {
     [Sentiment.bullish]: (
@@ -85,18 +93,18 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
           <EntryOptions
             isFollowed={postOwner?.isUserFollowed ?? false}
             onDeleteSuccess={() => console.log('TODO: Implement')}
-            entry={post}
+            entry={fetchedPost}
             isEntryOwner={postOwner?.username === currentUser.username}
           />
         </div>
 
         <section className='p-2'>
-          <Content content={post.content} />
+          <Content content={fetchedPost.content} />
         </section>
 
-        {renderSentiment[post.sentiment]}
+        {renderSentiment[fetchedPost.sentiment]}
 
-        {post?.mediaUrl && (
+        {fetchedPost?.mediaUrl && (
           <Image
             src={proxyUrl}
             alt='Gönderi resmi'
@@ -108,7 +116,7 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
           />
         )}
       </CardContent>
-      <EntryFooter onPostClick={onPostClick} entry={post as any} />
+      <EntryFooter onPostClick={onPostClick} entry={fetchedPost as any} />
     </Card>
   );
 };

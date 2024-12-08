@@ -4,7 +4,7 @@ import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reduc
 import { Post, Comment, User } from '@prisma/client';
 import { useMutation } from '@tanstack/react-query';
 import { Heart, MessageCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 type ExtendedPost = Post & {
@@ -32,6 +32,12 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
 
   const dispatch = useDispatch();
   const isComment = 'commentId' in entry;
+
+  // Synchronize isLiked and likeCount with entry
+  useEffect(() => {
+    setIsLiked(entry.likedByCurrentUser);
+    setLikeCount(entry.likeCount ?? 0);
+  }, [entry.likedByCurrentUser, entry.likeCount]);
 
   const handleError = (error: Error): void => {
     dispatch(
