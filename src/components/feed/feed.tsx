@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActiveScreen, FeedTab } from '@/app/constants';
 import FeedTabs from '@/components/feed-tabs/feed-tabs';
 import NewPost from '@/components/new-post/new-post';
@@ -29,7 +29,7 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
   const { fbAuthUser } = useUser();
   const dispatch = useDispatch();
 
-  const { saveScrollPosition } = useScrollToLastPosition(activeScreen, setActiveScreen);
+  const { saveScrollPosition } = useScrollToLastPosition(activeScreen);
 
   const tickerWithoutDollarSign = stock?.ticker;
 
@@ -135,17 +135,50 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
     setActiveTab(tabValue);
   };
 
-  const handlePostClick = (post: Post): void => {
+  const handlePostClick = async (post: Post): Promise<void> => {
     saveScrollPosition(); // Save the scroll position before navigating away
-    setSelectedPost(post);
+    const updatedPost = await postApiService.getPostById(post?.postId.toString());
+    setSelectedPost(updatedPost);
     setActiveScreen(ActiveScreen.POST_DETAIL);
     history.pushState({}, '', `?post=${post.postId}`);
   };
 
-  const handlePostDetailBackClick = (): void => {
-    setActiveScreen(ActiveScreen.FEED);
-    history.back(); // This will trigger the popstate event
-  };
+  const handlePostDetailBackClick = useCallback(
+    async (isBrowserBack = false): Promise<void> => {
+      if (!selectedPost?.postId) return;
+      const updatedPost = await postApiService.getPostById(selectedPost?.postId.toString());
+      if (activeTab === FeedTab.LATEST) {
+        const updatedPostsByDate = postsByDate.map(post =>
+          post.postId === updatedPost?.postId ? updatedPost : post
+        );
+        setPostsByDate(updatedPostsByDate);
+      } else {
+        const updatedPostsByLike = postsByLike.map(post =>
+          post.postId === updatedPost?.postId ? updatedPost : post
+        );
+        setPostsByLike(updatedPostsByLike);
+      }
+
+      if (isBrowserBack !== true) history.back(); // This will trigger the popstate event
+
+      setActiveScreen(ActiveScreen.FEED);
+    },
+    [selectedPost?.postId, activeTab, postsByDate, postsByLike]
+  );
+
+  useEffect(() => {
+    const handlePopState = async (): Promise<void> => {
+      if (activeScreen === ActiveScreen.POST_DETAIL) {
+        await handlePostDetailBackClick(true);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [activeScreen, handlePostDetailBackClick]);
 
   const postId = new URLSearchParams(window.location.search).get('post');
   const { refetch: getPostById } = useQuery({
