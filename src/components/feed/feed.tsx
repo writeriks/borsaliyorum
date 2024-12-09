@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActiveScreen, FeedTab } from '@/app/constants';
 import FeedTabs from '@/components/feed-tabs/feed-tabs';
 import NewPost from '@/components/new-post/new-post';
@@ -44,6 +44,14 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
       return postApiService.getStockFeedByLike(lastPostIdForLike, stock!.ticker);
     }
   };
+
+  const newPostId = useRef<string | null>(new URLSearchParams(window.location.search).get('post'));
+
+  const { refetch: getPostById } = useQuery({
+    queryKey: ['get-post-by-id', newPostId.current],
+    queryFn: () => postApiService.getPostById(newPostId.current!),
+    enabled: false,
+  });
 
   // TODO: Implement user feed fetching
   const fetchUserFeed = async (): Promise<any> => {
@@ -137,7 +145,10 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
 
   const handlePostClick = async (post: Post): Promise<void> => {
     saveScrollPosition(); // Save the scroll position before navigating away
-    const updatedPost = await postApiService.getPostById(post?.postId.toString());
+
+    newPostId.current = post.postId.toString();
+    const { data: updatedPost } = await getPostById();
+
     setSelectedPost(updatedPost);
     setActiveScreen(ActiveScreen.POST_DETAIL);
     history.pushState({}, '', `?post=${post.postId}`);
@@ -146,7 +157,10 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
   const handlePostDetailBackClick = useCallback(
     async (isBrowserBack = false): Promise<void> => {
       if (!selectedPost?.postId) return;
-      const updatedPost = await postApiService.getPostById(selectedPost?.postId.toString());
+
+      newPostId.current = selectedPost?.postId.toString();
+      const { data: updatedPost } = await getPostById();
+
       if (activeTab === FeedTab.LATEST) {
         const updatedPostsByDate = postsByDate.map(post =>
           post.postId === updatedPost?.postId ? updatedPost : post
@@ -163,6 +177,8 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
 
       setActiveScreen(ActiveScreen.FEED);
     },
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [selectedPost?.postId, activeTab, postsByDate, postsByLike]
   );
 
@@ -180,17 +196,10 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
     };
   }, [activeScreen, handlePostDetailBackClick]);
 
-  const postId = new URLSearchParams(window.location.search).get('post');
-  const { refetch: getPostById } = useQuery({
-    queryKey: ['get-post-by-id'],
-    queryFn: () => postApiService.getPostById(postId!),
-    enabled: false,
-  });
-
   useEffect(() => {
     if (!fbAuthUser) return;
 
-    if (postId) {
+    if (newPostId.current) {
       (async () => {
         const { data } = await getPostById();
         if (data) {
