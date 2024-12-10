@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { Button } from '@/components/ui/button';
 import firebaseAuthService from '@/services/firebase-service/firebase-auth-service';
 import { LogOut, UserCog } from 'lucide-react';
@@ -12,11 +11,13 @@ import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
 import { LoadingSkeletons } from '@/app/constants';
 import LoginContainer from '@/components/user-profile-options/login-container';
 import UserSettings from '@/components/user-profile-options/user-settings';
+import { useTranslations } from 'next-intl';
 
 const UserProfileOptionsMobile = (): React.ReactNode => {
   const dispatch = useDispatch();
   const user = useSelector(userReducerSelector.getUser);
   const isAuthLoading = useSelector(uiReducerSelector.getIsAuthLoading);
+  const t = useTranslations('userProfileOptions.UserProfileOptionsMobile');
 
   const logout = async (): Promise<void> => {
     await firebaseAuthService.signOut();
@@ -43,12 +44,11 @@ const UserProfileOptionsMobile = (): React.ReactNode => {
                 <span className='text-xs'>{user.username}</span>
               </div>
             </div>
-
             <Button
               variant='secondary'
               className='w-full justify-start bg-transparent dark:bg-transparent dark:hover:bg-accent'
             >
-              <UserCog className='mr-2 h-4 w-4' /> Profilini Düzenle
+              <UserCog className='mr-2 h-4 w-4' /> {t('editProfile')}
             </Button>
             <UserSettings />
             <Button
@@ -56,7 +56,7 @@ const UserProfileOptionsMobile = (): React.ReactNode => {
               className='w-full justify-start bg-transparent dark:bg-transparent dark:hover:bg-accent flex text-destructive'
             >
               <LogOut className='mr-2 h-4 w-4' />
-              Çıkış Yap
+              {t('logout')}
             </Button>
           </div>
         </div>
