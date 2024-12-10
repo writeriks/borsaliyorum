@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActiveScreen, FeedTab } from '@/app/constants';
 import FeedTabs from '@/components/feed-tabs/feed-tabs';
 import NewPost from '@/components/new-post/new-post';
@@ -29,7 +29,7 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
   const { fbAuthUser } = useUser();
   const dispatch = useDispatch();
 
-  const { saveScrollPosition } = useScrollToLastPosition(activeScreen, setActiveScreen);
+  const { saveScrollPosition } = useScrollToLastPosition(activeScreen);
 
   const tickerWithoutDollarSign = stock?.ticker;
 
@@ -44,6 +44,14 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
       return postApiService.getStockFeedByLike(lastPostIdForLike, stock!.ticker);
     }
   };
+
+  const newPostId = useRef<string | null>(new URLSearchParams(window.location.search).get('post'));
+
+  const { refetch: getPostById } = useQuery({
+    queryKey: ['get-post-by-id', newPostId.current],
+    queryFn: () => postApiService.getPostById(newPostId.current!),
+    enabled: false,
+  });
 
   // TODO: Implement user feed fetching
   const fetchUserFeed = async (): Promise<any> => {
@@ -135,29 +143,63 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
     setActiveTab(tabValue);
   };
 
-  const handlePostClick = (post: Post): void => {
+  const handlePostClick = async (post: Post): Promise<void> => {
     saveScrollPosition(); // Save the scroll position before navigating away
-    setSelectedPost(post);
+
+    newPostId.current = post.postId.toString();
+    const { data: updatedPost } = await getPostById();
+
+    setSelectedPost(updatedPost);
     setActiveScreen(ActiveScreen.POST_DETAIL);
     history.pushState({}, '', `?post=${post.postId}`);
   };
 
-  const handlePostDetailBackClick = (): void => {
-    setActiveScreen(ActiveScreen.FEED);
-    history.back(); // This will trigger the popstate event
-  };
+  const handlePostDetailBackClick = useCallback(
+    async (isBrowserBack = false): Promise<void> => {
+      if (!selectedPost?.postId) return;
 
-  const postId = new URLSearchParams(window.location.search).get('post');
-  const { refetch: getPostById } = useQuery({
-    queryKey: ['get-post-by-id'],
-    queryFn: () => postApiService.getPostById(postId!),
-    enabled: false,
-  });
+      newPostId.current = selectedPost?.postId.toString();
+      const { data: updatedPost } = await getPostById();
+
+      if (activeTab === FeedTab.LATEST) {
+        const updatedPostsByDate = postsByDate.map(post =>
+          post.postId === updatedPost?.postId ? updatedPost : post
+        );
+        setPostsByDate(updatedPostsByDate);
+      } else {
+        const updatedPostsByLike = postsByLike.map(post =>
+          post.postId === updatedPost?.postId ? updatedPost : post
+        );
+        setPostsByLike(updatedPostsByLike);
+      }
+
+      if (isBrowserBack !== true) history.back(); // This will trigger the popstate event
+
+      setActiveScreen(ActiveScreen.FEED);
+    },
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedPost?.postId, activeTab, postsByDate, postsByLike]
+  );
+
+  useEffect(() => {
+    const handlePopState = async (): Promise<void> => {
+      if (activeScreen === ActiveScreen.POST_DETAIL) {
+        await handlePostDetailBackClick(true);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [activeScreen, handlePostDetailBackClick]);
 
   useEffect(() => {
     if (!fbAuthUser) return;
 
-    if (postId) {
+    if (newPostId.current) {
       (async () => {
         const { data } = await getPostById();
         if (data) {

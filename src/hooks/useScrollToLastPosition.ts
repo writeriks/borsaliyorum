@@ -10,8 +10,7 @@ import { useEffect, useRef } from 'react';
  * @returns An object containing a function to save the current scroll position.
  */
 const useScrollToLastPosition = (
-  activeScreen: ActiveScreen,
-  setActiveScreen: React.Dispatch<React.SetStateAction<ActiveScreen>>
+  activeScreen: ActiveScreen
 ): {
   saveScrollPosition: () => void;
 } => {
@@ -22,20 +21,6 @@ const useScrollToLastPosition = (
       window.scrollTo(0, scrollPosition.current);
     }
   }, [activeScreen]);
-
-  useEffect(() => {
-    const handlePopState = (): void => {
-      if (activeScreen === ActiveScreen.POST_DETAIL) {
-        setActiveScreen(ActiveScreen.FEED);
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [activeScreen, setActiveScreen]);
 
   const saveScrollPosition = (): void => {
     scrollPosition.current = window.scrollY;
