@@ -8,15 +8,16 @@ import useScrollToLastPosition from '@/hooks/useScrollToLastPosition';
 import useUser from '@/hooks/useUser';
 import postApiService from '@/services/api-service/post-api-service/post-api-service';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
-import { Post, Stock } from '@prisma/client';
+import { Post, Stock, Tag } from '@prisma/client';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 
 interface FeedProps {
   stock?: Stock;
+  tag?: Tag;
 }
 
-const Feed: React.FC<FeedProps> = ({ stock }) => {
+const Feed: React.FC<FeedProps> = ({ stock, tag }) => {
   const [postsByDate, setPostsByDate] = useState<Post[]>([]);
   const [postsByLike, setPostsByLike] = useState<Post[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post>();
@@ -53,7 +54,18 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
     enabled: false,
   });
 
-  // TODO: Implement user feed fetching
+  const fetchHashtagFeed = async (): Promise<any> => {
+    if (activeScreen === ActiveScreen.POST_DETAIL) return;
+
+    if (activeTab === FeedTab.LATEST && lastPostIdForDate !== null) {
+      return postApiService.getHashtagFeedByDate(lastPostIdForDate, tag!.tagName);
+    }
+
+    if (activeTab === FeedTab.POPULAR && lastPostIdForLike !== null) {
+      return postApiService.getHashtagFeedByLike(lastPostIdForLike, tag!.tagName);
+    }
+  };
+
   const fetchUserFeed = async (): Promise<any> => {
     if (activeScreen === ActiveScreen.POST_DETAIL) return;
 
@@ -69,28 +81,14 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
   const fetchFeed = async (): Promise<void> => {
     if (stock) {
       return fetchStockFeed();
+    } else if (tag) {
+      return fetchHashtagFeed();
     } else {
       return fetchUserFeed();
     }
   };
 
-  const setPostsForStockFeed = (data: any): void => {
-    if (!data) return;
-
-    if (activeTab === FeedTab.LATEST) {
-      const dataByDate = data.stockPostsByDate ?? [];
-
-      setPostsByDate(prevPostsByDate => [...prevPostsByDate, ...dataByDate]);
-      setLastPostIdForDate(data.lastPostIdByDate);
-    } else {
-      const dataByLike = data.stockPostsByLike ?? [];
-
-      setPostsByLike(prevPostsByLike => [...prevPostsByLike, ...dataByLike]);
-      setLastPostIdForLike(data.lastPostIdByLike);
-    }
-  };
-
-  const setPostsForUserFeed = (data: any): void => {
+  const setPostsForFeed = (data: any): void => {
     if (!data) return;
 
     if (activeTab === FeedTab.LATEST) {
@@ -106,14 +104,6 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
     }
   };
 
-  const setPosts = (data: any): void => {
-    if (stock) {
-      setPostsForStockFeed(data);
-    } else {
-      setPostsForUserFeed(data);
-    }
-  };
-
   const handleError = (error: Error): void => {
     dispatch(
       setUINotification({
@@ -125,7 +115,7 @@ const Feed: React.FC<FeedProps> = ({ stock }) => {
 
   const mutation = useMutation({
     mutationFn: fetchFeed,
-    onSuccess: setPosts,
+    onSuccess: setPostsForFeed,
     onError: handleError,
   });
 

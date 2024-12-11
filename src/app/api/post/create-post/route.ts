@@ -6,6 +6,7 @@ import tagService from '@/services/tag-service/tag-service';
 import { Post } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { NextResponse } from 'next/server';
+import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
@@ -30,6 +31,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     const { cashtags, hashtags, mentions } = tagService.getTagsFromContent(post.content);
     const stockTickers = cashtags.map(cashtag => cashtag.replace('$', ''));
+    const strippedHashtags = hashtags.map(hashtag => hashtag.replace(TagsEnum.HASHTAG, ''));
 
     const stocksByCashtags = await prisma.stock.findMany({
       where: {
@@ -101,7 +103,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       },
     });
 
-    const postHashtags = await tagService.createHashtags(hashtags);
+    const postHashtags = await tagService.createHashtags(strippedHashtags);
 
     const newPost = await prisma.post.create({
       data: {
