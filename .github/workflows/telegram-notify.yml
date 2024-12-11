@@ -3,8 +3,6 @@ name: Notify Telegram on PR
 on:
   pull_request:
     types: [opened, reopened, closed, labeled, unlabeled, synchronize]
-  issue_comment:
-    types: [created]
 
 jobs:
   notify:
