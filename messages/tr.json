@@ -16,5 +16,23 @@
     "send": "Gönder",
     "gif": "gif",
     "uploadedAlt": "yüklendi"
+  },
+  "userProfileOptions": {
+    "UserSettings": {
+      "notifications": "Bildirimler",
+      "settings": "Ayarlar"
+    },
+    "UserProfileOptionsMobile": {
+      "editProfile": "Profilini Düzenle",
+      "logout": "Çıkış Yap"
+    },
+    "UserProfileOptions": {
+      "viewProfile": "Profilini Gör",
+      "editProfile": "Profilini Düzenle",
+      "logout": "Çıkış Yap"
+    },
+    "LoginContainer": {
+      "login": "Giriş Yap"
+    }
   }
 }

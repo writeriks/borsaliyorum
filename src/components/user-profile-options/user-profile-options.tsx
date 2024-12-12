@@ -1,5 +1,4 @@
 import React from 'react';
-
 import firebaseAuthService from '@/services/firebase-service/firebase-auth-service';
 import { LogOut } from 'lucide-react';
 import {
@@ -19,11 +18,13 @@ import { LoadingSkeletons } from '@/app/constants';
 import LoginContainer from '@/components/user-profile-options/login-container';
 import UserSettings from '@/components/user-profile-options/user-settings';
 import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
+import { useTranslations } from 'next-intl';
 
 const UserProfileOptions = (): React.ReactNode => {
   const dispatch = useDispatch();
   const user = useSelector(userReducerSelector.getUser);
   const isAuthLoading = useSelector(uiReducerSelector.getIsAuthLoading);
+  const t = useTranslations('userProfileOptions.UserProfileOptions');
 
   const logout = async (): Promise<void> => {
     await firebaseAuthService.signOut();
@@ -83,15 +84,15 @@ const UserProfileOptions = (): React.ReactNode => {
               <SelectContent>
                 <SelectGroup>
                   <SelectItem className='cursor-pointer' value='view-profile'>
-                    Profilini Gör
+                    {t('viewProfile')}
                   </SelectItem>
                   <SelectItem className='cursor-pointer' value='edit-profile'>
-                    Profilini Düzenle
+                    {t('editProfile')}
                   </SelectItem>
                   <SelectItem className='cursor-pointer group' value='logout'>
                     <div className='flex text-destructive'>
                       <LogOut className='mr-2 h-4 w-4' />
-                      Çıkış Yap
+                      {t('logout')}
                     </div>
                   </SelectItem>
                 </SelectGroup>

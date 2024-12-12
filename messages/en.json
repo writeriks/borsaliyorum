@@ -1,20 +1,38 @@
 {
   "HomePage": {
-    "title": "Home Page, show around 10 posts for the most active stocks of the day"
+    "title": "Home Page, displaying approximately 10 posts for the most active stocks of the day."
   },
   "Feed": {
     "latestPosts": "Latest Posts",
-    "popularPosts": "Most Popular Posts"
+    "popularPosts": "Popular Posts"
   },
   "Common": {
     "placeholder": "What's on your mind?"
   },
   "NewPost": {
-    "successMessage": "Post successfully created.",
+    "successMessage": "Post created successfully.",
     "errorMessage": "An error occurred.",
     "sending": "Sending",
     "send": "Send",
     "gif": "GIF",
     "uploadedAlt": "uploaded"
+  },
+  "userProfileOptions": {
+    "UserSettings": {
+      "notifications": "Notifications",
+      "settings": "Settings"
+    },
+    "UserProfileOptionsMobile": {
+      "editProfile": "Edit Profile",
+      "logout": "Log Out"
+    },
+    "UserProfileOptions": {
+      "viewProfile": "View Profile",
+      "editProfile": "Edit Profile",
+      "logout": "Log Out"
+    },
+    "LoginContainer": {
+      "login": "Login"
+    }
   }
 }
