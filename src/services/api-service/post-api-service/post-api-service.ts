@@ -105,6 +105,41 @@ class PostApiService {
   };
 
   /**
+   * Fetches the hashtag feed sorted by date.
+   *
+   * @param lastPostId - The ID of the last post retrieved for pagination purposes.
+   * @param hashtag - Hashtag to filter the feed by.
+   * @returns A promise that resolves to an object containing the posts sorted by date and the last post ID.
+   */
+  getHashtagFeedByDate = async (
+    lastPostId: string,
+    hashtag: string
+  ): Promise<{
+    postsByDate: Post[];
+    lastPostIdByDate: string;
+  }> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch(
+      `/api/hashtag/get-feed-by-date?hashtag=${encodeURIComponent(hashtag)}&lastPostId=${encodeURIComponent(lastPostId)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
+
+  /**
    * Fetches the user's feed sorted by like count.
    *
    * @param lastPostId - The ID of the last post retrieved for pagination purposes.
@@ -155,6 +190,41 @@ class PostApiService {
 
     const response = await fetch(
       `/api/stock/get-feed-by-like?ticker=${encodeURIComponent(ticker)}&lastPostId=${encodeURIComponent(lastPostId)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
+
+  /**
+   * Fetches the hashtag feed sorted by like count.
+   *
+   * @param lastPostId - The ID of the last post retrieved for pagination purposes.
+   * @param hashtag - Hashtag to filter the feed by.
+   * @returns A promise that resolves to an object containing the posts sorted by like count and the last post ID.
+   */
+  getHashtagFeedByLike = async (
+    lastPostId: string,
+    hashtag: string
+  ): Promise<{
+    postsByLike: Post[];
+    lastPostIdByLike: string;
+  }> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch(
+      `/api/hashtag/get-feed-by-like?ticker=${encodeURIComponent(hashtag)}&lastPostId=${encodeURIComponent(lastPostId)}`,
       {
         method: 'GET',
         headers: {

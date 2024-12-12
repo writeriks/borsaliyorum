@@ -10,6 +10,7 @@ import contextReducerSelector from '@/store/reducers/context-reducer/context-red
 
 import { TrendingTopicsType } from '@/services/tag-service/constants';
 import tagService from '@/services/tag-service/tag-service';
+import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 
 interface TrendingTopicsProps {
   trends: TrendingTopicsType;
@@ -63,12 +64,11 @@ const TrendingTopics: React.FC<TrendingTopicsProps> = ({ trends }) => {
             >
               <a
                 onClick={() => handleTagClick(tag.tagName)}
-                href={`/tags/${tag.tagName.slice(1)}`}
                 className='max-w-[180px] truncate flex'
               >
                 {index + 1}.&nbsp;
                 <TooltipWithEllipsis
-                  tooltipText={tag.tagName}
+                  tooltipText={`${TagsEnum.HASHTAG}${tag.tagName}`}
                   maxWidth='170'
                   className='hover:underline'
                   tooltipSide='bottom'

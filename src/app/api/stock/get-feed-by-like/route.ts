@@ -35,7 +35,6 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     // Get blocked users
     const blockedUserIds = await feedService.getBlockedUserIds(currentUser.userId);
-    const blockedUsersWithCurrentUser = blockedUserIds.concat(currentUser.userId ?? -1);
 
     const stockPostsByLike = await prisma.post.findMany({
       where: {
@@ -46,7 +45,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         },
         AND: {
           userId: {
-            notIn: blockedUsersWithCurrentUser,
+            notIn: blockedUserIds,
           },
         },
       },
@@ -82,7 +81,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       stockPostsByLike.length > 0 ? stockPostsByLike[stockPostsByLike.length - 1].postId : null;
 
     return createResponse(ResponseStatus.OK, {
-      stockPostsByLike: postsWithLikeAndCommentInfo,
+      postsByLike: postsWithLikeAndCommentInfo,
       lastPostIdByLike: newLastPostIdByLike,
     });
   } catch (error) {

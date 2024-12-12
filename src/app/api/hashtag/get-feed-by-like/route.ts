@@ -26,21 +26,21 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     const { searchParams } = new URL(request.url);
     const lastPostId = parseInt(searchParams.get('lastPostId') ?? '') || 0;
-    const ticker = searchParams.get('ticker');
+    const hashtag = searchParams.get('hashtag');
     const pageSize = 10;
 
-    if (!ticker) {
-      return createResponse(ResponseStatus.NOT_FOUND, 'Hisse bulunamadı');
+    if (!hashtag) {
+      return createResponse(ResponseStatus.NOT_FOUND, 'Etiket bulunamadı');
     }
 
     // Get blocked users
     const blockedUserIds = await feedService.getBlockedUserIds(currentUser.userId);
 
-    const stockPostsByDate = await prisma.post.findMany({
+    const stockPostsByLike = await prisma.post.findMany({
       where: {
         stocks: {
           some: {
-            ticker: ticker,
+            ticker: hashtag,
           },
         },
         AND: {
@@ -50,17 +50,18 @@ export async function GET(request: Request): Promise<NextResponse> {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        likedBy: {
+          _count: 'desc',
+        },
       },
       take: pageSize,
       cursor: lastPostId ? { postId: lastPostId } : undefined,
       skip: lastPostId ? 1 : 0,
     });
 
-    // Fetch the likes for the current user for these posts
-    const postIds = stockPostsByDate.map(post => post.postId);
+    const postIds = stockPostsByLike.map(post => post.postId);
 
-    // Get likes, reposts and comments count for posts
+    // Get likes and comments count for posts
     const likeCountMap = await feedService.getTotalLikeCounts(postIds);
     const commentCountMap = await feedService.getTotalCommentCounts(postIds);
 
@@ -68,19 +69,19 @@ export async function GET(request: Request): Promise<NextResponse> {
     const likedPostIds = await feedService.getLikesByCurrentUser(postIds, currentUser.userId);
 
     // Add like, comment info, and likedByCurrentUser flag to each post
-    const postsWithLikeAndCommentInfo = stockPostsByDate.map(post => ({
+    const postsWithLikeAndCommentInfo = stockPostsByLike.map(post => ({
       ...post,
       likedByCurrentUser: likedPostIds.has(post.postId),
       likeCount: likeCountMap[post.postId] || 0,
       commentCount: commentCountMap[post.postId] || 0,
     }));
 
-    const newLastPostIdByDate =
-      stockPostsByDate.length > 0 ? stockPostsByDate[stockPostsByDate.length - 1].postId : null;
+    const newLastPostIdByLike =
+      stockPostsByLike.length > 0 ? stockPostsByLike[stockPostsByLike.length - 1].postId : null;
 
     return createResponse(ResponseStatus.OK, {
-      postsByDate: postsWithLikeAndCommentInfo,
-      lastPostIdByDate: newLastPostIdByDate,
+      postsByLike: postsWithLikeAndCommentInfo,
+      lastPostIdByLike: newLastPostIdByLike,
     });
   } catch (error) {
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);

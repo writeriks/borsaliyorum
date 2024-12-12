@@ -26,11 +26,11 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     const { searchParams } = new URL(request.url);
     const lastPostId = parseInt(searchParams.get('lastPostId') ?? '') || 0;
-    const ticker = searchParams.get('ticker');
+    const hashtag = searchParams.get('hashtag');
     const pageSize = 10;
 
-    if (!ticker) {
-      return createResponse(ResponseStatus.NOT_FOUND, 'Hisse bulunamadı');
+    if (!hashtag) {
+      return createResponse(ResponseStatus.NOT_FOUND, 'Etiket bulunamadı');
     }
 
     // Get blocked users
@@ -38,9 +38,9 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     const stockPostsByDate = await prisma.post.findMany({
       where: {
-        stocks: {
+        tags: {
           some: {
-            ticker: ticker,
+            tagName: hashtag,
           },
         },
         AND: {
@@ -57,10 +57,9 @@ export async function GET(request: Request): Promise<NextResponse> {
       skip: lastPostId ? 1 : 0,
     });
 
-    // Fetch the likes for the current user for these posts
     const postIds = stockPostsByDate.map(post => post.postId);
 
-    // Get likes, reposts and comments count for posts
+    // Get likes and comments count for posts
     const likeCountMap = await feedService.getTotalLikeCounts(postIds);
     const commentCountMap = await feedService.getTotalCommentCounts(postIds);
 
