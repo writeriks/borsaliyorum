@@ -14,6 +14,7 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   plugins: ['react', 'jest', '@typescript-eslint', 'import'],
   rules: {
+    'react/jsx-no-literals': 'warn',
     'jsx-a11y/label-has-associated-control': ['error', { assert: 'either' }],
     'import/extensions': [
       'error',

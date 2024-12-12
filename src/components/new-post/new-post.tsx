@@ -22,6 +22,7 @@ import postApiService from '@/services/api-service/post-api-service/post-api-ser
 import { cn } from '@/lib/utils';
 import ContentInput from '@/components/content-input/content-input';
 import { Sentiment } from '@prisma/client';
+import { useTranslations } from 'next-intl';
 
 interface NewPostProps {
   ticker?: string;
@@ -32,11 +33,10 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
   const [sentiment, setSentiment] = useState<Sentiment>(Sentiment.bullish);
   const [imageData, setImageData] = useState<string>('');
   const [cashTags, setCashTags] = useState<string[]>([]);
+  const t = useTranslations();
 
   const dispatch = useDispatch();
-
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const user = useSelector(userReducerSelector.getUser);
   const mutation = useMutation({
     mutationFn: ({
@@ -49,7 +49,7 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
     onSuccess: () => {
       dispatch(
         setUINotification({
-          message: 'Gönderi başarıyla oluşturuldu.',
+          message: t('NewPost.successMessage'),
           notificationType: UINotificationEnum.SUCCESS,
         })
       );
@@ -62,7 +62,7 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
     onError: error => {
       dispatch(
         setUINotification({
-          message: error.message ?? 'Bir hata oluştu.',
+          message: error.message ?? t('NewPost.errorMessage'),
           notificationType: UINotificationEnum.ERROR,
         })
       );
@@ -158,7 +158,7 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
       <div className='flex flex-col ml-2 w-full justify-between'>
         <div className='flex'>
           <ContentInput
-            placeholder='Ne Düşünüyorsun?'
+            placeholder={t('Common.placeholder')}
             content={content}
             setContent={setContent}
             onSetCashTags={handleSetCashTags}
@@ -187,7 +187,7 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
                 src={imageData}
                 width={50}
                 height={50}
-                alt='uploaded'
+                alt={t('NewPost.uploadedAlt')}
                 className='w-full max-h-80 object-cover rounded-lg'
               />
             </>
@@ -215,7 +215,7 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
               variant='default'
               disabled={mutation.isPending}
             >
-              gif
+              {t('NewPost.gif')}
             </Button>
 
             <Button
@@ -227,10 +227,10 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
               {mutation.isPending ? (
                 <>
                   <Icons.spinner className='mr-2 h-4 w-4 animate-spin' />
-                  <span>Gönderiliyor</span>
+                  <span>{t('NewPost.sending')}</span>
                 </>
               ) : (
-                <span>Gönder</span>
+                <span>{t('NewPost.send')}</span>
               )}
             </Button>
           </div>

@@ -1,0 +1,20 @@
+{
+  "HomePage": {
+    "title": "Home Page, show around 10 posts for the most active stocks of the day"
+  },
+  "Feed": {
+    "latestPosts": "Latest Posts",
+    "popularPosts": "Most Popular Posts"
+  },
+  "Common": {
+    "placeholder": "What's on your mind?"
+  },
+  "NewPost": {
+    "successMessage": "Post successfully created.",
+    "errorMessage": "An error occurred.",
+    "sending": "Sending",
+    "send": "Send",
+    "gif": "GIF",
+    "uploadedAlt": "uploaded"
+  }
+}
