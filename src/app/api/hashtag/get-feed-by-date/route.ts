@@ -57,10 +57,9 @@ export async function GET(request: Request): Promise<NextResponse> {
       skip: lastPostId ? 1 : 0,
     });
 
-    // Fetch the likes for the current user for these posts
     const postIds = stockPostsByDate.map(post => post.postId);
 
-    // Get likes, reposts and comments count for posts
+    // Get likes and comments count for posts
     const likeCountMap = await feedService.getTotalLikeCounts(postIds);
     const commentCountMap = await feedService.getTotalCommentCounts(postIds);
 
