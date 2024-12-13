@@ -8,16 +8,17 @@ import useScrollToLastPosition from '@/hooks/useScrollToLastPosition';
 import useUser from '@/hooks/useUser';
 import postApiService from '@/services/api-service/post-api-service/post-api-service';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
-import { Post, Stock, Tag } from '@prisma/client';
+import { Post, Stock, Tag, User } from '@prisma/client';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 
 interface FeedProps {
   stock?: Stock;
   tag?: Tag;
+  user?: Partial<User>;
 }
 
-const Feed: React.FC<FeedProps> = ({ stock, tag }) => {
+const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
   const [postsByDate, setPostsByDate] = useState<Post[]>([]);
   const [postsByLike, setPostsByLike] = useState<Post[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post>();
@@ -34,6 +35,14 @@ const Feed: React.FC<FeedProps> = ({ stock, tag }) => {
 
   const tickerWithoutDollarSign = stock?.ticker;
 
+  const newPostId = useRef<string | null>(new URLSearchParams(window.location.search).get('post'));
+
+  const { refetch: getPostById } = useQuery({
+    queryKey: ['get-post-by-id', newPostId.current],
+    queryFn: () => postApiService.getPostById(newPostId.current!),
+    enabled: false,
+  });
+
   const fetchStockFeed = async (): Promise<any> => {
     if (activeScreen === ActiveScreen.POST_DETAIL) return;
 
@@ -45,14 +54,6 @@ const Feed: React.FC<FeedProps> = ({ stock, tag }) => {
       return postApiService.getStockFeedByLike(lastPostIdForLike, stock!.ticker);
     }
   };
-
-  const newPostId = useRef<string | null>(new URLSearchParams(window.location.search).get('post'));
-
-  const { refetch: getPostById } = useQuery({
-    queryKey: ['get-post-by-id', newPostId.current],
-    queryFn: () => postApiService.getPostById(newPostId.current!),
-    enabled: false,
-  });
 
   const fetchHashtagFeed = async (): Promise<any> => {
     if (activeScreen === ActiveScreen.POST_DETAIL) return;
@@ -78,11 +79,25 @@ const Feed: React.FC<FeedProps> = ({ stock, tag }) => {
     }
   };
 
+  const fetchProfileFeed = async (): Promise<any> => {
+    if (activeScreen === ActiveScreen.POST_DETAIL) return;
+
+    if (activeTab === FeedTab.LATEST && lastPostIdForDate !== null) {
+      // TODO: Implement getProfileFeedByDate
+    }
+
+    if (activeTab === FeedTab.POPULAR && lastPostIdForLike !== null) {
+      // TODO: Implement getProfileFeedByLike
+    }
+  };
+
   const fetchFeed = async (): Promise<void> => {
     if (stock) {
       return fetchStockFeed();
     } else if (tag) {
       return fetchHashtagFeed();
+    } else if (user) {
+      return fetchProfileFeed();
     } else {
       return fetchUserFeed();
     }

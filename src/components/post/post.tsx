@@ -61,7 +61,7 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
           {postOwner && (
             <UserAvatar
               user={postOwner}
-              onUserAvatarClick={() => router.push(`/user/${postOwner.username}`)}
+              onUserAvatarClick={() => router.push(`/users/${postOwner.username}`)}
             />
           )}
           <div className='space-y-1 flex-1'>
