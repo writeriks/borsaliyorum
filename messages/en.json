@@ -34,5 +34,13 @@
     "LoginContainer": {
       "login": "Login"
     }
+  },
+  "userProfileCard": {
+    "follow": "Follow",
+    "bio": "Bio",
+    "website": "Website",
+    "followers": "Followers",
+    "following": "Follow",
+    "posts": "Posts"
   }
 }

@@ -25,6 +25,9 @@ const UserPage = async ({ params }: UserPageProps): Promise<React.ReactNode> => 
       updatedAt: true,
       premiumBeginDate: true,
       premiumEndDate: true,
+      posts: true,
+      likedPosts: true,
+      likedComments: true,
     },
   });
 

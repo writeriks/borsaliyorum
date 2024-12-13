@@ -221,7 +221,7 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
     <>
       {activeScreen === ActiveScreen.FEED ? (
         <>
-          <NewPost ticker={tickerWithoutDollarSign} />
+          {!user && <NewPost ticker={tickerWithoutDollarSign} />}
           <FeedTabs
             activeTab={activeTab}
             postsByDate={postsByDate}
