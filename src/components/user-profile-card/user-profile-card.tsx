@@ -3,6 +3,7 @@ import { User } from '@prisma/client';
 import UserAvatar from '@/components/user-avatar/user-avatar';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
 
 interface UserProfileCardProps {
   user: Partial<User>;
@@ -12,11 +13,14 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({
   user: { profilePhoto, displayName, username, bio, website },
 }) => {
   const t = useTranslations('userProfileCard');
+  const router = useRouter();
+
   return (
     <div className='lg:p-6 flex flex-col p-2 min-w-full self-start md:border rounded'>
       <div className='flex justify-between'>
         <div className='flex items-start'>
           <UserAvatar
+            onUserAvatarClick={() => router.push(`/users/${username}`)}
             user={{
               profilePhoto: profilePhoto ?? '',
               displayName: displayName ?? '',
@@ -32,7 +36,7 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({
           {/* TODO: Add logic to show button if user is not himself */}
           {/* TODO: Add logic to toggle button if user is already following */}
           {/* TODO: Add logic to call follow/unfollow endpoint */}
-          <Button className='rounded-2xl bg-primary h-8'>
+          <Button className='rounded-2xl bg-primary h-8 font-bold'>
             <span className='text-sm bold '>{t('follow')}</span>
           </Button>
         </div>

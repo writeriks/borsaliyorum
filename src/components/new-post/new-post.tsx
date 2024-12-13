@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import ContentInput from '@/components/content-input/content-input';
 import { Sentiment } from '@prisma/client';
 import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
 
 interface NewPostProps {
   ticker?: string;
@@ -144,10 +145,13 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
     mutation.mutate({ post, postImageData: imageData });
   };
 
+  const router = useRouter();
+
   return (
     <div className='lg:p-6 flex p-2 w-full self-start md:border rounded'>
       <div className='flex items-start w-10 lg:w-12'>
         <UserAvatar
+          onUserAvatarClick={() => router.push(`/users/${user.username}`)}
           user={{
             profilePhoto: user.profilePhoto ?? '',
             displayName: user.displayName,

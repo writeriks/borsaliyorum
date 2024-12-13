@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { Comment } from '@prisma/client';
 import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
 
 interface NewCommentProps {
   postOwnerId: number;
@@ -128,10 +129,12 @@ const NewComment: React.FC<NewCommentProps> = ({ postOwnerId, postId, mention, o
     commentMutation.mutate({ comment, postImageData: imageData });
   };
 
+  const router = useRouter();
   return (
     <div className='lg:p-6 flex p-2 w-full self-start border bg-card rounded'>
       <div className='flex items-start w-10 lg:w-12'>
         <UserAvatar
+          onUserAvatarClick={() => router.push(`/users/${user.username}`)}
           user={{
             profilePhoto: user.profilePhoto ?? '',
             displayName: user.displayName,
