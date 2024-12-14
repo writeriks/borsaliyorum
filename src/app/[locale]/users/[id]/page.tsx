@@ -14,6 +14,7 @@ const UserPage = async ({ params }: UserPageProps): Promise<React.ReactNode> => 
   const user = await prisma.user.findUnique({
     where: { username: username },
     select: {
+      firebaseUserId: true,
       username: true,
       displayName: true,
       bio: true,
@@ -28,7 +29,14 @@ const UserPage = async ({ params }: UserPageProps): Promise<React.ReactNode> => 
       posts: true,
       likedPosts: true,
       likedComments: true,
+      userId: true,
     },
+  });
+  const userFollowerCount = await prisma.userFollowers.count({
+    where: { followingId: user?.userId },
+  });
+  const userFollowingCount = await prisma.userFollowers.count({
+    where: { followerId: user?.userId },
   });
 
   if (!user) {
@@ -38,7 +46,11 @@ const UserPage = async ({ params }: UserPageProps): Promise<React.ReactNode> => 
   return (
     <div className='flex min-w-full justify-center'>
       <div className='flex flex-col w-full max-w-2xl '>
-        <UserFeed user={user} />
+        <UserFeed
+          user={user}
+          userFollowerCount={userFollowerCount}
+          userFollowingCount={userFollowingCount}
+        />
       </div>
       <div className='lg:flex max-1500:hidden sticky top-12 ml-2 h-[260px] flex-col lg:w-[260px] '>
         <Discover />

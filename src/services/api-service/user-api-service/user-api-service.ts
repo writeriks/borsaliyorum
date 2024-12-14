@@ -6,10 +6,6 @@ import store from '@/store/redux-store';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { User } from '@prisma/client';
 
-export type ExtendedUser = User & {
-  isUserFollowed: boolean;
-};
-
 class UserApiService {
   /**
    * Retrieves a user by user ID.
@@ -41,7 +37,9 @@ class UserApiService {
    * @param userId - The ID of the user to retrieve.
    * @returns  The user, or undefined if not found.
    */
-  getEntryOwner = async (userId: number): Promise<ExtendedUser | undefined> => {
+  getEntryOwner = async (
+    userId: number
+  ): Promise<(User & { isUserFollowed: boolean }) | undefined> => {
     try {
       const idToken = await auth.currentUser?.getIdToken();
 

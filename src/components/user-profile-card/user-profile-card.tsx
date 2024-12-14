@@ -1,19 +1,33 @@
+'use client';
+
 import { Calendar } from 'lucide-react';
 import { User } from '@prisma/client';
 import UserAvatar from '@/components/user-avatar/user-avatar';
-import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
+import { formatStringDateToDDMMYYYY } from '@/utils/date-utils/date-utils';
+import useUser from '@/hooks/useUser';
+import { useMemo } from 'react';
+import FollowButton from '@/components/follow-button/follow-button';
 
 interface UserProfileCardProps {
   user: Partial<User>;
+  userFollowerCount: number;
+  userFollowingCount: number;
 }
 
 const UserProfileCard: React.FC<UserProfileCardProps> = ({
-  user: { profilePhoto, displayName, username, bio, website },
+  user: { profilePhoto, displayName, username, bio, website, createdAt, firebaseUserId, userId },
+  userFollowerCount,
+  userFollowingCount,
 }) => {
   const t = useTranslations('userProfileCard');
   const router = useRouter();
+  const { user: currentUser } = useUser();
+  const isUserOwner = useMemo(
+    () => currentUser.userId === firebaseUserId,
+    [currentUser, firebaseUserId]
+  );
 
   return (
     <div className='lg:p-6 flex flex-col p-2 min-w-full self-start md:border rounded'>
@@ -22,7 +36,7 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({
           <UserAvatar
             onUserAvatarClick={() => router.push(`/users/${username}`)}
             user={{
-              profilePhoto: profilePhoto ?? '',
+              profilePhoto: profilePhoto ?? null,
               displayName: displayName ?? '',
               username: username ?? '',
             }}
@@ -33,12 +47,8 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({
           </div>
         </div>
         <div>
-          {/* TODO: Add logic to show button if user is not himself */}
-          {/* TODO: Add logic to toggle button if user is already following */}
           {/* TODO: Add logic to call follow/unfollow endpoint */}
-          <Button className='rounded-2xl bg-primary h-8 font-bold'>
-            <span className='text-sm bold '>{t('follow')}</span>
-          </Button>
+          {!isUserOwner && userId && <FollowButton userId={userId} />}
         </div>
       </div>
       <div className='flex flex-col justify-between w-full h-full'>
@@ -51,26 +61,21 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({
             <span className='break-words break-all ml-1'>{website ? website : ''}</span>
           </p>
           <p className='flex mt-1 text-xs'>
-            <Calendar className='h-4 w-4 mr-1' /> <span>Date Joined</span>
+            <Calendar className='h-4 w-4 mr-1' />
+            <span>{formatStringDateToDDMMYYYY(createdAt?.toString() ?? '')}</span>
           </p>
         </div>
         <div className='flex flex-row min-w-full items-center mt-5'>
           <p className='flex mr-4'>
-            <span className='text-sm text-muted-foreground mr-1'>{t('posts')}: </span>
-            <span className='text-sm text-muted-foreground cursor-pointer hover:underline font-bold'>
-              10
-            </span>
-          </p>
-          <p className='flex mr-4'>
             <span className='text-sm text-muted-foreground mr-1'>{t('following')}: </span>
             <span className='text-sm text-muted-foreground cursor-pointer hover:underline font-bold'>
-              10
+              {userFollowingCount}
             </span>
           </p>
           <p className='flex mr-4'>
             <span className='text-sm text-muted-foreground mr-1'>{t('followers')}: </span>
             <span className='text-sm text-muted-foreground cursor-pointer hover:underline font-bold'>
-              10
+              {userFollowerCount}
             </span>
           </p>
         </div>

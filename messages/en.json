@@ -36,11 +36,14 @@
     }
   },
   "userProfileCard": {
-    "follow": "Follow",
     "bio": "Bio",
     "website": "Website",
     "followers": "Followers",
     "following": "Follow",
     "posts": "Posts"
+  },
+  "followButton": {
+    "follow": "Follow",
+    "unfollow": "Unfollow"
   }
 }
