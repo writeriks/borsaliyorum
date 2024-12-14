@@ -1,74 +1,88 @@
 // middleware.ts
+
 import { NextResponse, NextRequest } from 'next/server';
+import type { NextMiddleware } from 'next/server';
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '@/i18n/config';
 
-function handleI18n(request: NextRequest): NextResponse | null {
+/**
+ * Escapes special characters in a string for use in a regular expression.
+ * @param {string} str
+ * @returns {string}
+ */
+const escapeRegex = (str: string): string => str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+
+/**
+ * Regular expression to match supported locale prefixes in the URL pathname.
+ * This ensures that the URL starts with one of the supported locales followed by a slash or end of string.
+ */
+const LOCALE_REGEX = new RegExp(`^/(${SUPPORTED_LOCALES.map(escapeRegex).join('|')})(/|$)`, 'i');
+
+/**
+ * Ensures URLs contain a supported locale. Redirects to the default locale if absent.
+ * @param {NextRequest} request
+ * @returns {NextResponse | null}
+ */
+const handleI18n = (request: NextRequest): NextResponse | null => {
   const { pathname } = request.nextUrl;
-
-  const localeRegex = new RegExp(
-    `^/(${SUPPORTED_LOCALES.map(locale => locale.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')).join('|')})(/|$)`,
-    'i'
-  );
-  const localeMatch = pathname.match(localeRegex);
-
-  if (!localeMatch) {
+  if (!LOCALE_REGEX.test(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = `/${DEFAULT_LOCALE}${pathname}`;
     return NextResponse.redirect(url);
   }
-
   return null;
-}
+};
 
-function handleAuth(request: NextRequest): NextResponse | null {
-  const { pathname } = request.nextUrl;
-
-  const localeRegex = new RegExp(
-    `^/(${SUPPORTED_LOCALES.map(locale => locale.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')).join('|')})(/|$)`,
-    'i'
-  );
-  const localeMatch = pathname.match(localeRegex);
+/**
+ * Protects routes by checking authentication status.
+ * Redirects unauthenticated users to login and authenticated users away from initial route.
+ * @param {NextRequest} request
+ * @returns {NextResponse | null}
+ */
+const handleAuth = (request: NextRequest): NextResponse | null => {
+  const { pathname, origin } = request.nextUrl;
+  const localeMatch = pathname.match(LOCALE_REGEX);
   const locale = localeMatch ? localeMatch[1].toLowerCase() : DEFAULT_LOCALE;
-
   const token = request.cookies.get('identity')?.value;
+
+  const isInitialRoute = pathname === `/${locale}` || pathname === `/${locale}/`;
 
   try {
     if (token) {
-      if (pathname === `/${locale}` || pathname === `/${locale}/`) {
-        return NextResponse.redirect(new URL(`/${locale}/feed`, request.url));
+      if (isInitialRoute) {
+        return NextResponse.redirect(new URL(`/${locale}/feed`, origin));
       }
-      // Allow access to all routes for authenticated users
-      return null;
-    } else {
-      const protectedRoutes = ['/profile', '/edit-profile', '/users'];
-      const isProtected = protectedRoutes.some(route => pathname.startsWith(`/${locale}${route}`));
-
-      if (isProtected) {
-        return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
-      }
-      return null;
+      return null; // Authenticated users can access all other routes
     }
+
+    if (!isInitialRoute) {
+      return NextResponse.redirect(new URL(`/${locale}/login`, origin));
+    }
+
+    return null; // Allow access to the initial route for unauthenticated users
   } catch (error) {
     console.error('Authentication error:', error);
-    // Redirect to an error page if authentication fails
-    return NextResponse.redirect(new URL(`/${locale}/error`, request.url));
+    return NextResponse.redirect(new URL(`/${locale}/error`, origin));
   }
-}
+};
 
-export default function middleware(request: NextRequest): NextResponse | undefined {
-  const intlResponse = handleI18n(request);
-  if (intlResponse) {
-    return intlResponse;
-  }
+/**
+ * Main middleware function handling internationalization and authentication.
+ * @type {NextMiddleware}
+ */
+const middleware: NextMiddleware = (request: NextRequest): NextResponse | undefined => {
+  return handleI18n(request) || handleAuth(request) || NextResponse.next();
+};
 
-  const authResponse = handleAuth(request);
-  if (authResponse) {
-    return authResponse;
-  }
+export default middleware;
 
-  return NextResponse.next();
-}
-
+/**
+ * Configuration for the middleware, specifying which routes it should apply to.
+ * The middleware applies to all routes except:
+ * - API routes (`/api/*`)
+ * - Next.js internal routes (`/_next/*`)
+ * - Static assets (`/static/*`)
+ * - Favicon (`/favicon.ico`)
+ */
 export const config = {
-  matcher: ['/((?!api|_next|static).*)'],
+  matcher: ['/((?!api|_next|static|favicon.ico).*)'],
 };
