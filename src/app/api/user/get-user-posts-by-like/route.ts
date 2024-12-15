@@ -53,13 +53,15 @@ export async function GET(request: Request): Promise<NextResponse> {
       return createResponse(ResponseStatus.BAD_REQUEST, 'Bu kullanıcı tarafından engellendiniz');
     }
 
-    // Get User's posts by date
-    const stockPostsByDate = await prisma.post.findMany({
+    // Get User's posts by like
+    const userPostsByLike = await prisma.post.findMany({
       where: {
         user: user,
       },
       orderBy: {
-        createdAt: 'desc',
+        likedBy: {
+          _count: 'desc',
+        },
       },
       take: pageSize,
       cursor: lastPostId ? { postId: lastPostId } : undefined,
@@ -67,7 +69,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     });
 
     // Fetch the likes for the current user for these posts
-    const postIds = stockPostsByDate.map(post => post.postId);
+    const postIds = userPostsByLike.map(post => post.postId);
 
     // Get likes, reposts and comments count for posts
     const likeCountMap = await feedService.getTotalLikeCounts(postIds);
@@ -77,19 +79,19 @@ export async function GET(request: Request): Promise<NextResponse> {
     const likedPostIds = await feedService.getLikesByCurrentUser(postIds, currentUser.userId);
 
     // Add like, comment info, and likedByCurrentUser flag to each post
-    const postsWithLikeAndCommentInfo = stockPostsByDate.map(post => ({
+    const postsWithLikeAndCommentInfo = userPostsByLike.map(post => ({
       ...post,
       likedByCurrentUser: likedPostIds.has(post.postId),
       likeCount: likeCountMap[post.postId] || 0,
       commentCount: commentCountMap[post.postId] || 0,
     }));
 
-    const newLastPostIdByDate =
-      stockPostsByDate.length > 0 ? stockPostsByDate[stockPostsByDate.length - 1].postId : null;
+    const newLastPostIdByLike =
+      userPostsByLike.length > 0 ? userPostsByLike[userPostsByLike.length - 1].postId : null;
 
     return createResponse(ResponseStatus.OK, {
-      postsByDate: postsWithLikeAndCommentInfo,
-      lastPostIdByDate: newLastPostIdByDate,
+      postsByLike: postsWithLikeAndCommentInfo,
+      lastPostIdByLike: newLastPostIdByLike,
     });
   } catch (error) {
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);

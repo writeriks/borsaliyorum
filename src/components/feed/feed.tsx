@@ -87,7 +87,7 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
     }
 
     if (activeTab === FeedTab.POPULAR && lastPostIdForLike !== null) {
-      // TODO: Implement getProfileFeedByLike
+      return postApiService.getUserPostsByLike(lastPostIdForLike, user!.username!);
     }
   };
 

@@ -211,6 +211,41 @@ class PostApiService {
    * Fetches the user's feed sorted by like count.
    *
    * @param lastPostId - The ID of the last post retrieved for pagination purposes.
+   * @param username - The ID of the user to retrieve the feed for.
+   * @returns A promise that resolves to an object containing the posts sorted by date and the last post ID.
+   */
+  getUserPostsByLike = async (
+    lastPostId: string,
+    username: string
+  ): Promise<{
+    postsByLike: Post[];
+    lastPostIdByLike: string;
+  }> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch(
+      `/api/user/get-user-posts-by-like?username=${encodeURIComponent(username)}&lastPostId=${encodeURIComponent(lastPostId)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
+
+  /**
+   * Fetches the user's feed sorted by like count.
+   *
+   * @param lastPostId - The ID of the last post retrieved for pagination purposes.
    * @param ticker - The ticker symbol of the stock.
    * @returns A promise that resolves to an object containing the posts sorted by like count and the last post ID.
    */
