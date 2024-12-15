@@ -102,7 +102,7 @@ const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
     return () => unsubscribe();
   }, [dispatch, router, userState.username, userData, error, isLoading, firebaseUserId]);
 
-  return { user: userState, fbAuthUser: fbAuthUser };
+  return { user: userState, fbAuthUser };
 };
 
 export default useUser;

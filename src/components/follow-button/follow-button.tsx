@@ -1,19 +1,22 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
+import useUser from '@/hooks/useUser';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { getAuth } from 'firebase/auth';
 import { useTranslations } from 'next-intl';
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 interface FollowButtonProps {
-  userId: number;
+  userIdToFollow: number;
 }
 
-const FollowButton: React.FC<FollowButtonProps> = ({ userId }) => {
+const FollowButton: React.FC<FollowButtonProps> = ({ userIdToFollow: userId }) => {
   const t = useTranslations('followButton');
-  const auth = getAuth();
+
+  const { fbAuthUser } = useUser();
 
   const dispatch = useDispatch();
 
@@ -21,7 +24,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({ userId }) => {
   const { data: isUserFollowedData } = useQuery({
     queryKey: [`get-entry-owner-${userId}`],
     queryFn: () => userApiService.getEntryOwner(userId),
-    enabled: !!auth.currentUser, // Only run query if user is authenticated
+    enabled: !!fbAuthUser, // Only run query if user is authenticated
   });
 
   const [isUserFollowed, setIsUserFollowed] = useState<boolean | undefined>(

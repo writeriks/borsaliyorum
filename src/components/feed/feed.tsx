@@ -79,7 +79,7 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
     }
   };
 
-  const fetchProfileFeed = async (): Promise<any> => {
+  const fetchUserProfileFeed = async (): Promise<any> => {
     if (activeScreen === ActiveScreen.POST_DETAIL) return;
 
     if (activeTab === FeedTab.LATEST && lastPostIdForDate !== null) {
@@ -97,7 +97,7 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
     } else if (tag) {
       return fetchHashtagFeed();
     } else if (user) {
-      return fetchProfileFeed();
+      return fetchUserProfileFeed();
     } else {
       return fetchUserFeed();
     }

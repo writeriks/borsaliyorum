@@ -9,19 +9,21 @@ interface UserFeedProps {
   user: Partial<User>;
   userFollowerCount: number;
   userFollowingCount: number;
+  isProfileOwner: boolean
 }
 
-const UserFeed: React.FC<UserFeedProps> = ({ user, userFollowerCount, userFollowingCount }) => (
+const UserProfile: React.FC<UserFeedProps> = ({ user, userFollowerCount, userFollowingCount, isProfileOwner }) => (
   <div className='flex min-w-full justify-center'>
     <div className='flex flex-col w-full max-w-2xl '>
       <UserProfileCard
         user={user}
         userFollowerCount={userFollowerCount}
         userFollowingCount={userFollowingCount}
+        isProfileOwner={isProfileOwner}
       />
       <Feed user={user} />
     </div>
   </div>
 );
 
-export default UserFeed;
+export default UserProfile;

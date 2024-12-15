@@ -6,28 +6,23 @@ import UserAvatar from '@/components/user-avatar/user-avatar';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import { formatStringDateToDDMMYYYY } from '@/utils/date-utils/date-utils';
-import useUser from '@/hooks/useUser';
-import { useMemo } from 'react';
 import FollowButton from '@/components/follow-button/follow-button';
 
 interface UserProfileCardProps {
   user: Partial<User>;
   userFollowerCount: number;
   userFollowingCount: number;
+  isProfileOwner: boolean;
 }
 
 const UserProfileCard: React.FC<UserProfileCardProps> = ({
-  user: { profilePhoto, displayName, username, bio, website, createdAt, firebaseUserId, userId },
+  user: { profilePhoto, displayName, username, bio, website, createdAt, userId },
   userFollowerCount,
   userFollowingCount,
+  isProfileOwner,
 }) => {
   const t = useTranslations('userProfileCard');
   const router = useRouter();
-  const { user: currentUser } = useUser();
-  const isUserOwner = useMemo(
-    () => currentUser.userId === firebaseUserId,
-    [currentUser, firebaseUserId]
-  );
 
   return (
     <div className='lg:p-6 flex flex-col p-2 min-w-full self-start md:border rounded'>
@@ -46,10 +41,7 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({
             <p className='text-xs text-muted-foreground'>@{username}</p>
           </div>
         </div>
-        <div>
-          {/* TODO: Add logic to call follow/unfollow endpoint */}
-          {!isUserOwner && userId && <FollowButton userId={userId} />}
-        </div>
+        <div>{!isProfileOwner && userId && <FollowButton userIdToFollow={userId} />}</div>
       </div>
       <div className='flex flex-col justify-between w-full h-full'>
         <div className='flex-col mt-3'>
