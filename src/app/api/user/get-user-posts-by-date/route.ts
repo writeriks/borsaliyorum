@@ -53,43 +53,27 @@ export async function GET(request: Request): Promise<NextResponse> {
       return createResponse(ResponseStatus.BAD_REQUEST, 'Bu kullanıcı tarafından engellendiniz');
     }
 
-    // Get User's posts by date
-    const stockPostsByDate = await prisma.post.findMany({
-      where: {
-        user: user,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+    const posts = await prisma.post.findMany({
+      where: { userId: user.userId },
+      orderBy: { createdAt: 'desc' },
       take: pageSize,
       cursor: lastPostId ? { postId: lastPostId } : undefined,
       skip: lastPostId ? 1 : 0,
+      include: {
+        _count: { select: { likedBy: true, comments: true } },
+        likedBy: { where: { userId: currentUser.userId }, select: { postId: true } },
+      },
     });
-
-    // Fetch the likes for the current user for these posts
-    const postIds = stockPostsByDate.map(post => post.postId);
-
-    // Get likes, reposts and comments count for posts
-    const likeCountMap = await feedService.getTotalLikeCounts(postIds);
-    const commentCountMap = await feedService.getTotalCommentCounts(postIds);
-
-    // Get current user's likes
-    const likedPostIds = await feedService.getLikesByCurrentUser(postIds, currentUser.userId);
-
-    // Add like, comment info, and likedByCurrentUser flag to each post
-    const postsWithLikeAndCommentInfo = stockPostsByDate.map(post => ({
+    const postsWithInfo = posts.map(post => ({
       ...post,
-      likedByCurrentUser: likedPostIds.has(post.postId),
-      likeCount: likeCountMap[post.postId] || 0,
-      commentCount: commentCountMap[post.postId] || 0,
+      likedByCurrentUser: post.likedBy.length > 0,
+      likeCount: post._count.likedBy,
+      commentCount: post._count.comments,
     }));
-
-    const newLastPostIdByDate =
-      stockPostsByDate.length > 0 ? stockPostsByDate[stockPostsByDate.length - 1].postId : null;
-
+    const newLastPostId = posts.length > 0 ? posts[posts.length - 1].postId : null;
     return createResponse(ResponseStatus.OK, {
-      postsByDate: postsWithLikeAndCommentInfo,
-      lastPostIdByDate: newLastPostIdByDate,
+      postsByDate: postsWithInfo,
+      lastPostIdByDate: newLastPostId,
     });
   } catch (error) {
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
