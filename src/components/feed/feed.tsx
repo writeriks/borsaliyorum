@@ -83,7 +83,7 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
     if (activeScreen === ActiveScreen.POST_DETAIL) return;
 
     if (activeTab === FeedTab.LATEST && lastPostIdForDate !== null) {
-      // TODO: Implement getProfileFeedByDate
+      return postApiService.getUserPostsByDate(lastPostIdForDate, user!.username!);
     }
 
     if (activeTab === FeedTab.POPULAR && lastPostIdForLike !== null) {
