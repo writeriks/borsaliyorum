@@ -80,6 +80,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({ userIdToFollow: userId }) =
   // Determine button label
   const buttonLabel = isUserFollowed ? t('unfollow') : t('follow');
 
+  // TODO: Consider to update button styling
   return (
     <Button onClick={toggleUserFollow} className='rounded-2xl bg-primary h-8 font-bold'>
       <span className='text-sm bold'>{buttonLabel}</span>
