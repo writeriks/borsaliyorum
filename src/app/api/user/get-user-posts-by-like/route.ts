@@ -2,7 +2,6 @@ import prisma from '@/services/prisma-service/prisma-client';
 import { auth } from '@/services/firebase-service/firebase-admin';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { NextResponse } from 'next/server';
-import feedService from '@/services/feed-service/feed-service';
 
 export async function GET(request: Request): Promise<NextResponse> {
   try {
