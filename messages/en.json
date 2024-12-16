@@ -34,5 +34,16 @@
     "LoginContainer": {
       "login": "Login"
     }
+  },
+  "userProfileCard": {
+    "bio": "Bio",
+    "website": "Website",
+    "followers": "Followers",
+    "following": "Following",
+    "posts": "Posts"
+  },
+  "followButton": {
+    "follow": "Follow",
+    "unfollow": "Unfollow"
   }
 }

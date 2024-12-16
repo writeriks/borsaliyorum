@@ -34,5 +34,16 @@
     "LoginContainer": {
       "login": "Giriş Yap"
     }
+  },
+  "userProfileCard": {
+    "bio": "Bio",
+    "website": "Website",
+    "followers": "Takipçiler",
+    "following": "Takip Edilenler",
+    "posts": "Gönderiler"
+  },
+  "followButton": {
+    "follow": "Takip Et",
+    "unfollow": "Takibi Bırak"
   }
 }

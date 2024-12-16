@@ -6,7 +6,7 @@ import UserAvatar from '@/components/user-avatar/user-avatar';
 import Image from 'next/image';
 import EntryOptions from '@/components/entry-actions/entry-options';
 import Content from '@/components/content/content';
-import { formatDate } from '@/utils/content-utils/content-utils';
+import { formatDateToTimeAgoString } from '@/utils/date-utils/date-utils';
 import { Post as PostType, Sentiment, Repost } from '@prisma/client';
 import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
 import { useQuery } from '@tanstack/react-query';
@@ -34,7 +34,7 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
 
   const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(post.mediaUrl ?? '')}`;
 
-  const postDate = formatDate(post.createdAt.toString());
+  const postDate = formatDateToTimeAgoString(post.createdAt.toString());
 
   const renderSentiment = {
     [Sentiment.bullish]: (
@@ -61,7 +61,7 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
           {postOwner && (
             <UserAvatar
               user={postOwner}
-              onUserAvatarClick={() => router.push(`/user/${postOwner.username}`)}
+              onUserAvatarClick={() => router.push(`/users/${postOwner.username}`)}
             />
           )}
           <div className='space-y-1 flex-1'>

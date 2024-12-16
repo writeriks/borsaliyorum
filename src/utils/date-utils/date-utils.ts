@@ -7,7 +7,7 @@
  * - displayTime: Human-readable time difference ('Az önce', 'x dakika önce', etc.).
  * - fullDate: Full date string in 'Day, Month Date, Year, Time' format.
  */
-export const formatDate = (
+export const formatDateToTimeAgoString = (
   date: string
 ): {
   displayDate: string;
@@ -52,4 +52,22 @@ export const formatDate = (
     displayDate,
     fullDate,
   };
+};
+
+/**
+ * Converts a date string in any format to a string in the format DD/MM/YYYY
+ * @param {string} dateString The input date string
+ * @returns {string} The formatted date string
+ */
+export const formatStringDateToDDMMYYYY = (dateString: string): string => {
+  // Parse the input date string into a Date object
+  const date = new Date(dateString);
+
+  // Extract the day, month, and year
+  const day = date.getDate().toString().padStart(2, '0'); // Add leading zero if needed
+  const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are zero-based
+  const year = date.getFullYear();
+
+  // Return the formatted date
+  return `${day}/${month}/${year}`;
 };
