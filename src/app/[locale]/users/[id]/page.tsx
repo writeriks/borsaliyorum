@@ -14,7 +14,7 @@ interface UserPageProps {
   currentUser: User;
 }
 
-const UserPage = async ({ params, currentUser }: UserPageProps) => {
+const UserPage = async ({ params, currentUser }: UserPageProps): Promise<React.ReactNode> => {
   const username = decodeURIComponent(params.id);
   const user = await prisma.user.findUnique({
     where: { username: username },
