@@ -32,7 +32,7 @@ export const verifyUserInRoute = async (request: NextRequest): Promise<User | Ne
   const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
   if (!token) {
-    throw createResponse(ResponseStatus.UNAUTHORIZED);
+    return createResponse(ResponseStatus.UNAUTHORIZED);
   }
 
   const decodedToken = await auth.verifyIdToken(token);
@@ -44,7 +44,7 @@ export const verifyUserInRoute = async (request: NextRequest): Promise<User | Ne
   });
 
   if (!currentUser) {
-    throw createResponse(ResponseStatus.UNAUTHORIZED);
+    return createResponse(ResponseStatus.UNAUTHORIZED);
   }
 
   return currentUser;
