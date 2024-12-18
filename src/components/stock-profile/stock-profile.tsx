@@ -3,17 +3,18 @@
 import { Stock } from '@prisma/client';
 import React from 'react';
 import Feed from '@/components/feed/feed';
+import StockProfileCard from '@/components/stock-profile-card/stock-profile-card';
 
 interface StockFeedProps {
-  stock: Stock;
+  stock: Stock & { isFollowingStock: boolean };
 }
-
-const StockFeed: React.FC<StockFeedProps> = ({ stock }) => (
+const StockProfile: React.FC<StockFeedProps> = ({ stock }) => (
   <div className='flex min-w-full justify-center'>
     <div className='flex flex-col w-full max-w-2xl '>
+      <StockProfileCard stock={stock} />
       <Feed stock={stock} />
     </div>
   </div>
 );
 
-export default StockFeed;
+export default StockProfile;

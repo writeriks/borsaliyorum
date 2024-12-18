@@ -4,6 +4,7 @@ import Discover from '@/components/discover/discover';
 import React from 'react';
 import prisma from '@/services/prisma-service/prisma-client';
 import HashtagFeed from '@/components/hashtag-feed/hashtag-feed';
+import { withAuthentication } from '@/components/auth-wrapper/auth-wrapper';
 
 interface HashtagDetailPageProps {
   params: { id: string };
@@ -31,4 +32,4 @@ const HashtagPage = async ({ params }: HashtagDetailPageProps): Promise<React.Re
   );
 };
 
-export default HashtagPage;
+export default withAuthentication(HashtagPage);

@@ -55,13 +55,13 @@ const handleAuth = (request: NextRequest): NextResponse | null => {
     }
 
     if (!isInitialRoute) {
-      return NextResponse.redirect(new URL(`/${locale}/login`, origin));
+      return NextResponse.redirect(new URL(`/${locale}/`, origin));
     }
 
     return null; // Allow access to the initial route for unauthenticated users
   } catch (error) {
     console.error('Authentication error:', error);
-    return NextResponse.redirect(new URL(`/${locale}/error`, origin));
+    return NextResponse.redirect(new URL(`/${locale}/`, origin));
   }
 };
 

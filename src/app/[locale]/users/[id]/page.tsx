@@ -1,31 +1,20 @@
 import React from 'react';
 
-import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
-
-import { auth } from '@/services/firebase-service/firebase-admin';
 
 import Discover from '@/components/discover/discover';
 import UserProfile from '@/components/user-profile/user-profile';
 
 import prisma from '@/services/prisma-service/prisma-client';
+import { User } from '@prisma/client';
+import { withAuthentication } from '@/components/auth-wrapper/auth-wrapper';
 
 interface UserPageProps {
   params: { id: string };
+  currentUser: User;
 }
 
-const UserPage = async ({ params }: UserPageProps): Promise<React.ReactNode> => {
-  // Get the current user from the request headers and verify the user's identity
-  const cookieStore = cookies();
-  const token = cookieStore.get('identity')?.value;
-  const decodedToken = await auth.verifyIdToken(token as string);
-  const currentUser = await prisma.user.findUnique({
-    where: {
-      firebaseUserId: decodedToken.uid,
-    },
-  });
-
-  // Get the user from the database
+const UserPage = async ({ params, currentUser }: UserPageProps) => {
   const username = decodeURIComponent(params.id);
   const user = await prisma.user.findUnique({
     where: { username: username },
@@ -47,16 +36,17 @@ const UserPage = async ({ params }: UserPageProps): Promise<React.ReactNode> => 
       userId: true,
     },
   });
+
+  if (!user) {
+    notFound();
+  }
+
   const userFollowerCount = await prisma.userFollowers.count({
     where: { followingId: user?.userId },
   });
   const userFollowingCount = await prisma.userFollowers.count({
     where: { followerId: user?.userId },
   });
-
-  if (!user) {
-    notFound();
-  }
 
   // Check if the current user is blocked by the user
   const isCurrentUserBlockedByUser = await prisma.userBlocks.findFirst({
@@ -66,21 +56,33 @@ const UserPage = async ({ params }: UserPageProps): Promise<React.ReactNode> => 
     },
   });
 
+  // Check if the current user is following the specified user
+  const isFollowingUser = await prisma.userFollowers.findUnique({
+    where: {
+      followerId_followingId: {
+        followerId: currentUser.userId,
+        followingId: user.userId,
+      },
+    },
+  });
+
   if (isCurrentUserBlockedByUser) {
     notFound();
   }
 
   const isProfileOwner = currentUser?.userId === user.userId;
+  const userWithFollowers = {
+    ...user,
+    isFollowingUser: !!isFollowingUser,
+    userFollowerCount,
+    userFollowingCount,
+    isProfileOwner,
+  };
 
   return (
     <div className='flex min-w-full justify-center'>
       <div className='flex flex-col w-full max-w-2xl '>
-        <UserProfile
-          user={user}
-          userFollowerCount={userFollowerCount}
-          userFollowingCount={userFollowingCount}
-          isProfileOwner={isProfileOwner}
-        />
+        <UserProfile user={userWithFollowers} />
       </div>
       <div className='lg:flex max-1500:hidden sticky top-12 ml-2 h-[260px] flex-col lg:w-[260px] '>
         <Discover />
@@ -89,4 +91,4 @@ const UserPage = async ({ params }: UserPageProps): Promise<React.ReactNode> => 
   );
 };
 
-export default UserPage;
+export default withAuthentication(UserPage);
