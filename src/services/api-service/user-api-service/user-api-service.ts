@@ -217,7 +217,7 @@ class UserApiService {
    * Validates the provided Firebase user and assigns a session cookie.
    * @param user - The Firebase user to validate.
    */
-  validateUser = async (user: FirebaseUser): Promise<void> => {
+  validateUser = async (user: FirebaseUser): Promise<boolean> => {
     const token = await user.getIdToken();
 
     const result = await fetch('/api/user/validate-user', {
@@ -229,9 +229,9 @@ class UserApiService {
     });
 
     if (!result.ok) {
-      const error = await result.json();
-      throw new Error(error.message || 'Bir hata oluştu.');
+      return false;
     }
+    return true;
   };
 
   /**

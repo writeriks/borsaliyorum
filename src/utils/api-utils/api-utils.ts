@@ -39,7 +39,7 @@ export const createResponse = (
   status: ResponseStatus,
   data?: string | Object,
   customHeaders?: Object
-): NextResponse<any> => {
+): NextResponse => {
   const statusText = ResponseStatusText[status];
   let responseData = null;
 

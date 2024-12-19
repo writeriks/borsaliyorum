@@ -1,20 +1,17 @@
-'use client';
-
 import React from 'react';
 
 import Discover from '@/components/discover/discover';
 
-import Feed from '@/components/feed/feed';
+import { withAuthentication } from '@/components/auth-wrapper/auth-wrapper';
+import UserFeedWrapper from '@/components/user-feed-wrapper/user-feed-wrapper';
 
-const Home = (): React.ReactNode => (
+const Home = async (): Promise<React.ReactNode> => (
   <div className='flex min-w-full justify-center'>
-    <div className='flex flex-col w-full max-w-2xl '>
-      <Feed />
-    </div>
-    <div className='lg:flex max-1500:hidden sticky top-[156px] ml-2 h-[260px] flex-col lg:w-[260px] '>
+    <UserFeedWrapper />
+    <div className='lg:flex max-1500:hidden sticky top-[156px] ml-2 h-[260px] flex-col lg:w-[260px]'>
       <Discover />
     </div>
   </div>
 );
 
-export default Home;
+export default withAuthentication(Home);

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/services/firebase-service/firebase-admin';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import prisma from '@/services/prisma-service/prisma-client';
+import { verifyUserInRoute } from '@/services/user-service/user-service';
+import { User } from '@prisma/client';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -14,23 +15,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return createResponse(ResponseStatus.NOT_FOUND, 'Kullanıcı bulunamadı');
     }
 
-    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-
-    if (!token) {
-      return createResponse(ResponseStatus.UNAUTHORIZED);
-    }
-
-    const decodedToken = await auth.verifyIdToken(token);
-
-    const currentUser = await prisma.user.findUnique({
-      where: {
-        firebaseUserId: decodedToken.uid,
-      },
-    });
-
-    if (!currentUser) {
-      return createResponse(ResponseStatus.UNAUTHORIZED);
-    }
+    const currentUser = (await verifyUserInRoute(request)) as User;
 
     const user = await prisma.user.findUnique({
       where: {
