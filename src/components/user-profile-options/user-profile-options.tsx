@@ -9,7 +9,6 @@ import {
   SelectTrigger,
 } from '@/components/ui/select';
 import { useDispatch, useSelector } from 'react-redux';
-import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
 import UserAvatar from '@/components/user-avatar/user-avatar';
 import { setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
@@ -19,12 +18,16 @@ import LoginContainer from '@/components/user-profile-options/login-container';
 import UserSettings from '@/components/user-profile-options/user-settings';
 import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import useUser from '@/hooks/useUser';
 
 const UserProfileOptions = (): React.ReactNode => {
   const dispatch = useDispatch();
-  const user = useSelector(userReducerSelector.getUser);
+  const { user } = useUser();
   const isAuthLoading = useSelector(uiReducerSelector.getIsAuthLoading);
   const t = useTranslations('userProfileOptions.UserProfileOptions');
+
+  const router = useRouter();
 
   const logout = async (): Promise<void> => {
     await firebaseAuthService.signOut();
@@ -34,7 +37,7 @@ const UserProfileOptions = (): React.ReactNode => {
   const onProfileSelectChange = (value: string): void => {
     switch (value) {
       case 'view-profile':
-        // TODO: route to profile
+        router.push(`/users/${user.username}`);
         break;
       case 'edit-profile':
         // TODO: route to edit profile

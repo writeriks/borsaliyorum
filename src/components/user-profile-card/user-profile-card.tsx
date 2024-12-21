@@ -1,28 +1,78 @@
 'use client';
 
 import { Calendar } from 'lucide-react';
-import { User } from '@prisma/client';
 import UserAvatar from '@/components/user-avatar/user-avatar';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import { formatStringDateToDDMMYYYY } from '@/utils/date-utils/date-utils';
 import FollowButton from '@/components/follow-button/follow-button';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
+import { useMutation } from '@tanstack/react-query';
+import userApiService from '@/services/api-service/user-api-service/user-api-service';
+import { UserWithFollowers } from '@/services/user-service/user-types';
 
 interface UserProfileCardProps {
-  user: Partial<User>;
-  userFollowerCount: number;
-  userFollowingCount: number;
-  isProfileOwner: boolean;
+  user: UserWithFollowers;
 }
 
 const UserProfileCard: React.FC<UserProfileCardProps> = ({
-  user: { profilePhoto, displayName, username, bio, website, createdAt, userId },
-  userFollowerCount,
-  userFollowingCount,
-  isProfileOwner,
+  user: {
+    profilePhoto,
+    displayName,
+    username,
+    bio,
+    website,
+    createdAt,
+    userId,
+    userFollowerCount,
+    isProfileOwner,
+    userFollowingCount,
+    isFollowingUser,
+  },
 }) => {
   const t = useTranslations('userProfileCard');
   const router = useRouter();
+
+  const [isUserFollowed, setIsUserFollowed] = useState<boolean>(isFollowingUser);
+  const dispatch = useDispatch();
+  const handleError = (error: Error): void => {
+    dispatch(
+      setUINotification({
+        message: error.message ?? 'Bir hata oluştu.',
+        notificationType: UINotificationEnum.ERROR,
+      })
+    );
+  };
+
+  const followUserMutation = useMutation({
+    mutationFn: async () => {
+      return userApiService.followUser(userId as number);
+    },
+    onSuccess: () => {
+      setIsUserFollowed(true);
+    },
+    onError: handleError,
+  });
+
+  const unfollowUserMutation = useMutation({
+    mutationFn: async () => {
+      return userApiService.unfollowUser(userId as number);
+    },
+    onSuccess: () => {
+      setIsUserFollowed(false);
+    },
+    onError: handleError,
+  });
+
+  const toggleUserFollow = async (): Promise<void> => {
+    if (isUserFollowed) {
+      await unfollowUserMutation.mutateAsync();
+    } else {
+      await followUserMutation.mutateAsync();
+    }
+  };
 
   return (
     <div className='lg:p-6 flex flex-col p-2 min-w-full self-start md:border rounded'>
@@ -41,7 +91,11 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({
             <p className='text-xs text-muted-foreground'>@{username}</p>
           </div>
         </div>
-        <div>{!isProfileOwner && userId && <FollowButton userIdToFollow={userId} />}</div>
+        <div>
+          {!isProfileOwner && userId && (
+            <FollowButton isFollowing={isUserFollowed} toggleFollow={toggleUserFollow} />
+          )}
+        </div>
       </div>
       <div className='flex flex-col justify-between w-full h-full'>
         <div className='flex-col mt-3'>

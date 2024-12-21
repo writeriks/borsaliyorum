@@ -217,7 +217,7 @@ class UserApiService {
    * Validates the provided Firebase user and assigns a session cookie.
    * @param user - The Firebase user to validate.
    */
-  validateUser = async (user: FirebaseUser): Promise<void> => {
+  validateUser = async (user: FirebaseUser): Promise<boolean> => {
     const token = await user.getIdToken();
 
     const result = await fetch('/api/user/validate-user', {
@@ -229,9 +229,9 @@ class UserApiService {
     });
 
     if (!result.ok) {
-      const error = await result.json();
-      throw new Error(error.message || 'Bir hata oluştu.');
+      return false;
     }
+    return true;
   };
 
   /**
@@ -266,7 +266,7 @@ class UserApiService {
    * @param userId - The ID of the user to follow.
    * @returns The response from the follow operation.
    */
-  followUser = async (userId: number): Promise<void> => {
+  followUser = async (userId: number): Promise<boolean> => {
     const idToken = await auth.currentUser?.getIdToken();
 
     const response = await fetch('/api/user/follow-user', {
@@ -278,12 +278,7 @@ class UserApiService {
       },
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message);
-    }
-
-    return response.json();
+    return response.ok;
   };
 
   /**
@@ -291,7 +286,7 @@ class UserApiService {
    * @param userId - The ID of the user to unfollow.
    * @returns The response from the unfollow operation.
    */
-  unfollowUser = async (userId: number): Promise<any> => {
+  unfollowUser = async (userId: number): Promise<boolean> => {
     const idToken = await auth.currentUser?.getIdToken();
 
     const response = await fetch('/api/user/unfollow-user', {
@@ -303,12 +298,7 @@ class UserApiService {
       },
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message);
-    }
-
-    return response.json();
+    return response.ok;
   };
 
   /**
