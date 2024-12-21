@@ -13,7 +13,7 @@ export function withAuthentication(
     const host = headersList.get('host') || 'localhost:3000'; // Fallback for local dev
     const protocol = headersList.get('x-forwarded-proto') || 'http'; // Fallback for local dev
     const baseUrl = `${protocol}://${host}`;
-    const redirectUrl = new URL(`/${locale}/`, baseUrl); // Specify your redirect URL (e.g., login page)
+    const redirectUrl = new URL(`/${locale}/`, baseUrl);
 
     try {
       // Check if the user is authenticated (for now, we assume the user is null)
@@ -29,7 +29,7 @@ export function withAuthentication(
       }
 
       // If the user is authenticated, proceed to the page
-      return Page({ ...props, currentUser }); // Pass currentUser as a prop
+      return Page({ ...props, currentUser });
     } catch (error) {
       return (
         <div>

@@ -1,7 +1,6 @@
 'use client';
 
 import { Calendar } from 'lucide-react';
-import { User } from '@prisma/client';
 import UserAvatar from '@/components/user-avatar/user-avatar';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
@@ -12,11 +11,10 @@ import { useDispatch } from 'react-redux';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { useMutation } from '@tanstack/react-query';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
+import { UserWithFollowers } from '@/services/user-service/user-types';
 
 interface UserProfileCardProps {
-  user: Partial<User> & { isFollowingUser: boolean } & { isProfileOwner: boolean } & {
-    userFollowerCount: number;
-  } & { userFollowingCount: number };
+  user: UserWithFollowers;
 }
 
 const UserProfileCard: React.FC<UserProfileCardProps> = ({

@@ -45,7 +45,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return createResponse(ResponseStatus.OK);
   } catch (error) {
-    console.log('🚀 ~ POST ~ error:', error);
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }

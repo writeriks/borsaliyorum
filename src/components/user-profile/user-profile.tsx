@@ -1,14 +1,12 @@
 'use client';
 
-import { User } from '@prisma/client';
 import React from 'react';
 import Feed from '@/components/feed/feed';
 import UserProfileCard from '@/components/user-profile-card/user-profile-card';
+import { UserWithFollowers } from '@/services/user-service/user-types';
 
 interface UserFeedProps {
-  user:Partial<User> & { isFollowingUser: boolean } & { isProfileOwner: boolean } & {
-    userFollowerCount: number;
-  } & { userFollowingCount: number };
+  user: UserWithFollowers;
 }
 
 const UserProfile: React.FC<UserFeedProps> = ({ user }) => {

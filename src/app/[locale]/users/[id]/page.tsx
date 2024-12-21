@@ -8,6 +8,7 @@ import UserProfile from '@/components/user-profile/user-profile';
 import prisma from '@/services/prisma-service/prisma-client';
 import { User } from '@prisma/client';
 import { withAuthentication } from '@/components/auth-wrapper/auth-wrapper';
+import { UserWithFollowers } from '@/services/user-service/user-types';
 
 interface UserPageProps {
   params: { id: string };
@@ -71,7 +72,7 @@ const UserPage = async ({ params, currentUser }: UserPageProps): Promise<React.R
   }
 
   const isProfileOwner = currentUser?.userId === user.userId;
-  const userWithFollowers = {
+  const userWithFollowers: UserWithFollowers = {
     ...user,
     isFollowingUser: !!isFollowingUser,
     userFollowerCount,
