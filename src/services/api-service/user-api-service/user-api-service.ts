@@ -266,7 +266,7 @@ class UserApiService {
    * @param userId - The ID of the user to follow.
    * @returns The response from the follow operation.
    */
-  followUser = async (userId: number): Promise<void> => {
+  followUser = async (userId: number): Promise<boolean> => {
     const idToken = await auth.currentUser?.getIdToken();
 
     const response = await fetch('/api/user/follow-user', {
@@ -278,12 +278,7 @@ class UserApiService {
       },
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message);
-    }
-
-    return response.json();
+    return response.ok;
   };
 
   /**
@@ -291,7 +286,7 @@ class UserApiService {
    * @param userId - The ID of the user to unfollow.
    * @returns The response from the unfollow operation.
    */
-  unfollowUser = async (userId: number): Promise<any> => {
+  unfollowUser = async (userId: number): Promise<boolean> => {
     const idToken = await auth.currentUser?.getIdToken();
 
     const response = await fetch('/api/user/unfollow-user', {
@@ -303,12 +298,7 @@ class UserApiService {
       },
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message);
-    }
-
-    return response.json();
+    return response.ok;
   };
 
   /**

@@ -6,7 +6,7 @@ class StockApiService {
    * @param ticker - The ID of the stock to follow.
    * @returns The response from the follow operation.
    */
-  followStock = async (ticker: string): Promise<void> => {
+  followStock = async (ticker: string): Promise<boolean> => {
     const idToken = await auth.currentUser?.getIdToken();
 
     const response = await fetch('/api/stock/follow-stock', {
@@ -18,12 +18,7 @@ class StockApiService {
       },
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message);
-    }
-
-    return response.json();
+    return response.ok;
   };
 
   /**
@@ -31,7 +26,7 @@ class StockApiService {
    * @param ticker - The ID of the stock to unfollow.
    * @returns The response from the follow operation.
    */
-  unfollowStock = async (ticker: string): Promise<void> => {
+  unfollowStock = async (ticker: string): Promise<boolean> => {
     const idToken = await auth.currentUser?.getIdToken();
 
     const response = await fetch('/api/stock/unfollow-stock', {
@@ -43,12 +38,7 @@ class StockApiService {
       },
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message);
-    }
-
-    return response.json();
+    return response.ok;
   };
 }
 
