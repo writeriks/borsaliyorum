@@ -2,7 +2,7 @@ import { auth } from '@/services/firebase-service/firebase-config';
 
 export const apiFetchProxy = async (
   path: string,
-  method?: string ,
+  method?: string,
   body?: BodyInit
 ): Promise<Response> => {
   const idToken = await auth.currentUser?.getIdToken();
