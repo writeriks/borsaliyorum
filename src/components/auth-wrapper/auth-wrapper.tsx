@@ -1,7 +1,6 @@
-import firebaseAuthService from '@/services/firebase-service/firebase-auth-service';
-import { verifyUserAuthenticationForServerPage } from '@/services/user-service/user-service';
-import { User } from '@prisma/client';
 import { headers } from 'next/headers';
+import { User } from '@prisma/client';
+import { verifyUserAuthenticationForServerPage } from '@/services/user-service/user-service';
 
 // Higher-order function to wrap pages with authentication
 export function withAuthentication(
@@ -32,7 +31,6 @@ export function withAuthentication(
       // If the user is authenticated, proceed to the page
       return Page({ ...props, currentUser });
     } catch (error) {
-      await firebaseAuthService.signOut();
       return (
         <div>
           <meta httpEquiv='refresh' content={`0; url=${redirectUrl.toString()}`} />
