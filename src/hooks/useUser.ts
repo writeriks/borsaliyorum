@@ -91,6 +91,10 @@ const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
           queryKey: ['logOutUser'],
           queryFn: () => userApiService.logOutUser(),
         });
+
+        dispatch(setIsAuthModalOpen(false));
+        dispatch(setIsAuthLoading(false));
+
         router.push('/');
       }
 
