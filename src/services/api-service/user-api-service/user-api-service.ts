@@ -5,6 +5,7 @@ import { auth } from '../../firebase-service/firebase-config';
 import store from '@/store/redux-store';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { User } from '@prisma/client';
+import { apiFetchProxy } from '@/services/api-service/fetch-proxy';
 
 class UserApiService {
   /**
@@ -14,17 +15,11 @@ class UserApiService {
    */
   getUserById = async (userId: string): Promise<User | undefined> => {
     try {
-      const idToken = await auth.currentUser?.getIdToken();
+      const response = await apiFetchProxy(
+        `user/get-user-by-id?userId=${encodeURIComponent(userId)}`
+      );
 
-      const result = await fetch(`/api/user/get-user-by-id?userId=${encodeURIComponent(userId)}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const user = await result.json();
+      const user = await response.json();
 
       return user ? user : undefined;
     } catch (error) {
@@ -41,17 +36,11 @@ class UserApiService {
     userId: number
   ): Promise<(User & { isUserFollowed: boolean }) | undefined> => {
     try {
-      const idToken = await auth.currentUser?.getIdToken();
+      const response = await apiFetchProxy(
+        `user/get-entry-owner?userId=${encodeURIComponent(userId)}`
+      );
 
-      const result = await fetch(`/api/user/get-entry-owner?userId=${encodeURIComponent(userId)}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const user = await result.json();
+      const user = await response.json();
 
       return user ? user : undefined;
     } catch (error) {
@@ -66,20 +55,11 @@ class UserApiService {
    */
   getUsersByUserName = async (username: string): Promise<User[] | undefined> => {
     try {
-      const idToken = await auth.currentUser?.getIdToken();
-
-      const result = await fetch(
-        `/api/user/get-user-by-username?username=${encodeURIComponent(username)}`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${idToken}`,
-            'Content-Type': 'application/json',
-          },
-        }
+      const response = await apiFetchProxy(
+        `user/get-users-by-username?username=${encodeURIComponent(username)}`
       );
 
-      return result.json();
+      return response.json();
     } catch (error) {
       store.dispatch(
         setUINotification({
@@ -99,8 +79,6 @@ class UserApiService {
     try {
       if (auth.currentUser) {
         if (firebaseUser.emailVerified !== user.isEmailVerified) {
-          const idToken = await auth.currentUser?.getIdToken();
-
           const updatedUser: User = {
             ...user,
             profilePhoto: user.profilePhoto ? user.profilePhoto : firebaseUser.photoURL ?? null,
@@ -108,16 +86,13 @@ class UserApiService {
             displayName: user.displayName ?? firebaseUser.displayName,
           };
 
-          const result = await fetch('/api/user/sync-gmail-login', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${idToken}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ user: updatedUser }),
-          });
+          const response = await apiFetchProxy(
+            'user/sync-gmail-login',
+            'POST',
+            JSON.stringify({ user: updatedUser })
+          );
 
-          return result.json();
+          return response.json();
         }
       }
     } catch (error) {
