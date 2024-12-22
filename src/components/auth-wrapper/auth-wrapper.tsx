@@ -1,6 +1,6 @@
-import { verifyUserAuthenticationForServerPage } from '@/services/user-service/user-service';
-import { User } from '@prisma/client';
 import { headers } from 'next/headers';
+import { User } from '@prisma/client';
+import { verifyUserAuthenticationForServerPage } from '@/services/user-service/user-service';
 
 // Higher-order function to wrap pages with authentication
 export function withAuthentication(

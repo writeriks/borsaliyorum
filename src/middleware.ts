@@ -70,7 +70,7 @@ const handleAuth = (request: NextRequest): NextResponse | null => {
  * @type {NextMiddleware}
  */
 const middleware: NextMiddleware = (request: NextRequest): NextResponse | undefined => {
-  return handleI18n(request) || handleAuth(request) || NextResponse.next();
+  return handleI18n(request) || NextResponse.next();
 };
 
 export default middleware;
