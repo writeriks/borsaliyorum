@@ -242,16 +242,7 @@ class UserApiService {
    * @returns The response from the follow operation.
    */
   followUser = async (userId: number): Promise<boolean> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch('/api/user/follow-user', {
-      method: 'POST',
-      body: JSON.stringify({ userId }),
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await apiFetchProxy(`user/follow-user`, 'POST', JSON.stringify({ userId }));
 
     return response.ok;
   };
@@ -262,16 +253,7 @@ class UserApiService {
    * @returns The response from the unfollow operation.
    */
   unfollowUser = async (userId: number): Promise<boolean> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch('/api/user/unfollow-user', {
-      method: 'POST',
-      body: JSON.stringify({ userId }),
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await apiFetchProxy(`user/unfollow-user`, 'POST', JSON.stringify({ userId }));
 
     return response.ok;
   };
@@ -282,16 +264,7 @@ class UserApiService {
    * @returns The response from the block operation.
    */
   blockUser = async (userId: number): Promise<void> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch('/api/user/block-user', {
-      method: 'POST',
-      body: JSON.stringify({ userId }),
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await apiFetchProxy(`user/block-user`, 'POST', JSON.stringify({ userId }));
 
     if (!response.ok) {
       const error = await response.json();
@@ -307,16 +280,7 @@ class UserApiService {
    * @returns The response from the block operation.
    */
   unblockUser = async (userId: number): Promise<void> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch('/api/user/unblock-user', {
-      method: 'POST',
-      body: JSON.stringify({ userId }),
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await apiFetchProxy(`user/unblock-user`, 'POST', JSON.stringify({ userId }));
 
     if (!response.ok) {
       const error = await response.json();
