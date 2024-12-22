@@ -203,10 +203,7 @@ class UserApiService {
       },
     });
 
-    if (!result.ok) {
-      return false;
-    }
-    return true;
+    return result.ok;
   };
 
   /**
