@@ -56,7 +56,7 @@ class UserApiService {
   getUsersByUserName = async (username: string): Promise<User[] | undefined> => {
     try {
       const response = await apiFetchProxy(
-        `user/get-users-by-username?username=${encodeURIComponent(username)}`
+        `user/get-user-by-username?username=${encodeURIComponent(username)}`
       );
 
       return response.json();
