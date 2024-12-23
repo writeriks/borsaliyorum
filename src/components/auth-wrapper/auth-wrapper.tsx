@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import { User } from '@prisma/client';
 import { verifyUserAuthenticationForServerPage } from '@/services/user-service/user-service';
+import { generateRedirectUrl } from '@/utils/api-utils/api-utils';
 
 // Higher-order function to wrap pages with authentication
 export function withAuthentication(
@@ -9,11 +10,7 @@ export function withAuthentication(
   return async (props: any): Promise<React.ReactNode> => {
     const { locale } = props.params;
 
-    const headersList = headers();
-    const host = headersList.get('host') || 'localhost:3000'; // Fallback for local dev
-    const protocol = headersList.get('x-forwarded-proto') || 'http'; // Fallback for local dev
-    const baseUrl = `${protocol}://${host}`;
-    const redirectUrl = new URL(`/${locale}/`, baseUrl);
+    const redirectUrl = generateRedirectUrl(locale, '/', headers());
 
     try {
       // Check if the user is authenticated (for now, we assume the user is null)
@@ -30,7 +27,7 @@ export function withAuthentication(
 
       // If the user is authenticated, proceed to the page
       return Page({ ...props, currentUser });
-    } catch (error) {
+    } catch {
       return (
         <div>
           <meta httpEquiv='refresh' content={`0; url=${redirectUrl.toString()}`} />
