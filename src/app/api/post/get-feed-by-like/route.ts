@@ -41,6 +41,9 @@ export async function GET(request: Request): Promise<NextResponse> {
     // Get blocked users
     const blockedUserIds = await feedService.getBlockedUserIds(currentUser.userId);
 
+    // Get following stocks
+    const followingStockIds = await feedService.getFollowingStockIds(currentUser.userId);
+
     const orderByCondition = {
       likedBy: {
         _count: 'desc',
@@ -48,31 +51,22 @@ export async function GET(request: Request): Promise<NextResponse> {
     };
 
     // Fetch posts by following users, paginated and ordered by like count
-    const postsByLike = await feedService.getPostsByFollowingUsers(
+    const postsByLike = await feedService.getPostsByFollowingUsersAndStocks({
       followingUserIds,
+      followingStockIds,
       blockedUserIds,
       lastPostId,
       pageSize,
       orderByCondition,
-      currentUser.userId
-    );
-
-    // Fetch the likes for the current user for these posts
-    const postIds = postsByLike.map(post => post.postId);
-
-    // Get likes, reposts and comments count for posts
-    const likeCountMap = await feedService.getTotalLikeCounts(postIds);
-    const commentCountMap = await feedService.getTotalCommentCounts(postIds);
-
-    // Get current user's likes
-    const likedPostIds = await feedService.getLikesByCurrentUser(postIds, currentUser.userId);
+      currentUserId: currentUser.userId,
+    });
 
     // Add like, comment info, and likedByCurrentUser flag to each post
     const postsWithLikeAndCommentInfo = postsByLike.map(post => ({
       ...post,
-      likedByCurrentUser: likedPostIds.has(post.postId),
-      likeCount: likeCountMap[post.postId] || 0,
-      commentCount: commentCountMap[post.postId] || 0,
+      likedByCurrentUser: post.likedBy.length > 0,
+      likeCount: post._count.likedBy,
+      commentCount: post._count.comments,
     }));
 
     const newLastPostIdByLike =

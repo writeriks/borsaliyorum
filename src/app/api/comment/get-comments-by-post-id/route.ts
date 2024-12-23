@@ -48,24 +48,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       orderBy: {
         createdAt: 'asc',
       },
+      include: {
+        _count: { select: { likedBy: true } },
+        likedBy: { where: { userId: currentUser.userId }, select: { commentId: true } },
+      },
     });
-
-    // Fetch the likes for the current user for these comments
-    const commentIds = comments.map(comment => comment.commentId);
-    const likeCountMap = await feedService.getTotalLikeCounts(commentIds, true);
-
-    // Get current user's likes
-    const likedCommentsIds = await feedService.getLikesByCurrentUser(
-      commentIds,
-      currentUser.userId,
-      true
-    );
 
     // Add likeCount and likedByCurrentUser flag to each comment
     const commentsWithLikeInfo = comments.map(comment => ({
       ...comment,
-      likedByCurrentUser: likedCommentsIds.has(comment.commentId),
-      likeCount: likeCountMap[comment.commentId] || 0,
+      likedByCurrentUser: comment.likedBy.length > 0,
+      likeCount: comment._count.likedBy,
     }));
 
     // Determine the new lastCommentId for the next page
