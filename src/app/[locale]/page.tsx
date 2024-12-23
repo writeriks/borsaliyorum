@@ -1,11 +1,24 @@
-'use client';
+import { verifyUserAuthenticationForServerPage } from '@/services/user-service/user-service';
+import { generateRedirectUrl } from '@/utils/api-utils/api-utils';
+import { headers } from 'next/headers';
 
-import { useTranslations } from 'next-intl';
+const Home = async (props: any): Promise<React.ReactNode> => {
+  try {
+    const currentUser = await verifyUserAuthenticationForServerPage();
 
-const Home = (): React.ReactNode => {
-  const t = useTranslations('HomePage');
+    if (currentUser) {
+      const redirectUrl = generateRedirectUrl(props.params.locale, '/feed', headers());
+      return (
+        <div>
+          <meta httpEquiv='refresh' content={`0; url=${redirectUrl.toString()}`} />
+        </div>
+      );
+    }
+  } catch {
+    // ignore error
+  }
 
-  return <div>{t('title')}</div>;
+  return <div>Ana Sayfa</div>;
 };
 
 export default Home;

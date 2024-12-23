@@ -34,18 +34,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const postIdToNumber = parseInt(postId ?? '');
 
-    const likeCountMap = await feedService.getTotalLikeCounts([postIdToNumber]);
-    const commentCountMap = await feedService.getTotalCommentCounts([postIdToNumber]);
-
-    // Get current user's likes
-    const likedPostIds = await feedService.getLikesByCurrentUser(
-      [postIdToNumber],
-      currentUser.userId
-    );
-
     const post = await prisma.post.findUnique({
       where: {
         postId: postIdToNumber,
+      },
+      include: {
+        _count: { select: { likedBy: true, comments: true } },
+        likedBy: { where: { userId: currentUser.userId }, select: { postId: true } },
       },
     });
 
@@ -55,9 +50,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return createResponse(ResponseStatus.OK, {
       ...post,
-      likedByCurrentUser: likedPostIds.has(post.postId),
-      likeCount: likeCountMap[postIdToNumber] || 0,
-      commentCount: commentCountMap[postIdToNumber] || 0,
+      likedByCurrentUser: post.likedBy.length > 0,
+      likeCount: post._count.likedBy,
+      commentCount: post._count.comments,
     });
   } catch (error: any) {
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);

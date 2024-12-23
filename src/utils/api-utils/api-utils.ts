@@ -84,3 +84,19 @@ export const createResponse = (
     headers,
   });
 };
+
+/**
+ * Generates a redirect URL based on the provided locale, path, and HTTP headers.
+ *
+ * @param locale - The locale to be used in the redirect URL.
+ * @param path - The path to be used in the redirect URL.
+ * @param headersList - The HTTP headers to be used to determine the host and protocol for the redirect URL.
+ *
+ * @returns A URL object pointing to the generated redirect URL.
+ */
+export const generateRedirectUrl = (locale: string, path: string, headersList: Headers): URL => {
+  const host = headersList.get('host') || 'localhost:3000';
+  const protocol = headersList.get('x-forwarded-proto') || 'http';
+  const baseUrl = `${protocol}://${host}`;
+  return new URL(`/${locale}/${path}`, baseUrl);
+};

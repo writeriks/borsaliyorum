@@ -70,6 +70,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       commentCount: post._count.comments,
     }));
     const newLastPostId = posts.length > 0 ? posts[posts.length - 1].postId : null;
+
     return createResponse(ResponseStatus.OK, {
       postsByDate: postsWithInfo,
       lastPostIdByDate: newLastPostId,
