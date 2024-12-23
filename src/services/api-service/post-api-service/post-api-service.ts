@@ -334,6 +334,11 @@ class PostApiService {
     return response.json();
   };
 
+  getContentPreview = async (content: string): Promise<any> => {
+    const response = await fetch(content);
+    return response.text();
+  };
+
   /**
    * Toggles the like status of a post.
    *
