@@ -67,7 +67,7 @@ class PostApiService {
     lastPostIdByDate: string;
   }> => {
     const response = await apiFetchProxy(
-      `post/get-user-posts-by-date?username=${encodeURIComponent(username)}&lastPostId=${encodeURIComponent(lastPostId)}`
+      `user/get-user-posts-by-date?username=${encodeURIComponent(username)}&lastPostId=${encodeURIComponent(lastPostId)}`
     );
 
     if (!response.ok) {
@@ -169,7 +169,7 @@ class PostApiService {
     lastPostIdByLike: string;
   }> => {
     const response = await apiFetchProxy(
-      `post/get-user-posts-by-like?username=${encodeURIComponent(username)}&lastPostId=${encodeURIComponent(lastPostId)}`
+      `user/get-user-posts-by-like?username=${encodeURIComponent(username)}&lastPostId=${encodeURIComponent(lastPostId)}`
     );
 
     if (!response.ok) {
