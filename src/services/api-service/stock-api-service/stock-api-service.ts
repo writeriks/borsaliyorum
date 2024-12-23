@@ -1,5 +1,4 @@
 import { apiFetchProxy } from '@/services/api-service/fetch-proxy';
-import { auth } from '@/services/firebase-service/firebase-config';
 
 class StockApiService {
   /**

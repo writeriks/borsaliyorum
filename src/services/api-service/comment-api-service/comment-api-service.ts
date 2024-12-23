@@ -1,4 +1,4 @@
-import { auth } from '@/services/firebase-service/firebase-config';
+import { apiFetchProxy } from '@/services/api-service/fetch-proxy';
 import { Comment } from '@prisma/client';
 
 class CommentApiService {
@@ -10,16 +10,12 @@ class CommentApiService {
       comment,
       imageData,
     };
-    const idToken = await auth.currentUser?.getIdToken();
 
-    const response = await fetch('/api/comment/create-comment', {
-      method: 'POST',
-      body: JSON.stringify(requestBody),
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await apiFetchProxy(
+      `comment/create-comment`,
+      'POST',
+      JSON.stringify(requestBody)
+    );
 
     if (!response.ok) throw new Error(response.statusText);
 
@@ -33,17 +29,8 @@ class CommentApiService {
     comments: Comment[];
     lastCommentId: string;
   }> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch(
-      `/api/comment/get-comments-by-post-id?postId=${encodeURIComponent(postId)}&lastCommentId=${encodeURIComponent(lastCommentId)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
+    const response = await apiFetchProxy(
+      `comment/get-comments-by-post-id?postId=${encodeURIComponent(postId)}&lastCommentId=${encodeURIComponent(lastCommentId)}`
     );
 
     if (!response.ok) {
@@ -58,17 +45,9 @@ class CommentApiService {
     commentId: number,
     userId: number
   ): Promise<{ deletedCommentId: number }> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch(
-      `/api/comment/delete-comment?commentId=${encodeURIComponent(commentId)}&userId=${encodeURIComponent(userId)}`,
-      {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
+    const response = await apiFetchProxy(
+      `comment/delete-comment?commentId=${encodeURIComponent(commentId)}&userId=${encodeURIComponent(userId)}`,
+      'DELETE'
     );
 
     if (!response.ok) {
@@ -80,16 +59,11 @@ class CommentApiService {
   };
 
   toggleCommentLike = async (commentId: number): Promise<any> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch('/api/comment/like-comment', {
-      method: 'POST',
-      body: JSON.stringify({ commentId }),
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await apiFetchProxy(
+      `comment/like-comment`,
+      'POST',
+      JSON.stringify({ commentId })
+    );
 
     if (!response.ok) {
       const error = await response.json();
