@@ -1,4 +1,4 @@
-import { auth } from '@/services/firebase-service/firebase-config';
+import { apiFetchProxy } from '@/services/api-service/fetch-proxy';
 import { TrendingTopicsType } from '@/services/tag-service/constants';
 
 class DiscoverApiService {
@@ -7,15 +7,7 @@ class DiscoverApiService {
    * @returns  Array of trending tags
    */
   getTrends = async (): Promise<TrendingTopicsType> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch('/api/discover/get-trends', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await apiFetchProxy('discover/get-trends');
 
     if (!response.ok) throw new Error(response.statusText);
 

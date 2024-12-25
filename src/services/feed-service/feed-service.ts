@@ -1,5 +1,4 @@
 import prisma from '@/services/prisma-service/prisma-client';
-import { Post } from '@prisma/client';
 
 class FeedService {
   /**
@@ -36,52 +35,86 @@ class FeedService {
       where: { followerId: userId },
       select: { followingId: true },
     });
-    return followingUsers.map(user => user.followingId);
+    return followingUsers.map(user => user.followingId).concat(userId);
   };
 
   /**
-   * Fetches posts by users that the current user is following, excluding posts from blocked users.
+   * Fetches the IDs of stocks that the current user is following.
+   *
+   * @param currentUserId - The ID of the current user.
+   * @returns A promise that resolves to an array of stock IDs.
+   */
+  getFollowingStockIds = async (currentUserId: number): Promise<number[]> => {
+    // Fetch stock IDs from the StockFollowers table where the current user is a follower
+    const followingStocks = await prisma.stockFollowers.findMany({
+      where: {
+        userId: currentUserId,
+      },
+      select: {
+        stockId: true,
+      },
+    });
+
+    // Extract stock IDs into an array
+    return followingStocks.map(stockFollower => stockFollower.stockId);
+  };
+
+  /**
+   * Fetches posts by users and stocks that the current user is following, excluding posts from blocked users.
    *
    * @param followingUserIds - An array of user IDs that the current user is following.
+   * @param followingStockIds - An array of stock IDs that the current user is following.
    * @param blockedUserIds - An array of user IDs that the current user has blocked or is blocked by.
    * @param lastPostId - The ID of the last post for pagination.
    * @param pageSize - The number of posts to retrieve.
    * @param orderByCondition - The condition for ordering the posts.
    * @returns A promise that resolves to an array of posts.
    */
-  getPostsByFollowingUsers = async (
-    followingUserIds: number[],
-    blockedUserIds: number[],
-    lastPostId: number,
-    pageSize: number,
-    orderByCondition: object,
-    currentUserId?: number
-  ): Promise<Post[]> => {
+  getPostsByFollowingUsersAndStocks = async ({
+    followingUserIds,
+    followingStockIds,
+    blockedUserIds,
+    lastPostId,
+    pageSize,
+    orderByCondition,
+    currentUserId,
+  }: {
+    followingUserIds: number[];
+    followingStockIds: number[];
+    blockedUserIds: number[];
+    lastPostId: number;
+    pageSize: number;
+    orderByCondition: any;
+    currentUserId?: number;
+  }): Promise<
+    {
+      postId: number;
+      likedBy: { postId: number }[];
+      _count: { likedBy: number; comments: number };
+    }[]
+  > => {
     const blockedUsersWithCurrentUser = blockedUserIds.concat(currentUserId ?? -1);
-    // Fetch posts from followed users and their reposts, excluding blocked users
-    const postsWithReposts = await prisma.post.findMany({
+
+    // Fetch posts from following users and following stocks, excluding blocked users
+    const posts = await prisma.post.findMany({
       where: {
-        OR: [
-          // Posts by users the current user follows
+        AND: [
+          // Exclude posts from blocked users
           {
-            userId: {
-              in: followingUserIds,
-              notIn: blockedUsersWithCurrentUser,
-            },
+            userId: { notIn: blockedUsersWithCurrentUser },
           },
-          // Reposts made by users the current user follows, excluding reposts from blocked users
+          // Include posts by following users or associated with following stocks
           {
-            reposts: {
-              some: {
-                repostedBy: {
-                  in: followingUserIds,
-                  notIn: blockedUserIds,
-                },
-                repostedFrom: {
-                  notIn: blockedUserIds,
+            OR: [
+              // Posts by users the current user follows
+              { userId: { in: followingUserIds } },
+              // Posts associated with stocks the current user follows
+              {
+                stocks: {
+                  some: { stockId: { in: followingStockIds } },
                 },
               },
-            },
+            ],
           },
         ],
       },
@@ -90,80 +123,13 @@ class FeedService {
       cursor: lastPostId ? { postId: lastPostId } : undefined,
       skip: lastPostId ? 1 : 0,
       include: {
-        reposts: true,
+        _count: { select: { likedBy: true, comments: true } },
+        likedBy: { where: { userId: currentUserId }, select: { postId: true } },
+        stocks: true,
       },
     });
 
-    // Duplicate posts that have been reposted by followed users
-    const transformedPosts = postsWithReposts.flatMap(post => {
-      const repostEntries = post.reposts
-        .filter(repost => followingUserIds.includes(repost.repostedBy)) // Filter reposts by followed users
-        .map(repost => ({
-          ...post,
-          isRepost: true,
-          repostedBy: repost.repostedBy, // The user who reposted
-          repostDate: repost.repostDate, // The date of the repost
-          reposts: post.reposts.filter(r => r.repostedBy !== currentUserId),
-        }));
-
-      // Return the original post along with all repost entries (duplicates)
-      return [
-        {
-          ...post,
-          isRepost: false, // Mark as the original post
-          repostedBy: null,
-          repostDate: null,
-        },
-        ...repostEntries,
-      ];
-    });
-
-    // Return paginated results filtering current user posts if they are not repost
-    return transformedPosts.filter(
-      post => post.userId !== currentUserId || (post.isRepost && post.userId === currentUserId)
-    );
-  };
-
-  /**
-   * Fetches the total like count for posts or comments.
-   *
-   * @param entryIds - An array of IDs for the posts or comments.
-   * @param isComment - A boolean indicating whether the IDs are for comments (true) or posts (false).
-   * @returns A promise that resolves to an object where keys are entry IDs and values are like counts.
-   */
-  getTotalLikeCounts = async (
-    entryIds: number[],
-    isComment = false
-  ): Promise<Record<number, number>> => {
-    if (isComment) {
-      const likeCounts = await prisma.commentLikes.groupBy({
-        by: ['commentId'],
-        _count: { commentId: true },
-        where: { commentId: { in: entryIds } },
-      });
-
-      return likeCounts.reduce(
-        (acc, likeCount) => {
-          acc[likeCount.commentId] = likeCount._count.commentId;
-          return acc;
-        },
-        {} as Record<number, number>
-      );
-    } else {
-      const likeCounts = await prisma.postLikes.groupBy({
-        by: ['postId'],
-        _count: { postId: true },
-        where: { postId: { in: entryIds } },
-      });
-
-      return likeCounts.reduce(
-        (acc, likeCount) => {
-          acc[likeCount.postId] = likeCount._count.postId;
-          return acc;
-        },
-        {} as Record<number, number>
-      );
-    }
+    return posts;
   };
 
   /**
@@ -186,58 +152,6 @@ class FeedService {
       },
       {} as Record<number, number>
     );
-  };
-
-  /**
-   * Fetches the total comment count for a set of posts.
-   *
-   * @param postIds - An array of post IDs.
-   * @returns A promise that resolves to an object where keys are post IDs and values are comment counts.
-   */
-  getTotalCommentCounts = async (postIds: number[]): Promise<Record<number, number>> => {
-    const commentCounts = await prisma.comment.groupBy({
-      by: ['postId'],
-      _count: { postId: true },
-      where: { postId: { in: postIds } },
-    });
-
-    return commentCounts.reduce(
-      (acc, commentCount) => {
-        acc[commentCount.postId] = commentCount._count.postId;
-        return acc;
-      },
-      {} as Record<number, number>
-    );
-  };
-
-  /**
-   * Fetches the likes by the current user for a set of posts or comments.
-   *
-   * @param entryIds - An array of IDs for the posts or comments.
-   * @param userId - The ID of the current user.
-   * @param isComment - A boolean indicating whether the IDs are for comments (true) or posts (false).
-   * @returns A promise that resolves to a set of entry IDs liked by the user.
-   */
-  getLikesByCurrentUser = async (
-    entryIds: number[],
-    userId: number,
-    isComment = false
-  ): Promise<Set<number>> => {
-    if (isComment) {
-      const likedComments = await prisma.commentLikes.findMany({
-        where: { commentId: { in: entryIds }, userId },
-        select: { commentId: true },
-      });
-
-      return new Set(likedComments.map(like => like.commentId));
-    } else {
-      const likedPosts = await prisma.postLikes.findMany({
-        where: { postId: { in: entryIds }, userId },
-        select: { postId: true },
-      });
-
-      return new Set(likedPosts.map(like => like.postId));
-    }
   };
 
   /**
