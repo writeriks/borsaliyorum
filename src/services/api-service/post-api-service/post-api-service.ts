@@ -36,17 +36,9 @@ class PostApiService {
    * @returns A promise that resolves to an object containing the ID of the deleted post.
    */
   deletePost = async (postId: number, userId: number): Promise<{ deletedPostId: number }> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch(
-      `/api/post/delete-post?postId=${encodeURIComponent(postId)}&userId=${encodeURIComponent(userId)}`,
-      {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
+    const response = await apiFetchProxy(
+      `post/delete-post?postId=${encodeURIComponent(postId)}&userId=${encodeURIComponent(userId)}`,
+      'DELETE'
     );
 
     if (!response.ok) {
