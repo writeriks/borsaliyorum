@@ -8,18 +8,13 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
     const postId = parseInt(searchParams.get('postId') ?? '');
-    const userId = parseInt(searchParams.get('userId') ?? '');
 
     // Validate input
-    if (!postId || !userId) {
+    if (!postId) {
       return createResponse(ResponseStatus.BAD_REQUEST);
     }
 
     const currentUser = (await verifyUserInRoute(request)) as User;
-
-    if (currentUser.userId !== userId) {
-      return createResponse(ResponseStatus.UNAUTHORIZED);
-    }
 
     // Check if the post exists and if it belongs to the user
     const post = await prisma.post.findUnique({
@@ -36,7 +31,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
       return createResponse(ResponseStatus.BAD_REQUEST, 'Gönderi bulunamadı.');
     }
 
-    if (post.userId !== userId) {
+    if (post.userId !== currentUser.userId) {
       return createResponse(ResponseStatus.UNAUTHORIZED);
     }
 

@@ -32,12 +32,11 @@ class PostApiService {
    * Deletes a post by its ID and the user ID.
    *
    * @param postId - The ID of the post to be deleted.
-   * @param userId - The ID of the user who owns the post.
    * @returns A promise that resolves to an object containing the ID of the deleted post.
    */
-  deletePost = async (postId: number, userId: number): Promise<{ deletedPostId: number }> => {
+  deletePost = async (postId: number): Promise<{ deletedPostId: number }> => {
     const response = await apiFetchProxy(
-      `post/delete-post?postId=${encodeURIComponent(postId)}&userId=${encodeURIComponent(userId)}`,
+      `post/delete-post?postId=${encodeURIComponent(postId)}`,
       'DELETE'
     );
 

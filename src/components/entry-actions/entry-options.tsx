@@ -49,7 +49,7 @@ const EntryOptions: React.FC<EntryProp> = ({
 
   const deleteCommentMutation = useMutation({
     mutationFn: async () => {
-      return commentApiService.deleteComment((entry as Comment).commentId!, entry.userId);
+      return commentApiService.deleteComment((entry as Comment).commentId!);
     },
     onSuccess: (data: { deletedCommentId: number }) => {
       onDeleteSuccess(data.deletedCommentId);
@@ -65,7 +65,7 @@ const EntryOptions: React.FC<EntryProp> = ({
 
   const deletePostMutation = useMutation({
     mutationFn: async () => {
-      return postApiService.deletePost((entry as Post).postId!, entry.userId);
+      return postApiService.deletePost((entry as Post).postId!);
     },
     onSuccess: (data: { deletedPostId: number }) => {
       onDeleteSuccess(data.deletedPostId);
