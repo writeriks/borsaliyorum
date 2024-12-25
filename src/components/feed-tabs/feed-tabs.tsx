@@ -9,18 +9,20 @@ interface FeedTabsProps {
   activeTab: FeedTab;
   postsByDate: PostType[];
   postsByLike: PostType[];
+  isLoading: boolean;
   onTabChange: (tab: FeedTab) => void;
   onPostClick: (post: PostType) => void;
-  isLoading: boolean;
+  onPostDelete: (postId: number) => void;
 }
 
 const FeedTabs: React.FC<FeedTabsProps> = ({
   activeTab,
   postsByDate,
   postsByLike,
+  isLoading,
   onTabChange,
   onPostClick,
-  isLoading,
+  onPostDelete,
 }) => {
   const t = useTranslations('Feed');
 
@@ -38,13 +40,23 @@ const FeedTabs: React.FC<FeedTabsProps> = ({
       </TabsList>
       <TabsContent value={FeedTab.LATEST}>
         {postsByDate.map(post => (
-          <Post onPostClick={onPostClick} key={post.postId} post={post} />
+          <Post
+            onDeleteClick={onPostDelete}
+            onPostClick={onPostClick}
+            key={post.postId}
+            post={post}
+          />
         ))}
         {isLoading && <LoadingSkeleton type={LoadingSkeletons.POST} />}
       </TabsContent>
       <TabsContent value={FeedTab.POPULAR}>
         {postsByLike.map(post => (
-          <Post onPostClick={onPostClick} key={post.postId} post={post} />
+          <Post
+            onDeleteClick={onPostDelete}
+            onPostClick={onPostClick}
+            key={post.postId}
+            post={post}
+          />
         ))}
         {isLoading && <LoadingSkeleton type={LoadingSkeletons.POST} />}
       </TabsContent>

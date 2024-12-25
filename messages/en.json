@@ -7,15 +7,28 @@
     "popularPosts": "Popular Posts"
   },
   "Common": {
-    "placeholder": "What's on your mind?"
+    "placeholder": "What's on your mind?",
+    "errorMessage": "An error occurred."
   },
   "NewPost": {
     "successMessage": "Post created successfully.",
-    "errorMessage": "An error occurred.",
     "sending": "Sending",
     "send": "Send",
     "gif": "GIF",
     "uploadedAlt": "uploaded"
+  },
+  "EntryOptions": {
+    "deleteCommentSuccess": "Your comment has been successfully deleted.",
+    "deletePostSuccess": "Your post has been successfully deleted.",
+    "options": "Options",
+    "unfollow": "Unfollow",
+    "follow": "Follow",
+    "block": "Block",
+    "delete": "Delete"
+  },
+  "PostDetail": {
+    "back": "Back",
+    "loadMore": "Load More"
   },
   "userProfileOptions": {
     "UserSettings": {

@@ -37,6 +37,35 @@ class PostApiService {
   };
 
   /**
+   * Deletes a post by its ID and the user ID.
+   *
+   * @param postId - The ID of the post to be deleted.
+   * @param userId - The ID of the user who owns the post.
+   * @returns A promise that resolves to an object containing the ID of the deleted post.
+   */
+  deletePost = async (postId: number, userId: number): Promise<{ deletedPostId: number }> => {
+    const idToken = await auth.currentUser?.getIdToken();
+
+    const response = await fetch(
+      `/api/post/delete-post?postId=${encodeURIComponent(postId)}&userId=${encodeURIComponent(userId)}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
+
+  /**
    * Fetches the user's feed sorted by date.
    *
    * @param lastPostId - The ID of the last post retrieved for pagination purposes.

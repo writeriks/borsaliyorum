@@ -19,10 +19,11 @@ export interface PostProp {
     reposts?: Repost[];
     isRepost?: boolean;
   };
+  onDeleteClick: (postId: number) => void;
   onPostClick?: (post: PostType) => void;
 }
 
-const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
+const Post: React.FC<PostProp> = ({ post, onPostClick, onDeleteClick }) => {
   const currentUser = useSelector(userReducerSelector.getUser);
   const router = useRouter();
 
@@ -81,10 +82,9 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
               </TooltipWithEllipsis>
             </div>
           </div>
-          {/* TODO Implement post delete logic */}
           <EntryOptions
             isFollowed={postOwner?.isUserFollowed ?? false}
-            onDeleteSuccess={() => console.log('TODO: Implement')}
+            onDeleteSuccess={onDeleteClick}
             entry={post}
             isEntryOwner={postOwner?.username === currentUser.username}
           />

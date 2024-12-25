@@ -22,6 +22,7 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
   const [postsByDate, setPostsByDate] = useState<Post[]>([]);
   const [postsByLike, setPostsByLike] = useState<Post[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post>();
+  const [deletedPostId, setDeletedPostId] = useState(-1);
   const [activeTab, setActiveTab] = useState<FeedTab>(FeedTab.LATEST);
   const [isLikeTabClicked, setIsLikeTabClicked] = useState(false);
   const [lastPostIdForDate, setLastPostIdForDate] = useState('');
@@ -163,21 +164,22 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
     async (isBrowserBack = false): Promise<void> => {
       if (!selectedPost?.postId) return;
 
-      newPostId.current = selectedPost?.postId.toString();
-      const { data: updatedPost } = await getPostById();
+      if (selectedPost?.postId !== deletedPostId) {
+        newPostId.current = selectedPost?.postId.toString();
+        const { data: updatedPost } = await getPostById();
 
-      if (activeTab === FeedTab.LATEST) {
-        const updatedPostsByDate = postsByDate.map(post =>
-          post.postId === updatedPost?.postId ? updatedPost : post
-        );
-        setPostsByDate(updatedPostsByDate);
-      } else {
-        const updatedPostsByLike = postsByLike.map(post =>
-          post.postId === updatedPost?.postId ? updatedPost : post
-        );
-        setPostsByLike(updatedPostsByLike);
+        if (activeTab === FeedTab.LATEST) {
+          const updatedPostsByDate = postsByDate.map(post =>
+            post.postId === updatedPost?.postId ? updatedPost : post
+          );
+          setPostsByDate(updatedPostsByDate);
+        } else {
+          const updatedPostsByLike = postsByLike.map(post =>
+            post.postId === updatedPost?.postId ? updatedPost : post
+          );
+          setPostsByLike(updatedPostsByLike);
+        }
       }
-
       if (isBrowserBack !== true) history.back(); // This will trigger the popstate event
 
       setActiveScreen(ActiveScreen.FEED);
@@ -186,6 +188,17 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [selectedPost?.postId, activeTab, postsByDate, postsByLike]
   );
+
+  const handlePostDelete = (postId: number): void => {
+    setDeletedPostId(postId);
+    if (activeTab === FeedTab.LATEST) {
+      const updatedPostsByDate = postsByDate.filter(post => post.postId !== postId);
+      setPostsByDate(updatedPostsByDate);
+    } else {
+      const updatedPostsByLike = postsByLike.filter(post => post.postId !== postId);
+      setPostsByLike(updatedPostsByLike);
+    }
+  };
 
   useEffect(() => {
     const handlePopState = async (): Promise<void> => {
@@ -228,11 +241,16 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
             postsByLike={postsByLike}
             onTabChange={handleTabChange}
             onPostClick={handlePostClick}
+            onPostDelete={handlePostDelete}
             isLoading={mutation.isPending}
           />
         </>
       ) : (
-        <PostDetail onBackClick={handlePostDetailBackClick} post={selectedPost!} />
+        <PostDetail
+          onPostDelete={handlePostDelete}
+          onBackClick={handlePostDetailBackClick}
+          post={selectedPost!}
+        />
       )}
     </>
   );
