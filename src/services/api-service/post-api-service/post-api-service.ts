@@ -1,4 +1,4 @@
-import { auth } from '@/services/firebase-service/firebase-config';
+import { apiFetchProxy } from '@/services/api-service/fetch-proxy';
 import { Post, Sentiment } from '@prisma/client';
 
 class PostApiService {
@@ -17,16 +17,8 @@ class PostApiService {
       post,
       imageData,
     };
-    const idToken = await auth.currentUser?.getIdToken();
 
-    const response = await fetch('/api/post/create-post', {
-      method: 'POST',
-      body: JSON.stringify(requestBody),
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await apiFetchProxy('post/create-post', 'POST', JSON.stringify(requestBody));
 
     if (!response.ok) {
       const error = await response.json();
@@ -48,17 +40,8 @@ class PostApiService {
     postsByDate: Post[];
     lastPostIdByDate: string;
   }> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch(
-      `/api/post/get-feed-by-date?lastPostId=${encodeURIComponent(lastPostId)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
+    const response = await apiFetchProxy(
+      `post/get-feed-by-date?lastPostId=${encodeURIComponent(lastPostId)}`
     );
 
     if (!response.ok) {
@@ -83,17 +66,8 @@ class PostApiService {
     postsByDate: Post[];
     lastPostIdByDate: string;
   }> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch(
-      `/api/user/get-user-posts-by-date?username=${encodeURIComponent(username)}&lastPostId=${encodeURIComponent(lastPostId)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
+    const response = await apiFetchProxy(
+      `user/get-user-posts-by-date?username=${encodeURIComponent(username)}&lastPostId=${encodeURIComponent(lastPostId)}`
     );
 
     if (!response.ok) {
@@ -118,17 +92,8 @@ class PostApiService {
     postsByDate: Post[];
     lastPostIdByDate: string;
   }> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch(
-      `/api/stock/get-feed-by-date?ticker=${encodeURIComponent(ticker)}&lastPostId=${encodeURIComponent(lastPostId)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
+    const response = await apiFetchProxy(
+      `stock/get-feed-by-date?ticker=${encodeURIComponent(ticker)}&lastPostId=${encodeURIComponent(lastPostId)}`
     );
 
     if (!response.ok) {
@@ -153,17 +118,8 @@ class PostApiService {
     postsByDate: Post[];
     lastPostIdByDate: string;
   }> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch(
-      `/api/hashtag/get-feed-by-date?hashtag=${encodeURIComponent(hashtag)}&lastPostId=${encodeURIComponent(lastPostId)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
+    const response = await apiFetchProxy(
+      `hashtag/get-feed-by-date?hashtag=${encodeURIComponent(hashtag)}&lastPostId=${encodeURIComponent(lastPostId)}`
     );
 
     if (!response.ok) {
@@ -186,17 +142,8 @@ class PostApiService {
     postsByLike: Post[];
     lastPostIdByLike: string;
   }> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch(
-      `/api/post/get-feed-by-like?lastPostId=${encodeURIComponent(lastPostId)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
+    const response = await apiFetchProxy(
+      `post/get-feed-by-like?lastPostId=${encodeURIComponent(lastPostId)}`
     );
 
     if (!response.ok) {
@@ -221,17 +168,8 @@ class PostApiService {
     postsByLike: Post[];
     lastPostIdByLike: string;
   }> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch(
-      `/api/user/get-user-posts-by-like?username=${encodeURIComponent(username)}&lastPostId=${encodeURIComponent(lastPostId)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
+    const response = await apiFetchProxy(
+      `user/get-user-posts-by-like?username=${encodeURIComponent(username)}&lastPostId=${encodeURIComponent(lastPostId)}`
     );
 
     if (!response.ok) {
@@ -256,17 +194,8 @@ class PostApiService {
     postsByLike: Post[];
     lastPostIdByLike: string;
   }> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch(
-      `/api/stock/get-feed-by-like?ticker=${encodeURIComponent(ticker)}&lastPostId=${encodeURIComponent(lastPostId)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
+    const response = await apiFetchProxy(
+      `stock/get-feed-by-like?ticker=${encodeURIComponent(ticker)}&lastPostId=${encodeURIComponent(lastPostId)}`
     );
 
     if (!response.ok) {
@@ -291,17 +220,8 @@ class PostApiService {
     postsByLike: Post[];
     lastPostIdByLike: string;
   }> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch(
-      `/api/hashtag/get-feed-by-like?ticker=${encodeURIComponent(hashtag)}&lastPostId=${encodeURIComponent(lastPostId)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
+    const response = await apiFetchProxy(
+      `hashtag/get-feed-by-like?hashtag=${encodeURIComponent(hashtag)}&lastPostId=${encodeURIComponent(lastPostId)}`
     );
 
     if (!response.ok) {
@@ -319,15 +239,9 @@ class PostApiService {
    * @returns A promise that resolves to the post data.
    */
   getPostById = async (postId: string): Promise<Post> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch(`/api/post/get-post-by-id?postId=${encodeURIComponent(postId)}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await apiFetchProxy(
+      `post/get-post-by-id?postId=${encodeURIComponent(postId)}`
+    );
 
     if (!response.ok) throw new Error(response.statusText);
 
@@ -346,16 +260,7 @@ class PostApiService {
    * @returns A promise that resolves to the updated like status.
    */
   togglePostLike = async (postId: number): Promise<any> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch('/api/post/like-post', {
-      method: 'POST',
-      body: JSON.stringify({ postId }),
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await apiFetchProxy('post/like-post', 'POST', JSON.stringify({ postId }));
 
     if (!response.ok) {
       const error = await response.json();
@@ -372,16 +277,7 @@ class PostApiService {
    * @returns A promise that resolves to the updated repost status.
    */
   toggleRepost = async (postId: number): Promise<any> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch('/api/post/repost', {
-      method: 'POST',
-      body: JSON.stringify({ postId }),
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await apiFetchProxy('post/repost-post', 'POST', JSON.stringify({ postId }));
 
     if (!response.ok) {
       const error = await response.json();

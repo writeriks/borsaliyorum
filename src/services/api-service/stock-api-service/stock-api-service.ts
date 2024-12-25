@@ -1,4 +1,4 @@
-import { auth } from '@/services/firebase-service/firebase-config';
+import { apiFetchProxy } from '@/services/api-service/fetch-proxy';
 
 class StockApiService {
   /**
@@ -7,17 +7,7 @@ class StockApiService {
    * @returns The response from the follow operation.
    */
   followStock = async (ticker: string): Promise<boolean> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch('/api/stock/follow-stock', {
-      method: 'POST',
-      body: JSON.stringify({ ticker }),
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
+    const response = await apiFetchProxy('/stock/follow-stock', 'POST', JSON.stringify({ ticker }));
     return response.ok;
   };
 
@@ -27,17 +17,11 @@ class StockApiService {
    * @returns The response from the follow operation.
    */
   unfollowStock = async (ticker: string): Promise<boolean> => {
-    const idToken = await auth.currentUser?.getIdToken();
-
-    const response = await fetch('/api/stock/unfollow-stock', {
-      method: 'POST',
-      body: JSON.stringify({ ticker }),
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
+    const response = await apiFetchProxy(
+      '/stock/unfollow-stock',
+      'POST',
+      JSON.stringify({ ticker })
+    );
     return response.ok;
   };
 }

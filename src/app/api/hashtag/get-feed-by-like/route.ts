@@ -38,9 +38,9 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     const stockPostsByLike = await prisma.post.findMany({
       where: {
-        stocks: {
+        tags: {
           some: {
-            ticker: hashtag,
+            tagName: hashtag,
           },
         },
         AND: {
