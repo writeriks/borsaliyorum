@@ -29,6 +29,26 @@ class PostApiService {
   };
 
   /**
+   * Deletes a post by its ID and the user ID.
+   *
+   * @param postId - The ID of the post to be deleted.
+   * @returns A promise that resolves to an object containing the ID of the deleted post.
+   */
+  deletePost = async (postId: number): Promise<{ deletedPostId: number }> => {
+    const response = await apiFetchProxy(
+      `post/delete-post?postId=${encodeURIComponent(postId)}`,
+      'DELETE'
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
+
+  /**
    * Fetches the user's feed sorted by date.
    *
    * @param lastPostId - The ID of the last post retrieved for pagination purposes.

@@ -13,6 +13,8 @@ import commentApiService from '@/services/api-service/comment-api-service/commen
 import { Post, Comment } from '@prisma/client';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { useEffect, useState } from 'react';
+import postApiService from '@/services/api-service/post-api-service/post-api-service';
+import { useTranslations } from 'next-intl';
 
 interface EntryProp {
   isEntryOwner: boolean;
@@ -28,12 +30,14 @@ const EntryOptions: React.FC<EntryProp> = ({
   onDeleteSuccess,
 }) => {
   const dispatch = useDispatch();
+  const t = useTranslations();
   const [isUserFollowed, setIsUserFollowed] = useState(isFollowed);
+  const isComment = entry.hasOwnProperty('commentId');
 
   const handleError = (error: Error): void => {
     dispatch(
       setUINotification({
-        message: error.message ?? 'Bir hata oluştu.',
+        message: error.message ?? t('Common.errorMessage'),
         notificationType: UINotificationEnum.ERROR,
       })
     );
@@ -45,13 +49,29 @@ const EntryOptions: React.FC<EntryProp> = ({
 
   const deleteCommentMutation = useMutation({
     mutationFn: async () => {
-      return commentApiService.deleteComment((entry as Comment).commentId!, entry.userId);
+      return commentApiService.deleteComment((entry as Comment).commentId!);
     },
     onSuccess: (data: { deletedCommentId: number }) => {
       onDeleteSuccess(data.deletedCommentId);
       dispatch(
         setUINotification({
-          message: 'Yorumunuz başarıyla silindi.',
+          message: t('EntryOptions.deleteCommentSuccess'),
+          notificationType: UINotificationEnum.SUCCESS,
+        })
+      );
+    },
+    onError: handleError,
+  });
+
+  const deletePostMutation = useMutation({
+    mutationFn: async () => {
+      return postApiService.deletePost((entry as Post).postId!);
+    },
+    onSuccess: (data: { deletedPostId: number }) => {
+      onDeleteSuccess(data.deletedPostId);
+      dispatch(
+        setUINotification({
+          message: t('EntryOptions.deletePostSuccess'),
           notificationType: UINotificationEnum.SUCCESS,
         })
       );
@@ -94,7 +114,7 @@ const EntryOptions: React.FC<EntryProp> = ({
       <DropdownMenuTrigger asChild>
         <Button variant='ghost' size='icon' className='rounded-full'>
           <Ellipsis className='h-5 w-5' />
-          <span className='sr-only'>Seçenekler</span>
+          <span className='sr-only'>{t('EntryOptions.options')}</span>
         </Button>
       </DropdownMenuTrigger>
       {/* TODO: implement dropdown click functionalities */}
@@ -102,13 +122,13 @@ const EntryOptions: React.FC<EntryProp> = ({
         {!isEntryOwner && isUserFollowed ? (
           <DropdownMenuItem onClick={() => unfollowUserMutation.mutate()}>
             <UserMinus className='h-4 w-4 mr-2' />
-            Takipten Çıkar
+            {t('EntryOptions.unfollow')}
           </DropdownMenuItem>
         ) : (
           !isEntryOwner && (
             <DropdownMenuItem onClick={() => followUserMutation.mutate()}>
               <UserPlus className='h-4 w-4 mr-2' />
-              Takip Et
+              {t('EntryOptions.follow')}
             </DropdownMenuItem>
           )
         )}
@@ -116,14 +136,18 @@ const EntryOptions: React.FC<EntryProp> = ({
         {!isEntryOwner && (
           <DropdownMenuItem onClick={() => blockUserMutation.mutate()}>
             <Ban className='h-4 w-4 mr-2' />
-            Engelle
+            {t('EntryOptions.block')}
           </DropdownMenuItem>
         )}
 
         {isEntryOwner && (
-          <DropdownMenuItem onClick={() => deleteCommentMutation.mutate()}>
+          <DropdownMenuItem
+            onClick={() =>
+              isComment ? deleteCommentMutation.mutate() : deletePostMutation.mutate()
+            }
+          >
             <Trash className='h-4 w-4 mr-2 text-destructive' />
-            <span className='text-destructive'>Sil</span>
+            <span className='text-destructive'>{t('EntryOptions.delete')}</span>
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

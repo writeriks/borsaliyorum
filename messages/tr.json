@@ -7,15 +7,28 @@
     "popularPosts": "En Popüler Gönderiler"
   },
   "Common": {
-    "placeholder": "Ne düşünüyorsun?"
+    "placeholder": "Ne düşünüyorsun?",
+    "errorMessage": "An error occurred."
   },
   "NewPost": {
     "successMessage": "Gönderi başarıyla oluşturuldu.",
-    "errorMessage": "Bir hata oluştu.",
     "sending": "Gönderiliyor",
     "send": "Gönder",
     "gif": "gif",
     "uploadedAlt": "yüklendi"
+  },
+  "EntryOptions": {
+    "deleteCommentSuccess": "Yorumunuz başarıyla silindi.",
+    "deletePostSuccess": "Gönderiniz başarıyla silindi.",
+    "options": "Seçenekler",
+    "unfollow": "Takipten Çıkar",
+    "follow": "Takip Et",
+    "block": "Engelle",
+    "delete": "Sil"
+  },
+  "PostDetail": {
+    "back": "Geri",
+    "loadMore": "Daha Fazla Yükle"
   },
   "userProfileOptions": {
     "UserSettings": {

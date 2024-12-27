@@ -41,12 +41,9 @@ class CommentApiService {
     return response.json();
   };
 
-  deleteComment = async (
-    commentId: number,
-    userId: number
-  ): Promise<{ deletedCommentId: number }> => {
+  deleteComment = async (commentId: number): Promise<{ deletedCommentId: number }> => {
     const response = await apiFetchProxy(
-      `comment/delete-comment?commentId=${encodeURIComponent(commentId)}&userId=${encodeURIComponent(userId)}`,
+      `comment/delete-comment?commentId=${encodeURIComponent(commentId)}`,
       'DELETE'
     );
 
