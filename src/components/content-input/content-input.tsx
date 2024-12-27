@@ -12,6 +12,8 @@ import userApiService from '@/services/api-service/user-api-service/user-api-ser
 import { useSelector } from 'react-redux';
 import contextReducerSelector from '@/store/reducers/context-reducer/context-reducer-selector';
 import { useTranslations } from 'next-intl';
+import { urlRegex } from '@/utils/api-utils/api-utils';
+import { useHighlightUrls } from '@/hooks/useHighlightUrls';
 
 interface ContentInputProps {
   content: string;
@@ -75,6 +77,8 @@ const ContentInput: React.FC<ContentInputProps> = ({
 
     callback(suggestions);
   };
+
+  useHighlightUrls(content);
 
   return (
     <MentionsInput

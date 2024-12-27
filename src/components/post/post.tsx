@@ -13,6 +13,7 @@ import { useQuery } from '@tanstack/react-query';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import EntryFooter from '@/components/entry-footer/entry-footer';
 import { useRouter } from '@/i18n/routing';
+import UrlContentPreview from '@/components/content-preview/content-preview';
 
 export interface PostProp {
   post: PostType & {
@@ -107,6 +108,8 @@ const Post: React.FC<PostProp> = ({ post, onPostClick }) => {
             priority
           />
         )}
+
+        <UrlContentPreview content={post.content} />
       </CardContent>
       <EntryFooter onPostClick={onPostClick} entry={post as any} />
     </Card>

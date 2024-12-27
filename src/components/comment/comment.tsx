@@ -11,6 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { Comment as CommentType, User } from '@prisma/client';
 import { useRouter } from '@/i18n/routing';
+import UrlContentPreview from '@/components/content-preview/content-preview';
 
 interface CommentProp {
   comment: CommentType;
@@ -63,6 +64,8 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick
             className='rounded-md object-contain max-h-[400px] max-w-[400px]'
           />
         )}
+
+        <UrlContentPreview content={comment.content} />
       </CardContent>
       <EntryFooter onCommentClick={onCommentClick} commentor={commentor} entry={comment as any} />
     </Card>

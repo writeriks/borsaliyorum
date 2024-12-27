@@ -24,8 +24,7 @@ import ContentInput from '@/components/content-input/content-input';
 import { Sentiment } from '@prisma/client';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
-import ContentPreview from '@/components/content-preview/content-preview';
-import { SocialEditor } from '@/components/content-input/social-editor/social-editor';
+import UrlContentPreview from '@/components/content-preview/content-preview';
 
 interface NewPostProps {
   ticker?: string;
@@ -163,13 +162,12 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
       </div>
       <div className='flex flex-col ml-2 w-full justify-between'>
         <div className='flex'>
-          <SocialEditor />
-          {/* <ContentInput
+          <ContentInput
             placeholder={t('Common.placeholder')}
             content={content}
             setContent={setContent}
             onSetCashTags={handleSetCashTags}
-          /> */}
+          />
           {content ? (
             <Label
               className={cn(
@@ -202,7 +200,7 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
         </div>
 
         <div className='relative w-full'>
-          <ContentPreview content={content} />
+          <UrlContentPreview content={content} />
         </div>
 
         <div className='flex justify-between items-center mt-3'>
