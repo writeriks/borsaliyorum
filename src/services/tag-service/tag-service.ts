@@ -124,7 +124,7 @@ class TagService {
         href = `/stocks/${tag}`;
         break;
       case TagsEnum.MENTION:
-        href = `/users/${tag}`;
+        href = `/users/${tag.replace(TagsEnum.MENTION, '')}`;
         break;
       case TagsEnum.HASHTAG:
       default:

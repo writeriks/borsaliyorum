@@ -23,7 +23,7 @@ const Content: React.FC<ContentProps> = ({ content }) => {
     tagService.navigateToPageByTagName(tag);
   };
 
-  const handleClick = (url: string): void => {
+  const handleUrlClick = (url: string): void => {
     window.open(url, '_blank');
   };
 
@@ -53,7 +53,7 @@ const Content: React.FC<ContentProps> = ({ content }) => {
       let lastProcessedIndex = 0;
 
       allMatches.forEach((match, matchIndex) => {
-        const { fullMatch, index, isUrl, displayText } = match;
+        const { fullMatch, index, isUrl, displayText: tag } = match;
 
         if (lastProcessedIndex < index) {
           parts.push(line.substring(lastProcessedIndex, index)); // Push text before the match
@@ -62,18 +62,18 @@ const Content: React.FC<ContentProps> = ({ content }) => {
         parts.push(
           <span
             key={`${lineIndex}-${matchIndex}`}
-            onClick={isUrl ? () => handleClick(fullMatch) : e => onTagClick(e, fullMatch)}
+            onClick={isUrl ? () => handleUrlClick(fullMatch) : e => onTagClick(e, tag)}
             style={{
               cursor: 'pointer',
               textDecoration: isUrl ? 'underline' : 'none',
             }}
           >
             {isUrl ? (
-              <ContentTag tag={displayText} lineIndex={lineIndex} offset={index} />
+              <ContentTag tag={tag} lineIndex={lineIndex} offset={index} />
             ) : fullMatch.startsWith('$') ? (
-              <ContentTagWithTooltip tag={displayText} lineIndex={lineIndex} offset={index} />
+              <ContentTagWithTooltip tag={tag} lineIndex={lineIndex} offset={index} />
             ) : (
-              <ContentTag tag={displayText} lineIndex={lineIndex} offset={index} />
+              <ContentTag tag={tag} lineIndex={lineIndex} offset={index} />
             )}
           </span>
         );
