@@ -1,40 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/services/prisma-service/prisma-client';
-import { auth } from '@/services/firebase-service/firebase-admin';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
+import { verifyUserInRoute } from '@/services/user-service/user-service';
+import { User } from '@prisma/client';
 
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
     const commentId = parseInt(searchParams.get('commentId') ?? '');
-    const userId = parseInt(searchParams.get('userId') ?? '');
 
     // Validate input
-    if (!commentId || !userId) {
+    if (!commentId) {
       return createResponse(ResponseStatus.BAD_REQUEST);
     }
 
-    // Verify and decode token
-    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-    if (!token) {
-      return createResponse(ResponseStatus.UNAUTHORIZED);
-    }
-
-    const decodedToken = await auth.verifyIdToken(token);
-
-    const currentUser = await prisma.user.findUnique({
-      where: {
-        firebaseUserId: decodedToken.uid,
-      },
-    });
-
-    if (!currentUser) {
-      return createResponse(ResponseStatus.UNAUTHORIZED);
-    }
-
-    if (currentUser.userId !== userId) {
-      return createResponse(ResponseStatus.UNAUTHORIZED);
-    }
+    const currentUser = (await verifyUserInRoute(request)) as User;
 
     // Check if the comment exists and if it belongs to the user
     const comment = await prisma.comment.findUnique({
@@ -47,7 +27,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
       return createResponse(ResponseStatus.BAD_REQUEST, 'Yorum bulunamadı.');
     }
 
-    if (comment.userId !== userId) {
+    if (comment.userId !== currentUser.userId) {
       return createResponse(ResponseStatus.UNAUTHORIZED);
     }
 

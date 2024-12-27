@@ -17,14 +17,17 @@ import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
 import { LoadingSkeletons } from '@/app/constants';
 import { Icons } from '@/components/ui/icons';
 import { Comment as CommentType, Post as PostType, User } from '@prisma/client';
+import { useTranslations } from 'next-intl';
 
 export interface PostDetailProp {
   post: PostType;
+  onPostDelete: (postId: number) => void;
   onBackClick?: () => void;
 }
-const PostDetail: React.FC<PostDetailProp> = ({ post, onBackClick }) => {
+const PostDetail: React.FC<PostDetailProp> = ({ post, onBackClick, onPostDelete }) => {
   const { fbAuthUser } = useUser();
   const dispatch = useDispatch();
+  const t = useTranslations();
 
   const [comments, setComments] = useState<CommentType[]>([]);
   const [newCommentsByUser, setNewCommentsByUser] = useState<CommentType[]>([]);
@@ -114,9 +117,9 @@ const PostDetail: React.FC<PostDetailProp> = ({ post, onBackClick }) => {
             onClick={onBackClick}
             className='cursor-pointer inline-flex items-center justify-center p-3 bg-transparent'
           >
-            <MoveLeft className='mr-2 h-5 w-5' /> Geri
+            <MoveLeft className='mr-2 h-5 w-5' /> {t('PostDetail.back')}
           </span>
-          <Post post={post} />
+          <Post onDeleteClick={onPostDelete} post={post} />
           <NewComment
             onSubmit={comment => handleCommentSubmit(comment)}
             mention={mention}
@@ -143,7 +146,7 @@ const PostDetail: React.FC<PostDetailProp> = ({ post, onBackClick }) => {
                   className='p-4 text-blue-400 hover:underline'
                   onClick={() => setIsLoadMoreClicked(true)}
                 >
-                  Daha Fazla Yükle
+                  {t('PostDetail.loadMore')}
                 </a>
               )}
             </div>

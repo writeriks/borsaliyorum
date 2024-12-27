@@ -64,7 +64,7 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
     onError: error => {
       dispatch(
         setUINotification({
-          message: error.message ?? t('NewPost.errorMessage'),
+          message: error.message ?? t('Common.errorMessage'),
           notificationType: UINotificationEnum.ERROR,
         })
       );
