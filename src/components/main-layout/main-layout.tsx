@@ -21,18 +21,17 @@ import { AuthModal } from '@/components/auth/auth-modal';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
 import { setIsAuthModalOpen, setIsNewPostModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
 import Discover from '@/components/discover/discover';
-import useValidateSession from '@/hooks/useValidateSession';
 import TabBarController from '@/components/tab-bar-controller/tab-bar-controller';
-import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import NewPostTriggerMobile from '@/components/new-post/new-post-trigger-mobile';
 import NewPostDialog from '@/components/new-post/new-post-dialog';
 
 const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNode => {
-  useValidateSession();
-  const dispatch = useDispatch();
   useUINotification();
-  useUser();
-  const currentUser = useSelector(userReducerSelector.getUser);
+
+  const dispatch = useDispatch();
+
+  const { currentUser } = useUser();
+
   const isAuthModalOpen = useSelector(uiReducerSelector.getIsAuthModalOpen);
   const isNewPostModalOpen = useSelector(uiReducerSelector.getIsNewPostModalOpen);
   const isHamburgerMenuOpen = useSelector(uiReducerSelector.getIsHamburgerMenuOpen);
@@ -60,7 +59,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
           >
             <UserProfileOptions />
 
-            {currentUser.email && (
+            {currentUser?.email && (
               <div className='lg:flex min-1500:hidden top-[250px] sticky h-[260px] flex-col lg:min-w-64'>
                 <Discover />
               </div>
@@ -81,7 +80,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
               onNewPostModalOpenChange={() => dispatch(setIsNewPostModalOpen(!isNewPostModalOpen))}
             />
 
-            {!!currentUser.email && (
+            {currentUser?.email && (
               <div className='md:hidden'>
                 <div className='bottom-[60px] right-0 fixed'>
                   <NewPostTriggerMobile />
