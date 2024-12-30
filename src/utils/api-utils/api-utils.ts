@@ -100,3 +100,5 @@ export const generateRedirectUrl = (locale: string, path: string, headersList: H
   const baseUrl = `${protocol}://${host}`;
   return new URL(`/${locale}/${path}`, baseUrl);
 };
+
+export const urlRegex = /(https?:\/\/[^\s]+)/g;

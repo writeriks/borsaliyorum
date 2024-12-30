@@ -1,4 +1,5 @@
 import { apiFetchProxy } from '@/services/api-service/fetch-proxy';
+import { ContentPreview } from '@/services/api-service/post-api-service/constants';
 import { Post, Sentiment } from '@prisma/client';
 
 class PostApiService {
@@ -265,6 +266,11 @@ class PostApiService {
 
     if (!response.ok) throw new Error(response.statusText);
 
+    return response.json();
+  };
+
+  getContentPreview = async (url: string): Promise<ContentPreview> => {
+    const response = await apiFetchProxy('content/get-preview', 'POST', JSON.stringify({ url }));
     return response.json();
   };
 

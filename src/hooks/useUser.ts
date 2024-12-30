@@ -16,12 +16,19 @@ import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-sele
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from '@/i18n/routing';
+import { User } from '@prisma/client';
 
-const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
+const useUser = (): {
+  user: UserState;
+  fbAuthUser: FBAuthUserType | null;
+  currentUser: Partial<User> | null;
+} => {
   const dispatch = useDispatch();
   const userState = useSelector(userReducerSelector.getUser);
   const [fbAuthUser, setFBAuthUser] = useState<FBAuthUserType | null>(null);
   const [firebaseUserId, setFirebaseUserId] = useState<string | null>(null);
+
+  const [currentUser, setCurrentUser] = useState<Partial<User | null>>(null);
 
   const router = useRouter();
 
@@ -33,6 +40,12 @@ const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
     queryKey: ['get-user-by-id'],
     queryFn: () => userApiService.getUserById(firebaseUserId as string),
     enabled: !!firebaseUserId,
+  });
+
+  const { refetch } = useQuery({
+    queryKey: ['validate-user'],
+    queryFn: () => userApiService.validateUser(fbAuthUser as FBAuthUserType),
+    enabled: false,
   });
 
   useEffect(() => {
@@ -72,6 +85,7 @@ const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
               userId: firebaseUserId,
             })
           );
+          setCurrentUser(userData);
 
           dispatch(setIsAuthModalOpen(false));
           dispatch(setIsAuthLoading(false));
@@ -92,6 +106,8 @@ const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
           queryFn: () => userApiService.logOutUser(),
         });
 
+        setCurrentUser(null);
+
         dispatch(setIsAuthModalOpen(false));
         dispatch(setIsAuthLoading(false));
 
@@ -106,7 +122,13 @@ const useUser = (): { user: UserState; fbAuthUser: FBAuthUserType | null } => {
     return () => unsubscribe();
   }, [dispatch, router, userState.username, userData, error, isLoading, firebaseUserId]);
 
-  return { user: userState, fbAuthUser };
+  useEffect(() => {
+    if (currentUser?.email) {
+      refetch();
+    }
+  }, [currentUser?.email, refetch]);
+
+  return { user: userState, currentUser, fbAuthUser };
 };
 
 export default useUser;

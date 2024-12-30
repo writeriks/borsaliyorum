@@ -23,6 +23,7 @@ import userApiService from '@/services/api-service/user-api-service/user-api-ser
 import { Comment } from '@prisma/client';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
+import UrlContentPreview from '@/components/content-preview/content-preview';
 
 interface NewCommentProps {
   postOwnerId: number;
@@ -179,6 +180,10 @@ const NewComment: React.FC<NewCommentProps> = ({ postOwnerId, postId, mention, o
               />
             </>
           )}
+        </div>
+
+        <div className='relative w-full'>
+          <UrlContentPreview content={content} />
         </div>
 
         <div className='flex justify-end items-center mt-3'>

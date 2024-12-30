@@ -1,16 +1,11 @@
-import { auth } from '@/services/firebase-service/firebase-admin';
 import prisma from '@/services/prisma-service/prisma-client';
+import { verifyUserInRoute } from '@/services/user-service/user-service';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: Request): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-
-    if (!token) {
-      return createResponse(ResponseStatus.UNAUTHORIZED);
-    }
-    await auth.verifyIdToken(token);
+    await verifyUserInRoute(request);
 
     const mostActiveTags = await prisma.tag.findMany({
       include: {

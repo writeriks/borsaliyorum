@@ -23,40 +23,66 @@ const Content: React.FC<ContentProps> = ({ content }) => {
     tagService.navigateToPageByTagName(tag);
   };
 
+  const handleUrlClick = (url: string): void => {
+    window.open(url, '_blank');
+  };
+
   const renderContent = (text: string): React.ReactNode => {
-    const regex = /(\$\((.*?)\)|#\((.*?)\)|@\((.*?)\))/g;
+    const tagRegex = /(\$\((.*?)\)|#\((.*?)\)|@\((.*?)\))/g;
+    const urlRegex = /https?:\/\/[^\s]+/g;
     const parts: React.ReactNode[] = [];
 
     text.split('\n').forEach((line, lineIndex) => {
-      const matches = [...line.matchAll(regex)];
-      let lastLineIndex = 0;
+      const tagMatches = [...line.matchAll(tagRegex)];
+      const urlMatches = [...line.matchAll(urlRegex)];
+      const allMatches = [...tagMatches, ...urlMatches]
+        .map(match => ({
+          fullMatch: match[0], // Full matched text
+          index: match.index ?? 0,
+          isUrl: urlRegex.test(match[0]),
+          displayText: match[0].startsWith('$')
+            ? `$${match[2]}`
+            : match[0].startsWith('#')
+              ? `#${match[3]}`
+              : match[0].startsWith('@')
+                ? `@${match[4]}`
+                : match[0], // For URLs, keep the full URL
+        }))
+        .sort((a, b) => a.index - b.index);
 
-      matches.forEach((match, matchIndex) => {
-        const [fullMatch, _, p2, p3, p4] = match;
-        const offset = match.index ?? 0;
+      let lastProcessedIndex = 0;
 
-        if (lastLineIndex < offset) {
-          parts.push(line.substring(lastLineIndex, offset));
+      allMatches.forEach((match, matchIndex) => {
+        const { fullMatch, index, isUrl, displayText: tag } = match;
+
+        if (lastProcessedIndex < index) {
+          parts.push(line.substring(lastProcessedIndex, index)); // Push text before the match
         }
 
-        const symbol = fullMatch[0];
-        const tag = symbol + (p2 || p3 || p4);
-
         parts.push(
-          <span key={`${lineIndex}-${matchIndex}`} onClick={e => onTagClick(e, tag)}>
-            {tag.startsWith('$') ? (
-              <ContentTagWithTooltip tag={tag} lineIndex={lineIndex} offset={offset} />
+          <span
+            key={`${lineIndex}-${matchIndex}`}
+            onClick={isUrl ? () => handleUrlClick(fullMatch) : e => onTagClick(e, tag)}
+            style={{
+              cursor: 'pointer',
+              textDecoration: isUrl ? 'underline' : 'none',
+            }}
+          >
+            {isUrl ? (
+              <ContentTag tag={tag} lineIndex={lineIndex} offset={index} />
+            ) : fullMatch.startsWith('$') ? (
+              <ContentTagWithTooltip tag={tag} lineIndex={lineIndex} offset={index} />
             ) : (
-              <ContentTag tag={tag} lineIndex={lineIndex} offset={offset} />
+              <ContentTag tag={tag} lineIndex={lineIndex} offset={index} />
             )}
           </span>
         );
 
-        lastLineIndex = offset + fullMatch.length;
+        lastProcessedIndex = index + fullMatch.length;
       });
 
-      if (lastLineIndex < line.length) {
-        parts.push(line.substring(lastLineIndex));
+      if (lastProcessedIndex < line.length) {
+        parts.push(line.substring(lastProcessedIndex)); // Push remaining text
       }
 
       parts.push(<br key={`br-${lineIndex}`} />);

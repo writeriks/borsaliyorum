@@ -24,6 +24,7 @@ import ContentInput from '@/components/content-input/content-input';
 import { Sentiment } from '@prisma/client';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
+import UrlContentPreview from '@/components/content-preview/content-preview';
 
 interface NewPostProps {
   ticker?: string;
@@ -196,6 +197,10 @@ const NewPost: React.FC<NewPostProps> = ({ ticker }) => {
               />
             </>
           )}
+        </div>
+
+        <div className='relative w-full'>
+          <UrlContentPreview content={content} />
         </div>
 
         <div className='flex justify-between items-center mt-3'>

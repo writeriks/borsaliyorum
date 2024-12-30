@@ -14,6 +14,7 @@ export const verifyUserAuthenticationForServerPage: () => Promise<User | null> =
   const cookieStore = cookies();
   const token = cookieStore.get('identity')?.value;
   const decodedToken = await auth.verifyIdToken(token as string);
+
   const currentUser = await prisma.user.findUnique({
     where: {
       firebaseUserId: decodedToken.uid,
