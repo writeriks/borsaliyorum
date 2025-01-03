@@ -53,26 +53,26 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
         )}
 
         <div id='main-container' className='flex w-full flex-col md:flex-row lg:flex-row'>
-          <div
-            id='left-section'
-            className='hidden md:flex md:min-w-64 lg:flex flex-col lg:min-w-64 ml-2'
-          >
-            <UserProfileOptions />
+          {currentUser?.email && (
+            <div
+              id='left-section'
+              className='hidden md:flex md:min-w-64 lg:flex flex-col lg:min-w-64 ml-2'
+            >
+              <UserProfileOptions />
 
-            {currentUser?.email && (
               <div className='lg:flex min-1500:hidden top-[250px] sticky h-[260px] flex-col lg:min-w-64'>
                 <Discover />
               </div>
-            )}
 
-            <InnerLeftMainAd />
-          </div>
+              <InnerLeftMainAd />
+            </div>
+          )}
 
           <div
             id='right-section'
             className='flex flex-col h-full md:w-full lg:w-full border-1 border-black rounded-md'
           >
-            <InnerTopAd />
+            {currentUser && <InnerTopAd />}
             {children}
 
             <NewPostDialog
@@ -95,7 +95,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
         <Toaster richColors />
       </main>
 
-      <RightMainAd />
+      {currentUser && <RightMainAd />}
       <AuthModal
         isOpen={isAuthModalOpen}
         onAuthModalOpenChange={() => dispatch(setIsAuthModalOpen(!isAuthModalOpen))}
