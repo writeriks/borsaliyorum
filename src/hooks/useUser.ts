@@ -50,7 +50,6 @@ const useUser = (): {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async user => {
-      console.log('🚀 ~ useEffect ~ user:', user);
       if (user) {
         setFBAuthUser(auth.currentUser);
         setFirebaseUserId(user.uid);

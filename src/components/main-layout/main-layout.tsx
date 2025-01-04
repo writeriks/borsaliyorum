@@ -24,11 +24,13 @@ import Discover from '@/components/discover/discover';
 import TabBarController from '@/components/tab-bar-controller/tab-bar-controller';
 import NewPostTriggerMobile from '@/components/new-post/new-post-trigger-mobile';
 import NewPostDialog from '@/components/new-post/new-post-dialog';
+import { useRouter } from '@/i18n/routing';
 
 const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNode => {
   useUINotification();
 
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const { currentUser } = useUser();
 
@@ -41,6 +43,15 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
       dispatch(setIsMobile(parse(window.navigator.userAgent).isMobile));
     }
   }, [dispatch]);
+
+  useEffect(() => {
+    if (
+      (currentUser?.email && window.location.pathname === '/tr') ||
+      window.location.pathname === '/en'
+    ) {
+      router.push('/feed');
+    }
+  }, [currentUser, router]);
 
   return (
     <>
