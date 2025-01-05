@@ -9,6 +9,7 @@ import stockApiService from '@/services/api-service/stock-api-service/stock-api-
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
+import SymbolOverviewWidget from '@/components/widgets/symbol-overview-widget';
 
 interface StockProfileCardProps {
   stock: Stock & { isFollowingStock: boolean };
@@ -71,6 +72,11 @@ const StockProfileCard: React.FC<StockProfileCardProps> = ({
           {ticker && (
             <FollowButton isFollowing={isStockFollowed} toggleFollow={toggleStockFollow} />
           )}
+        </div>
+      </div>
+      <div className='flex flex-col justify-between w-full h-80'>
+        <div className='flex-col mt-3 p-2'>
+          <SymbolOverviewWidget ticker={ticker} />
         </div>
       </div>
       <div className='flex flex-col justify-between w-full h-full'>
