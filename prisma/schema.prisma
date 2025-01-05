@@ -62,6 +62,7 @@ model User {
 }
 
 model SecurityRole {
+  id     Int      @id @default(autoincrement())
   role   RoleType @default(default)
   userId Int
   user   User     @relation("UserRoles", fields: [userId], references: [userId])
@@ -109,6 +110,7 @@ model Post {
 }
 
 model Repost {
+  repostId     Int      @id @default(autoincrement())
   repostedBy   Int // User who reposted
   repostedFrom Int // Original poster
   postId       Int // Original post being reposted
@@ -205,9 +207,10 @@ model UserBlocks {
 }
 
 model PostLikes {
-  userId  Int
-  postId  Int
-  likedAt DateTime @default(now())
+  postLikeId Int      @id @default(autoincrement())
+  userId     Int
+  postId     Int
+  likedAt    DateTime @default(now())
 
   // Relations
   user          User           @relation("PostLikes", fields: [userId], references: [userId])
@@ -220,9 +223,10 @@ model PostLikes {
 }
 
 model CommentLikes {
-  userId    Int
-  commentId Int
-  likedAt   DateTime @default(now())
+  commentLikeId Int      @id @default(autoincrement())
+  userId        Int
+  commentId     Int
+  likedAt       DateTime @default(now())
 
   // Relations
   user    User    @relation("CommentLikes", fields: [userId], references: [userId])
@@ -233,9 +237,10 @@ model CommentLikes {
 }
 
 model StockFollowers {
-  userId     Int
-  stockId    Int
-  followedAt DateTime @default(now())
+  stockFollowerId Int      @id @default(autoincrement())
+  userId          Int
+  stockId         Int
+  followedAt      DateTime @default(now())
 
   // Relations
   user  User  @relation("UserStockFollowers", fields: [userId], references: [userId])
