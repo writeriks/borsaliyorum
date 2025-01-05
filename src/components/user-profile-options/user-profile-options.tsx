@@ -19,6 +19,7 @@ import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import useUser from '@/hooks/useUser';
+import LoginContainer from '@/components/user-profile-options/login-container';
 
 const UserProfileOptions = (): React.ReactNode => {
   const dispatch = useDispatch();
@@ -56,58 +57,56 @@ const UserProfileOptions = (): React.ReactNode => {
       id='user-profile-section'
       className='flex flex-col top-[60px] h-[170px] sticky bg-background z-50'
     >
-      {
-        user.username && (
-          <div className='w-full h-full flex flex-col p-1'>
-            <div>
-              <Select onValueChange={onProfileSelectChange}>
-                <SelectTrigger className='w-full hover:bg-accent border-none h-[45px] text-secondary-foreground dark:bg-transparent dark:hover:bg-accent'>
-                  <div className='flex items-center'>
-                    <UserAvatar
-                      user={{
-                        profilePhoto: user.profilePhoto ?? '',
-                        displayName: user.displayName,
-                        username: user.username,
-                      }}
+      {user.username ? (
+        <div className='w-full h-full flex flex-col p-1'>
+          <div>
+            <Select onValueChange={onProfileSelectChange}>
+              <SelectTrigger className='w-full hover:bg-accent border-none h-[45px] text-secondary-foreground dark:bg-transparent dark:hover:bg-accent'>
+                <div className='flex items-center'>
+                  <UserAvatar
+                    user={{
+                      profilePhoto: user.profilePhoto ?? '',
+                      displayName: user.displayName,
+                      username: user.username,
+                    }}
+                  />
+                  <div className='ml-2 flex flex-col items-start break-words'>
+                    <TooltipWithEllipsis
+                      tooltipText={user.displayName}
+                      className='text-sm'
+                      tooltipSide='bottom'
                     />
-                    <div className='ml-2 flex flex-col items-start break-words'>
-                      <TooltipWithEllipsis
-                        tooltipText={user.displayName}
-                        className='text-sm'
-                        tooltipSide='bottom'
-                      />
-                      <TooltipWithEllipsis
-                        tooltipText={user.username}
-                        className='text-xs'
-                        tooltipSide='bottom'
-                      />
-                    </div>
+                    <TooltipWithEllipsis
+                      tooltipText={user.username}
+                      className='text-xs'
+                      tooltipSide='bottom'
+                    />
                   </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem className='cursor-pointer' value='view-profile'>
-                      {t('viewProfile')}
-                    </SelectItem>
-                    <SelectItem className='cursor-pointer' value='edit-profile'>
-                      {t('editProfile')}
-                    </SelectItem>
-                    <SelectItem className='cursor-pointer group' value='logout'>
-                      <div className='flex text-destructive'>
-                        <LogOut className='mr-2 h-4 w-4' />
-                        {t('logout')}
-                      </div>
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <UserSettings />
-            </div>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem className='cursor-pointer' value='view-profile'>
+                    {t('viewProfile')}
+                  </SelectItem>
+                  <SelectItem className='cursor-pointer' value='edit-profile'>
+                    {t('editProfile')}
+                  </SelectItem>
+                  <SelectItem className='cursor-pointer group' value='logout'>
+                    <div className='flex text-destructive'>
+                      <LogOut className='mr-2 h-4 w-4' />
+                      {t('logout')}
+                    </div>
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <UserSettings />
           </div>
-        ) /* : (
+        </div>
+      ) : (
         <LoginContainer setLoginModalOpen={() => dispatch(setIsAuthModalOpen(true))} />
-      ) */
-      }
+      )}
     </div>
   );
 };

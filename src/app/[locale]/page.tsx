@@ -1,11 +1,9 @@
-import About from '@/components/landing-page/about/about';
-import CallToAction from '@/components/landing-page/call-to-action/call-to-action';
-import Features from '@/components/landing-page/features/features';
-import Footer from '@/components/landing-page/footer/footer';
-import Hero from '@/components/landing-page/hero/hero';
+import { headers } from 'next/headers';
+
+import Discover from '@/components/discover/discover';
+
 import { verifyUserAuthenticationForServerPage } from '@/services/user-service/user-service';
 import { generateRedirectUrl } from '@/utils/api-utils/api-utils';
-import { headers } from 'next/headers';
 
 const Home = async (props: any): Promise<React.ReactNode> => {
   try {
@@ -25,11 +23,9 @@ const Home = async (props: any): Promise<React.ReactNode> => {
 
   return (
     <>
-      <Hero />
-      <Features />
-      <About />
-      <CallToAction />
-      <Footer />
+      <div className='lg:flex max-1500:hidden sticky top-[156px] ml-2 h-[260px] flex-col lg:w-[260px]'>
+        <Discover />
+      </div>
     </>
   );
 };

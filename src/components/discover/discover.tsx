@@ -3,27 +3,21 @@
 import React from 'react';
 import discoverApiService from '@/services/api-service/discover-api-service/discover-api-service';
 import { useQuery } from '@tanstack/react-query';
-import useUser from '@/hooks/useUser';
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
 import { LoadingSkeletons } from '@/app/constants';
 import TrendingTopics from '@/components/discover/trending-topics';
 
 const Discover: React.FC = () => {
-  const { fbAuthUser } = useUser();
-
-  const { data: trends, isLoading } = useQuery({
+  const { data: trends } = useQuery({
     queryKey: ['get-trends'],
     queryFn: () => discoverApiService.getTrends(),
-    enabled: !!fbAuthUser,
   });
 
   const renderTrends = (): React.ReactNode => {
-    if (isLoading) {
-      return <LoadingSkeleton type={LoadingSkeletons.DISCOVER} />;
-    } else if (trends) {
+    if (trends) {
       return <TrendingTopics trends={trends} />;
     }
-    return <div>No Trends</div>;
+    return <LoadingSkeleton type={LoadingSkeletons.DISCOVER} />;
   };
 
   return <>{renderTrends()}</>;
