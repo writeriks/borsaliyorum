@@ -24,6 +24,7 @@ model User {
   premiumBeginDate DateTime?
   premiumEndDate   DateTime?
   isEmailVerified  Boolean
+  location         String?
 
   // Relation to SecurityRole
   securityRole SecurityRole[] @relation("UserRoles")
@@ -72,6 +73,7 @@ model SecurityRole {
 enum RoleType {
   default
   admin
+  moderator
 }
 
 model Post {
