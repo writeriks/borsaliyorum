@@ -81,7 +81,7 @@ const UserPage = async ({ params, currentUser }: UserPageProps): Promise<React.R
   };
 
   return (
-    <PageWrapper>
+    <PageWrapper currentUser={currentUser}>
       <UserProfile user={userWithFollowers} />
     </PageWrapper>
   );

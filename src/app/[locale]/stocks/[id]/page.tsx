@@ -40,7 +40,7 @@ const StockPage = async ({
   };
 
   return (
-    <PageWrapper>
+    <PageWrapper currentUser={currentUser}>
       <StockProfile stock={stockWithIfUserFollows} />
     </PageWrapper>
   );

@@ -8,7 +8,7 @@ import { LoadingSkeletons } from '@/app/constants';
 import TrendingTopics from '@/components/discover/trending-topics';
 
 const Discover: React.FC = () => {
-  const { data: trends } = useQuery({
+  const { data: trends, isLoading } = useQuery({
     queryKey: ['get-trends'],
     queryFn: () => discoverApiService.getTrends(),
   });
@@ -16,8 +16,9 @@ const Discover: React.FC = () => {
   const renderTrends = (): React.ReactNode => {
     if (trends) {
       return <TrendingTopics trends={trends} />;
+    } else if (isLoading) {
+      return <LoadingSkeleton type={LoadingSkeletons.DISCOVER} />;
     }
-    return <LoadingSkeleton type={LoadingSkeletons.DISCOVER} />;
   };
 
   return <>{renderTrends()}</>;

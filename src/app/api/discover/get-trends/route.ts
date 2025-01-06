@@ -1,9 +1,12 @@
 import prisma from '@/services/prisma-service/prisma-client';
+import { verifyUserInRoute } from '@/services/user-service/user-service';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    await verifyUserInRoute(request);
+
     const mostActiveTags = await prisma.tag.findMany({
       include: {
         posts: {
