@@ -1,21 +1,20 @@
 'use client';
 
-import { Calendar } from 'lucide-react';
 import { Stock } from '@prisma/client';
-import { formatStringDateToDDMMYYYY } from '@/utils/date-utils/date-utils';
 import FollowButton from '@/components/follow-button/follow-button';
 import { useMutation } from '@tanstack/react-query';
 import stockApiService from '@/services/api-service/stock-api-service/stock-api-service';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
+import SymbolOverviewWidget from '@/components/widgets/symbol-overview-widget';
 
 interface StockProfileCardProps {
   stock: Stock & { isFollowingStock: boolean };
 }
 
 const StockProfileCard: React.FC<StockProfileCardProps> = ({
-  stock: { companyName, marketEntryDate, ticker, isFollowingStock },
+  stock: { companyName, ticker, isFollowingStock },
 }) => {
   const [isStockFollowed, setIsStockFollowed] = useState<boolean>(isFollowingStock);
 
@@ -73,14 +72,9 @@ const StockProfileCard: React.FC<StockProfileCardProps> = ({
           )}
         </div>
       </div>
-      <div className='flex flex-col justify-between w-full h-full'>
-        <div className='flex-col mt-3'>
-          {marketEntryDate && (
-            <p className='flex mt-1 text-xs'>
-              <Calendar className='h-4 w-4 mr-1' />
-              <span>{formatStringDateToDDMMYYYY(marketEntryDate?.toString())}</span>
-            </p>
-          )}
+      <div className='flex flex-col justify-between w-full h-80'>
+        <div className='flex-col mt-3 p-2'>
+          <SymbolOverviewWidget ticker={ticker} />
         </div>
       </div>
     </div>
