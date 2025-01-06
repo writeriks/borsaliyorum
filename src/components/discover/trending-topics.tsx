@@ -54,7 +54,8 @@ const TrendingTopics: React.FC<TrendingTopicsProps> = ({ trends }) => {
           ))}
         </div>
       </section>
-      <section id='trending-stocks' className='flex flex-col'>
+
+      <section id='trending-topics' className='flex flex-col'>
         <div className='p-1 flex flex-col md:border rounded-lg '>
           <span className='text-lg pl-3 mb-2 font-bold'>En Aktif Konular 🔥</span>
           {trends.mostActiveTags.map((tag, index) => (
