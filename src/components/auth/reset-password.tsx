@@ -14,7 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { resetPasswordSchema } from '@/components/auth/auth-service/common-auth';
+import { resetPasswordSchema } from '@/components/auth/auth-form-schema';
 
 interface ResetPasswordProps {
   isLoading: boolean;

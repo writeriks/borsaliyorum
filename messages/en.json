@@ -58,5 +58,18 @@
   "followButton": {
     "follow": "Follow",
     "unfollow": "Unfollow"
+  },
+  "EditProfile": {
+    "editProfile": "Edit Profile",
+    "successMessage": "Profile updated successfully.",
+    "imagePreviewAlt": "Profile picture preview",
+    "saveChanges": "Save Changes",
+    "displayName": "Display Name",
+    "username": "Username",
+    "bio": "Bio",
+    "website": "Website",
+    "location": "Location",
+    "birthday": "Birthday",
+    "savingChanges": "Saving Changes"
   }
 }

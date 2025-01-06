@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { LoginForm } from '@/components/auth/login-form';
 import { LoginWithProviders } from '@/components/auth/login-with-provider';
 import { RegisterForm } from '@/components/auth/register-form';
-import { loginFormSchema, registerFormSchema } from '@/components/auth/auth-service/common-auth';
+import { loginFormSchema, registerFormSchema } from '@/components/auth/auth-form-schema';
 import firebaseAuthService from '@/services/firebase-service/firebase-auth-service';
 import { ResetPassword } from '@/components/auth/reset-password';
 

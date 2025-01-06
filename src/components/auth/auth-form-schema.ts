@@ -25,7 +25,7 @@ const usernameConstants = {
 };
 
 const displayNameConstants = {
-  minLength: 3,
+  minLength: 1,
   minLengthMessage: 'Ad soyad boş olamaz.',
   maxLength: 80,
   maxLengthMessage: 'Ad soyad 80 karakterden az olmalıdır.',

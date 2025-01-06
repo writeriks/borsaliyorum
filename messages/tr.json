@@ -58,5 +58,18 @@
   "followButton": {
     "follow": "Takip Et",
     "unfollow": "Takibi Bırak"
+  },
+  "EditProfile": {
+    "editProfile": "Profilini Düzenle",
+    "successMessage": "Profil başarıyla güncellendi.",
+    "imagePreviewAlt": "Profil resmi önizlemesi",
+    "saveChanges": "Değişiklikleri Kaydet",
+    "displayName": "Ad Soyad",
+    "username": "Kullanıcı Adı",
+    "bio": "Hakkında",
+    "website": "Websitesi",
+    "location": "Konum",
+    "birthday": "Doğum Tarihi",
+    "savingChanges": "Değişiklikler Kaydediliyor"
   }
 }

@@ -223,14 +223,42 @@ class UserApiService {
   /**
    * Updates the profile of the provided user.
    */
-  updateUserProfile = async (): Promise<void> => {
-    try {
-      if (auth.currentUser) {
-        // TODO
+  updateUserProfile = async ({
+    displayName,
+    bio,
+    location,
+    birthday,
+    website,
+    profilePhoto,
+  }: {
+    displayName: string;
+    bio: string;
+    location: string;
+    birthday: string;
+    website: string;
+    profilePhoto: File;
+  }): Promise<boolean> => {
+    if (auth.currentUser) {
+      const requestBody = {
+        user: {
+          displayName,
+          bio,
+          location,
+          birthday,
+          website,
+          profilePhoto,
+        },
+      };
+
+      const response = await apiFetchProxy('user/edit-user', 'POST', JSON.stringify(requestBody));
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Bir hata oluştu.');
       }
-    } catch (error) {
-      console.error('Error updating user:', error);
     }
+
+    return false;
   };
 
   /**

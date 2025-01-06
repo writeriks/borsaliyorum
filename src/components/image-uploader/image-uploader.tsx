@@ -7,12 +7,14 @@ import { Button } from '@/components/ui/button';
 import { ImagePlus } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
+import { cn } from '@/lib/utils';
 
 interface ImageUploaderProps {
   onImageUpload: (image: string) => void;
   fileInputRef: React.RefObject<HTMLInputElement>;
   children?: React.ReactNode;
   disabled?: boolean;
+  className?: string;
 }
 
 const IMAGE_SIZE_LIMIT = 3;
@@ -22,6 +24,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   fileInputRef,
   disabled,
   children,
+  className,
 }) => {
   const dispatch = useDispatch();
 
@@ -77,10 +80,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   return (
     <>
       <Button
-        className='flex items-center p-1 w-8 h-8 rounded-full'
+        className={cn('flex items-center p-1 w-8 h-8 rounded-full', className)}
         variant='default'
         onClick={handleImageUpload}
         disabled={disabled}
+        type='button'
       >
         {children ? children : <ImagePlus />}
       </Button>
