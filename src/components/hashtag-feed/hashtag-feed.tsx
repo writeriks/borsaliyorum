@@ -9,7 +9,7 @@ interface HashtagFeedProps {
 }
 
 const HashtagFeed: React.FC<HashtagFeedProps> = ({ tag }) => (
-  <div className='flex min-w-full justify-center'>
+  <div className='flex min-w-full justify-around'>
     <div className='flex flex-col w-full max-w-2xl '>
       <Feed tag={tag} />
     </div>

@@ -21,7 +21,7 @@ const HashtagPage = async ({ params }: HashtagDetailPageProps): Promise<React.Re
   }
 
   return (
-    <div className='flex min-w-full justify-center'>
+    <div className='flex min-w-full justify-around'>
       <div className='flex flex-col w-full max-w-2xl '>
         <HashtagFeed tag={tag} />
       </div>

@@ -81,7 +81,7 @@ const UserPage = async ({ params, currentUser }: UserPageProps): Promise<React.R
   };
 
   return (
-    <div className='flex min-w-full justify-center'>
+    <div className='flex min-w-full justify-around'>
       <div className='flex flex-col w-full max-w-2xl '>
         <UserProfile user={userWithFollowers} />
       </div>

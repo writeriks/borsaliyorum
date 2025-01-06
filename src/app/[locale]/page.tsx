@@ -23,7 +23,7 @@ const Home = async (props: any): Promise<React.ReactNode> => {
   }
 
   return (
-    <div className='flex min-w-full justify-center'>
+    <div className='flex min-w-full justify-around'>
       <LandingPageFeed />
       <div className='lg:flex max-1500:hidden sticky top-[156px] ml-2 h-[260px] flex-col lg:w-[260px]'>
         <Discover />

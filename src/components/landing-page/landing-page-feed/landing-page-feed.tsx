@@ -16,7 +16,7 @@ const LandingPageFeed = (): React.ReactNode => {
 
   return (
     <>
-      <div className='flex flex-col w-full max-w-2xl '>
+      <div className='flex flex-col w-full max-w-2xl'>
         {data?.posts?.length ? (
           data.posts.map(post => <Post key={post.postId} post={post} />)
         ) : (

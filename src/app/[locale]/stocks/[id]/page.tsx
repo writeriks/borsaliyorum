@@ -40,7 +40,7 @@ const StockPage = async ({
   };
 
   return (
-    <div className='flex min-w-full justify-center'>
+    <div className='flex min-w-full justify-around'>
       <div className='flex flex-col w-full max-w-2xl '>
         <StockProfile stock={stockWithIfUserFollows} />
       </div>
