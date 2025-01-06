@@ -81,7 +81,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
             id='right-section'
             className='flex flex-col h-full md:w-full lg:w-full border-1 border-black rounded-md'
           >
-            {currentUser && <InnerTopAd />}
+            <InnerTopAd />
             {children}
 
             <NewPostDialog

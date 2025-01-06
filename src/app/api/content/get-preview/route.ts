@@ -1,13 +1,10 @@
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyUserInRoute } from '@/services/user-service/user-service';
 
 import { JSDOM } from 'jsdom';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    await verifyUserInRoute(request);
-
     const body = await request.json();
     const contentUrl = body['url'];
 
