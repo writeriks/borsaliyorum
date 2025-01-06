@@ -79,16 +79,6 @@ const StockProfileCard: React.FC<StockProfileCardProps> = ({
           <SymbolOverviewWidget ticker={ticker} />
         </div>
       </div>
-      <div className='flex flex-col justify-between w-full h-full'>
-        <div className='flex-col mt-3'>
-          {marketEntryDate && (
-            <p className='flex mt-1 text-xs'>
-              <Calendar className='h-4 w-4 mr-1' />
-              <span>{formatStringDateToDDMMYYYY(marketEntryDate?.toString())}</span>
-            </p>
-          )}
-        </div>
-      </div>
     </div>
   );
 };
