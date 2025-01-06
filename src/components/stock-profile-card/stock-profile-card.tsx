@@ -1,8 +1,6 @@
 'use client';
 
-import { Calendar } from 'lucide-react';
 import { Stock } from '@prisma/client';
-import { formatStringDateToDDMMYYYY } from '@/utils/date-utils/date-utils';
 import FollowButton from '@/components/follow-button/follow-button';
 import { useMutation } from '@tanstack/react-query';
 import stockApiService from '@/services/api-service/stock-api-service/stock-api-service';
@@ -16,7 +14,7 @@ interface StockProfileCardProps {
 }
 
 const StockProfileCard: React.FC<StockProfileCardProps> = ({
-  stock: { companyName, marketEntryDate, ticker, isFollowingStock },
+  stock: { companyName, ticker, isFollowingStock },
 }) => {
   const [isStockFollowed, setIsStockFollowed] = useState<boolean>(isFollowingStock);
 
