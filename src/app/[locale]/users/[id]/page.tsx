@@ -2,13 +2,13 @@ import React from 'react';
 
 import { notFound } from 'next/navigation';
 
-import Discover from '@/components/discover/discover';
 import UserProfile from '@/components/user-profile/user-profile';
 
 import prisma from '@/services/prisma-service/prisma-client';
 import { User } from '@prisma/client';
 import { withAuthentication } from '@/components/auth-wrapper/auth-wrapper';
 import { UserWithFollowers } from '@/services/user-service/user-types';
+import PageWrapper from '@/components/page-wrapper/page-wrapper';
 
 interface UserPageProps {
   params: { id: string };
@@ -81,14 +81,9 @@ const UserPage = async ({ params, currentUser }: UserPageProps): Promise<React.R
   };
 
   return (
-    <div className='flex min-w-full justify-around'>
-      <div className='flex flex-col w-full max-w-2xl '>
-        <UserProfile user={userWithFollowers} />
-      </div>
-      <div className='lg:flex max-1500:hidden sticky top-12 ml-2 h-[260px] flex-col lg:w-[260px] '>
-        <Discover />
-      </div>
-    </div>
+    <PageWrapper>
+      <UserProfile user={userWithFollowers} />
+    </PageWrapper>
   );
 };
 

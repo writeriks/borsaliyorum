@@ -1,10 +1,9 @@
 import { headers } from 'next/headers';
 
-import Discover from '@/components/discover/discover';
-
 import { verifyUserAuthenticationForServerPage } from '@/services/user-service/user-service';
 import { generateRedirectUrl } from '@/utils/api-utils/api-utils';
 import LandingPageFeed from '@/components/landing-page/landing-page-feed/landing-page-feed';
+import PageWrapper from '@/components/page-wrapper/page-wrapper';
 
 const Home = async (props: any): Promise<React.ReactNode> => {
   try {
@@ -23,12 +22,9 @@ const Home = async (props: any): Promise<React.ReactNode> => {
   }
 
   return (
-    <div className='flex min-w-full justify-around'>
+    <PageWrapper>
       <LandingPageFeed />
-      <div className='lg:flex max-1500:hidden sticky top-[156px] ml-2 h-[260px] flex-col lg:w-[260px]'>
-        <Discover />
-      </div>
-    </div>
+    </PageWrapper>
   );
 };
 
