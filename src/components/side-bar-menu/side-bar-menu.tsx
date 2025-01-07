@@ -52,7 +52,7 @@ const SideBarMenu: React.FC = () => {
     <div
       ref={sidebarRef}
       className={cn(
-        'min-1500:hidden md:min-w-80 fixed right-0 top-0 z-50 h-screen w-80 transform dark:bg-background bg-white transition-transform ease-in-out',
+        'min-1500:hidden md:min-w-80 fixed right-0 top-[60px] z-50 h-screen w-80 transform dark:bg-background bg-white transition-transform ease-in-out',
         isHamburgerMenuOpen ? 'translate-x-0' : 'translate-x-80'
       )}
     >

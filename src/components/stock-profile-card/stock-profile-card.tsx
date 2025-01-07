@@ -58,7 +58,7 @@ const StockProfileCard: React.FC<StockProfileCardProps> = ({
   };
 
   return (
-    <div className='lg:p-6 flex flex-col p-2 min-w-full self-start md:border rounded mb-2'>
+    <div className='lg:p-6 flex flex-col z-10 p-2 min-w-full self-start md:border rounded mb-2'>
       <div className='flex justify-between'>
         <div className='flex items-start'>
           <div className='flex flex-col ml-2'>
