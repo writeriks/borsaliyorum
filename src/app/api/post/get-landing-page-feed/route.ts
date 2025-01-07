@@ -32,20 +32,12 @@ export async function GET(request: Request): Promise<NextResponse> {
             profilePhoto: true,
           },
         },
-        _count: {
-          select: {
-            likedBy: true,
-            comments: true,
-          },
-        },
       },
     });
 
     // Add like, comment info, and likedByCurrentUser flag to each post
     const postsWithLikeAndCommentInfo = topPosts.map(post => ({
       ...post,
-      likeCount: post._count.likedBy,
-      commentCount: post._count.comments,
     }));
 
     return createResponse(ResponseStatus.OK, {

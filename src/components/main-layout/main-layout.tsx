@@ -70,9 +70,11 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
           >
             <UserProfileOptions />
 
-            <div className='lg:flex min-1500:hidden top-[250px] sticky h-[260px] flex-col lg:min-w-64'>
-              <Discover />
-            </div>
+            {currentUser?.displayName && (
+              <div className='lg:flex min-1500:hidden top-[250px] sticky h-[260px] flex-col lg:min-w-64'>
+                <Discover />
+              </div>
+            )}
 
             <InnerLeftMainAd />
           </div>
