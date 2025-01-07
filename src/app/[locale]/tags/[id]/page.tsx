@@ -1,16 +1,21 @@
 import { notFound } from 'next/navigation';
 
-import Discover from '@/components/discover/discover';
 import React from 'react';
 import prisma from '@/services/prisma-service/prisma-client';
 import HashtagFeed from '@/components/hashtag-feed/hashtag-feed';
 import { withAuthentication } from '@/components/auth-wrapper/auth-wrapper';
+import PageWrapper from '@/components/page-wrapper/page-wrapper';
+import { User } from '@prisma/client';
 
 interface HashtagDetailPageProps {
   params: { id: string };
+  currentUser: User;
 }
 
-const HashtagPage = async ({ params }: HashtagDetailPageProps): Promise<React.ReactNode> => {
+const HashtagPage = async ({
+  params,
+  currentUser,
+}: HashtagDetailPageProps): Promise<React.ReactNode> => {
   const tagName = decodeURIComponent(params.id);
   const tag = await prisma.tag.findUnique({
     where: { tagName: tagName },
@@ -21,14 +26,9 @@ const HashtagPage = async ({ params }: HashtagDetailPageProps): Promise<React.Re
   }
 
   return (
-    <div className='flex min-w-full justify-center'>
-      <div className='flex flex-col w-full max-w-2xl '>
-        <HashtagFeed tag={tag} />
-      </div>
-      <div className='lg:flex max-1500:hidden sticky top-12 ml-2 h-[260px] flex-col lg:w-[260px] '>
-        <Discover />
-      </div>
-    </div>
+    <PageWrapper currentUser={currentUser}>
+      <HashtagFeed tag={tag} />
+    </PageWrapper>
   );
 };
 

@@ -1,11 +1,11 @@
 import { notFound } from 'next/navigation';
 
-import Discover from '@/components/discover/discover';
 import React from 'react';
 import prisma from '@/services/prisma-service/prisma-client';
 import StockProfile from '@/components/stock-profile/stock-profile';
 import { User } from '@prisma/client';
 import { withAuthentication } from '@/components/auth-wrapper/auth-wrapper';
+import PageWrapper from '@/components/page-wrapper/page-wrapper';
 
 interface StockDetailPageProps {
   params: { id: string };
@@ -40,14 +40,9 @@ const StockPage = async ({
   };
 
   return (
-    <div className='flex min-w-full justify-center'>
-      <div className='flex flex-col w-full max-w-2xl '>
-        <StockProfile stock={stockWithIfUserFollows} />
-      </div>
-      <div className='lg:flex max-1500:hidden sticky top-12 ml-2 h-[260px] flex-col lg:w-[260px] '>
-        <Discover />
-      </div>
-    </div>
+    <PageWrapper currentUser={currentUser}>
+      <StockProfile stock={stockWithIfUserFollows} />
+    </PageWrapper>
   );
 };
 

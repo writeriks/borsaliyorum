@@ -1,6 +1,9 @@
+import { headers } from 'next/headers';
+
 import { verifyUserAuthenticationForServerPage } from '@/services/user-service/user-service';
 import { generateRedirectUrl } from '@/utils/api-utils/api-utils';
-import { headers } from 'next/headers';
+import LandingPageFeed from '@/components/landing-page/landing-page-feed/landing-page-feed';
+import PageWrapper from '@/components/page-wrapper/page-wrapper';
 
 const Home = async (props: any): Promise<React.ReactNode> => {
   try {
@@ -18,7 +21,11 @@ const Home = async (props: any): Promise<React.ReactNode> => {
     // ignore error
   }
 
-  return <div>Ana Sayfa</div>;
+  return (
+    <PageWrapper>
+      <LandingPageFeed />
+    </PageWrapper>
+  );
 };
 
 export default Home;

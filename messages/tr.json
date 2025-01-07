@@ -58,5 +58,11 @@
   "followButton": {
     "follow": "Takip Et",
     "unfollow": "Takibi Bırak"
+  },
+  "landingPage": {
+    "heroTitleFirst": "Borsa Topluluğunuz",
+    "heroTitleSecond": "Burada Başlıyor",
+    "heroSubtitle": "Yatırımcılarla bağlantı kurun, piyasa görüşlerinizi paylaşın ve toplulukla birlikte büyüyün.",
+    "startNow": "Hemen Başla"
   }
 }

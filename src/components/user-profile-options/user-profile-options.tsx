@@ -14,12 +14,12 @@ import UserAvatar from '@/components/user-avatar/user-avatar';
 import { setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
 import { LoadingSkeletons } from '@/app/constants';
-import LoginContainer from '@/components/user-profile-options/login-container';
 import UserSettings from '@/components/user-profile-options/user-settings';
 import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import useUser from '@/hooks/useUser';
+import LoginContainer from '@/components/user-profile-options/login-container';
 
 const UserProfileOptions = (): React.ReactNode => {
   const dispatch = useDispatch();
