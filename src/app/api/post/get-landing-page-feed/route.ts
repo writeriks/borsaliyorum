@@ -2,19 +2,19 @@ import prisma from '@/services/prisma-service/prisma-client';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { NextResponse } from 'next/server';
 
-export async function GET(request: Request): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
     const topPosts = await prisma.post.findMany({
-      take: 10, // Limit results to the top 10
+      take: 10,
       orderBy: [
         {
           likedBy: {
-            _count: 'desc', // Sort by number of likes
+            _count: 'desc',
           },
         },
         {
           comments: {
-            _count: 'desc', // Then sort by number of comments
+            _count: 'desc',
           },
         },
       ],
@@ -27,7 +27,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         user: {
           select: {
             userId: true,
-            displayName: true, // Include user details if needed
+            displayName: true,
             username: true,
             profilePhoto: true,
           },
@@ -35,7 +35,6 @@ export async function GET(request: Request): Promise<NextResponse> {
       },
     });
 
-    // Add like, comment info, and likedByCurrentUser flag to each post
     const postsWithLikeAndCommentInfo = topPosts.map(post => ({
       ...post,
     }));

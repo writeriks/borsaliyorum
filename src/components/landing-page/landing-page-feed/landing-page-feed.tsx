@@ -10,6 +10,7 @@ import Post from '@/components/post/post';
 import { Button } from '@/components/ui/button';
 import { useDispatch } from 'react-redux';
 import { setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
+import { useTranslations } from 'next-intl';
 
 const LandingPageFeed = (): React.ReactNode => {
   const dispatch = useDispatch();
@@ -18,17 +19,18 @@ const LandingPageFeed = (): React.ReactNode => {
     queryFn: async () => await postApiService.getLandingPageFeed(),
   });
 
+  const t = useTranslations('landingPage');
+
   return (
     <>
       <div className='flex flex-col w-full max-w-2xl'>
         <section className='pb-8'>
           <div className='container flex max-w-[64rem] flex-col items-center gap-4 text-center'>
             <h2 className='font-heading text-3xl text-gray-100 sm:text-3xl md:text-4xl lg:text-5xl'>
-              Borsa Topluluğunuz <span className='text-blue-300'>Burada Başlıyor</span>
+              {t('heroTitleFirst')} <span className='text-blue-300'>{t('heroTitleSecond')}</span>
             </h2>
             <p className='max-w-[42rem] leading-normal text-gray-300 sm:text-xl sm:leading-8'>
-              Yatırımcılarla bağlantı kurun, piyasa görüşlerinizi paylaşın ve toplulukla birlikte
-              büyüyün.
+              {t('heroSubtitle')}
             </p>
             <div className='space-x-4'>
               <Button
@@ -36,7 +38,7 @@ const LandingPageFeed = (): React.ReactNode => {
                 className='bg-blue-600 w-72 text-gray-100 hover:bg-blue-700'
                 onClick={() => dispatch(setIsAuthModalOpen(true))}
               >
-                Hemen Başla
+                {t('startNow')}
               </Button>
             </div>
           </div>
