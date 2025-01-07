@@ -58,8 +58,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         profilePhoto: downloadUrl,
         bio: userData.bio ? userData.bio : currentUser.bio,
         website: userData.website ? userData.website : currentUser.website,
-        // TODO: Add location to the user model
-        // location: userData.location ? userData.location : currentUser.location,
+        location: userData.location ? userData.location : currentUser.location,
         updatedAt: new Date(),
       },
     });

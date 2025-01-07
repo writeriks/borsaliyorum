@@ -7,8 +7,6 @@ interface EditProfilePageProps {
 }
 
 const EditProfilePage = async ({ currentUser }: EditProfilePageProps): Promise<React.ReactNode> => {
-  // @ts-ignore
-  // TODO: remove ts ignore when adding location
   const { displayName, bio, location, birthday, profilePhoto, website, username } = currentUser;
 
   const initialValues = {
