@@ -9,7 +9,7 @@ const InnerTopAd = (): React.ReactNode => {
   // make the call for ad if not mobile
 
   return (
-    <div className='flex lg:h-24 min-h-12 md:sticky z-30 w-full items-center bg-background top-[60px]  justify-center text-base'>
+    <div className='flex lg:h-24 min-h-12 sticky z-30 w-full items-center bg-background top-[60px]  justify-center text-base'>
       Inner Top Ad
     </div>
   );

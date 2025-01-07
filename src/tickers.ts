@@ -50,6 +50,10 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'AHGAZ AHLATCI DOGALGAZ',
   },
   {
+    'id': 'AHSGY',
+    'display': 'AHSGY AHES GMYO',
+  },
+  {
     'id': 'AKBNK',
     'display': 'AKBNK AKBANK',
   },
@@ -59,7 +63,7 @@ export const tickers: SuggestionDataItem[] = [
   },
   {
     'id': 'AKENR',
-    'display': 'AKENR AK ENERJI',
+    'display': 'AKENR AKENERJI',
   },
   {
     'id': 'AKFGY',
@@ -138,6 +142,10 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'ALMAD ALTINYAG MADENCILIK VE ENERJI',
   },
   {
+    'id': 'ALTINS1',
+    'display': 'ALTINS1 DARPHANE ALTIN SERTIFIKASI',
+  },
+  {
     'id': 'ALTNY',
     'display': 'ALTNY ALTINAY SAVUNMA',
   },
@@ -178,8 +186,8 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'ARENA ARENA BILGISAYAR',
   },
   {
-    'id': 'ARMDA',
-    'display': 'ARMDA INGRAM BILISIM',
+    'id': 'ARMGD',
+    'display': 'ARMGD ARMADA GIDA',
   },
   {
     'id': 'ARSAN',
@@ -282,6 +290,10 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'BAGFS BAGFAS',
   },
   {
+    'id': 'BAHKM',
+    'display': 'BAHKM BAHADIR KIMYA',
+  },
+  {
     'id': 'BAKAB',
     'display': 'BAKAB BAK AMBALAJ',
   },
@@ -338,6 +350,10 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'BIMAS BIM MAGAZALAR',
   },
   {
+    'id': 'BINBN',
+    'display': 'BINBN BIN ULASIM TEKNOLOJILERI',
+  },
+  {
     'id': 'BINHO',
     'display': 'BINHO 1000 YATIRIMLAR HOL.',
   },
@@ -356,10 +372,6 @@ export const tickers: SuggestionDataItem[] = [
   {
     'id': 'BLCYT',
     'display': 'BLCYT BILICI YATIRIM',
-  },
-  {
-    'id': 'BMELK',
-    'display': 'BMELK PAMUKOVA ELEKTRIK',
   },
   {
     'id': 'BMSCH',
@@ -454,6 +466,10 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'CANTE CAN2 TERMIK',
   },
   {
+    'id': 'CASA',
+    'display': 'CASA CASA EMTIA PETROL',
+  },
+  {
     'id': 'CATES',
     'display': 'CATES CATES ELEKTRIK',
   },
@@ -474,8 +490,16 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'CEMTS CEMTAS',
   },
   {
+    'id': 'CEMZY',
+    'display': 'CEMZY CEM ZEYTIN',
+  },
+  {
     'id': 'CEOEM',
     'display': 'CEOEM CEO EVENT MEDYA',
+  },
+  {
+    'id': 'CGCAM',
+    'display': 'CGCAM CAGDAS CAM',
   },
   {
     'id': 'CIMSA',
@@ -538,6 +562,10 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'DARDL DARDANEL',
   },
   {
+    'id': 'DCTTR',
+    'display': 'DCTTR DCT TRADING DIS TICARET',
+  },
+  {
     'id': 'DENGE',
     'display': 'DENGE DENGE HOLDING',
   },
@@ -580,10 +608,6 @@ export const tickers: SuggestionDataItem[] = [
   {
     'id': 'DITAS',
     'display': 'DITAS DITAS DOGAN',
-  },
-  {
-    'id': 'DJIST',
-    'display': 'DJIST QNB FINANSPORTFOY DJIST HSY BYF',
   },
   {
     'id': 'DMRGD',
@@ -630,6 +654,10 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'DURDO DURAN DOGAN BASIM',
   },
   {
+    'id': 'DURKN',
+    'display': 'DURKN DURUKAN SEKERLEME',
+  },
+  {
     'id': 'DYOBY',
     'display': 'DYOBY DYO BOYA',
   },
@@ -654,28 +682,12 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'EDATA E-DATA TEKNOLOJI',
   },
   {
-    'id': 'EDATAHE',
-    'display': 'EDATAHE E-Data Teknoloji Pazarlama A.Ş.',
-  },
-  {
     'id': 'EDIP',
     'display': 'EDIP EDIP GAYRIMENKUL',
   },
   {
     'id': 'EFORC',
-    'display': 'EFORC EFOR ÇAY',
-  },
-  {
-    'id': 'EGCEY',
-    'display': 'EGCEY EGELI&CO ENERJI YATIRIM',
-  },
-  {
-    'id': 'EGCYH',
-    'display': 'EGCYH EGELI&CO YATIRIM HOLDING',
-  },
-  {
-    'id': 'EGCYO',
-    'display': 'EGCYO EGELI & CO TARIM GIRISIM',
+    'display': 'EFORC EFOR CAY SANAYI',
   },
   {
     'id': 'EGEEN',
@@ -736,10 +748,6 @@ export const tickers: SuggestionDataItem[] = [
   {
     'id': 'ENKAI',
     'display': 'ENKAI ENKA INSAAT',
-  },
-  {
-    'id': 'ENRYA',
-    'display': 'ENRYA ENERYA ENERJİ',
   },
   {
     'id': 'ENSRI',
@@ -898,24 +906,12 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'GLCVY GELECEK VARLIK YONETIMI',
   },
   {
-    'id': 'GLDTR',
-    'display': 'GLDTR QNB FINANSPORTFOY ALTIN BYF',
-  },
-  {
     'id': 'GLRYH',
     'display': 'GLRYH GULER YAT. HOLDING',
   },
   {
     'id': 'GLYHO',
     'display': 'GLYHO GLOBAL YAT. HOLDING',
-  },
-  {
-    'id': 'GMSTR',
-    'display': 'GMSTR QNB FINANSPORTFOY GUMUS BYF',
-  },
-  {
-    'id': 'GMSTRF',
-    'display': 'GMSTRF FINANS PORTFOY GUMUS BYF',
   },
   {
     'id': 'GMTAS',
@@ -946,8 +942,8 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'GRSEL GUR-SEL TURIZM TASIMACILIK',
   },
   {
-    'id': 'GRTRK',
-    'display': 'GRTRK GRAINTURK TARIM',
+    'id': 'GRTHO',
+    'display': 'GRTHO GRAINTURK HOLDING',
   },
   {
     'id': 'GSDDE',
@@ -962,8 +958,16 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'GSRAY GALATASARAY SPORTIF',
   },
   {
+    'id': 'GSRAYR',
+    'display': 'GSRAYR GALATASARAY SPORTIF  - RHKP',
+  },
+  {
     'id': 'GUBRF',
     'display': 'GUBRF GUBRE FABRIK.',
+  },
+  {
+    'id': 'GUNDG',
+    'display': 'GUNDG GUNDOGDU GIDA',
   },
   {
     'id': 'GWIND',
@@ -1086,6 +1090,10 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'INGRM INGRAM BILISIM',
   },
   {
+    'id': 'INTEK',
+    'display': 'INTEK INNOSA TEKNOLOJI',
+  },
+  {
     'id': 'INTEM',
     'display': 'INTEM INTEMA',
   },
@@ -1138,10 +1146,6 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'ISKPL ISIK PLASTIK',
   },
   {
-    'id': 'ISKPLHE',
-    'display': 'ISKPLHE IŞIK PLASTİK',
-  },
-  {
     'id': 'ISKUR',
     'display': 'ISKUR IS BANKASI (KUR.)',
   },
@@ -1156,10 +1160,6 @@ export const tickers: SuggestionDataItem[] = [
   {
     'id': 'ISYAT',
     'display': 'ISYAT IS YAT. ORT.',
-  },
-  {
-    'id': 'ITTFH',
-    'display': 'ITTFH LORAS HOLDING',
   },
   {
     'id': 'IZENR',
@@ -1366,10 +1366,6 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'KTSKR KUTAHYA SEKER FABRIKASI',
   },
   {
-    'id': 'KTSKRHE',
-    'display': 'KTSKRHE KUTAHYA SEKER',
-  },
-  {
     'id': 'KUTPO',
     'display': 'KUTPO KUTAHYA PORSELEN',
   },
@@ -1426,6 +1422,14 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'LUKSK LUKS KADIFE',
   },
   {
+    'id': 'LYDHO',
+    'display': 'LYDHO LYDIA HOLDING',
+  },
+  {
+    'id': 'LYDYE',
+    'display': 'LYDYE LYDIA YESIL ENERJI',
+  },
+  {
     'id': 'MAALT',
     'display': 'MAALT MARMARIS ALTINYUNUS',
   },
@@ -1479,11 +1483,7 @@ export const tickers: SuggestionDataItem[] = [
   },
   {
     'id': 'MEKAG',
-    'display': 'MEKAG MEKA BETON',
-  },
-  {
-    'id': 'MEMSA',
-    'display': 'MEMSA MENSA',
+    'display': 'MEKAG MEKA GLOBAL MAKINE',
   },
   {
     'id': 'MEPET',
@@ -1520,10 +1520,6 @@ export const tickers: SuggestionDataItem[] = [
   {
     'id': 'MIATK',
     'display': 'MIATK MIA TEKNOLOJI',
-  },
-  {
-    'id': 'MIPAZ',
-    'display': 'MIPAZ MILPA',
   },
   {
     'id': 'MMCAS',
@@ -1563,11 +1559,7 @@ export const tickers: SuggestionDataItem[] = [
   },
   {
     'id': 'MTRKS',
-    'display': 'MTRKS MATRIKS BILGI DAGITIM',
-  },
-  {
-    'id': 'MTRKSHE',
-    'display': 'MTRKSHE MATRİKS VERİ DAĞITIM',
+    'display': 'MTRKS MATRIKS FINANSAL TEKNOLOJILER',
   },
   {
     'id': 'MTRYO',
@@ -1626,10 +1618,6 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'OFSYM OFIS YEM GIDA',
   },
   {
-    'id': 'OLMK',
-    'display': 'OLMK MONDI OLMUKSAN KAGIT VE AMBALAJ',
-  },
-  {
     'id': 'ONCSM',
     'display': 'ONCSM ONCOSEM ONKOLOJIK SISTEMLER',
   },
@@ -1682,6 +1670,10 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'OYYAT OYAK YATIRIM MENKUL',
   },
   {
+    'id': 'OZATD',
+    'display': 'OZATD OZATA DENIZCILIK',
+  },
+  {
     'id': 'OZGYO',
     'display': 'OZGYO OZDERICI GMYO',
   },
@@ -1728,10 +1720,6 @@ export const tickers: SuggestionDataItem[] = [
   {
     'id': 'PCILT',
     'display': 'PCILT PC ILETISIM MEDYA',
-  },
-  {
-    'id': 'PEGYO',
-    'display': 'PEGYO PERA YATIRIM HOLDING',
   },
   {
     'id': 'PEHOL',
@@ -1818,20 +1806,16 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'PSGYO PASIFIK GMYO',
   },
   {
-    'id': 'QNBFB',
-    'display': 'QNBFB QNB FINANSBANK',
+    'id': 'QNBFK',
+    'display': 'QNBFK QNB FINANSAL KIRALAMA',
   },
   {
-    'id': 'QNBFL',
-    'display': 'QNBFL QNB FINANS FINANSAL KIRALAMA',
+    'id': 'QNBTR',
+    'display': 'QNBTR QNB BANK',
   },
   {
     'id': 'QUAGR',
     'display': 'QUAGR QUA GRANITE HAYAL YAPI',
-  },
-  {
-    'id': 'QUAGRHE',
-    'display': 'QUAGRHE QUA GRANİTE',
   },
   {
     'id': 'RALYH',
@@ -1848,10 +1832,6 @@ export const tickers: SuggestionDataItem[] = [
   {
     'id': 'RGYAS',
     'display': 'RGYAS RONESANS GAYRIMENKUL YAT.',
-  },
-  {
-    'id': 'RHEAG',
-    'display': 'RHEAG ICU GIRISIM',
   },
   {
     'id': 'RNPOL',
@@ -1923,7 +1903,7 @@ export const tickers: SuggestionDataItem[] = [
   },
   {
     'id': 'SEGMN',
-    'display': 'SEGMN SEĞMEN GIDA',
+    'display': 'SEGMN SEGMEN KARDESLER GIDA',
   },
   {
     'id': 'SEGYO',
@@ -1948,10 +1928,6 @@ export const tickers: SuggestionDataItem[] = [
   {
     'id': 'SELVA',
     'display': 'SELVA SELVA GIDA',
-  },
-  {
-    'id': 'SERVE',
-    'display': 'SERVE KUVVA GIDA',
   },
   {
     'id': 'SEYKM',
@@ -1988,6 +1964,10 @@ export const tickers: SuggestionDataItem[] = [
   {
     'id': 'SMRTG',
     'display': 'SMRTG SMART GUNES ENERJISI TEK.',
+  },
+  {
+    'id': 'SMRVA',
+    'display': 'SMRVA SUMER VARLIK YONETIM',
   },
   {
     'id': 'SNGYO',
@@ -2046,10 +2026,6 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'TABGD TAB GIDA',
   },
   {
-    'id': 'TACTR',
-    'display': 'TACTR OTTO HOLDING',
-  },
-  {
     'id': 'TARKM',
     'display': 'TARKM TARKIM BITKI KORUMA',
   },
@@ -2060,6 +2036,10 @@ export const tickers: SuggestionDataItem[] = [
   {
     'id': 'TATGD',
     'display': 'TATGD TAT GIDA',
+  },
+  {
+    'id': 'TATGDR',
+    'display': 'TATGDR TAT GIDA  - RHKP',
   },
   {
     'id': 'TAVHL',
@@ -2074,6 +2054,10 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'TCELL TURKCELL',
   },
   {
+    'id': 'TCKRC',
+    'display': 'TCKRC KIRAC GALVANIZ',
+  },
+  {
     'id': 'TDGYO',
     'display': 'TDGYO TREND GMYO',
   },
@@ -2086,10 +2070,6 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'TERA TERA YATIRIM MENKUL DEGERLER',
   },
   {
-    'id': 'TETMT',
-    'display': 'TETMT TETAMAT GIDA',
-  },
-  {
     'id': 'TEZOL',
     'display': 'TEZOL EUROPAP TEZOL KAGIT',
   },
@@ -2100,10 +2080,6 @@ export const tickers: SuggestionDataItem[] = [
   {
     'id': 'THYAO',
     'display': 'THYAO TURK HAVA YOLLARI',
-  },
-  {
-    'id': 'TIRE',
-    'display': 'TIRE MONDI TIRE KUTSAN',
   },
   {
     'id': 'TKFEN',
@@ -2182,10 +2158,6 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'TUREX TUREKS TURIZM TASIMACILIK',
   },
   {
-    'id': 'TUREXHE',
-    'display': 'TUREXHE TUREX TURİZM',
-  },
-  {
     'id': 'TURGG',
     'display': 'TURGG TURKER PROJE GAYRIMENKUL',
   },
@@ -2228,18 +2200,6 @@ export const tickers: SuggestionDataItem[] = [
   {
     'id': 'USAK',
     'display': 'USAK USAK SERAMIK',
-  },
-  {
-    'id': 'USDTR',
-    'display': 'USDTR QNB FINANSPORTFOY ABD DOLARI BYF',
-  },
-  {
-    'id': 'USDTRF',
-    'display': 'USDTRF ABD HAZ BONOSU DOLAR BYF',
-  },
-  {
-    'id': 'UZERB',
-    'display': 'UZERB UZERTAS BOYA',
   },
   {
     'id': 'VAKBN',
@@ -2354,63 +2314,15 @@ export const tickers: SuggestionDataItem[] = [
     'display': 'YYLGD YAYLA GIDA',
   },
   {
-    'id': 'Z30EA',
-    'display': 'Z30EA ZIRAAT PORTFOY BIST30 EA ENDEKSI HSY BYF',
-  },
-  {
-    'id': 'Z30KE',
-    'display': 'Z30KE ZIRAAT PORTFOY KATILIM 30 EA HSY BYF',
-  },
-  {
-    'id': 'Z30KP',
-    'display': 'Z30KP ZIRAAT PORTFOY KATILIM 30 ENDEKSI HSY BYF',
-  },
-  {
     'id': 'ZEDUR',
     'display': 'ZEDUR ZEDUR ENERJI',
-  },
-  {
-    'id': 'ZELOT',
-    'display': 'ZELOT ZIRAAT PORTFOY BIST 50-30 HY BYF',
-  },
-  {
-    'id': 'ZGOLD',
-    'display': 'ZGOLD ZIRAAT PORTFOY ALTIN BYF',
-  },
-  {
-    'id': 'ZGOLDF',
-    'display': 'ZGOLDF ZIRAAT PORTFOY ALTIN BYF',
   },
   {
     'id': 'ZOREN',
     'display': 'ZOREN ZORLU ENERJI',
   },
   {
-    'id': 'ZPBDL',
-    'display': 'ZPBDL ZIRAAT PORTFOY BIST BANKA DISI LIKIT 10 HY BYF',
-  },
-  {
-    'id': 'ZPLIB',
-    'display': 'ZPLIB ZIRAAT PORTFOY BIST LIKIT BANKA HY BYF',
-  },
-  {
-    'id': 'ZPT10',
-    'display': 'ZPT10 ZIRAAT PORTFOY YP TEKNOLOJI ILETISIM 10 HY BYF',
-  },
-  {
-    'id': 'ZPX30',
-    'display': 'ZPX30 ZIRAAT PORTFOY BIST 30 HY BYF',
-  },
-  {
-    'id': 'ZRE20',
-    'display': 'ZRE20 ZIRAAT PORTFOY RISK ESIT BD20 ENDEKSI HSY BYF',
-  },
-  {
     'id': 'ZRGYO',
     'display': 'ZRGYO ZIRAAT GMYO',
-  },
-  {
-    'id': 'ZTM15',
-    'display': 'ZTM15 ZIRAAT PORTFOY YP LIKIT TEMETTU ENDEKS HSY BYF',
   },
 ];

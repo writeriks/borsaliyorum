@@ -14,13 +14,16 @@ import userApiService from '@/services/api-service/user-api-service/user-api-ser
 import EntryFooter from '@/components/entry-footer/entry-footer';
 import { useRouter } from '@/i18n/routing';
 import UrlContentPreview from '@/components/content-preview/content-preview';
+import { LadingPagePost } from '@/services/api-service/post-api-service/constants';
 
 export interface PostProp {
-  post: PostType & {
-    reposts?: Repost[];
-    isRepost?: boolean;
-  };
-  onDeleteClick: (postId: number) => void;
+  post:
+    | (PostType & {
+        reposts?: Repost[];
+        isRepost?: boolean;
+      })
+    | LadingPagePost;
+  onDeleteClick?: (postId: number) => void;
   onPostClick?: (post: PostType) => void;
 }
 
@@ -28,6 +31,7 @@ const Post: React.FC<PostProp> = ({ post, onPostClick, onDeleteClick }) => {
   const currentUser = useSelector(userReducerSelector.getUser);
   const router = useRouter();
 
+  const landingPagePostUser = (post as LadingPagePost).user;
   const { data: postOwner } = useQuery({
     queryKey: [`get-entry-owner-${post.userId}`],
     queryFn: async () => await userApiService.getEntryOwner(post.userId),
@@ -56,25 +60,33 @@ const Post: React.FC<PostProp> = ({ post, onPostClick, onDeleteClick }) => {
     ),
   };
 
+  const handleUserAvatarClick = (): void => {
+    if (postOwner) {
+      router.push(`/users/${postOwner.username}`);
+    } else if (landingPagePostUser) {
+      router.push(`/`);
+    }
+  };
+
   return (
     <Card className='w-full mb-2 overflow-hidden'>
       <CardContent className='p-4 flex flex-col items-start gap-4'>
         <div className='flex items-start gap-4 w-full'>
-          {postOwner && (
+          {(postOwner || landingPagePostUser) && (
             <UserAvatar
-              user={postOwner}
-              onUserAvatarClick={() => router.push(`/users/${postOwner.username}`)}
+              user={postOwner || (post as LadingPagePost).user}
+              onUserAvatarClick={() => handleUserAvatarClick()}
             />
           )}
           <div className='space-y-1 flex-1'>
             <div className='text-sm font-bold'>
               <a className='hover:underline' href={`/users/${postOwner?.username}`}>
-                {postOwner?.displayName}
+                {postOwner?.displayName ?? landingPagePostUser?.displayName}
               </a>
             </div>
             <div className='text-xs text-muted-foreground'>
               <a className='hover:underline' href={`/users/${postOwner?.username}`}>
-                <span className='mr-1'>{postOwner?.username}</span>
+                <span className='mr-1'>{postOwner?.username ?? landingPagePostUser?.username}</span>
               </a>
 
               <span className='font-bold'> · </span>
@@ -83,12 +95,14 @@ const Post: React.FC<PostProp> = ({ post, onPostClick, onDeleteClick }) => {
               </TooltipWithEllipsis>
             </div>
           </div>
-          <EntryOptions
-            isFollowed={postOwner?.isUserFollowed ?? false}
-            onDeleteSuccess={onDeleteClick}
-            entry={post}
-            isEntryOwner={postOwner?.username === currentUser.username}
-          />
+          {onDeleteClick && (
+            <EntryOptions
+              isFollowed={postOwner?.isUserFollowed ?? false}
+              onDeleteSuccess={onDeleteClick}
+              entry={post}
+              isEntryOwner={postOwner?.username === currentUser.username}
+            />
+          )}
         </div>
 
         <section className='p-2'>
@@ -111,7 +125,7 @@ const Post: React.FC<PostProp> = ({ post, onPostClick, onDeleteClick }) => {
 
         <UrlContentPreview content={post.content} />
       </CardContent>
-      <EntryFooter onPostClick={onPostClick} entry={post as any} />
+      {onPostClick && <EntryFooter onPostClick={onPostClick} entry={post as any} />}
     </Card>
   );
 };

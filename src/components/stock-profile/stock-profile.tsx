@@ -9,7 +9,7 @@ interface StockFeedProps {
   stock: Stock & { isFollowingStock: boolean };
 }
 const StockProfile: React.FC<StockFeedProps> = ({ stock }) => (
-  <div className='flex min-w-full justify-center'>
+  <div className='flex min-w-full'>
     <div className='flex flex-col w-full max-w-2xl '>
       <StockProfileCard stock={stock} />
       <Feed stock={stock} />

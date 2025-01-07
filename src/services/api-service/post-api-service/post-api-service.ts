@@ -1,5 +1,5 @@
 import { apiFetchProxy } from '@/services/api-service/fetch-proxy';
-import { ContentPreview } from '@/services/api-service/post-api-service/constants';
+import { ContentPreview, LadingPagePost } from '@/services/api-service/post-api-service/constants';
 import { Post, Sentiment } from '@prisma/client';
 
 class PostApiService {
@@ -299,6 +299,22 @@ class PostApiService {
    */
   toggleRepost = async (postId: number): Promise<any> => {
     const response = await apiFetchProxy('post/repost-post', 'POST', JSON.stringify({ postId }));
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
+
+  /**
+   *  Fetches the landing page feed.
+   *
+   * @returns A promise that resolves to the landing page feed.
+   */
+  getLandingPageFeed = async (): Promise<{ posts: LadingPagePost[] }> => {
+    const response = await apiFetchProxy('post/get-landing-page-feed', 'GET');
 
     if (!response.ok) {
       const error = await response.json();
