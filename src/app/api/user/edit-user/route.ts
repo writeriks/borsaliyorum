@@ -3,9 +3,8 @@ import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { User } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyUserInRoute } from '@/services/user-service/user-service';
-import { randomUUID } from 'crypto';
-import { storageBucket } from '@/services/firebase-service/firebase-admin';
 import { isValidDisplayName } from '@/utils/user-utils/user-utils';
+import { uploadImage } from '@/services/api-service/api-service-helper';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -25,27 +24,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     let downloadUrl = currentUser.profilePhoto;
     if (userData.profilePhoto && userData.profilePhoto !== currentUser.profilePhoto) {
-      // Image Upload Workflow
-      const base64Data = userData.profilePhoto.split(',')[1];
-      const fileName = `${randomUUID()}_${Date.now()}.jpg`;
-
-      const file = storageBucket.file(`images/${fileName}`);
-      await file.save(Buffer.from(base64Data, 'base64'), {
-        contentType: 'image/jpeg',
-        metadata: {
-          metadata: {
-            firebaseStorageDownloadTokens: randomUUID(),
-          },
-        },
-      });
-
-      // Get the download URL for the uploaded image
-      const imageUrl = await file.getSignedUrl({
-        action: 'read',
-        expires: '01-01-2100',
-      });
-
-      downloadUrl = imageUrl[0];
+      downloadUrl = await uploadImage(userData.profilePhoto);
     }
 
     await prisma.user.update({

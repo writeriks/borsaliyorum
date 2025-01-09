@@ -1,12 +1,12 @@
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { MAX_CHARACTERS } from '@/services/api-service/post-api-service/constants';
-import { auth, storageBucket } from '@/services/firebase-service/firebase-admin';
+import { auth } from '@/services/firebase-service/firebase-admin';
 import prisma from '@/services/prisma-service/prisma-client';
 import tagService from '@/services/tag-service/tag-service';
 import { Post } from '@prisma/client';
-import { randomUUID } from 'crypto';
 import { NextResponse } from 'next/server';
 import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
+import { uploadImage } from '@/services/api-service/api-service-helper';
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
@@ -71,28 +71,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     let downloadUrl: string | undefined;
     if (imageData) {
-      // Image Upload Workflow
-      const base64Data = imageData.split(',')[1];
-      const fileName = `${randomUUID()}_${Date.now()}.jpg`;
-
-      const file = storageBucket.file(`images/${fileName}`);
-
-      await file.save(Buffer.from(base64Data, 'base64'), {
-        contentType: 'image/jpeg',
-        metadata: {
-          metadata: {
-            firebaseStorageDownloadTokens: randomUUID(),
-          },
-        },
-      });
-
-      // Get the download URL for the uploaded image
-      const imageUrl = await file.getSignedUrl({
-        action: 'read',
-        expires: '01-01-2100',
-      });
-
-      downloadUrl = imageUrl[0];
+      downloadUrl = await uploadImage(imageData);
     }
 
     const postStocks = await prisma.stock.findMany({

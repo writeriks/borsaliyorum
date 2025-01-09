@@ -41,7 +41,9 @@ export const EditProfileForm = ({ initialValues }: EditProfileFormProps): React.
       displayName: initialValues?.displayName || '',
       bio: initialValues?.bio || '',
       location: initialValues?.location || '',
-      birthday: new Date(initialValues?.birthday || '').toISOString().split('T')[0],
+      birthday: initialValues?.birthday
+        ? new Date(initialValues?.birthday).toISOString().split('T')[0]
+        : '',
       website: initialValues?.website || '',
       username: initialValues?.username || '',
       profilePhoto: initialValues?.profilePhoto || '',

@@ -25,10 +25,10 @@ const usernameConstants = {
 };
 
 const displayNameConstants = {
-  minLength: 1,
-  minLengthMessage: 'Ad soyad boş olamaz.',
+  minLength: 5,
+  minLengthMessage: 'Ad Soyad 5 karakterden az olamaz.',
   maxLength: 80,
-  maxLengthMessage: 'Ad soyad 80 karakterden az olmalıdır.',
+  maxLengthMessage: 'Ad Soyad 80 karakterden uzun olamaz.',
 };
 
 const emailValidationProps = {

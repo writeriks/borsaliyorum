@@ -3,8 +3,8 @@ import { z } from 'zod';
 export const editProfileSchema = z.object({
   displayName: z
     .string()
-    .min(1, 'Ad Soyad boş olamaz')
-    .max(80, 'Ad Soyad 80 karakterden uzun olamaz'),
+    .min(5, 'Ad Soyad 5 karakterden az olamaz.')
+    .max(80, 'Ad Soyad 80 karakterden uzun olamaz.'),
   bio: z.string().optional(),
   location: z.string().optional(),
   profilePhoto: z.string().optional(),
