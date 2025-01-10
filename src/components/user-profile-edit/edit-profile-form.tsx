@@ -46,7 +46,7 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({ editProfilePro
       location: location || '',
       birthday: birthday ? new Date(birthday).toISOString().split('T')[0] : '',
       website: website || '',
-      username: username || '',
+      username: username,
       profilePhoto: profilePhoto || '',
     },
   });

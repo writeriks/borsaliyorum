@@ -10,7 +10,7 @@ export const editProfileSchema = z.object({
   profilePhoto: z.string().optional(),
   birthday: z.string().optional(),
   website: z.string().optional(),
-  username: z.string(),
+  username: z.string().optional(),
 });
 
 export type EditProfileFormValues = z.infer<typeof editProfileSchema>;
