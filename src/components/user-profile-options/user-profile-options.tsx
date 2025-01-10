@@ -40,7 +40,7 @@ const UserProfileOptions = (): React.ReactNode => {
         router.push(`/users/${user.username}`);
         break;
       case 'edit-profile':
-        // TODO: route to edit profile
+        router.push(`/edit-profile`);
         break;
       case 'logout':
         logout();

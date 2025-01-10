@@ -6,22 +6,34 @@ import { useDispatch, useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
 import UserAvatar from '@/components/user-avatar/user-avatar';
-import { setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
+import { setIsAuthModalOpen, toggleHamburgerMenuOpen } from '@/store/reducers/ui-reducer/ui-slice';
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
 import { LoadingSkeletons } from '@/app/constants';
 import LoginContainer from '@/components/user-profile-options/login-container';
 import UserSettings from '@/components/user-profile-options/user-settings';
 import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
 
 const UserProfileOptionsMobile = (): React.ReactNode => {
   const dispatch = useDispatch();
   const user = useSelector(userReducerSelector.getUser);
   const isAuthLoading = useSelector(uiReducerSelector.getIsAuthLoading);
   const t = useTranslations('userProfileOptions.UserProfileOptionsMobile');
+  const router = useRouter();
 
   const logout = async (): Promise<void> => {
     await firebaseAuthService.signOut();
     dispatch(setIsAuthModalOpen(false));
+  };
+
+  const handleProfileClick = (): void => {
+    dispatch(toggleHamburgerMenuOpen());
+    router.push(`/users/${user.username}`);
+  };
+
+  const handleEditProfileClick = (): void => {
+    dispatch(toggleHamburgerMenuOpen());
+    router.push(`/edit-profile`);
   };
 
   return isAuthLoading ? (
@@ -31,7 +43,7 @@ const UserProfileOptionsMobile = (): React.ReactNode => {
       {user.username ? (
         <div className='w-full h-full flex flex-col p-1'>
           <div>
-            <div className='flex'>
+            <div className='flex' onClick={handleProfileClick}>
               <UserAvatar
                 user={{
                   profilePhoto: user.profilePhoto ?? '',
@@ -47,6 +59,7 @@ const UserProfileOptionsMobile = (): React.ReactNode => {
             <Button
               variant='secondary'
               className='w-full justify-start bg-transparent dark:bg-transparent dark:hover:bg-accent'
+              onClick={handleEditProfileClick}
             >
               <UserCog className='mr-2 h-4 w-4' /> {t('editProfile')}
             </Button>

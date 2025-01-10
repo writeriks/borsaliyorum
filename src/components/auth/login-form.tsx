@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Eye, EyeOff } from 'lucide-react';
-import { loginFormSchema } from '@/components/auth/auth-service/common-auth';
+import { loginFormSchema } from '@/components/auth/auth-form-schema';
 
 interface LoginFormProps {
   isLoading: boolean;
