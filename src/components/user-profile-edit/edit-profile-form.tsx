@@ -26,27 +26,28 @@ import { Plus } from 'lucide-react';
 import { Icons } from '@/components/ui/icons';
 
 interface EditProfileFormProps {
-  initialValues?: EditProfileFormValues;
+  editProfileProps: EditProfileFormValues;
 }
 
-export const EditProfileForm = ({ initialValues }: EditProfileFormProps): React.ReactNode => {
+export const EditProfileForm: React.FC<EditProfileFormProps> = ({ editProfileProps }) => {
   const [imageData, setImageData] = useState<string>('');
   const dispatch = useDispatch();
   const t = useTranslations();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const { displayName, bio, birthday, location, profilePhoto, username, website } =
+    editProfileProps;
+
   const form = useForm<EditProfileFormValues>({
     resolver: zodResolver(editProfileSchema),
     defaultValues: {
-      displayName: initialValues?.displayName || '',
-      bio: initialValues?.bio || '',
-      location: initialValues?.location || '',
-      birthday: initialValues?.birthday
-        ? new Date(initialValues?.birthday).toISOString().split('T')[0]
-        : '',
-      website: initialValues?.website || '',
-      username: initialValues?.username || '',
-      profilePhoto: initialValues?.profilePhoto || '',
+      displayName: displayName || '',
+      bio: bio || '',
+      location: location || '',
+      birthday: birthday ? new Date(birthday).toISOString().split('T')[0] : '',
+      website: website || '',
+      username: username || '',
+      profilePhoto: profilePhoto || '',
     },
   });
 
@@ -75,15 +76,15 @@ export const EditProfileForm = ({ initialValues }: EditProfileFormProps): React.
     mutation.mutate({
       formData: {
         ...values,
-        profilePhoto: imageData || initialValues?.profilePhoto,
+        profilePhoto: imageData || editProfileProps?.profilePhoto,
       },
     });
   };
 
   const defaultProfilePhoto =
     'https://firebasestorage.googleapis.com/v0/b/borsa-yorum-dev.appspot.com/o/images%2Fprofile-icon-placeholder.png?alt=media&token=df8f3c1b-23e6-4704-8d6e-da45096bafc6';
-  const proxyUrl = initialValues?.profilePhoto
-    ? `/api/image-proxy?imageUrl=${encodeURIComponent(initialValues?.profilePhoto)}`
+  const proxyUrl = editProfileProps?.profilePhoto
+    ? `/api/image-proxy?imageUrl=${encodeURIComponent(editProfileProps?.profilePhoto)}`
     : `/api/image-proxy?imageUrl=${encodeURIComponent(defaultProfilePhoto)}`;
 
   const imageNode = imageData ? (

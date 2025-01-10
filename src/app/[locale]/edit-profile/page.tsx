@@ -9,19 +9,19 @@ interface EditProfilePageProps {
 const EditProfilePage = async ({ currentUser }: EditProfilePageProps): Promise<React.ReactNode> => {
   const { displayName, bio, location, birthday, profilePhoto, website, username } = currentUser;
 
-  const initialValues = {
+  const editProfileProps = {
     displayName,
-    bio,
-    location,
-    birthday,
-    website,
+    bio: bio ?? undefined,
+    birthday: birthday?.toISOString().split('T')[0] ?? undefined,
+    location: location ?? undefined,
+    profilePhoto: profilePhoto ?? undefined,
     username,
-    profilePhoto,
+    website: website ?? undefined,
   };
 
   return (
     <div className='container mx-auto px-4 py-8 sm:w-8/12'>
-      <EditProfileForm initialValues={initialValues as any} />
+      <EditProfileForm editProfileProps={editProfileProps} />
     </div>
   );
 };
