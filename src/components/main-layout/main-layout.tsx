@@ -56,7 +56,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
   return (
     <>
       <main className='flex-column w-full text-base'>
-        <div className='md:container mx-auto'>
+        <div className='xl:container mx-auto'>
           <NavigationBar />
 
           <div id='main-container' className='flex flex-col md:flex-row lg:flex-row'>
@@ -64,10 +64,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
             {isHamburgerMenuOpen && (
               <div className='bg-black bg-opacity-50 fixed z-40 w-screen h-screen'></div>
             )}
-            <div
-              id='left-section'
-              className='hidden md:flex md:min-w-64 lg:flex flex-col lg:min-w-64 ml-2'
-            >
+            <div id='left-section' className='hidden md:min-w-52 lg:flex flex-col lg:min-w-64 ml-2'>
               <UserProfileOptions />
 
               {currentUser?.displayName && (
@@ -94,7 +91,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
               />
 
               {currentUser?.email && (
-                <div className='md:hidden'>
+                <div className='lg:hidden'>
                   <div className='bottom-[60px] right-0 fixed'>
                     <NewPostTriggerMobile />
                   </div>
