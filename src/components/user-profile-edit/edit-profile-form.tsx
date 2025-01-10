@@ -26,7 +26,7 @@ import { Plus } from 'lucide-react';
 import { Icons } from '@/components/ui/icons';
 
 interface EditProfileFormProps {
-  initialValues?: Partial<EditProfileFormValues>;
+  initialValues?: EditProfileFormValues;
 }
 
 export const EditProfileForm = ({ initialValues }: EditProfileFormProps): React.ReactNode => {
@@ -80,6 +80,12 @@ export const EditProfileForm = ({ initialValues }: EditProfileFormProps): React.
     });
   };
 
+  const defaultProfilePhoto =
+    'https://firebasestorage.googleapis.com/v0/b/borsa-yorum-dev.appspot.com/o/images%2Fprofile-icon-placeholder.png?alt=media&token=df8f3c1b-23e6-4704-8d6e-da45096bafc6';
+  const proxyUrl = initialValues?.profilePhoto
+    ? `/api/image-proxy?imageUrl=${encodeURIComponent(initialValues?.profilePhoto)}`
+    : `/api/image-proxy?imageUrl=${encodeURIComponent(defaultProfilePhoto)}`;
+
   const imageNode = imageData ? (
     <Image
       src={imageData}
@@ -91,10 +97,7 @@ export const EditProfileForm = ({ initialValues }: EditProfileFormProps): React.
   ) : (
     <div className='w-full h-full rounded-full bg-gray-200 flex items-center justify-center'>
       <Image
-        src={
-          initialValues?.profilePhoto ||
-          'https://firebasestorage.googleapis.com/v0/b/borsa-yorum-dev.appspot.com/o/images%2Fprofile-icon-placeholder.png?alt=media&token=df8f3c1b-23e6-4704-8d6e-da45096bafc6'
-        }
+        src={proxyUrl}
         width={100}
         height={100}
         alt={t('EditProfile.imagePreviewAlt')}
