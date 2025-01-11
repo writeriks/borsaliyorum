@@ -1,4 +1,7 @@
+import { cn } from '@/lib/utils';
+import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
 import React, { useEffect, useRef, memo } from 'react';
+import { useSelector } from 'react-redux';
 
 interface SymbolOverviewWidgetProps {
   ticker: string;
@@ -6,6 +9,7 @@ interface SymbolOverviewWidgetProps {
 
 const SymbolOverviewWidget: React.FC<SymbolOverviewWidgetProps> = ({ ticker }) => {
   const container = useRef<HTMLDivElement>(null);
+  const isHamburgerMenuOpen = useSelector(uiReducerSelector.getIsHamburgerMenuOpen);
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -60,7 +64,13 @@ const SymbolOverviewWidget: React.FC<SymbolOverviewWidgetProps> = ({ ticker }) =
   }, []);
 
   return (
-    <div className='tradingview-widget-container' ref={container}>
+    <div
+      className={cn(
+        'tradingview-widget-container',
+        isHamburgerMenuOpen ? 'pointer-events-none' : ''
+      )}
+      ref={container}
+    >
       <div className='tradingview-widget-container__widget'></div>
     </div>
   );

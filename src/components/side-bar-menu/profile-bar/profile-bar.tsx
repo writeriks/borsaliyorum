@@ -6,7 +6,7 @@ const ProfileBar: React.FC = () => {
   return (
     <>
       <ul className='flex h-full w-full flex-col items-center space-y-4'>
-        <li className='mt-16'>
+        <li>
           <UserProfileOptionsMobile />
         </li>
       </ul>

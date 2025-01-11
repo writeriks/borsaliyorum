@@ -17,8 +17,8 @@ const FollowButton: React.FC<FollowButtonProps> = ({ isFollowing, toggleFollow }
 
   // TODO: Consider to update button styling
   return (
-    <Button onClick={toggleFollow} className='rounded-2xl bg-primary h-8 font-bold'>
-      <span className='text-sm bold'>{buttonLabel}</span>
+    <Button onClick={toggleFollow} className='rounded-2xl md:w-24 w-20 bg-primary h-8 font-bold'>
+      <span className='text-xs md:text-sm bold'>{buttonLabel}</span>
     </Button>
   );
 };

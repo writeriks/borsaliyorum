@@ -11,7 +11,7 @@ interface UserFeedProps {
 
 const UserProfile: React.FC<UserFeedProps> = ({ user }) => {
   return (
-    <div className='flex min-w-full justify-around'>
+    <div className='flex min-w-full md:justify-around'>
       <div className='flex flex-col w-full max-w-2xl '>
         <UserProfileCard user={user} />
         <Feed user={user} />
