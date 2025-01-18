@@ -14,28 +14,20 @@ import { useDispatch } from 'react-redux';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
-import { ActiveScreen, LoadingSkeletons } from '@/app/constants';
+import { LoadingSkeletons } from '@/app/constants';
 import { Icons } from '@/components/ui/icons';
 import { Comment as CommentType, Post as PostType, User } from '@prisma/client';
 import { useTranslations } from 'next-intl';
-import { useRouter } from '@/i18n/routing';
 
 export interface PostDetailProp {
   post: PostType;
   onPostDelete: (postId: number) => void;
   onBackClick?: () => void;
-  setActiveScreen: (activeScreen: ActiveScreen) => void;
 }
-const PostDetail: React.FC<PostDetailProp> = ({
-  post,
-  onBackClick,
-  onPostDelete,
-  setActiveScreen,
-}) => {
+const PostDetail: React.FC<PostDetailProp> = ({ post, onBackClick, onPostDelete }) => {
   const { currentUser } = useUser();
   const dispatch = useDispatch();
   const t = useTranslations();
-  const router = useRouter();
 
   const [comments, setComments] = useState<CommentType[]>([]);
   const [newCommentsByUser, setNewCommentsByUser] = useState<CommentType[]>([]);
@@ -117,12 +109,6 @@ const PostDetail: React.FC<PostDetailProp> = ({
     setComments([...filteredComments]);
   };
 
-  const handleCommentorClick = (commentor: User): void => {
-    console.log('🚀 ~ handleCommentorClick ~ commentor:', commentor);
-    setActiveScreen(ActiveScreen.FEED);
-    router.push(`/users/${commentor?.username}`);
-  };
-
   return (
     <div className='flex flex-col w-full max-w-2xl '>
       {post ? (
@@ -146,7 +132,6 @@ const PostDetail: React.FC<PostDetailProp> = ({
               onCommentClick={handleCommentClick}
               key={comment.commentId}
               comment={comment}
-              onCommentorClick={handleCommentorClick}
             />
           ))}
           {comments.length && lastCommentId ? (

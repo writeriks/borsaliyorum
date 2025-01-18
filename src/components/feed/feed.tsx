@@ -37,7 +37,6 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
   const tickerWithoutDollarSign = stock?.ticker;
 
   const newPostId = useRef<string | null>(new URLSearchParams(window.location.search).get('post'));
-  console.log('🚀 ~ newPostId:', newPostId);
 
   const { refetch: getPostById } = useQuery({
     queryKey: ['get-post-by-id', newPostId.current],
@@ -251,7 +250,6 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
           onPostDelete={handlePostDelete}
           onBackClick={handlePostDetailBackClick}
           post={selectedPost!}
-          setActiveScreen={setActiveScreen}
         />
       )}
     </>
