@@ -12,14 +12,21 @@ import userApiService from '@/services/api-service/user-api-service/user-api-ser
 import { Comment as CommentType, User } from '@prisma/client';
 import { useRouter } from '@/i18n/routing';
 import UrlContentPreview from '@/components/content-preview/content-preview';
+import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
 
 interface CommentProp {
   comment: CommentType;
   onCommentClick: (commentor: User) => void;
   onDeleteClick: (commentId: number) => void;
+  onCommentorClick: (commentor: User) => void;
 }
 
-const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick }) => {
+const Comment: React.FC<CommentProp> = ({
+  comment,
+  onCommentClick,
+  onDeleteClick,
+  onCommentorClick,
+}) => {
   const currentUser = useSelector(userReducerSelector.getUser);
   const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(comment.mediaUrl ?? '')}`;
 
@@ -28,21 +35,38 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick
     queryFn: async () => await userApiService.getEntryOwner(comment.userId),
   });
 
-  const router = useRouter();
-
   return (
     <Card className='w-full hover:bg-accent cursor-pointer mt-1'>
       <CardContent className='p-4 flex flex-col items-start gap-4'>
         <div className='flex items-start gap-4 w-full'>
           {commentor && (
             <UserAvatar
-              onUserAvatarClick={() => router.push(`/users/${commentor.username}`)}
+              onUserAvatarClick={() => onCommentorClick(commentor as User)}
               user={commentor}
             />
           )}
           <div className='space-y-1 flex-1'>
-            <div className='text-sm font-bold'>{commentor?.displayName}</div>
-            <div className='text-xs text-muted-foreground'>{commentor?.username}</div>
+            <div className='text-sm font-bold'>
+              <a
+                className='hover:underline cursor-pointer'
+                onClick={() => onCommentorClick(commentor as User)}
+              >
+                {commentor?.displayName}
+              </a>
+            </div>
+            <div className='text-xs text-muted-foreground'>
+              <a
+                className='hover:underline cursor-pointer'
+                onClick={() => onCommentorClick(commentor as User)}
+              >
+                <span className='mr-1'>{commentor?.username}</span>
+              </a>
+
+              <span className='font-bold'> · </span>
+              <TooltipWithEllipsis tooltipText={comment.createdAt.toString()}>
+                <span className='ml-1 hover:underline'>{`${comment.createdAt}`}</span>
+              </TooltipWithEllipsis>
+            </div>
           </div>
           <EntryOptions
             isFollowed={commentor?.isUserFollowed ?? false}

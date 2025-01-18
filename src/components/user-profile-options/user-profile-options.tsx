@@ -8,8 +8,8 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
-import { useDispatch, useSelector } from 'react-redux';
-import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
+import { useDispatch } from 'react-redux';
+
 import UserAvatar from '@/components/user-avatar/user-avatar';
 import { setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
@@ -23,8 +23,8 @@ import LoginContainer from '@/components/user-profile-options/login-container';
 
 const UserProfileOptions = (): React.ReactNode => {
   const dispatch = useDispatch();
-  const { user } = useUser();
-  const isAuthLoading = useSelector(uiReducerSelector.getIsAuthLoading);
+  const { currentUser, isLoading } = useUser();
+
   const t = useTranslations('userProfileOptions.UserProfileOptions');
 
   const router = useRouter();
@@ -37,7 +37,7 @@ const UserProfileOptions = (): React.ReactNode => {
   const onProfileSelectChange = (value: string): void => {
     switch (value) {
       case 'view-profile':
-        router.push(`/users/${user.username}`);
+        router.push(`/users/${currentUser?.username}`);
         break;
       case 'edit-profile':
         router.push(`/edit-profile`);
@@ -50,14 +50,14 @@ const UserProfileOptions = (): React.ReactNode => {
     }
   };
 
-  return isAuthLoading ? (
+  return isLoading ? (
     <LoadingSkeleton type={LoadingSkeletons.USER_PROFILE} />
   ) : (
     <div
       id='user-profile-section'
       className='flex flex-col top-[60px] h-[170px] sticky bg-background z-50'
     >
-      {user.username ? (
+      {currentUser?.username ? (
         <div className='w-full h-full flex flex-col p-1'>
           <div>
             <Select onValueChange={onProfileSelectChange}>
@@ -65,19 +65,19 @@ const UserProfileOptions = (): React.ReactNode => {
                 <div className='flex items-center'>
                   <UserAvatar
                     user={{
-                      profilePhoto: user.profilePhoto ?? '',
-                      displayName: user.displayName,
-                      username: user.username,
+                      profilePhoto: currentUser?.profilePhoto ?? '',
+                      displayName: currentUser?.displayName ?? '',
+                      username: currentUser?.username ?? '',
                     }}
                   />
                   <div className='ml-2 flex flex-col items-start break-words'>
                     <TooltipWithEllipsis
-                      tooltipText={user.displayName}
+                      tooltipText={currentUser?.displayName ?? ''}
                       className='text-sm'
                       tooltipSide='bottom'
                     />
                     <TooltipWithEllipsis
-                      tooltipText={user.username}
+                      tooltipText={currentUser?.username ?? ''}
                       className='text-xs'
                       tooltipSide='bottom'
                     />

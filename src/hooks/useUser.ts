@@ -22,6 +22,7 @@ const useUser = (): {
   user: UserState;
   fbAuthUser: FBAuthUserType | null;
   currentUser: Partial<User> | null;
+  isLoading: boolean;
 } => {
   const dispatch = useDispatch();
   const userState = useSelector(userReducerSelector.getUser);
@@ -128,7 +129,7 @@ const useUser = (): {
     }
   }, [currentUser?.email, refetch]);
 
-  return { user: userState, currentUser, fbAuthUser };
+  return { user: userState, currentUser, fbAuthUser, isLoading };
 };
 
 export default useUser;

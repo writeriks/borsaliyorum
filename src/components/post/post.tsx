@@ -80,12 +80,18 @@ const Post: React.FC<PostProp> = ({ post, onPostClick, onDeleteClick }) => {
           )}
           <div className='space-y-1 flex-1'>
             <div className='text-sm font-bold'>
-              <a className='hover:underline' href={`/users/${postOwner?.username}`}>
+              <a
+                className='hover:underline cursor-pointer'
+                onClick={() => router.push(`/users/${postOwner?.username}`)}
+              >
                 {postOwner?.displayName ?? landingPagePostUser?.displayName}
               </a>
             </div>
             <div className='text-xs text-muted-foreground'>
-              <a className='hover:underline' href={`/users/${postOwner?.username}`}>
+              <a
+                className='hover:underline cursor-pointer'
+                onClick={() => router.push(`/users/${postOwner?.username}`)}
+              >
                 <span className='mr-1'>{postOwner?.username ?? landingPagePostUser?.username}</span>
               </a>
 

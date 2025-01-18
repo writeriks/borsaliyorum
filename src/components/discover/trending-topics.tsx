@@ -11,6 +11,7 @@ import contextReducerSelector from '@/store/reducers/context-reducer/context-red
 import { TrendingTopicsType } from '@/services/tag-service/constants';
 import tagService from '@/services/tag-service/tag-service';
 import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
+import { useRouter } from '@/i18n/routing';
 
 interface TrendingTopicsProps {
   trends: TrendingTopicsType;
@@ -19,13 +20,13 @@ interface TrendingTopicsProps {
 const TrendingTopics: React.FC<TrendingTopicsProps> = ({ trends }) => {
   const isMobile = useSelector(contextReducerSelector.getIsMobile);
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const handleTagClick = (tag: string): void => {
     if (isMobile) {
       dispatch(toggleHamburgerMenuOpen());
     }
-
-    tagService.navigateToPageByTagName(tag);
+    tagService.navigateToPageByTagName(tag, router);
   };
   return (
     <div id='discovery'>

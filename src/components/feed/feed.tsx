@@ -29,7 +29,7 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
   const [lastPostIdForLike, setLastPostIdForLike] = useState('');
   const [activeScreen, setActiveScreen] = useState(ActiveScreen.FEED);
 
-  const { fbAuthUser } = useUser();
+  const { currentUser } = useUser();
   const dispatch = useDispatch();
 
   const { saveScrollPosition } = useScrollToLastPosition(activeScreen);
@@ -37,6 +37,7 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
   const tickerWithoutDollarSign = stock?.ticker;
 
   const newPostId = useRef<string | null>(new URLSearchParams(window.location.search).get('post'));
+  console.log('🚀 ~ newPostId:', newPostId);
 
   const { refetch: getPostById } = useQuery({
     queryKey: ['get-post-by-id', newPostId.current],
@@ -215,7 +216,7 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
   }, [activeScreen, handlePostDetailBackClick]);
 
   useEffect(() => {
-    if (!fbAuthUser) return;
+    if (!currentUser) return;
 
     if (newPostId.current) {
       (async () => {
@@ -228,7 +229,7 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
     }
     mutation.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fbAuthUser]);
+  }, [currentUser]);
 
   return (
     <>
@@ -250,6 +251,7 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
           onPostDelete={handlePostDelete}
           onBackClick={handlePostDetailBackClick}
           post={selectedPost!}
+          setActiveScreen={setActiveScreen}
         />
       )}
     </>
