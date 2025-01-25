@@ -60,6 +60,24 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
     },
   });
 
+  const handleOnError = (error: Error): void => {
+    dispatch(
+      setUINotification({
+        message: error.message ?? t('Common.errorMessage'),
+        notificationType: UINotificationEnum.ERROR,
+      })
+    );
+  };
+
+  const handleOnSuccess = (): void => {
+    dispatch(
+      setUINotification({
+        message: t('Settings.successMessage'),
+        notificationType: UINotificationEnum.SUCCESS,
+      })
+    );
+  };
+
   const deleteAccountMutation = useMutation({
     mutationFn: () => userApiService.deleteUser(),
     onSuccess: () => {
@@ -67,46 +85,35 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
         await userApiService.logOutUser();
       }, 500);
     },
-    onError: error => {
-      dispatch(
-        setUINotification({
-          message: error.message ?? t('Common.errorMessage'),
-          notificationType: UINotificationEnum.ERROR,
-        })
-      );
+    onError: handleOnError,
+  });
+
+  const updateUsernameMutation = useMutation({
+    mutationFn: async (username: string) => {
+      await userApiService.updateUsername(username);
+    },
+    onError: handleOnError,
+    onSuccess: () => {
+      handleOnSuccess();
+      setIsChangingUsername(false);
     },
   });
 
   const updateSettingsMutation = useMutation({
-    mutationFn: async ({ email: newUserEmail, newPassword, username }: SettingsFormValues) => {
-      if (isChangingEmail && newUserEmail) {
-        await userApiService.updateUserEmail(newUserEmail, email!, currentPasswordFromModal!);
+    mutationFn: async ({ email: newUserEmail, newPassword }: SettingsFormValues) => {
+      if (isChangingEmail && currentPasswordFromModal && newUserEmail) {
+        await userApiService.updateUserEmail(newUserEmail, email!, currentPasswordFromModal);
       }
       if (isChangingPassword && currentPasswordFromModal && newPassword) {
         await userApiService.updateUserPassword(currentPasswordFromModal, newPassword, email!);
       }
-      if (isChangingUsername && username) {
-        await userApiService.updateUsername(username);
-      }
     },
-    onError: error => {
-      dispatch(
-        setUINotification({
-          message: error.message ?? t('Common.errorMessage'),
-          notificationType: UINotificationEnum.ERROR,
-        })
-      );
-    },
+    onError: handleOnError,
     onSuccess: () => {
-      dispatch(
-        setUINotification({
-          message: t('Settings.successMessage'),
-          notificationType: UINotificationEnum.SUCCESS,
-        })
-      );
-      setIsChangingEmail(false);
-      setIsChangingPassword(false);
-      setIsChangingUsername(false);
+      handleOnSuccess();
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
     },
   });
 
@@ -125,7 +132,15 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
     }
   };
 
-  const handleFormSubmit = async (formValues: SettingsFormValues): Promise<void> => {
+  const handleUsernameSubmit = async (): Promise<void> => {
+    const isValid = await form.trigger('username');
+    if (isValid) {
+      updateUsernameMutation.mutate(form.getValues().username);
+    }
+  };
+
+  const handleFormSubmit = async (): Promise<void> => {
+    const formValues = form.getValues();
     if (isChangingEmail && formValues.email === email) {
       form.setError('email', {
         type: 'manual',
@@ -135,13 +150,6 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
       return;
     } else {
       form.clearErrors('email');
-    }
-
-    if (isChangingUsername) {
-      const isValidUsername = await form.trigger('username');
-      if (!isValidUsername) {
-        return;
-      }
     }
 
     if (isChangingPassword && formValues.newPassword === currentPasswordFromModal) {
@@ -155,9 +163,75 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
     updateSettingsMutation.mutate(formValues);
   };
 
+  const renderField = ({
+    label,
+    fieldName,
+    type = 'text',
+    isEditing,
+    disabled = false,
+    hideSaveButton = false,
+    hideCancelButton = false,
+    onToggleEdit,
+    onSave,
+    isLoading,
+    control,
+    t: translate,
+  }: {
+    label: string;
+    fieldName: keyof SettingsFormValues;
+    type?: string;
+    isEditing: boolean;
+    disabled?: boolean;
+    hideSaveButton?: boolean;
+    hideCancelButton?: boolean;
+    onToggleEdit?: () => void;
+    onSave: () => void;
+    isLoading: boolean;
+    control: any;
+    t: any;
+  }): React.ReactNode => (
+    <FormField
+      control={control}
+      name={fieldName}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{translate(label)}</FormLabel>
+          <div className='flex items-center space-x-2'>
+            <FormControl>
+              <Input type={type} {...field} disabled={!isEditing || disabled} />
+            </FormControl>
+            {isEditing && !hideSaveButton && (
+              <Button
+                className='hover:bg-blue-500 hover:text-white bg-bluePrimary text-white'
+                type='button'
+                onClick={onSave}
+              >
+                {isLoading ? (
+                  <>
+                    <Icons.spinner className='mr-2 h-4 w-4 animate-spin' />
+                    <span>{translate('Settings.saving')}</span>
+                  </>
+                ) : (
+                  <span>{translate('Settings.save')}</span>
+                )}
+              </Button>
+            )}
+            {!hideCancelButton && (
+              <Button variant='link' type='button' onClick={onToggleEdit}>
+                {isEditing ? translate('Settings.cancel') : translate('Settings.change')}
+              </Button>
+            )}
+          </div>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+
   return (
     <>
       <h1 className='text-2xl font-bold mb-4'>{t('Settings.settings')}</h1>
+
       {isGoogleSignIn && (
         <Alert className='mb-2' variant='warning'>
           <TriangleAlertIcon color='#E9E4B3' className='h-4 w-4' />
@@ -165,168 +239,102 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
           <AlertDescription className='text-xs'>{t('Settings.googleSignInInfo')}</AlertDescription>
         </Alert>
       )}
+
       <Form {...form}>
         <form className='space-y-4'>
-          <FormField
-            control={form.control}
-            name='username'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('Common.username')}</FormLabel>
-                <div className='flex items-center space-x-2'>
-                  <FormControl>
-                    <Input type='text' {...field} disabled={!isChangingUsername} />
-                  </FormControl>
-
-                  {isChangingUsername && (
-                    <Button
-                      className=' hover:bg-blue-500 hover:text-white bg-bluePrimary text-white'
-                      type='button'
-                      onClick={() => handleFormSubmit(form.getValues())}
-                    >
-                      {updateSettingsMutation.isPending ? (
-                        <>
-                          <Icons.spinner className='mr-2 h-4 w-4 animate-spin' />
-                          <span>{t('Settings.saving')}</span>
-                        </>
-                      ) : (
-                        <span>{t('Settings.save')}</span>
-                      )}
-                    </Button>
-                  )}
-
-                  <Button
-                    variant='link'
-                    type='button'
-                    onClick={() => setIsChangingUsername(!isChangingUsername)}
-                  >
-                    {isChangingUsername ? t('Settings.cancel') : t('Settings.change')}
-                  </Button>
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {renderField({
+            label: 'Common.username',
+            fieldName: 'username',
+            isEditing: isChangingUsername,
+            onToggleEdit: () => {
+              form.clearErrors('username');
+              form.setValue('username', usernameFromProp);
+              setIsChangingUsername(!isChangingUsername);
+            },
+            onSave: () => {
+              handleUsernameSubmit();
+            },
+            isLoading: updateUsernameMutation.isPending,
+            control: form.control,
+            t,
+          })}
 
           {!isGoogleSignIn && (
             <>
-              <FormField
-                control={form.control}
-                name='email'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('Common.email')}</FormLabel>
-                    <div className='flex items-center space-x-2'>
-                      <FormControl>
-                        <Input
-                          type='email'
-                          {...field}
-                          disabled={!isChangingEmail || isGoogleSignIn}
-                        />
-                      </FormControl>
-                      {
-                        <>
-                          {isChangingEmail && (
-                            <Button
-                              className=' hover:bg-blue-500 hover:text-white bg-bluePrimary text-white'
-                              type='button'
-                              onClick={openPasswordModal}
-                            >
-                              {updateSettingsMutation.isPending ? (
-                                <>
-                                  <Icons.spinner className='mr-2 h-4 w-4 animate-spin' />
-                                  <span>{t('Settings.saving')}</span>
-                                </>
-                              ) : (
-                                <span>{t('Settings.save')}</span>
-                              )}
-                            </Button>
-                          )}
+              {renderField({
+                label: 'Common.email',
+                fieldName: 'email',
+                type: 'email',
+                isEditing: isChangingEmail,
+                onToggleEdit: () => {
+                  form.clearErrors('email');
+                  form.setValue('email', email);
+                  if (isChangingEmail) {
+                    setIsChangingEmail(false);
+                  } else {
+                    // user cannot change email and password at the same time
+                    setIsChangingEmail(true);
+                    setIsChangingPassword(false);
+                  }
+                },
+                onSave: openPasswordModal,
+                isLoading: updateSettingsMutation.isPending,
+                control: form.control,
+                t,
+                disabled: isGoogleSignIn,
+              })}
 
-                          <Button
-                            variant='link'
-                            type='button'
-                            onClick={() => setIsChangingEmail(!isChangingEmail)}
-                          >
-                            {isChangingEmail ? t('Settings.cancel') : t('Settings.change')}
-                          </Button>
-                        </>
-                      }
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {!isChangingPassword && (
+              {!isChangingPassword ? (
                 <FormItem>
                   <FormLabel>{t('Settings.currentPassword')}</FormLabel>
                   <div className='flex items-center space-x-2'>
-                    <Input type='password' value={isChangingPassword ? '' : '********'} disabled />
+                    <Input type='password' value='********' disabled />
                     <Button
                       variant='link'
                       type='button'
-                      onClick={() => setIsChangingPassword(true)}
+                      onClick={() => {
+                        // user cannot change email and password at the same time
+                        setIsChangingPassword(true);
+                        setIsChangingEmail(false);
+                      }}
                     >
                       {t('Settings.change')}
                     </Button>
                   </div>
                 </FormItem>
-              )}
-
-              {isChangingPassword && (
+              ) : (
                 <>
-                  <FormField
-                    control={form.control}
-                    name='newPassword'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('Settings.newPassword')}</FormLabel>
-                        <FormControl>
-                          <Input type='password' {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name='confirmPassword'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('Settings.confirmPassword')}</FormLabel>
-                        <div className='flex items-center space-x-2'>
-                          <FormControl>
-                            <Input type='password' {...field} />
-                          </FormControl>
-                          <Button
-                            className=' hover:bg-blue-500 hover:text-white bg-bluePrimary text-white'
-                            type='button'
-                            onClick={openPasswordModal}
-                          >
-                            {updateSettingsMutation.isPending ? (
-                              <>
-                                <Icons.spinner className='mr-2 h-4 w-4 animate-spin' />
-                                <span>{t('Settings.saving')}</span>
-                              </>
-                            ) : (
-                              <span>{t('Settings.save')}</span>
-                            )}
-                          </Button>{' '}
-                          <Button
-                            variant='link'
-                            type='button'
-                            onClick={() => setIsChangingPassword(false)}
-                          >
-                            {t('Settings.cancel')}
-                          </Button>
-                        </div>
-
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {renderField({
+                    label: 'Settings.newPassword',
+                    fieldName: 'newPassword',
+                    hideCancelButton: true,
+                    hideSaveButton: true,
+                    type: 'password',
+                    isEditing: true,
+                    onSave: openPasswordModal,
+                    isLoading: updateSettingsMutation.isPending,
+                    control: form.control,
+                    t,
+                  })}
+                  {renderField({
+                    label: 'Settings.confirmPassword',
+                    fieldName: 'confirmPassword',
+                    type: 'password',
+                    isEditing: true,
+                    onSave: openPasswordModal,
+                    onToggleEdit: () => {
+                      form.clearErrors('newPassword');
+                      form.clearErrors('confirmPassword');
+                      form.setValue('newPassword', '');
+                      form.setValue('confirmPassword', '');
+                      if (isChangingPassword) {
+                        setIsChangingPassword(false);
+                      }
+                    },
+                    isLoading: updateSettingsMutation.isPending,
+                    control: form.control,
+                    t,
+                  })}
                 </>
               )}
             </>
@@ -349,16 +357,18 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
           </Button>
         </form>
       </Form>
+
       <ConfirmPasswordModal
         isOpen={isPasswordModalOpen}
         currentPassword={currentPasswordFromModal}
         onCurrentPasswordChange={setCurrentPasswordFromModal}
         onOpenChange={() => setIsPasswordModalOpen(!isPasswordModalOpen)}
         onConfirmPassword={() => {
-          handleFormSubmit(form.getValues());
+          handleFormSubmit();
           setIsPasswordModalOpen(false);
         }}
       />
+
       <DeleteAccountModal
         isOpen={isDeleteModalOpen}
         onConfirmDelete={() => deleteAccountMutation.mutate()}
