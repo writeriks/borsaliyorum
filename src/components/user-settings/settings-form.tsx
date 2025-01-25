@@ -208,117 +208,127 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
             )}
           />
 
-          <FormField
-            control={form.control}
-            name='email'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('Common.email')}</FormLabel>
-                <div className='flex items-center space-x-2'>
-                  <FormControl>
-                    <Input type='email' {...field} disabled={!isChangingEmail || isGoogleSignIn} />
-                  </FormControl>
-                  {!isGoogleSignIn && (
-                    <>
-                      {isChangingEmail && (
-                        <Button
-                          className=' hover:bg-blue-500 hover:text-white bg-bluePrimary text-white'
-                          type='button'
-                          onClick={openPasswordModal}
-                        >
-                          {updateSettingsMutation.isPending ? (
-                            <>
-                              <Icons.spinner className='mr-2 h-4 w-4 animate-spin' />
-                              <span>{t('Settings.saving')}</span>
-                            </>
-                          ) : (
-                            <span>{t('Settings.save')}</span>
-                          )}
-                        </Button>
-                      )}
-
-                      <Button
-                        variant='link'
-                        type='button'
-                        onClick={() => setIsChangingEmail(!isChangingEmail)}
-                      >
-                        {isChangingEmail ? t('Settings.cancel') : t('Settings.change')}
-                      </Button>
-                    </>
-                  )}
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {!isChangingPassword && (
-            <FormItem>
-              <FormLabel>{t('Settings.currentPassword')}</FormLabel>
-              <div className='flex items-center space-x-2'>
-                <Input type='password' value={isChangingPassword ? '' : '********'} disabled />
-                {!isGoogleSignIn && (
-                  <Button variant='link' type='button' onClick={() => setIsChangingPassword(true)}>
-                    {t('Settings.change')}
-                  </Button>
-                )}
-              </div>
-            </FormItem>
-          )}
-
-          {isChangingPassword && (
+          {!isGoogleSignIn && (
             <>
               <FormField
                 control={form.control}
-                name='newPassword'
+                name='email'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('Settings.newPassword')}</FormLabel>
-                    <FormControl>
-                      <Input type='password' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='confirmPassword'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('Settings.confirmPassword')}</FormLabel>
+                    <FormLabel>{t('Common.email')}</FormLabel>
                     <div className='flex items-center space-x-2'>
                       <FormControl>
-                        <Input type='password' {...field} />
+                        <Input
+                          type='email'
+                          {...field}
+                          disabled={!isChangingEmail || isGoogleSignIn}
+                        />
                       </FormControl>
-                      <Button
-                        className=' hover:bg-blue-500 hover:text-white bg-bluePrimary text-white'
-                        type='button'
-                        onClick={openPasswordModal}
-                      >
-                        {updateSettingsMutation.isPending ? (
-                          <>
-                            <Icons.spinner className='mr-2 h-4 w-4 animate-spin' />
-                            <span>{t('Settings.saving')}</span>
-                          </>
-                        ) : (
-                          <span>{t('Settings.save')}</span>
-                        )}
-                      </Button>{' '}
-                      <Button
-                        variant='link'
-                        type='button'
-                        onClick={() => setIsChangingPassword(false)}
-                      >
-                        {t('Settings.cancel')}
-                      </Button>
-                    </div>
+                      {
+                        <>
+                          {isChangingEmail && (
+                            <Button
+                              className=' hover:bg-blue-500 hover:text-white bg-bluePrimary text-white'
+                              type='button'
+                              onClick={openPasswordModal}
+                            >
+                              {updateSettingsMutation.isPending ? (
+                                <>
+                                  <Icons.spinner className='mr-2 h-4 w-4 animate-spin' />
+                                  <span>{t('Settings.saving')}</span>
+                                </>
+                              ) : (
+                                <span>{t('Settings.save')}</span>
+                              )}
+                            </Button>
+                          )}
 
+                          <Button
+                            variant='link'
+                            type='button'
+                            onClick={() => setIsChangingEmail(!isChangingEmail)}
+                          >
+                            {isChangingEmail ? t('Settings.cancel') : t('Settings.change')}
+                          </Button>
+                        </>
+                      }
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {!isChangingPassword && (
+                <FormItem>
+                  <FormLabel>{t('Settings.currentPassword')}</FormLabel>
+                  <div className='flex items-center space-x-2'>
+                    <Input type='password' value={isChangingPassword ? '' : '********'} disabled />
+                    <Button
+                      variant='link'
+                      type='button'
+                      onClick={() => setIsChangingPassword(true)}
+                    >
+                      {t('Settings.change')}
+                    </Button>
+                  </div>
+                </FormItem>
+              )}
+
+              {isChangingPassword && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name='newPassword'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Settings.newPassword')}</FormLabel>
+                        <FormControl>
+                          <Input type='password' {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='confirmPassword'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Settings.confirmPassword')}</FormLabel>
+                        <div className='flex items-center space-x-2'>
+                          <FormControl>
+                            <Input type='password' {...field} />
+                          </FormControl>
+                          <Button
+                            className=' hover:bg-blue-500 hover:text-white bg-bluePrimary text-white'
+                            type='button'
+                            onClick={openPasswordModal}
+                          >
+                            {updateSettingsMutation.isPending ? (
+                              <>
+                                <Icons.spinner className='mr-2 h-4 w-4 animate-spin' />
+                                <span>{t('Settings.saving')}</span>
+                              </>
+                            ) : (
+                              <span>{t('Settings.save')}</span>
+                            )}
+                          </Button>{' '}
+                          <Button
+                            variant='link'
+                            type='button'
+                            onClick={() => setIsChangingPassword(false)}
+                          >
+                            {t('Settings.cancel')}
+                          </Button>
+                        </div>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
             </>
           )}
 
