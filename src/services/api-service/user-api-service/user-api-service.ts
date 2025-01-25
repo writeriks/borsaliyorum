@@ -1,4 +1,12 @@
-import { User as FirebaseUser, deleteUser, updateEmail, updatePassword } from 'firebase/auth';
+import {
+  EmailAuthProvider,
+  User as FirebaseUser,
+  deleteUser,
+  reauthenticateWithCredential,
+  sendEmailVerification,
+  updateEmail,
+  updatePassword,
+} from 'firebase/auth';
 
 import { auth } from '../../firebase-service/firebase-config';
 
@@ -102,31 +110,68 @@ class UserApiService {
 
   /**
    * Updates the email address of the provided Firebase user.
-   * @param user - The Firebase user to update.
    * @param newEmail - The new email address to set.
+   * @param oldEmail - The old email address to set.
+   * @param currentPassword - The current password to set.
    */
-  updateUserEmail = async (user: FirebaseUser, newEmail: string): Promise<void> => {
+  updateUserEmail = async (
+    newEmail: string,
+    oldEmail: string,
+    currentPassword: string
+  ): Promise<void> => {
     try {
       if (auth.currentUser) {
-        await updateEmail(user, newEmail);
+        const credential = EmailAuthProvider.credential(oldEmail, currentPassword);
+        await reauthenticateWithCredential(auth.currentUser, credential);
+        await updateEmail(auth.currentUser, newEmail);
+        await this.updateUserProfile({
+          email: newEmail,
+        });
+        await sendEmailVerification(auth.currentUser);
       }
     } catch (error) {
       console.error('Error updating email:', error);
+      throw new Error('Eposta güncellenirken hata oluştu.');
+    }
+  };
+
+  /**
+   * Updates the username of the user.
+   * @param username - The new username to set.
+   */
+  updateUsername = async (username: string): Promise<void> => {
+    try {
+      if (auth.currentUser) {
+        await this.updateUserProfile({
+          username: username,
+        });
+      }
+    } catch (error: any) {
+      console.error('Error updating username:', error);
+      throw new Error(error.message || 'Kullanıcı adı güncellenirken hata oluştu.');
     }
   };
 
   /**
    * Updates the password of the provided Firebase user.
-   * @param user - The Firebase user to update.
+   * @param currentPassword - The current password to reauthenticate.
    * @param newPassword - The new password to set.
+   * @param email - The current email address to reauthenticate.
    */
-  updateUserPassword = async (user: FirebaseUser, newPassword: string): Promise<void> => {
+  updateUserPassword = async (
+    currentPassword: string,
+    newPassword: string,
+    email: string
+  ): Promise<void> => {
     try {
       if (auth.currentUser) {
-        await updatePassword(user, newPassword);
+        const credential = EmailAuthProvider.credential(email, currentPassword);
+        await reauthenticateWithCredential(auth.currentUser, credential);
+        await updatePassword(auth.currentUser, newPassword);
       }
     } catch (error) {
       console.error('Error updating password:', error);
+      throw new Error('Şifre güncellenirken hata oluştu.');
     }
   };
 
@@ -135,13 +180,18 @@ class UserApiService {
    * @param user - The Firebase user to delete.
    * @returns
    */
-  deleteUser = async (user: FirebaseUser): Promise<void> => {
+  deleteUser = async (): Promise<void> => {
     try {
       if (auth.currentUser) {
-        await deleteUser(user);
+        // delete user from db
+        await apiFetchProxy('user/delete-user', 'DELETE');
+
+        // delete user from firebase
+        await deleteUser(auth.currentUser);
       }
     } catch (error) {
       console.error('Error deleting user:', error);
+      throw new Error('Kullanıcı silinirken hata oluştu.');
     }
   };
 
@@ -225,28 +275,34 @@ class UserApiService {
    */
   updateUserProfile = async ({
     displayName,
+    username,
     bio,
     location,
     birthday,
     website,
     profilePhoto,
+    email,
   }: {
-    displayName: string;
-    bio: string;
-    location: string;
-    birthday: string;
-    website: string;
-    profilePhoto: File;
+    displayName?: string;
+    username?: string;
+    bio?: string;
+    location?: string;
+    birthday?: string;
+    website?: string;
+    profilePhoto?: File;
+    email?: string;
   }): Promise<boolean> => {
     if (auth.currentUser) {
       const requestBody = {
         user: {
           displayName,
+          username,
           bio,
           location,
           birthday,
           website,
           profilePhoto,
+          email,
         },
       };
 

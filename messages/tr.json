@@ -8,7 +8,10 @@
   },
   "Common": {
     "placeholder": "Ne düşünüyorsun?",
-    "errorMessage": "An error occurred."
+    "errorMessage": "An error occurred.",
+    "email": "E-posta",
+    "username": "Kullanıcı Adı",
+    "warning": "Uyarı"
   },
   "NewPost": {
     "successMessage": "Gönderi başarıyla oluşturuldu.",
@@ -58,6 +61,27 @@
   "followButton": {
     "follow": "Takip Et",
     "unfollow": "Takibi Bırak"
+  },
+  "Settings": {
+    "settings": "Ayarlar",
+    "sameEmailError": "Bu e-posta adresi zaten kullanımda.",
+    "change": "Değiştir",
+    "googleSignInInfo": "Google ile giriş yaptığınız için şifre veya e-posta adresinizi değiştiremezsiniz.",
+    "currentPassword": "Mevcut Şifre",
+    "samePasswordError": "Yeni şifre mevcut şifre ile aynı olamaz.",
+    "newPassword": "Yeni Şifre",
+    "confirmPassword": "Şifreyi Onayla",
+    "deletingAccount": "Hesabınız siliniyor...",
+    "deleteAccount": "Hesabı Sil",
+    "deleteAccountConfirmation": "Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+    "deleteAccountSuccess": "Hesabınız başarıyla silindi.",
+    "confirmPasswordModalTitle": "Şifrenizi onaylayın",
+    "confirmPasswordModalBody": "Bu işlemi gerçekleştirmek için şifrenizi onaylamanız gerekmektedir.",
+    "confirm": "Onayla",
+    "cancel": "İptal",
+    "successMessage": "Ayarlarınız başarıyla güncellendi.",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor"
   },
   "EditProfile": {
     "editProfile": "Profilini Düzenle",
