@@ -1,10 +1,18 @@
 import { Button } from '@/components/ui/button';
+import userApiService from '@/services/api-service/user-api-service/user-api-service';
+import { useQuery } from '@tanstack/react-query';
 import { Bell, Settings } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
 const UserSettings: React.FC = () => {
   const t = useTranslations('userProfileOptions.UserSettings');
+
+  const { data: notifications } = useQuery({
+    queryKey: ['get-notifications'],
+    queryFn: async () => await userApiService.getUserNotifications(),
+  });
+  console.log('🚀 ~ notifications:', notifications);
 
   return (
     <>

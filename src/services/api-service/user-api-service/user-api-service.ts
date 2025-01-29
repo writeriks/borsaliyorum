@@ -314,6 +314,17 @@ class UserApiService {
 
     return response.json();
   };
+
+  getUserNotifications = async (): Promise<void> => {
+    const response = await apiFetchProxy(`notifications/get-notifications`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
 }
 
 const userApiService = new UserApiService();

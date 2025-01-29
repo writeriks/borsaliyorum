@@ -3,7 +3,7 @@ import { MAX_CHARACTERS } from '@/services/api-service/post-api-service/constant
 import { auth } from '@/services/firebase-service/firebase-admin';
 import prisma from '@/services/prisma-service/prisma-client';
 import tagService from '@/services/tag-service/tag-service';
-import { Post } from '@prisma/client';
+import { NotificationType, Post } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { TagsEnum } from '@/services/firebase-service/types/db-types/tag';
 import { uploadImage } from '@/services/api-service/api-service-helper';
@@ -84,27 +84,56 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     const postHashtags = await tagService.createHashtags(strippedHashtags);
 
-    const newPost = await prisma.post.create({
-      data: {
-        userId: user.userId,
-        content: post.content,
-        mediaUrl: downloadUrl,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        sentiment: post.sentiment,
-        stocks: {
-          connect: postStocks.map(stock => ({ stockId: stock.stockId })),
+    await prisma.$transaction(async tx => {
+      const newPost = await tx.post.create({
+        data: {
+          userId: user.userId,
+          content: post.content,
+          mediaUrl: downloadUrl,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          sentiment: post.sentiment,
+          stocks: {
+            connect: postStocks.map(stock => ({ stockId: stock.stockId })),
+          },
+          tags: {
+            connect: postHashtags.map(tag => ({ tagId: tag.tagId })),
+          },
         },
-        tags: {
-          connect: postHashtags.map(tag => ({ tagId: tag.tagId })),
-        },
-      },
+      });
+
+      for (const mention of mentions) {
+        if (!mention.startsWith('@')) continue;
+
+        const username = mention.substring(1);
+
+        // Do not create notification if the user is mentioning themselves
+        if (username === user.username) continue;
+
+        const mentionedUser = await tx.user.findUnique({
+          where: { username },
+        });
+
+        if (mentionedUser) {
+          await tx.notification.create({
+            data: {
+              userId: mentionedUser.userId,
+              fromUserId: user.userId,
+              type: NotificationType.MENTION,
+              content: `${user.displayName} bir gönderide senden bahsetti.`,
+              postId: newPost.postId,
+              read: false,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          });
+        }
+      }
     });
 
-    // TODO: Handle Mentions
-
-    return createResponse(ResponseStatus.OK, { newPost });
+    return createResponse(ResponseStatus.OK);
   } catch (error) {
+    console.log('🚀 ~ POST ~ error:', error);
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }
