@@ -2,6 +2,7 @@ import prisma from '@/services/prisma-service/prisma-client';
 import { auth } from '@/services/firebase-service/firebase-admin';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { NextResponse } from 'next/server';
+import { NotificationType } from '@prisma/client';
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
@@ -50,16 +51,31 @@ export async function POST(request: Request): Promise<NextResponse> {
       return createResponse(ResponseStatus.BAD_REQUEST, 'Kullanıcı zaten takip ediliyor.');
     }
 
-    await prisma.userFollowers.create({
-      data: {
-        followerId: currentUser.userId,
-        followingId: userIdToFollow,
-        followedAt: new Date(),
-      },
+    await prisma.$transaction(async tx => {
+      await tx.userFollowers.create({
+        data: {
+          followerId: currentUser.userId,
+          followingId: userIdToFollow,
+          followedAt: new Date(),
+        },
+      });
+
+      await tx.notification.create({
+        data: {
+          userId: userIdToFollow,
+          type: NotificationType.FOLLOW,
+          fromUserId: currentUser.userId,
+          content: `${currentUser.username} seni takip etmeye başladı.`,
+          read: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
     });
 
     return createResponse(ResponseStatus.OK);
   } catch (error) {
+    console.log('🚀 ~ POST ~ error:', error);
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }
 }

@@ -1,4 +1,4 @@
-import { getGroupedNotifications } from '@/services/notifications-service/notifications-service';
+import { getUnreadNotifications } from '@/services/notifications-service/notifications-service';
 import { verifyUserInRoute } from '@/services/user-service/user-service';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { User } from '@prisma/client';
@@ -8,12 +8,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const { userId } = (await verifyUserInRoute(request)) as User;
 
-    const { searchParams } = new URL(request.url);
-    const lastNotificationId = parseInt(searchParams.get('lastNotificationId') ?? '') || 0;
+    const newNotifications = await getUnreadNotifications(userId);
 
-    const newNotifications = await getGroupedNotifications(userId, lastNotificationId);
-
-    return createResponse(ResponseStatus.OK, newNotifications);
+    return createResponse(ResponseStatus.OK, { total: newNotifications.length });
   } catch (error) {
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }

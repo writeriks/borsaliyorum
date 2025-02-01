@@ -6,6 +6,7 @@ import store from '@/store/redux-store';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { User } from '@prisma/client';
 import { apiFetchProxy } from '@/services/api-service/fetch-proxy';
+import { NotificationsResponseType } from '@/components/user-notifications/user-notifications-schema';
 
 class UserApiService {
   /**
@@ -315,8 +316,23 @@ class UserApiService {
     return response.json();
   };
 
-  getUserNotifications = async (): Promise<void> => {
+  getUserNotifications = async (): Promise<NotificationsResponseType> => {
     const response = await apiFetchProxy(`notifications/get-notifications`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
+
+  /**
+   * Fetches total notification count for the user.
+   * @returns The total notification count.
+   */
+  getUserNotificationCount = async (): Promise<{ total: number }> => {
+    const response = await apiFetchProxy('notifications/get-notification-count');
 
     if (!response.ok) {
       const error = await response.json();
