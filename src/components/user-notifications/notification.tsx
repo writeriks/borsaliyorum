@@ -36,6 +36,7 @@ const Notification: React.FC<NotificationProps> = ({ notification }) => {
       </div>
     );
   };
+
   return (
     <div key={notification[0].notificationId} className='border-gray-300 rounded'>
       {renderNotification()}

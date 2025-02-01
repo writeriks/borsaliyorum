@@ -40,5 +40,10 @@ const MultipleNotificationsWithUserPostAndComment = z.array(NotificationWithUser
 export type MultipleNotificationsWithUserPostAndCommentType =
   (typeof MultipleNotificationsWithUserPostAndComment)['_type'];
 
-export const NotificationsResponse = z.array(z.array(NotificationWithUserPostAndComment));
-export type NotificationsResponseType = (typeof NotificationsResponse)['_type'];
+export const GroupedNotificationsResponse = z.array(z.array(NotificationWithUserPostAndComment));
+export type GroupedNotificationsResponseType = (typeof GroupedNotificationsResponse)['_type'];
+
+export type NotificationResponse = {
+  lastNotificationId: number;
+  notifications: GroupedNotificationsResponseType;
+};

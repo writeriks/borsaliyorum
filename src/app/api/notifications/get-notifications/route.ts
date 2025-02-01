@@ -11,9 +11,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { searchParams } = new URL(request.url);
     const lastNotificationId = parseInt(searchParams.get('lastNotificationId') ?? '') || 0;
 
-    const newNotifications = await getGroupedNotifications(userId, lastNotificationId);
+    const newNotifications = await getGroupedNotifications(userId, lastNotificationId, 10);
 
-    return createResponse(ResponseStatus.OK, newNotifications);
+    const lastNotificationGroup =
+      newNotifications.length > 0 ? newNotifications[newNotifications.length - 1] : null;
+    const newLastNotificationId =
+      lastNotificationGroup && lastNotificationGroup?.length > 0
+        ? lastNotificationGroup[lastNotificationGroup?.length - 1].notificationId
+        : null;
+
+    return createResponse(ResponseStatus.OK, {
+      notifications: newNotifications,
+      lastNotificationId: newLastNotificationId,
+    });
   } catch (error) {
     return createResponse(ResponseStatus.INTERNAL_SERVER_ERROR);
   }

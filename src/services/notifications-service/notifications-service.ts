@@ -1,13 +1,13 @@
 import {
   MultipleNotificationsWithUserPostAndCommentType,
-  NotificationsResponseType,
+  GroupedNotificationsResponseType,
 } from '@/components/user-notifications/user-notifications-schema';
 import prisma from '@/services/prisma-service/prisma-client';
 import { NotificationType } from '@prisma/client';
 
 export const parseNotificationsToGroup = (
   notifications: MultipleNotificationsWithUserPostAndCommentType
-): NotificationsResponseType => {
+): GroupedNotificationsResponseType => {
   const groupedMap = new Map<string, MultipleNotificationsWithUserPostAndCommentType>();
 
   notifications.forEach(notification => {
@@ -29,7 +29,7 @@ export const parseNotificationsToGroup = (
 
 export const getUnreadNotifications = async (
   userId: number
-): Promise<NotificationsResponseType> => {
+): Promise<GroupedNotificationsResponseType> => {
   const notifications: MultipleNotificationsWithUserPostAndCommentType =
     await prisma.notification.findMany({
       where: {
@@ -69,9 +69,9 @@ export const getUnreadNotifications = async (
 
 export const getGroupedNotifications = async (
   userId: number,
-  lastNotificationId = 0,
+  lastNotificationId: number,
   pageSize = 20
-): Promise<NotificationsResponseType> => {
+): Promise<GroupedNotificationsResponseType> => {
   const notifications: MultipleNotificationsWithUserPostAndCommentType =
     await prisma.notification.findMany({
       where: {
