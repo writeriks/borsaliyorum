@@ -60,7 +60,7 @@ const UserNotifications = (): React.ReactNode => {
             <Notification notification={notification} />
           </div>
         ))}
-      {mutation.isPending && <LoadingSkeleton type={LoadingSkeletons.POST} />}
+      {mutation.isPending && <LoadingSkeleton type={LoadingSkeletons.NOTIFICATION} />}
     </div>
   );
 };

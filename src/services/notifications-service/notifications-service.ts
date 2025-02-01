@@ -11,10 +11,17 @@ export const parseNotificationsToGroup = (
   const groupedMap = new Map<string, MultipleNotificationsWithUserPostAndCommentType>();
 
   notifications.forEach(notification => {
-    const key =
-      notification.commentId && notification.type === NotificationType.LIKE
-        ? `${notification.type}-${notification.postId}-${notification.commentId}`
-        : `${notification.type}-${notification.postId}`;
+    let key = '';
+    if (notification.type === NotificationType.FOLLOW) {
+      // Separate follow notifications
+      key = `${notification.type}-${notification.fromUserId}`;
+    } else if (notification.commentId && notification.type === NotificationType.LIKE) {
+      // Group like notifications by post and comment
+      key = `${notification.type}-${notification.postId}-${notification.commentId}`;
+    } else {
+      // Group other notifications by post
+      key = `${notification.type}-${notification.postId}`;
+    }
 
     if (!groupedMap.has(key)) {
       groupedMap.set(key, []);
@@ -25,6 +32,15 @@ export const parseNotificationsToGroup = (
   const newNotifications = Array.from(groupedMap.values());
 
   return newNotifications;
+};
+
+export const getUnreadNotificationsCount = async (userId: number): Promise<number> => {
+  return prisma.notification.count({
+    where: {
+      userId,
+      read: false,
+    },
+  });
 };
 
 export const getUnreadNotifications = async (

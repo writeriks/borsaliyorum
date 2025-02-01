@@ -25,7 +25,7 @@ const Notification: React.FC<NotificationProps> = ({ notification }) => {
 
   const renderNotification = (): React.ReactNode => {
     return (
-      <div className='flex items-center'>
+      <div className='flex items-center cursor-pointer'>
         <UserAvatar
           user={notification[0].fromUser}
           onUserAvatarClick={() => router.push(`/users/${notification[0].fromUser.username}`)}
