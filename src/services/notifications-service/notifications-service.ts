@@ -5,6 +5,11 @@ import {
 import prisma from '@/services/prisma-service/prisma-client';
 import { NotificationType } from '@prisma/client';
 
+/**
+ * Groups notifications by post, comment, and user.
+ * @param notifications - The notifications to group.
+ * @returns The grouped notifications.
+ */
 export const parseNotificationsToGroup = (
   notifications: MultipleNotificationsWithUserPostAndCommentType
 ): GroupedNotificationsResponseType => {
@@ -34,6 +39,11 @@ export const parseNotificationsToGroup = (
   return newNotifications;
 };
 
+/**
+ * Retrieves the number of unread notifications for a user.
+ * @param userId - The ID of the user.
+ * @returns The number of unread notifications.
+ */
 export const getUnreadNotificationsCount = async (userId: number): Promise<number> => {
   return prisma.notification.count({
     where: {
@@ -43,6 +53,11 @@ export const getUnreadNotificationsCount = async (userId: number): Promise<numbe
   });
 };
 
+/**
+ * Retrieves unread notifications for a user.
+ * @param userId - The ID of the user.
+ * @returns The unread notifications.
+ */
 export const getUnreadNotifications = async (
   userId: number
 ): Promise<GroupedNotificationsResponseType> => {
@@ -83,6 +98,13 @@ export const getUnreadNotifications = async (
   return parseNotificationsToGroup(notifications);
 };
 
+/**
+ * Retrieves grouped notifications for a user.
+ * @param userId - The ID of the user.
+ * @param lastNotificationId - The last notification ID.
+ * @param pageSize - The number of notifications to retrieve.
+ * @returns The grouped notifications.
+ */
 export const getGroupedNotifications = async (
   userId: number,
   lastNotificationId: number,

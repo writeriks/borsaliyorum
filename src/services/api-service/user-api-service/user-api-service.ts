@@ -316,6 +316,11 @@ class UserApiService {
     return response.json();
   };
 
+  /**
+   * Fetches user notifications.
+   * @param lastNotificationId - The last notification ID.
+   * @returns The user notifications.
+   */
   getUserNotifications = async (
     lastNotificationId: string | number
   ): Promise<NotificationResponse> => {
