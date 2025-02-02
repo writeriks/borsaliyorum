@@ -178,7 +178,6 @@ class UserApiService {
   /**
    * Deletes the provided Firebase user.
    * @param user - The Firebase user to delete.
-   * @returns
    */
   deleteUser = async (): Promise<void> => {
     try {
