@@ -43,6 +43,20 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProp> = ({ type }) => {
           </div>
         </div>
       );
+    case LoadingSkeletons.NOTIFICATION:
+      return (
+        <>
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className='border-gray-300 rounded p-2 my-2'>
+              <div className='flex items-center rounded-lg h-[50px] sticky shadow-lg'>
+                <Skeleton className='h-10 w-10 rounded-full' />
+                <Skeleton className='h-4 w-full ml-2' />
+                <div className='border-b flex mt-4'></div>
+              </div>
+            </div>
+          ))}
+        </>
+      );
     default:
       return <Skeleton />;
   }

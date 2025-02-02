@@ -54,7 +54,8 @@ model User {
   notifications  Notification[]
 
   // Repost relation
-  reposts Repost[] @relation("UserReposts")
+  reposts      Repost[]       @relation("UserReposts")
+  Notification Notification[] @relation("FromUser")
 
   @@index([email])
   @@index([firebaseUserId])
@@ -213,9 +214,8 @@ model PostLikes {
   likedAt    DateTime @default(now())
 
   // Relations
-  user          User           @relation("PostLikes", fields: [userId], references: [userId])
-  post          Post           @relation("PostLikes", fields: [postId], references: [postId])
-  notifications Notification[]
+  user User @relation("PostLikes", fields: [userId], references: [userId])
+  post Post @relation("PostLikes", fields: [postId], references: [postId])
 
   @@unique([userId, postId]) // Ensures a user can like a post only once
   @@index([userId, postId])
@@ -266,6 +266,7 @@ model Tag {
 model Notification {
   notificationId Int              @id @default(autoincrement())
   userId         Int
+  fromUserId     Int
   type           NotificationType
   content        String
   read           Boolean          @default(false)
@@ -273,23 +274,21 @@ model Notification {
   updatedAt      DateTime
 
   // Relations
-  user User @relation(fields: [userId], references: [userId])
+  user     User @relation(fields: [userId], references: [userId])
+  fromUser User @relation("FromUser", fields: [fromUserId], references: [userId])
 
   // Optional fields to store references to related entities
   postId    Int? // Optional post reference
   commentId Int? // Optional comment reference
-  likeId    Int? // Optional like reference
 
   // Relations to related entities
-  post    Post?      @relation(fields: [postId], references: [postId])
-  comment Comment?   @relation(fields: [commentId], references: [commentId])
-  like    PostLikes? @relation(fields: [userId, postId], references: [userId, postId])
+  post    Post?    @relation(fields: [postId], references: [postId])
+  comment Comment? @relation(fields: [commentId], references: [commentId])
 
   @@index([userId])
   @@index([type])
   @@index([postId])
   @@index([commentId])
-  @@index([likeId])
 }
 
 enum NotificationType {

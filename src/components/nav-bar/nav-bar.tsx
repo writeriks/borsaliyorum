@@ -12,9 +12,12 @@ import {
 
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
 import { cn } from '@/lib/utils';
+import { useRouter } from '@/i18n/routing';
 
 const NavigationBar = (): React.ReactNode => {
   const dispatch = useDispatch();
+
+  const router = useRouter();
 
   const isHamburgerMenuOpen = useSelector(uiReducerSelector.getIsHamburgerMenuOpen);
 
@@ -26,7 +29,9 @@ const NavigationBar = (): React.ReactNode => {
   return (
     <nav className='h-[60px] min-w-full p-4 sticky bg-background top-0 z-50 border-1 border-black overflow-hidden'>
       <div className='container mx-auto flex items-center justify-between'>
-        <a href='/feed'>LOGO</a>
+        <div className='cursor-pointer' onClick={() => router.push('/feed')}>
+          LOGO
+        </div>
 
         <div id='hamburger-menu' className='z-40 lg:hidden'>
           <button

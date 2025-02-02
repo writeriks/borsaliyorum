@@ -7,6 +7,7 @@ export enum LoadingSkeletons {
   POST = 'post',
   USER_PROFILE = 'userProfile',
   DISCOVER = 'discover',
+  NOTIFICATION = 'notification',
 }
 
 export enum ContentType {

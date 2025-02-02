@@ -23,7 +23,7 @@ import LoginContainer from '@/components/user-profile-options/login-container';
 
 const UserProfileOptions = (): React.ReactNode => {
   const dispatch = useDispatch();
-  const { user } = useUser();
+  const { currentUser } = useUser();
   const isAuthLoading = useSelector(uiReducerSelector.getIsAuthLoading);
   const t = useTranslations('userProfileOptions.UserProfileOptions');
 
@@ -37,7 +37,7 @@ const UserProfileOptions = (): React.ReactNode => {
   const onProfileSelectChange = (value: string): void => {
     switch (value) {
       case 'view-profile':
-        router.push(`/users/${user.username}`);
+        router.push(`/users/${currentUser?.username}`);
         break;
       case 'edit-profile':
         router.push(`/edit-profile`);
@@ -57,7 +57,7 @@ const UserProfileOptions = (): React.ReactNode => {
       id='user-profile-section'
       className='flex flex-col top-[60px] h-[170px] sticky bg-background z-50'
     >
-      {user.username ? (
+      {currentUser?.username ? (
         <div className='w-full h-full flex flex-col p-1'>
           <div>
             <Select onValueChange={onProfileSelectChange}>
@@ -65,19 +65,19 @@ const UserProfileOptions = (): React.ReactNode => {
                 <div className='flex items-center'>
                   <UserAvatar
                     user={{
-                      profilePhoto: user.profilePhoto ?? '',
-                      displayName: user.displayName,
-                      username: user.username,
+                      profilePhoto: currentUser?.profilePhoto ?? '',
+                      displayName: currentUser?.displayName ?? '',
+                      username: currentUser?.username,
                     }}
                   />
                   <div className='ml-2 flex flex-col items-start break-words'>
                     <TooltipWithEllipsis
-                      tooltipText={user.displayName}
+                      tooltipText={currentUser?.displayName ?? ''}
                       className='text-sm'
                       tooltipSide='bottom'
                     />
                     <TooltipWithEllipsis
-                      tooltipText={user.username}
+                      tooltipText={currentUser?.username}
                       className='text-xs'
                       tooltipSide='bottom'
                     />
