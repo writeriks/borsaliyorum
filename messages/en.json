@@ -71,5 +71,19 @@
     "location": "Location",
     "birthday": "Birthday",
     "savingChanges": "Saving Changes"
+  },
+  "notifications": {
+    "notificationsTitle": "Notifications",
+    "followedBy": "{userDisplayName} has followed you.",
+    "likedCommentSingle": "{userDisplayName} liked you comment.",
+    "likedCommentMultiple": "{userDisplayName} and {count} more liked your comment.",
+    "likedPostMultiple": "{userDisplayName} and {count} more liked your post.",
+    "likedPostSingle": "{userDisplayName} liked your post.",
+    "commentedSingle": "{userDisplayName} commented on your post.",
+    "commentedMultiple": "{userDisplayName} and {count} more commented on your post.",
+    "mentionedInCommentMultiple": "{userDisplayName} and {count} more mentioned you on a comment.",
+    "mentionedInCommentSingle": "{userDisplayName} mentioned you on a comment.",
+    "mentionedInPostMultiple": "{userDisplayName} and {count} more mentioned you on a post.",
+    "mentionedInPostSingle": "{userDisplayName} mentioned you on a post."
   }
 }

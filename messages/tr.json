@@ -77,5 +77,20 @@
     "heroTitleSecond": "Burada Başlıyor",
     "heroSubtitle": "Yatırımcılarla bağlantı kurun, piyasa görüşlerinizi paylaşın ve toplulukla birlikte büyüyün.",
     "startNow": "Hemen Başla"
+  },
+
+  "notifications": {
+    "notificationsTitle": "Bildirimler",
+    "followedBy": "{userDisplayName} seni takip etti.",
+    "likedCommentSingle": "{userDisplayName} bir yorumunu beğendi.",
+    "likedCommentMultiple": "{userDisplayName} ve {count} kişi daha bir yorumunu beğendi.",
+    "likedPostMultiple": "{userDisplayName} ve {count} kişi daha bir gönderini beğendi.",
+    "likedPostSingle": "{userDisplayName} bir gönderini beğendi.",
+    "commentedSingle": "{userDisplayName} bir gönderine yorum yaptı.",
+    "commentedMultiple": "{userDisplayName} ve {count} kişi daha bir gönderine yorum yaptı.",
+    "mentionedInCommentMultiple": "{userDisplayName} ve {count} kişi daha bir yorumda senden bahsetti.",
+    "mentionedInCommentSingle": "{userDisplayName} bir yorumda senden bahsetti.",
+    "mentionedInPostMultiple": "{userDisplayName} ve {count} kişi daha bir gönderide senden bahsetti.",
+    "mentionedInPostSingle": "{userDisplayName} bir gönderide senden bahsetti."
   }
 }

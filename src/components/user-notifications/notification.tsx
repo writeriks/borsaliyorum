@@ -4,6 +4,8 @@ import UserAvatar from '@/components/user-avatar/user-avatar';
 import { MultipleNotificationsWithUserPostAndCommentType } from '@/components/user-notifications/user-notifications-schema';
 import { useRouter } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
+import { NotificationType } from '@prisma/client';
+import { useTranslations } from 'next-intl';
 import React from 'react';
 
 interface NotificationProps {
@@ -11,16 +13,64 @@ interface NotificationProps {
 }
 
 const Notification: React.FC<NotificationProps> = ({ notification }) => {
+  const t = useTranslations('notifications');
   const router = useRouter();
-  const buildNotificationText = (): string => {
-    if (notification.length > 1) {
-      const displayName = notification[0].fromUser.displayName;
-      return notification[0].content.replace(
-        displayName,
-        `${displayName} ve ${notification.length - 1} kişi daha`
-      );
+
+  const getLikeNotificationText = (displayName: string): string | undefined => {
+    if (notification[0].postId && notification[0].commentId) {
+      return notification.length > 1
+        ? t('likedCommentMultiple', {
+            userDisplayName: displayName,
+            count: notification.length - 1,
+          })
+        : t('likedCommentSingle', { userDisplayName: displayName });
+    } else if (notification[0].postId) {
+      return notification.length > 1
+        ? t('likedPostMultiple', { userDisplayName: displayName, count: notification.length - 1 })
+        : t('likedPostSingle', { userDisplayName: displayName });
     }
-    return notification[0].content;
+  };
+
+  const getMentionNotificationText = (displayName: string): string | undefined => {
+    if (notification[0].postId && notification[0].commentId) {
+      return notification.length > 1
+        ? t('mentionedInCommentMultiple', {
+            userDisplayName: displayName,
+            count: notification.length - 1,
+          })
+        : t('mentionedInCommentSingle', { userDisplayName: displayName });
+    } else if (notification[0].postId) {
+      return notification.length > 1
+        ? t('mentionedInPostMultiple', {
+            userDisplayName: displayName,
+            count: notification.length - 1,
+          })
+        : t('mentionedInPostSingle', { userDisplayName: displayName });
+    }
+  };
+
+  const getCommentNotificationText = (displayName: string): string | undefined => {
+    return notification.length > 1
+      ? t('commentedMultiple', { userDisplayName: displayName, count: notification.length - 1 })
+      : t('commentedSingle', { userDisplayName: displayName });
+  };
+
+  const buildNotificationText = (): string | undefined => {
+    const displayName = notification[0].fromUser.displayName;
+    const notificationType = notification[0].type;
+
+    switch (notificationType) {
+      case NotificationType.FOLLOW:
+        return t('followedBy', { userDisplayName: displayName });
+      case NotificationType.LIKE:
+        return getLikeNotificationText(displayName);
+      case NotificationType.COMMENT:
+        return getCommentNotificationText(displayName);
+      case NotificationType.MENTION:
+        return getMentionNotificationText(displayName);
+      default:
+        break;
+    }
   };
 
   const renderNotification = (): React.ReactNode => {
