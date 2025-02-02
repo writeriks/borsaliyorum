@@ -41,39 +41,37 @@ export const ConfirmationModal = ({
   confirmDisabled = false,
   confirmVariant = 'default',
   titleClass = 'text-destructive',
-}: ConfirmationModalProps): React.ReactNode => {
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle className={titleClass}>{title}</DialogTitle>
-          <DialogDescription className='mb-2'>{description}</DialogDescription>
-        </DialogHeader>
+}: ConfirmationModalProps): React.ReactNode => (
+  <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle className={titleClass}>{title}</DialogTitle>
+        <DialogDescription className='mb-2'>{description}</DialogDescription>
+      </DialogHeader>
 
-        {onInputChange && inputPlaceholder && (
-          <Input
-            className='mt-4'
-            type='password'
-            onChange={e => onInputChange(e.target.value)}
-            value={inputValue}
-            placeholder={inputPlaceholder}
-          />
-        )}
+      {onInputChange && inputPlaceholder && (
+        <Input
+          className='mt-4'
+          type='password'
+          onChange={e => onInputChange(e.target.value)}
+          value={inputValue}
+          placeholder={inputPlaceholder}
+        />
+      )}
 
-        <DialogFooter className='sm:justify-end'>
-          <Button variant='outline' onClick={() => onOpenChange(false)}>
-            {cancelLabel}
-          </Button>
-          <Button
-            disabled={confirmDisabled}
-            className='mb-2'
-            variant={confirmVariant}
-            onClick={onConfirm}
-          >
-            {confirmLabel}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
+      <DialogFooter className='sm:justify-end'>
+        <Button variant='outline' onClick={() => onOpenChange(false)}>
+          {cancelLabel}
+        </Button>
+        <Button
+          disabled={confirmDisabled}
+          className='mb-2'
+          variant={confirmVariant}
+          onClick={onConfirm}
+        >
+          {confirmLabel}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+);
