@@ -30,13 +30,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         return createResponse(ResponseStatus.BAD_REQUEST, message);
       }
 
-      const usernameUser = await prisma.user.findUnique({
+      const userByUsername = await prisma.user.findUnique({
         where: {
           username: userData.username,
         },
       });
 
-      if (usernameUser) {
+      if (userByUsername) {
         const message =
           'Bu kullanıcı adı daha önce alınmış. Lütfen farklı bir kullanıcı adı ile tekrar deneyin.';
 
