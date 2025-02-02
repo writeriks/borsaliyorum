@@ -13,7 +13,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { settingsSchema, SettingsFormValues } from './settings-form-schema';
+import { settingsSchema, SettingsFormValues, SettingsFormFieldsEnum } from './settings-form-schema';
 import { useMutation } from '@tanstack/react-query';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { useDispatch } from 'react-redux';
@@ -22,9 +22,8 @@ import { useTranslations } from 'next-intl';
 import { Icons } from '@/components/ui/icons';
 import { TriangleAlertIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { DeleteAccountModal } from '@/components/user-settings/delete-account-modal';
 import useUser from '@/hooks/useUser';
-import { ConfirmPasswordModal } from '@/components/user-settings/confirm-password-modal';
+import { ConfirmationModal } from '@/components/modal/confirmation-modal';
 
 interface SettingsFormProps {
   settingsProps: SettingsFormValues;
@@ -121,9 +120,12 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
     let isValid = true;
 
     if (isChangingEmail) {
-      isValid = await form.trigger('email');
+      isValid = await form.trigger(SettingsFormFieldsEnum.EMAIL);
     } else if (isChangingPassword) {
-      isValid = await form.trigger(['newPassword', 'confirmPassword']);
+      isValid = await form.trigger([
+        SettingsFormFieldsEnum.NEW_PASSWORD,
+        SettingsFormFieldsEnum.CONFIRM_PASSWORD,
+      ]);
     }
 
     if (isValid) {
@@ -133,7 +135,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
   };
 
   const handleUsernameSubmit = async (): Promise<void> => {
-    const isValid = await form.trigger('username');
+    const isValid = await form.trigger(SettingsFormFieldsEnum.USERNAME);
     if (isValid) {
       updateUsernameMutation.mutate(form.getValues().username);
     }
@@ -142,18 +144,18 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
   const handleFormSubmit = async (): Promise<void> => {
     const formValues = form.getValues();
     if (isChangingEmail && formValues.email === email) {
-      form.setError('email', {
+      form.setError(SettingsFormFieldsEnum.EMAIL, {
         type: 'manual',
         message: t('Settings.sameEmailError'),
       });
 
       return;
     } else {
-      form.clearErrors('email');
+      form.clearErrors(SettingsFormFieldsEnum.EMAIL);
     }
 
     if (isChangingPassword && formValues.newPassword === currentPasswordFromModal) {
-      form.setError('newPassword', {
+      form.setError(SettingsFormFieldsEnum.NEW_PASSWORD, {
         type: 'manual',
         message: t('Settings.samePasswordError'),
       });
@@ -169,8 +171,6 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
     type = 'text',
     isEditing,
     disabled = false,
-    hideSaveButton = false,
-    hideCancelButton = false,
     onToggleEdit,
     onSave,
     isLoading,
@@ -182,8 +182,6 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
     type?: string;
     isEditing: boolean;
     disabled?: boolean;
-    hideSaveButton?: boolean;
-    hideCancelButton?: boolean;
     onToggleEdit?: () => void;
     onSave: () => void;
     isLoading: boolean;
@@ -200,7 +198,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
             <FormControl>
               <Input type={type} {...field} disabled={!isEditing || disabled} />
             </FormControl>
-            {isEditing && !hideSaveButton && (
+            {isEditing && fieldName !== SettingsFormFieldsEnum.NEW_PASSWORD && (
               <Button
                 className='hover:bg-blue-500 hover:text-white bg-bluePrimary text-white'
                 type='button'
@@ -216,7 +214,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
                 )}
               </Button>
             )}
-            {!hideCancelButton && (
+            {fieldName !== SettingsFormFieldsEnum.NEW_PASSWORD && (
               <Button variant='link' type='button' onClick={onToggleEdit}>
                 {isEditing ? translate('Settings.cancel') : translate('Settings.change')}
               </Button>
@@ -244,11 +242,11 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
         <form className='space-y-4'>
           {renderField({
             label: 'Common.username',
-            fieldName: 'username',
+            fieldName: SettingsFormFieldsEnum.USERNAME,
             isEditing: isChangingUsername,
             onToggleEdit: () => {
-              form.clearErrors('username');
-              form.setValue('username', usernameFromProp);
+              form.clearErrors(SettingsFormFieldsEnum.USERNAME);
+              form.setValue(SettingsFormFieldsEnum.USERNAME, usernameFromProp);
               setIsChangingUsername(!isChangingUsername);
             },
             onSave: () => {
@@ -263,12 +261,12 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
             <>
               {renderField({
                 label: 'Common.email',
-                fieldName: 'email',
+                fieldName: SettingsFormFieldsEnum.EMAIL,
                 type: 'email',
                 isEditing: isChangingEmail,
                 onToggleEdit: () => {
-                  form.clearErrors('email');
-                  form.setValue('email', email);
+                  form.clearErrors(SettingsFormFieldsEnum.EMAIL);
+                  form.setValue(SettingsFormFieldsEnum.EMAIL, email);
                   if (isChangingEmail) {
                     setIsChangingEmail(false);
                   } else {
@@ -306,9 +304,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
                 <>
                   {renderField({
                     label: 'Settings.newPassword',
-                    fieldName: 'newPassword',
-                    hideCancelButton: true,
-                    hideSaveButton: true,
+                    fieldName: SettingsFormFieldsEnum.NEW_PASSWORD,
                     type: 'password',
                     isEditing: true,
                     onSave: openPasswordModal,
@@ -318,15 +314,15 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
                   })}
                   {renderField({
                     label: 'Settings.confirmPassword',
-                    fieldName: 'confirmPassword',
+                    fieldName: SettingsFormFieldsEnum.CONFIRM_PASSWORD,
                     type: 'password',
                     isEditing: true,
                     onSave: openPasswordModal,
                     onToggleEdit: () => {
-                      form.clearErrors('newPassword');
-                      form.clearErrors('confirmPassword');
-                      form.setValue('newPassword', '');
-                      form.setValue('confirmPassword', '');
+                      form.clearErrors(SettingsFormFieldsEnum.NEW_PASSWORD);
+                      form.clearErrors(SettingsFormFieldsEnum.CONFIRM_PASSWORD);
+                      form.setValue(SettingsFormFieldsEnum.NEW_PASSWORD, '');
+                      form.setValue(SettingsFormFieldsEnum.CONFIRM_PASSWORD, '');
                       if (isChangingPassword) {
                         setIsChangingPassword(false);
                       }
@@ -358,21 +354,33 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
         </form>
       </Form>
 
-      <ConfirmPasswordModal
+      <ConfirmationModal
         isOpen={isPasswordModalOpen}
-        currentPassword={currentPasswordFromModal}
-        onCurrentPasswordChange={setCurrentPasswordFromModal}
+        title={t('Settings.passwordConfirmationModalTitle')}
+        description={t('Settings.passwordConfirmationModalBody')}
+        confirmLabel={t('Settings.confirm')}
+        cancelLabel={t('Settings.cancel')}
         onOpenChange={() => setIsPasswordModalOpen(!isPasswordModalOpen)}
-        onConfirmPassword={() => {
+        onConfirm={() => {
           handleFormSubmit();
           setIsPasswordModalOpen(false);
         }}
+        inputPlaceholder={t('Settings.currentPassword')}
+        inputValue={currentPasswordFromModal}
+        onInputChange={setCurrentPasswordFromModal}
+        confirmDisabled={currentPasswordFromModal.length < 8}
       />
 
-      <DeleteAccountModal
+      <ConfirmationModal
         isOpen={isDeleteModalOpen}
-        onConfirmDelete={() => deleteAccountMutation.mutate()}
+        title={t('Settings.deleteAccount')}
+        description={t('Settings.deleteAccountConfirmation')}
+        confirmLabel={t('Settings.deleteAccount')}
+        cancelLabel={t('Settings.cancel')}
         onOpenChange={() => setIsDeleteModalOpen(!isDeleteModalOpen)}
+        onConfirm={() => deleteAccountMutation.mutate()}
+        confirmVariant='destructive'
+        titleClass='text-destructive'
       />
     </>
   );

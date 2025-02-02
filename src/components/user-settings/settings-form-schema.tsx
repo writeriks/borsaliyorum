@@ -5,6 +5,13 @@ import {
 } from '@/components/auth/auth-form-schema';
 import { z } from 'zod';
 
+export enum SettingsFormFieldsEnum {
+  USERNAME = 'username',
+  EMAIL = 'email',
+  NEW_PASSWORD = 'newPassword',
+  CONFIRM_PASSWORD = 'confirmPassword',
+}
+
 export const settingsSchema = z
   .object({
     ...usernameValidationProps,
