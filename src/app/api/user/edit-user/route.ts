@@ -3,7 +3,7 @@ import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { User } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyUserInRoute } from '@/services/user-service/user-service';
-import { isValidDisplayName } from '@/utils/user-utils/user-utils';
+import { isValidDisplayName, isValidUsername } from '@/utils/user-utils/user-utils';
 import { uploadImage } from '@/services/api-service/api-service-helper';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -22,6 +22,28 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return createResponse(ResponseStatus.BAD_REQUEST, message);
     }
 
+    // Check if username is valid or already taken
+    if (userData.username) {
+      if (!isValidUsername(userData.username)) {
+        const message = 'Geçersiz kullanıcı adı.';
+
+        return createResponse(ResponseStatus.BAD_REQUEST, message);
+      }
+
+      const userByUsername = await prisma.user.findUnique({
+        where: {
+          username: userData.username,
+        },
+      });
+
+      if (userByUsername) {
+        const message =
+          'Bu kullanıcı adı daha önce alınmış. Lütfen farklı bir kullanıcı adı ile tekrar deneyin.';
+
+        return createResponse(ResponseStatus.BAD_REQUEST, message);
+      }
+    }
+
     let downloadUrl = currentUser.profilePhoto;
     if (userData.profilePhoto && userData.profilePhoto !== currentUser.profilePhoto) {
       downloadUrl = await uploadImage(userData.profilePhoto);
@@ -38,6 +60,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         bio: userData.bio ? userData.bio : currentUser.bio,
         website: userData.website ? userData.website : currentUser.website,
         location: userData.location ? userData.location : currentUser.location,
+        email: userData.email ? userData.email : currentUser.email,
+        username: userData.username ? userData.username : currentUser.username,
         updatedAt: new Date(),
       },
     });

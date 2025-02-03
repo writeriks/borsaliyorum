@@ -3,14 +3,13 @@ import { Button } from '@/components/ui/button';
 
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from '@/i18n/routing';
 import { Bell, Settings } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Label } from '@/components/ui/label';
-import { useRouter } from '@/i18n/routing';
 
 const UserSettings: React.FC = () => {
   const t = useTranslations('userProfileOptions.UserSettings');
-
   const router = useRouter();
 
   const { data } = useQuery({
@@ -42,6 +41,7 @@ const UserSettings: React.FC = () => {
       <Button
         variant='secondary'
         className='w-full justify-start bg-transparent dark:bg-transparent dark:hover:bg-accent'
+        onClick={() => router.push('/settings')}
       >
         <Settings className='mr-2 h-4 w-4' /> {t('settings')}
       </Button>
