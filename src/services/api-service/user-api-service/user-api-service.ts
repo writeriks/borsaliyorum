@@ -14,6 +14,7 @@ import store from '@/store/redux-store';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { User } from '@prisma/client';
 import { apiFetchProxy } from '@/services/api-service/fetch-proxy';
+import { NotificationResponse } from '@/components/user-notifications/user-notifications-schema';
 
 class UserApiService {
   /**
@@ -361,6 +362,41 @@ class UserApiService {
    */
   unblockUser = async (userId: number): Promise<void> => {
     const response = await apiFetchProxy(`user/unblock-user`, 'POST', JSON.stringify({ userId }));
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
+
+  /**
+   * Fetches user notifications.
+   * @param lastNotificationId - The last notification ID.
+   * @returns The user notifications.
+   */
+  getUserNotifications = async (
+    lastNotificationId: string | number
+  ): Promise<NotificationResponse> => {
+    const response = await apiFetchProxy(
+      `notifications/get-notifications?lastNotificationId=${lastNotificationId}`
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
+
+  /**
+   * Fetches total notification count for the user.
+   * @returns The total notification count.
+   */
+  getUserNotificationCount = async (): Promise<{ total: number }> => {
+    const response = await apiFetchProxy('notifications/get-notification-count');
 
     if (!response.ok) {
       const error = await response.json();
