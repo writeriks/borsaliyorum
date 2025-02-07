@@ -73,20 +73,32 @@ export async function POST(request: Request): Promise<NextResponse> {
 
         // Do not create notification if the user is liking their own post
         if (comment.userId !== currentUser.userId) {
-          // Create notification
-          await tx.notification.create({
-            data: {
+          const isExistingNotification = await tx.notification.findFirst({
+            where: {
               userId: comment.userId,
               fromUserId: currentUser.userId,
-              type: NotificationType.LIKE,
-              content: `${currentUser.displayName} bir yorumunu beğendi.`,
               postId: comment.postId,
               commentId: commentId,
-              read: false,
-              createdAt: new Date(),
-              updatedAt: new Date(),
+              type: NotificationType.LIKE,
             },
           });
+
+          if (!isExistingNotification) {
+            // Create notification
+            await tx.notification.create({
+              data: {
+                userId: comment.userId,
+                fromUserId: currentUser.userId,
+                type: NotificationType.LIKE,
+                content: `${currentUser.displayName} bir yorumunu beğendi.`,
+                postId: comment.postId,
+                commentId: commentId,
+                read: false,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              },
+            });
+          }
         }
       });
 
