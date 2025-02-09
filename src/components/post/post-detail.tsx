@@ -18,15 +18,17 @@ import { LoadingSkeletons } from '@/app/constants';
 import { Icons } from '@/components/ui/icons';
 import { Comment as CommentType, Post as PostType, User } from '@prisma/client';
 import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
 
 export interface PostDetailProp {
   post: PostType;
-  onPostDelete: (postId: number) => void;
+  onPostDelete?: (postId: number) => void;
   onBackClick?: () => void;
 }
 const PostDetail: React.FC<PostDetailProp> = ({ post, onBackClick, onPostDelete }) => {
   const { fbAuthUser } = useUser();
   const dispatch = useDispatch();
+  const router = useRouter();
   const t = useTranslations();
 
   const [comments, setComments] = useState<CommentType[]>([]);
@@ -114,7 +116,7 @@ const PostDetail: React.FC<PostDetailProp> = ({ post, onBackClick, onPostDelete 
       {post ? (
         <div className='lg:p-6 p-2 w-full self-start'>
           <span
-            onClick={onBackClick}
+            onClick={router.back}
             className='cursor-pointer inline-flex items-center justify-center p-3 bg-transparent'
           >
             <MoveLeft className='mr-2 h-5 w-5' /> {t('PostDetail.back')}
