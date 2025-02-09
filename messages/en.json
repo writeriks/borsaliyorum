@@ -8,7 +8,10 @@
   },
   "Common": {
     "placeholder": "What's on your mind?",
-    "errorMessage": "An error occurred."
+    "errorMessage": "An error occurred.",
+    "email": "Email",
+    "username": "Username",
+    "warning": "Warning"
   },
   "NewPost": {
     "successMessage": "Post created successfully.",
@@ -59,6 +62,27 @@
     "follow": "Follow",
     "unfollow": "Unfollow"
   },
+  "Settings": {
+    "settings": "Settings",
+    "sameEmailError": "This email address is already in use.",
+    "change": "Change",
+    "googleSignInInfo": "Since you signed in with Google, you cannot change your password or email address.",
+    "currentPassword": "Current Password",
+    "samePasswordError": "The new password cannot be the same as the current password.",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "deletingAccount": "Your account is being deleted...",
+    "deleteAccount": "Delete Account",
+    "deleteAccountConfirmation": "Are you sure you want to delete your account? This action cannot be undone.",
+    "deleteAccountSuccess": "Your account has been successfully deleted.",
+    "passwordConfirmationModalTitle": "Confirm Your Password",
+    "passwordConfirmationModalBody": "You need to confirm your password to proceed with this action.",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "successMessage": "Your settings have been successfully updated.",
+    "save": "Save",
+    "saving": "Saving"
+  },
   "EditProfile": {
     "editProfile": "Edit Profile",
     "successMessage": "Profile updated successfully.",
@@ -71,5 +95,25 @@
     "location": "Location",
     "birthday": "Birthday",
     "savingChanges": "Saving Changes"
+  },
+  "notifications": {
+    "notificationsTitle": "Notifications",
+    "followedBy": "{userDisplayName} has followed you.",
+    "likedCommentSingle": "{userDisplayName} liked you comment.",
+    "likedCommentMultiple": "{userDisplayName} and {count} more liked your comment.",
+    "likedPostMultiple": "{userDisplayName} and {count} more liked your post.",
+    "likedPostSingle": "{userDisplayName} liked your post.",
+    "commentedSingle": "{userDisplayName} commented on your post.",
+    "commentedMultiple": "{userDisplayName} and {count} more commented on your post.",
+    "mentionedInCommentMultiple": "{userDisplayName} and {count} more mentioned you on a comment.",
+    "mentionedInCommentSingle": "{userDisplayName} mentioned you on a comment.",
+    "mentionedInPostMultiple": "{userDisplayName} and {count} more mentioned you on a post.",
+    "mentionedInPostSingle": "{userDisplayName} mentioned you on a post."
+  },
+  "landingPage": {
+    "heroTitleFirst": "Your Stock Market Community",
+    "heroTitleSecond": "Starts Here",
+    "heroSubtitle": "Connect with investors, share market insights, and grow with the community.",
+    "startNow": "Start Now"
   }
 }

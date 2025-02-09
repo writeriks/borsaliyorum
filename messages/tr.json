@@ -8,7 +8,10 @@
   },
   "Common": {
     "placeholder": "Ne düşünüyorsun?",
-    "errorMessage": "An error occurred."
+    "errorMessage": "An error occurred.",
+    "email": "E-posta",
+    "username": "Kullanıcı Adı",
+    "warning": "Uyarı"
   },
   "NewPost": {
     "successMessage": "Gönderi başarıyla oluşturuldu.",
@@ -59,6 +62,27 @@
     "follow": "Takip Et",
     "unfollow": "Takibi Bırak"
   },
+  "Settings": {
+    "settings": "Ayarlar",
+    "sameEmailError": "Bu e-posta adresi zaten kullanımda.",
+    "change": "Değiştir",
+    "googleSignInInfo": "Google ile giriş yaptığınız için şifre veya e-posta adresinizi değiştiremezsiniz.",
+    "currentPassword": "Mevcut Şifre",
+    "samePasswordError": "Yeni şifre mevcut şifre ile aynı olamaz.",
+    "newPassword": "Yeni Şifre",
+    "confirmPassword": "Şifreyi Onayla",
+    "deletingAccount": "Hesabınız siliniyor...",
+    "deleteAccount": "Hesabı Sil",
+    "deleteAccountConfirmation": "Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+    "deleteAccountSuccess": "Hesabınız başarıyla silindi.",
+    "passwordConfirmationModalTitle": "Şifrenizi onaylayın",
+    "passwordConfirmationModalBody": "Bu işlemi gerçekleştirmek için şifrenizi onaylamanız gerekmektedir.",
+    "confirm": "Onayla",
+    "cancel": "İptal",
+    "successMessage": "Ayarlarınız başarıyla güncellendi.",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor"
+  },
   "EditProfile": {
     "editProfile": "Profilini Düzenle",
     "successMessage": "Profil başarıyla güncellendi.",
@@ -77,5 +101,20 @@
     "heroTitleSecond": "Burada Başlıyor",
     "heroSubtitle": "Yatırımcılarla bağlantı kurun, piyasa görüşlerinizi paylaşın ve toplulukla birlikte büyüyün.",
     "startNow": "Hemen Başla"
+  },
+
+  "notifications": {
+    "notificationsTitle": "Bildirimler",
+    "followedBy": "{userDisplayName} seni takip etti.",
+    "likedCommentSingle": "{userDisplayName} bir yorumunu beğendi.",
+    "likedCommentMultiple": "{userDisplayName} ve {count} kişi daha bir yorumunu beğendi.",
+    "likedPostMultiple": "{userDisplayName} ve {count} kişi daha bir gönderini beğendi.",
+    "likedPostSingle": "{userDisplayName} bir gönderini beğendi.",
+    "commentedSingle": "{userDisplayName} bir gönderine yorum yaptı.",
+    "commentedMultiple": "{userDisplayName} ve {count} kişi daha bir gönderine yorum yaptı.",
+    "mentionedInCommentMultiple": "{userDisplayName} ve {count} kişi daha bir yorumda senden bahsetti.",
+    "mentionedInCommentSingle": "{userDisplayName} bir yorumda senden bahsetti.",
+    "mentionedInPostMultiple": "{userDisplayName} ve {count} kişi daha bir gönderide senden bahsetti.",
+    "mentionedInPostSingle": "{userDisplayName} bir gönderide senden bahsetti."
   }
 }

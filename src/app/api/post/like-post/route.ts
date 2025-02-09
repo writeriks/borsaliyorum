@@ -2,6 +2,7 @@ import prisma from '@/services/prisma-service/prisma-client';
 import { auth } from '@/services/firebase-service/firebase-admin';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
 import { NextResponse } from 'next/server';
+import { NotificationType } from '@prisma/client';
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
@@ -60,19 +61,47 @@ export async function POST(request: Request): Promise<NextResponse> {
         },
       });
     } else {
-      // If the user hasn't liked the post, like it
-      await prisma.postLikes.create({
-        data: {
-          postId: postId,
-          userId: currentUser.userId,
-          likedAt: new Date(),
-        },
+      await prisma.$transaction(async tx => {
+        // If the user hasn't liked the post, like it
+        await prisma.postLikes.create({
+          data: {
+            postId: postId,
+            userId: currentUser.userId,
+            likedAt: new Date(),
+          },
+        });
+
+        // Do not create notification if the user is liking their own post
+        if (post.userId !== currentUser.userId) {
+          const isExistingNotification = await tx.notification.findFirst({
+            where: {
+              userId: post.userId,
+              fromUserId: currentUser.userId,
+              postId: postId,
+              type: NotificationType.LIKE,
+            },
+          });
+
+          if (!isExistingNotification) {
+            // Create notification if it doesn't exist
+            await tx.notification.create({
+              data: {
+                userId: post.userId,
+                fromUserId: currentUser.userId,
+                type: NotificationType.LIKE,
+                content: `${currentUser.displayName} bir gönderini beğendi.`,
+                postId: postId,
+                read: false,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              },
+            });
+          }
+        }
       });
 
       didLike = true;
     }
-
-    // TODO: Handle Mentions
 
     return createResponse(ResponseStatus.OK, { didLike });
   } catch (error) {

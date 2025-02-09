@@ -1,13 +1,13 @@
 import { isValidUsername } from '@/utils/user-utils/user-utils';
 import { z } from 'zod';
 
-const passwordConstants = {
+export const passwordConstants = {
   // TODO: Add secure password validation
   minLength: 8,
   minLengthMessage: 'Şifre en az 8 karakter içermelidir.',
 };
 
-const emailConstants = {
+export const emailConstants = {
   minLength: 1,
   maxLength: 120,
   minLengthMessage: 'E-posta adresi boş olamaz.',
@@ -15,7 +15,7 @@ const emailConstants = {
   notValidMessage: 'Bu geçerli bir e-posta adresi değil.',
 };
 
-const usernameConstants = {
+export const usernameConstants = {
   minLength: 3,
   minLengthMessage: 'Kullanıcı adı 3 karakterden fazla olmalıdır.',
   maxLength: 20,
@@ -31,7 +31,7 @@ const displayNameConstants = {
   maxLengthMessage: 'Ad Soyad 80 karakterden uzun olamaz.',
 };
 
-const emailValidationProps = {
+export const emailValidationProps = {
   email: z
     .string()
     .min(emailConstants.minLength, { message: emailConstants.minLengthMessage })
@@ -39,18 +39,7 @@ const emailValidationProps = {
     .email(emailConstants.notValidMessage),
 };
 
-const commonValidationProps = {
-  ...emailValidationProps,
-  password: z.string().min(passwordConstants.minLength, {
-    message: passwordConstants.minLengthMessage,
-  }),
-};
-
-export const loginFormSchema = z.object(commonValidationProps);
-export const resetPasswordSchema = z.object(emailValidationProps);
-
-export const registerFormSchema = z.object({
-  ...commonValidationProps,
+export const usernameValidationProps = {
   username: z
     .string()
     .min(usernameConstants.minLength, {
@@ -62,6 +51,21 @@ export const registerFormSchema = z.object({
     .refine(val => isValidUsername(val), {
       message: usernameConstants.notValidMessage,
     }),
+};
+
+export const commonValidationProps = {
+  ...emailValidationProps,
+  password: z.string().min(passwordConstants.minLength, {
+    message: passwordConstants.minLengthMessage,
+  }),
+};
+
+export const loginFormSchema = z.object(commonValidationProps);
+export const resetPasswordSchema = z.object(emailValidationProps);
+
+export const registerFormSchema = z.object({
+  ...commonValidationProps,
+  ...usernameValidationProps,
 
   displayName: z
     .string()

@@ -45,13 +45,13 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     // check if email is taken
-    const usernameUser = await prisma.user.findUnique({
+    const userByUsername = await prisma.user.findUnique({
       where: {
         username,
       },
     });
 
-    if (usernameUser) {
+    if (userByUsername) {
       const message =
         'Bu kullanıcı adı daha önce alınmış. Lütfen farklı bir kullanıcı adı ile tekrar deneyin.';
 
