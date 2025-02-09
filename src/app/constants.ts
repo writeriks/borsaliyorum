@@ -13,8 +13,3 @@ export enum ContentType {
   POST = 'post',
   COMMENT = 'comment',
 }
-
-export enum ActiveScreen {
-  FEED = 'feed',
-  POST_DETAIL = 'postDetail',
-}
