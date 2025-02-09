@@ -95,14 +95,14 @@ const Post: React.FC<PostProp> = ({ post, onPostClick, onDeleteClick }) => {
               </TooltipWithEllipsis>
             </div>
           </div>
-          {onDeleteClick && (
+          {
             <EntryOptions
               isFollowed={postOwner?.isUserFollowed ?? false}
               onDeleteSuccess={onDeleteClick}
               entry={post}
               isEntryOwner={postOwner?.username === currentUser.username}
             />
-          )}
+          }
         </div>
 
         <section className='p-2'>
@@ -125,7 +125,7 @@ const Post: React.FC<PostProp> = ({ post, onPostClick, onDeleteClick }) => {
 
         <UrlContentPreview content={post.content} />
       </CardContent>
-      {onPostClick && <EntryFooter onPostClick={onPostClick} entry={post as any} />}
+      {<EntryFooter onPostClick={onPostClick} entry={post as any} />}
     </Card>
   );
 };
