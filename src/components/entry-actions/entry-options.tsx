@@ -20,7 +20,7 @@ interface EntryProp {
   isEntryOwner: boolean;
   isFollowed: boolean;
   entry: Comment | Post;
-  onDeleteSuccess: (entryId: number) => void;
+  onDeleteSuccess?: (entryId: number) => void;
 }
 
 const EntryOptions: React.FC<EntryProp> = ({
@@ -52,7 +52,7 @@ const EntryOptions: React.FC<EntryProp> = ({
       return commentApiService.deleteComment((entry as Comment).commentId!);
     },
     onSuccess: (data: { deletedCommentId: number }) => {
-      onDeleteSuccess(data.deletedCommentId);
+      onDeleteSuccess?.(data.deletedCommentId);
       dispatch(
         setUINotification({
           message: t('EntryOptions.deleteCommentSuccess'),
@@ -68,7 +68,7 @@ const EntryOptions: React.FC<EntryProp> = ({
       return postApiService.deletePost((entry as Post).postId!);
     },
     onSuccess: (data: { deletedPostId: number }) => {
-      onDeleteSuccess(data.deletedPostId);
+      onDeleteSuccess?.(data.deletedPostId);
       dispatch(
         setUINotification({
           message: t('EntryOptions.deletePostSuccess'),
@@ -117,7 +117,6 @@ const EntryOptions: React.FC<EntryProp> = ({
           <span className='sr-only'>{t('EntryOptions.options')}</span>
         </Button>
       </DropdownMenuTrigger>
-      {/* TODO: implement dropdown click functionalities */}
       <DropdownMenuContent align='end'>
         {!isEntryOwner && isUserFollowed ? (
           <DropdownMenuItem onClick={() => unfollowUserMutation.mutate()}>

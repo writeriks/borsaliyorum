@@ -1,3 +1,4 @@
+import { useRouter } from '@/i18n/routing';
 import commentApiService from '@/services/api-service/comment-api-service/comment-api-service';
 import postApiService from '@/services/api-service/post-api-service/post-api-service';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
@@ -31,6 +32,7 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
   const [likeCount, setLikeCount] = useState<number>(entry.likeCount ?? 0);
 
   const dispatch = useDispatch();
+  const router = useRouter();
   const isComment = 'commentId' in entry;
 
   const handleError = (error: Error): void => {
@@ -46,7 +48,7 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
     if (isComment && onCommentClick) {
       onCommentClick(commentor as User);
     } else {
-      onPostClick?.(entry as Post);
+      router.push(`/posts/${entry.postId}`);
     }
   };
 

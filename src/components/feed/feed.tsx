@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActiveScreen, FeedTab } from '@/app/constants';
+import { FeedTab } from '@/app/constants';
 import FeedTabs from '@/components/feed-tabs/feed-tabs';
 import NewPost from '@/components/new-post/new-post';
-import PostDetail from '@/components/post/post-detail';
 import useInfiniteScroll from '@/hooks/useInfiniteScroll';
 import useScrollToLastPosition from '@/hooks/useScrollToLastPosition';
 import useUser from '@/hooks/useUser';
@@ -21,32 +20,20 @@ interface FeedProps {
 const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
   const [postsByDate, setPostsByDate] = useState<Post[]>([]);
   const [postsByLike, setPostsByLike] = useState<Post[]>([]);
-  const [selectedPost, setSelectedPost] = useState<Post>();
-  const [deletedPostId, setDeletedPostId] = useState(-1);
   const [activeTab, setActiveTab] = useState<FeedTab>(FeedTab.LATEST);
   const [isLikeTabClicked, setIsLikeTabClicked] = useState(false);
   const [lastPostIdForDate, setLastPostIdForDate] = useState('');
   const [lastPostIdForLike, setLastPostIdForLike] = useState('');
-  const [activeScreen, setActiveScreen] = useState(ActiveScreen.FEED);
 
   const { fbAuthUser } = useUser();
   const dispatch = useDispatch();
 
-  const { saveScrollPosition } = useScrollToLastPosition(activeScreen);
+  // TODO: Implement scroll to last position
+  // const { saveScrollPosition } = useScrollToLastPosition();
 
   const tickerWithoutDollarSign = stock?.ticker;
 
-  const newPostId = useRef<string | null>(new URLSearchParams(window.location.search).get('post'));
-
-  const { refetch: getPostById } = useQuery({
-    queryKey: ['get-post-by-id', newPostId.current],
-    queryFn: () => postApiService.getPostById(newPostId.current!),
-    enabled: false,
-  });
-
   const fetchStockFeed = async (): Promise<any> => {
-    if (activeScreen === ActiveScreen.POST_DETAIL) return;
-
     if (activeTab === FeedTab.LATEST && lastPostIdForDate !== null) {
       return postApiService.getStockFeedByDate(lastPostIdForDate, stock!.ticker);
     }
@@ -57,8 +44,6 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
   };
 
   const fetchHashtagFeed = async (): Promise<any> => {
-    if (activeScreen === ActiveScreen.POST_DETAIL) return;
-
     if (activeTab === FeedTab.LATEST && lastPostIdForDate !== null) {
       return postApiService.getHashtagFeedByDate(lastPostIdForDate, tag!.tagName);
     }
@@ -69,8 +54,6 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
   };
 
   const fetchUserFeed = async (): Promise<any> => {
-    if (activeScreen === ActiveScreen.POST_DETAIL) return;
-
     if (activeTab === FeedTab.LATEST && lastPostIdForDate !== null) {
       return postApiService.getFeedByDate(lastPostIdForDate);
     }
@@ -81,8 +64,6 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
   };
 
   const fetchUserProfileFeed = async (): Promise<any> => {
-    if (activeScreen === ActiveScreen.POST_DETAIL) return;
-
     if (activeTab === FeedTab.LATEST && lastPostIdForDate !== null) {
       return postApiService.getUserPostsByDate(lastPostIdForDate, user!.username!);
     }
@@ -149,109 +130,21 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
     setActiveTab(tabValue);
   };
 
-  const handlePostClick = async (post: Post): Promise<void> => {
-    saveScrollPosition(); // Save the scroll position before navigating away
-
-    newPostId.current = post.postId.toString();
-    const { data: updatedPost } = await getPostById();
-
-    setSelectedPost(updatedPost);
-    setActiveScreen(ActiveScreen.POST_DETAIL);
-    history.pushState({}, '', `?post=${post.postId}`);
-  };
-
-  const handlePostDetailBackClick = useCallback(
-    async (isBrowserBack = false): Promise<void> => {
-      if (!selectedPost?.postId) return;
-
-      if (selectedPost?.postId !== deletedPostId) {
-        newPostId.current = selectedPost?.postId.toString();
-        const { data: updatedPost } = await getPostById();
-
-        if (activeTab === FeedTab.LATEST) {
-          const updatedPostsByDate = postsByDate.map(post =>
-            post.postId === updatedPost?.postId ? updatedPost : post
-          );
-          setPostsByDate(updatedPostsByDate);
-        } else {
-          const updatedPostsByLike = postsByLike.map(post =>
-            post.postId === updatedPost?.postId ? updatedPost : post
-          );
-          setPostsByLike(updatedPostsByLike);
-        }
-      }
-      if (isBrowserBack !== true) history.back(); // This will trigger the popstate event
-
-      setActiveScreen(ActiveScreen.FEED);
-    },
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedPost?.postId, activeTab, postsByDate, postsByLike]
-  );
-
-  const handlePostDelete = (postId: number): void => {
-    setDeletedPostId(postId);
-    if (activeTab === FeedTab.LATEST) {
-      const updatedPostsByDate = postsByDate.filter(post => post.postId !== postId);
-      setPostsByDate(updatedPostsByDate);
-    } else {
-      const updatedPostsByLike = postsByLike.filter(post => post.postId !== postId);
-      setPostsByLike(updatedPostsByLike);
-    }
-  };
-
   useEffect(() => {
-    const handlePopState = async (): Promise<void> => {
-      if (activeScreen === ActiveScreen.POST_DETAIL) {
-        await handlePostDetailBackClick(true);
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [activeScreen, handlePostDetailBackClick]);
-
-  useEffect(() => {
-    if (!fbAuthUser) return;
-
-    if (newPostId.current) {
-      (async () => {
-        const { data } = await getPostById();
-        if (data) {
-          setSelectedPost(data);
-          setActiveScreen(ActiveScreen.POST_DETAIL);
-        }
-      })();
-    }
-    mutation.mutate();
+    if (fbAuthUser) mutation.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fbAuthUser]);
 
   return (
     <>
-      {activeScreen === ActiveScreen.FEED ? (
-        <>
-          {!user && <NewPost ticker={tickerWithoutDollarSign} />}
-          <FeedTabs
-            activeTab={activeTab}
-            postsByDate={postsByDate}
-            postsByLike={postsByLike}
-            onTabChange={handleTabChange}
-            onPostClick={handlePostClick}
-            onPostDelete={handlePostDelete}
-            isLoading={mutation.isPending}
-          />
-        </>
-      ) : (
-        <PostDetail
-          onPostDelete={handlePostDelete}
-          onBackClick={handlePostDetailBackClick}
-          post={selectedPost!}
-        />
-      )}
+      {!user && <NewPost ticker={tickerWithoutDollarSign} />}
+      <FeedTabs
+        activeTab={activeTab}
+        postsByDate={postsByDate}
+        postsByLike={postsByLike}
+        onTabChange={handleTabChange}
+        isLoading={mutation.isPending}
+      />
     </>
   );
 };
