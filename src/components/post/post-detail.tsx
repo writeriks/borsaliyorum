@@ -25,7 +25,8 @@ export interface PostDetailProp {
   onPostDelete?: (postId: number) => void;
   onBackClick?: () => void;
 }
-const PostDetail: React.FC<PostDetailProp> = ({ post, onBackClick, onPostDelete }) => {
+
+const PostDetail: React.FC<PostDetailProp> = ({ post, onPostDelete }) => {
   const { fbAuthUser } = useUser();
   const dispatch = useDispatch();
   const router = useRouter();
@@ -77,16 +78,13 @@ const PostDetail: React.FC<PostDetailProp> = ({ post, onBackClick, onPostDelete 
   });
 
   useEffect(() => {
-    if (post) {
-      mutation.mutate();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [post]);
-
-  useEffect(() => {
     window.scrollTo(0, 0);
 
     if (!fbAuthUser) return;
+
+    if (post) {
+      mutation.mutate();
+    }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fbAuthUser]);
@@ -113,7 +111,7 @@ const PostDetail: React.FC<PostDetailProp> = ({ post, onBackClick, onPostDelete 
 
   return (
     <div className='flex flex-col w-full max-w-2xl '>
-      {post ? (
+      {mutation.isSuccess ? (
         <div className='lg:p-6 p-2 w-full self-start'>
           <span
             onClick={router.back}
