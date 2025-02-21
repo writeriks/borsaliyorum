@@ -12,6 +12,8 @@ import userApiService from '@/services/api-service/user-api-service/user-api-ser
 import { Comment as CommentType, User } from '@prisma/client';
 import { useRouter } from '@/i18n/routing';
 import UrlContentPreview from '@/components/content-preview/content-preview';
+import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
+import { formatDateToTimeAgoString } from '@/utils/date-utils/date-utils';
 
 interface CommentProp {
   comment: CommentType;
@@ -29,6 +31,7 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick
   });
 
   const router = useRouter();
+  const commentDate = formatDateToTimeAgoString(comment.createdAt.toString());
 
   return (
     <Card className='w-full hover:bg-accent cursor-pointer mt-1'>
@@ -41,8 +44,27 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick
             />
           )}
           <div className='space-y-1 flex-1'>
-            <div className='text-sm font-bold'>{commentor?.displayName}</div>
-            <div className='text-xs text-muted-foreground'>{commentor?.username}</div>
+            <div className='text-sm font-bold'>
+              <span
+                className='hover:underline cursor-pointer'
+                onClick={() => router.push(`/users/${commentor?.username}`)}
+              >
+                {commentor?.displayName}
+              </span>
+            </div>
+            <div className='text-xs text-muted-foreground'>
+              <span
+                className='hover:underline cursor-pointer'
+                onClick={() => router.push(`/users/${commentor?.username}`)}
+              >
+                <span className='mr-1'>{commentor?.username}</span>
+              </span>
+
+              <span className='font-bold'> · </span>
+              <TooltipWithEllipsis tooltipText={commentDate.fullDate}>
+                <span className='ml-1 hover:underline'>{`${commentDate.displayDate}`}</span>
+              </TooltipWithEllipsis>
+            </div>
           </div>
           <EntryOptions
             isFollowed={commentor?.isUserFollowed ?? false}
