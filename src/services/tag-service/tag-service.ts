@@ -115,24 +115,21 @@ class TagService {
    * @param tag - The tag to navigate to
    * @param router - The router instance
    */
-  navigateToPageByTagName = (tag: string): void => {
+  navigateToPageByTagName = (tag: string, router: any): void => {
     const tagType = tag[0];
-    let href = '';
 
     switch (tagType) {
       case TagsEnum.CASHTAG:
-        href = `/stocks/${tag}`;
+        router.push(`/stocks/${tag}`);
         break;
       case TagsEnum.MENTION:
-        href = `/users/${tag.replace(TagsEnum.MENTION, '')}`;
+        router.push(`/users/${tag.replace(TagsEnum.MENTION, '')}`);
         break;
       case TagsEnum.HASHTAG:
       default:
-        href = `/tags/${tag.replace(TagsEnum.HASHTAG, '')}`;
+        router.push(`/tags/${tag.replace(TagsEnum.HASHTAG, '')}`);
         break;
     }
-
-    window.location.href = href;
   };
 }
 

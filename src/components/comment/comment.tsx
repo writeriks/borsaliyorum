@@ -12,6 +12,7 @@ import userApiService from '@/services/api-service/user-api-service/user-api-ser
 import { Comment as CommentType, User } from '@prisma/client';
 import { useRouter } from '@/i18n/routing';
 import UrlContentPreview from '@/components/content-preview/content-preview';
+import EntryOwner from '@/components/entry-owner/entry-owner';
 
 interface CommentProp {
   comment: CommentType;
@@ -40,10 +41,9 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick
               user={commentor}
             />
           )}
-          <div className='space-y-1 flex-1'>
-            <div className='text-sm font-bold'>{commentor?.displayName}</div>
-            <div className='text-xs text-muted-foreground'>{commentor?.username}</div>
-          </div>
+
+          {commentor && <EntryOwner entryOwner={commentor} />}
+
           <EntryOptions
             isFollowed={commentor?.isUserFollowed ?? false}
             onDeleteSuccess={onDeleteClick}

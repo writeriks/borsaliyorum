@@ -7,6 +7,8 @@ import { useRouter } from '@/i18n/routing';
 import { Bell, Settings } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Label } from '@/components/ui/label';
+import { useDispatch } from 'react-redux';
+import { setHamburgerMenuOpen } from '@/store/reducers/ui-reducer/ui-slice';
 
 const UserSettings: React.FC = () => {
   const t = useTranslations('userProfileOptions.UserSettings');
@@ -17,7 +19,19 @@ const UserSettings: React.FC = () => {
     queryFn: async () => await userApiService.getUserNotificationCount(),
   });
 
+  const dispatch = useDispatch();
+
   const notificationCount = data?.total;
+
+  const handleNotificationsClick = (): void => {
+    dispatch(setHamburgerMenuOpen(false));
+    router.push('/notifications');
+  };
+
+  const handleSettingsClick = (): void => {
+    dispatch(setHamburgerMenuOpen(false));
+    router.push('/settings');
+  };
 
   return (
     <>
@@ -25,7 +39,7 @@ const UserSettings: React.FC = () => {
         <Button
           variant='secondary'
           className='w-full justify-start bg-transparent dark:bg-transparent dark:hover:bg-accent'
-          onClick={() => router.push('/notifications')}
+          onClick={() => handleNotificationsClick()}
         >
           <Bell className='mr-2 h-4 w-4' />
           <span className='relative'>
@@ -41,7 +55,7 @@ const UserSettings: React.FC = () => {
       <Button
         variant='secondary'
         className='w-full justify-start bg-transparent dark:bg-transparent dark:hover:bg-accent'
-        onClick={() => router.push('/settings')}
+        onClick={() => handleSettingsClick()}
       >
         <Settings className='mr-2 h-4 w-4' /> {t('settings')}
       </Button>
