@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
 import UserAvatar from '@/components/user-avatar/user-avatar';
-import { setIsAuthModalOpen, toggleHamburgerMenuOpen } from '@/store/reducers/ui-reducer/ui-slice';
+import { setHamburgerMenuOpen, setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
 import { LoadingSkeletons } from '@/app/constants';
 import LoginContainer from '@/components/user-profile-options/login-container';
@@ -27,12 +27,12 @@ const UserProfileOptionsMobile = (): React.ReactNode => {
   };
 
   const handleProfileClick = (): void => {
-    dispatch(toggleHamburgerMenuOpen());
+    dispatch(setHamburgerMenuOpen(false));
     router.push(`/users/${user.username}`);
   };
 
   const handleEditProfileClick = (): void => {
-    dispatch(toggleHamburgerMenuOpen());
+    dispatch(setHamburgerMenuOpen(false));
     router.push(`/edit-profile`);
   };
 

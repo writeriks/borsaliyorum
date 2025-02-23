@@ -4,6 +4,7 @@ import useOverflowDetection from '@/hooks/useOverflowDetection';
 import ContentTagWithTooltip from '@/components/content/content-tag/content-tag-with-tooltip';
 import ContentTag from '@/components/content/content-tag/content-tag';
 import tagService from '@/services/tag-service/tag-service';
+import { useRouter } from '@/i18n/routing';
 
 interface ContentProps {
   content: string;
@@ -13,6 +14,8 @@ const Content: React.FC<ContentProps> = ({ content }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { isOverflowing, contentRef } = useOverflowDetection(content);
 
+  const router = useRouter();
+
   const toggleReadMore = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.stopPropagation();
     setIsExpanded(!isExpanded);
@@ -20,7 +23,7 @@ const Content: React.FC<ContentProps> = ({ content }) => {
 
   const onTagClick = (e: React.MouseEvent<HTMLSpanElement>, tag: string): void => {
     e.stopPropagation();
-    tagService.navigateToPageByTagName(tag);
+    tagService.navigateToPageByTagName(tag, router);
   };
 
   const handleUrlClick = (url: string): void => {

@@ -57,6 +57,10 @@ const uiSlice = createSlice({
       state.isHamburgerMenuOpen = !state.isHamburgerMenuOpen;
     },
 
+    setHamburgerMenuOpen: (state, action: PayloadAction<boolean>) => {
+      state.isHamburgerMenuOpen = action.payload;
+    },
+
     setActiveSideBar: (state, action: PayloadAction<ActiveSideBar>) => {
       state.activeSideBar = action.payload;
     },
@@ -82,6 +86,7 @@ export const {
   setActiveSideBar,
   setUINotification,
   setIsNewPostModalOpen,
+  setHamburgerMenuOpen,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

@@ -8,21 +8,30 @@ import {
   setActiveSideBar,
   toggleHamburgerMenuOpen,
 } from '@/store/reducers/ui-reducer/ui-slice';
+import { useRouter } from '@/i18n/routing';
+import useUser from '@/hooks/useUser';
 
 enum ActiveTabEnum {
   FEED = 'feed',
   DISCOVER = 'discover',
   SEARCH = 'search',
   PROFILE = 'profile',
+  USERS = 'users',
+  NOTIFICATIOS = 'notifications',
+  EDIT_PROFILE = 'edit-profile',
+  SETTINGS = 'settings',
 }
 
 const TabBarController: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('feed');
+  const [activeTab, setActiveTab] = useState(ActiveTabEnum.FEED);
 
   const dispatch = useDispatch();
 
-  const path = window.location.pathname.split('/')[1];
+  const { currentUser } = useUser();
 
+  const router = useRouter();
+
+  const path = window.location.pathname.split('/')[2];
   useEffect(() => {
     switch (path) {
       case ActiveTabEnum.DISCOVER:
@@ -31,13 +40,16 @@ const TabBarController: React.FC = () => {
       case ActiveTabEnum.SEARCH:
         setActiveTab(ActiveTabEnum.SEARCH);
         break;
+      case ActiveTabEnum.USERS:
       case ActiveTabEnum.PROFILE:
+      case ActiveTabEnum.NOTIFICATIOS:
+      case ActiveTabEnum.EDIT_PROFILE:
+      case ActiveTabEnum.SETTINGS:
         setActiveTab(ActiveTabEnum.PROFILE);
         break;
       case ActiveTabEnum.FEED:
-        setActiveTab(ActiveTabEnum.FEED);
-        break;
       default:
+        setActiveTab(ActiveTabEnum.FEED);
         break;
     }
   }, [path]);
@@ -45,11 +57,22 @@ const TabBarController: React.FC = () => {
   const onTabClick = (tab: ActiveTabEnum): void => {
     setActiveTab(tab);
 
-    if (tab == ActiveTabEnum.DISCOVER) {
-      dispatch(toggleHamburgerMenuOpen());
-      dispatch(setActiveSideBar(ActiveSideBar.DISCOVER));
-    } else {
-      window.location.pathname = `/${tab}`;
+    switch (tab) {
+      case ActiveTabEnum.FEED:
+        router.push('/feed');
+        break;
+      case ActiveTabEnum.DISCOVER:
+        dispatch(toggleHamburgerMenuOpen());
+        dispatch(setActiveSideBar(ActiveSideBar.DISCOVER));
+        break;
+      case ActiveTabEnum.SEARCH:
+        // TODO: Implement search modal
+        break;
+      case ActiveTabEnum.PROFILE:
+        router.push(`/users/${currentUser?.username}`);
+        break;
+      default:
+        break;
     }
   };
 
@@ -58,7 +81,7 @@ const TabBarController: React.FC = () => {
       <nav className='fixed -bottom-1 py-1 z-10 flex w-full bg-background shadow-lg'>
         <button
           className={`flex-1 py-1 text-center transition-colors ${
-            activeTab === 'feed'
+            activeTab === ActiveTabEnum.FEED
               ? 'bg-primary text-primary-foreground'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
@@ -71,7 +94,7 @@ const TabBarController: React.FC = () => {
         </button>
         <button
           className={`flex-1 py-1 text-center transition-colors ${
-            activeTab === 'discover'
+            activeTab === ActiveTabEnum.DISCOVER
               ? 'bg-primary text-primary-foreground'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
@@ -84,7 +107,7 @@ const TabBarController: React.FC = () => {
         </button>
         <button
           className={`flex-1 py-1 text-center transition-colors ${
-            activeTab === 'search'
+            activeTab === ActiveTabEnum.SEARCH
               ? 'bg-primary text-primary-foreground'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
@@ -97,7 +120,7 @@ const TabBarController: React.FC = () => {
         </button>
         <button
           className={`flex-1 py-1 text-center transition-colors ${
-            activeTab === 'profile'
+            activeTab === ActiveTabEnum.PROFILE
               ? 'bg-primary text-primary-foreground'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}

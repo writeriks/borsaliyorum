@@ -1,20 +1,22 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
-import { useSelector } from 'react-redux';
-import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
+import EntryOwner from '@/components/entry-owner/entry-owner';
 import UserAvatar from '@/components/user-avatar/user-avatar';
-import Image from 'next/image';
 import EntryOptions from '@/components/entry-actions/entry-options';
-import Content from '@/components/content/content';
-import { formatDateToTimeAgoString } from '@/utils/date-utils/date-utils';
-import { Post as PostType, Sentiment, Repost } from '@prisma/client';
-import TooltipWithEllipsis from '@/components/tooltip-with-ellipsis/tooltip-with-ellipsis';
-import { useQuery } from '@tanstack/react-query';
-import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import EntryFooter from '@/components/entry-footer/entry-footer';
-import { useRouter } from '@/i18n/routing';
+import Image from 'next/image';
+import Content from '@/components/content/content';
 import UrlContentPreview from '@/components/content-preview/content-preview';
+
+import { useSelector } from 'react-redux';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from '@/i18n/routing';
+
+import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
+import userApiService from '@/services/api-service/user-api-service/user-api-service';
+
 import { LadingPagePost } from '@/services/api-service/post-api-service/constants';
+import { Post as PostType, Sentiment, Repost } from '@prisma/client';
 
 export interface PostProp {
   post:
@@ -39,8 +41,6 @@ const Post: React.FC<PostProp> = ({ post, onPostClick, onDeleteClick }) => {
   });
 
   const proxyUrl = `/api/image-proxy?imageUrl=${encodeURIComponent(post.mediaUrl ?? '')}`;
-
-  const postDate = formatDateToTimeAgoString(post.createdAt.toString());
 
   const renderSentiment = {
     [Sentiment.bullish]: (
@@ -78,23 +78,9 @@ const Post: React.FC<PostProp> = ({ post, onPostClick, onDeleteClick }) => {
               onUserAvatarClick={() => handleUserAvatarClick()}
             />
           )}
-          <div className='space-y-1 flex-1'>
-            <div className='text-sm font-bold'>
-              <a className='hover:underline' href={`/users/${postOwner?.username}`}>
-                {postOwner?.displayName ?? landingPagePostUser?.displayName}
-              </a>
-            </div>
-            <div className='text-xs text-muted-foreground'>
-              <a className='hover:underline' href={`/users/${postOwner?.username}`}>
-                <span className='mr-1'>{postOwner?.username ?? landingPagePostUser?.username}</span>
-              </a>
 
-              <span className='font-bold'> · </span>
-              <TooltipWithEllipsis tooltipText={postDate.fullDate}>
-                <span className='ml-1 hover:underline'>{`${postDate.displayDate}`}</span>
-              </TooltipWithEllipsis>
-            </div>
-          </div>
+          {postOwner && <EntryOwner entryOwner={postOwner} />}
+
           {
             <EntryOptions
               isFollowed={postOwner?.isUserFollowed ?? false}
