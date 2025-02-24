@@ -28,7 +28,7 @@ const UserProfileOptionsMobile = (): React.ReactNode => {
 
   const handleProfileClick = (): void => {
     dispatch(setHamburgerMenuOpen(false));
-    router.push(`/users/${user.username}`);
+    router.push(`/users/${user?.username}`);
   };
 
   const handleEditProfileClick = (): void => {
@@ -40,7 +40,7 @@ const UserProfileOptionsMobile = (): React.ReactNode => {
     <LoadingSkeleton type={LoadingSkeletons.USER_PROFILE} />
   ) : (
     <div id='user-profile-section' className='flex flex-col top-[60px] h-[170px] sticky'>
-      {user.username ? (
+      {user?.username ? (
         <div className='w-full h-full flex flex-col p-1'>
           <div>
             <div className='flex' onClick={handleProfileClick}>

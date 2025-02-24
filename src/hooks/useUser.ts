@@ -19,7 +19,7 @@ import { useRouter } from '@/i18n/routing';
 import { User } from '@prisma/client';
 
 const useUser = (): {
-  user: UserState;
+  user: UserState | null;
   fbAuthUser: FBAuthUserType | null;
   currentUser: Partial<User> | null;
 } => {
@@ -120,7 +120,7 @@ const useUser = (): {
     });
 
     return () => unsubscribe();
-  }, [dispatch, router, userState.username, userData, error, isLoading, firebaseUserId]);
+  }, [dispatch, router, userState?.username, userData, error, isLoading, firebaseUserId]);
 
   useEffect(() => {
     if (currentUser?.email) {
@@ -128,7 +128,7 @@ const useUser = (): {
     }
   }, [currentUser?.email, refetch]);
 
-  return { user: userState, currentUser, fbAuthUser };
+  return { user: userState || null, currentUser, fbAuthUser };
 };
 
 export default useUser;
