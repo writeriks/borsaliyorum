@@ -44,12 +44,14 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick
 
           {commentor && <EntryOwner entryOwner={commentor} />}
 
-          <EntryOptions
-            isFollowed={commentor?.isUserFollowed ?? false}
-            onDeleteSuccess={onDeleteClick}
-            entry={comment}
-            isEntryOwner={commentor?.username === currentUser.username}
-          />
+          {currentUser && (
+            <EntryOptions
+              isFollowed={commentor?.isUserFollowed ?? false}
+              onDeleteSuccess={onDeleteClick}
+              entry={comment}
+              isEntryOwner={commentor?.username === currentUser.username}
+            />
+          )}
         </div>
         <section className='p-2'>
           <Content content={comment.content} />
