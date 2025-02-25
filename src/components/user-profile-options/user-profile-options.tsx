@@ -23,7 +23,7 @@ import LoginContainer from '@/components/user-profile-options/login-container';
 
 const UserProfileOptions = (): React.ReactNode => {
   const dispatch = useDispatch();
-  const { currentUser } = useUser();
+  const { currentUser, isLoadingUser } = useUser();
   const isAuthLoading = useSelector(uiReducerSelector.getIsAuthLoading);
   const t = useTranslations('userProfileOptions.UserProfileOptions');
 
@@ -50,7 +50,7 @@ const UserProfileOptions = (): React.ReactNode => {
     }
   };
 
-  return isAuthLoading ? (
+  return isLoadingUser ? (
     <LoadingSkeleton type={LoadingSkeletons.USER_PROFILE} />
   ) : (
     <div

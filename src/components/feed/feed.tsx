@@ -25,7 +25,7 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
   const [lastPostIdForDate, setLastPostIdForDate] = useState('');
   const [lastPostIdForLike, setLastPostIdForLike] = useState('');
 
-  const { fbAuthUser } = useUser();
+  const { currentUser } = useUser();
   const dispatch = useDispatch();
 
   // TODO: Implement scroll to last position
@@ -131,9 +131,9 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
   };
 
   useEffect(() => {
-    if (fbAuthUser) mutation.mutate();
+    if (currentUser) mutation.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fbAuthUser]);
+  }, [currentUser]);
 
   return (
     <>

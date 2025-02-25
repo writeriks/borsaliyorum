@@ -9,7 +9,7 @@ interface EntryOwnerProps {
 }
 
 const EntryOwner: React.FC<EntryOwnerProps> = ({ entryOwner }) => {
-  const entryDate = formatDateToTimeAgoString(entryOwner.createdAt.toString());
+  const entryDate = formatDateToTimeAgoString(entryOwner?.createdAt?.toString());
   const router = useRouter();
 
   return (
