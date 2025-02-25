@@ -8,8 +8,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
-import { useDispatch, useSelector } from 'react-redux';
-import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
+import { useDispatch } from 'react-redux';
 import UserAvatar from '@/components/user-avatar/user-avatar';
 import { setIsAuthModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
 import LoadingSkeleton from '@/components/loading-skeleton/loading-skeleton';
@@ -24,9 +23,7 @@ import LoginContainer from '@/components/user-profile-options/login-container';
 const UserProfileOptions = (): React.ReactNode => {
   const dispatch = useDispatch();
   const { currentUser, isLoadingUser } = useUser();
-  const isAuthLoading = useSelector(uiReducerSelector.getIsAuthLoading);
   const t = useTranslations('userProfileOptions.UserProfileOptions');
-
   const router = useRouter();
 
   const logout = async (): Promise<void> => {
