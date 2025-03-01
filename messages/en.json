@@ -115,5 +115,14 @@
     "heroTitleSecond": "Starts Here",
     "heroSubtitle": "Connect with investors, share market insights, and grow with the community.",
     "startNow": "Start Now"
+  },
+  "search": {
+    "postCount": "{query} posts",
+    "search": "Search",
+    "users": "Users",
+    "stocks": "Stocks",
+    "hashtags": "Hashtags",
+    "placeholder": "Search for users, stocks, or tags...",
+    "noResults": "No results found for \"{query}\"."
   }
 }
