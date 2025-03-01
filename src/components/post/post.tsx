@@ -79,16 +79,18 @@ const Post: React.FC<PostProp> = ({ post, onPostClick, onDeleteClick }) => {
             />
           )}
 
-          {postOwner && <EntryOwner entryOwner={postOwner} />}
+          {(postOwner || landingPagePostUser) && (
+            <EntryOwner entryOwner={postOwner ?? landingPagePostUser} />
+          )}
 
-          {
+          {currentUser && (
             <EntryOptions
               isFollowed={postOwner?.isUserFollowed ?? false}
               onDeleteSuccess={onDeleteClick}
               entry={post}
-              isEntryOwner={postOwner?.username === currentUser.username}
+              isEntryOwner={postOwner?.username === currentUser?.username}
             />
-          }
+          )}
         </div>
 
         <section className='p-2'>
@@ -111,7 +113,7 @@ const Post: React.FC<PostProp> = ({ post, onPostClick, onDeleteClick }) => {
 
         <UrlContentPreview content={post.content} />
       </CardContent>
-      {<EntryFooter onPostClick={onPostClick} entry={post as any} />}
+      {currentUser && <EntryFooter onPostClick={onPostClick} entry={post as any} />}
     </Card>
   );
 };

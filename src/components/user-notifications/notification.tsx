@@ -1,6 +1,7 @@
 'use client';
 
 import UserAvatar from '@/components/user-avatar/user-avatar';
+import notificationService from '@/components/user-notifications/notification-service';
 import { MultipleNotificationsWithUserPostAndCommentType } from '@/components/user-notifications/user-notifications-schema';
 import { useRouter } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
@@ -16,45 +17,6 @@ const Notification: React.FC<NotificationProps> = ({ notification }) => {
   const t = useTranslations('notifications');
   const router = useRouter();
 
-  const getLikeNotificationText = (displayName: string): string | undefined => {
-    if (notification[0].postId && notification[0].commentId) {
-      return notification.length > 1
-        ? t('likedCommentMultiple', {
-            userDisplayName: displayName,
-            count: notification.length - 1,
-          })
-        : t('likedCommentSingle', { userDisplayName: displayName });
-    } else if (notification[0].postId) {
-      return notification.length > 1
-        ? t('likedPostMultiple', { userDisplayName: displayName, count: notification.length - 1 })
-        : t('likedPostSingle', { userDisplayName: displayName });
-    }
-  };
-
-  const getMentionNotificationText = (displayName: string): string | undefined => {
-    if (notification[0].postId && notification[0].commentId) {
-      return notification.length > 1
-        ? t('mentionedInCommentMultiple', {
-            userDisplayName: displayName,
-            count: notification.length - 1,
-          })
-        : t('mentionedInCommentSingle', { userDisplayName: displayName });
-    } else if (notification[0].postId) {
-      return notification.length > 1
-        ? t('mentionedInPostMultiple', {
-            userDisplayName: displayName,
-            count: notification.length - 1,
-          })
-        : t('mentionedInPostSingle', { userDisplayName: displayName });
-    }
-  };
-
-  const getCommentNotificationText = (displayName: string): string | undefined => {
-    return notification.length > 1
-      ? t('commentedMultiple', { userDisplayName: displayName, count: notification.length - 1 })
-      : t('commentedSingle', { userDisplayName: displayName });
-  };
-
   const buildNotificationText = (): string | undefined => {
     const displayName = notification[0].fromUser.displayName;
     const notificationType = notification[0].type;
@@ -63,11 +25,11 @@ const Notification: React.FC<NotificationProps> = ({ notification }) => {
       case NotificationType.FOLLOW:
         return t('followedBy', { userDisplayName: displayName });
       case NotificationType.LIKE:
-        return getLikeNotificationText(displayName);
+        return notificationService.getLikeNotificationText(notification, displayName, t);
       case NotificationType.COMMENT:
-        return getCommentNotificationText(displayName);
+        return notificationService.getCommentNotificationText(notification, displayName, t);
       case NotificationType.MENTION:
-        return getMentionNotificationText(displayName);
+        return notificationService.getMentionNotificationText(notification, displayName, t);
       default:
         break;
     }
@@ -75,7 +37,10 @@ const Notification: React.FC<NotificationProps> = ({ notification }) => {
 
   const renderNotification = (): React.ReactNode => {
     return (
-      <div className='flex items-center cursor-pointer'>
+      <div
+        className='flex items-center cursor-pointer'
+        onClick={() => notificationService.handleNotificationClick(notification, router)}
+      >
         <UserAvatar
           user={notification[0].fromUser}
           onUserAvatarClick={() => router.push(`/users/${notification[0].fromUser.username}`)}
