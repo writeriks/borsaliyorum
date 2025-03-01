@@ -1,14 +1,13 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FeedTab } from '@/app/constants';
 import FeedTabs from '@/components/feed-tabs/feed-tabs';
 import NewPost from '@/components/new-post/new-post';
 import useInfiniteScroll from '@/hooks/useInfiniteScroll';
-import useScrollToLastPosition from '@/hooks/useScrollToLastPosition';
 import useUser from '@/hooks/useUser';
 import postApiService from '@/services/api-service/post-api-service/post-api-service';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import { Post, Stock, Tag, User } from '@prisma/client';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 
 interface FeedProps {
@@ -25,7 +24,7 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
   const [lastPostIdForDate, setLastPostIdForDate] = useState('');
   const [lastPostIdForLike, setLastPostIdForLike] = useState('');
 
-  const { fbAuthUser } = useUser();
+  const { currentUser } = useUser();
   const dispatch = useDispatch();
 
   // TODO: Implement scroll to last position
@@ -131,9 +130,9 @@ const Feed: React.FC<FeedProps> = ({ stock, tag, user }) => {
   };
 
   useEffect(() => {
-    if (fbAuthUser) mutation.mutate();
+    if (currentUser) mutation.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fbAuthUser]);
+  }, [currentUser]);
 
   return (
     <>

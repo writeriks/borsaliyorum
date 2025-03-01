@@ -9,16 +9,16 @@ import TrendingTopics from '@/components/discover/trending-topics';
 import useUser from '@/hooks/useUser';
 
 const Discover: React.FC = () => {
-  const { fbAuthUser } = useUser();
+  const { currentUser } = useUser();
 
   const { data: trends, isLoading } = useQuery({
     queryKey: ['get-trends'],
     queryFn: () => discoverApiService.getTrends(),
-    enabled: !!fbAuthUser,
+    enabled: !!currentUser,
   });
 
   const renderTrends = (): React.ReactNode => {
-    if (!fbAuthUser) {
+    if (!currentUser) {
       return null;
     } else if (trends) {
       return <TrendingTopics trends={trends} />;

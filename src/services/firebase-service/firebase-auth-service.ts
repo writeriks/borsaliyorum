@@ -76,8 +76,6 @@ class FirebaseAuthService {
         queryKey: ['validate-user', user],
         queryFn: () => userApiService.validateUser(user),
       });
-
-      window.location.pathname = '/feed';
     } catch (error: any) {
       console.error('Error signing in with Google:', error);
       this.dispatchError(error);
@@ -110,17 +108,17 @@ class FirebaseAuthService {
     try {
       store.dispatch(setIsAuthLoading(true));
       const { user } = await signInWithEmailAndPassword(auth, email, password);
-      const userDocument = await userApiService.getUserById(user.uid);
 
       await queryClient.fetchQuery({
         queryKey: ['validate-user', user],
         queryFn: () => userApiService.validateUser(user),
       });
+
+      const userDocument = await userApiService.getUserById(user.uid);
+
       if (userDocument) {
         await userApiService.syncGmailLogin(user, userDocument);
       }
-
-      window.location.pathname = '/feed';
     } catch (error: any) {
       console.error('Error during signing in:', error);
       this.dispatchError(error);
@@ -179,8 +177,6 @@ class FirebaseAuthService {
           notificationType: UINotificationEnum.SUCCESS,
         })
       );
-
-      window.location.pathname = '/feed';
 
       return true;
     } catch (error: any) {

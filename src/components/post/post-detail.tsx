@@ -27,7 +27,7 @@ export interface PostDetailProp {
 }
 
 const PostDetail: React.FC<PostDetailProp> = ({ post, onPostDelete }) => {
-  const { fbAuthUser } = useUser();
+  const { currentUser } = useUser();
   const dispatch = useDispatch();
   const router = useRouter();
   const t = useTranslations();
@@ -80,14 +80,14 @@ const PostDetail: React.FC<PostDetailProp> = ({ post, onPostDelete }) => {
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    if (!fbAuthUser) return;
+    if (!currentUser) return;
 
     if (post) {
       mutation.mutate();
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fbAuthUser]);
+  }, [currentUser]);
 
   const handleCommentClick = (commentor: User): void => {
     setMention({
@@ -111,51 +111,47 @@ const PostDetail: React.FC<PostDetailProp> = ({ post, onPostDelete }) => {
 
   return (
     <div className='flex flex-col w-full max-w-2xl '>
-      {mutation.isSuccess ? (
-        <div className='lg:p-6 p-2 w-full self-start'>
-          <span
-            onClick={router.back}
-            className='cursor-pointer inline-flex items-center justify-center p-3 bg-transparent'
-          >
-            <MoveLeft className='mr-2 h-5 w-5' /> {t('PostDetail.back')}
-          </span>
-          <Post onDeleteClick={onPostDelete} post={post} />
-          <NewComment
-            onSubmit={comment => handleCommentSubmit(comment)}
-            mention={mention}
-            postOwnerId={post.userId}
-            postId={post.postId}
+      <div className='lg:p-6 p-2 w-full self-start'>
+        <span
+          onClick={router.back}
+          className='cursor-pointer inline-flex items-center justify-center p-3 bg-transparent'
+        >
+          <MoveLeft className='mr-2 h-5 w-5' /> {t('PostDetail.back')}
+        </span>
+        <Post onDeleteClick={onPostDelete} post={post} />
+        <NewComment
+          onSubmit={comment => handleCommentSubmit(comment)}
+          mention={mention}
+          postOwnerId={post.userId}
+          postId={post.postId}
+        />
+        {comments.map(comment => (
+          <Comment
+            onDeleteClick={handleCommentDelete}
+            onCommentClick={handleCommentClick}
+            key={comment.commentId}
+            comment={comment}
           />
-          {comments.map(comment => (
-            <Comment
-              onDeleteClick={handleCommentDelete}
-              onCommentClick={handleCommentClick}
-              key={comment.commentId}
-              comment={comment}
-            />
-          ))}
-          {comments.length && lastCommentId ? (
-            <div
-              onClick={() => mutation.mutate()}
-              className='flex flex-row min-w-full items-center mt-1 text-sm justify-center cursor-pointer'
-            >
-              {isLoadMoreClicked ? (
-                <Icons.spinner className='h-4 w-4 animate-spin' />
-              ) : (
-                <a
-                  className='p-4 text-blue-400 hover:underline'
-                  onClick={() => setIsLoadMoreClicked(true)}
-                >
-                  {t('PostDetail.loadMore')}
-                </a>
-              )}
-            </div>
-          ) : null}
-          {mutation.isPending && <LoadingSkeleton type={LoadingSkeletons.POST} />}
-        </div>
-      ) : (
-        <LoadingSkeleton type={LoadingSkeletons.POST} />
-      )}
+        ))}
+        {comments.length && lastCommentId ? (
+          <div
+            onClick={() => mutation.mutate()}
+            className='flex flex-row min-w-full items-center mt-1 text-sm justify-center cursor-pointer'
+          >
+            {isLoadMoreClicked ? (
+              <Icons.spinner className='h-4 w-4 animate-spin' />
+            ) : (
+              <span
+                className='p-4 text-blue-400 hover:underline'
+                onClick={() => setIsLoadMoreClicked(true)}
+              >
+                {t('PostDetail.loadMore')}
+              </span>
+            )}
+          </div>
+        ) : null}
+        {mutation.isPending && <LoadingSkeleton type={LoadingSkeletons.POST} />}
+      </div>
     </div>
   );
 };

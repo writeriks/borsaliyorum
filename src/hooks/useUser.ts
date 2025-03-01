@@ -22,6 +22,7 @@ const useUser = (): {
   user: UserState;
   fbAuthUser: FBAuthUserType | null;
   currentUser: Partial<User> | null;
+  isLoadingUser: boolean;
 } => {
   const dispatch = useDispatch();
   const userState = useSelector(userReducerSelector.getUser);
@@ -29,6 +30,7 @@ const useUser = (): {
   const [firebaseUserId, setFirebaseUserId] = useState<string | null>(null);
 
   const [currentUser, setCurrentUser] = useState<Partial<User | null>>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
 
   const router = useRouter();
 
@@ -89,6 +91,7 @@ const useUser = (): {
 
           dispatch(setIsAuthModalOpen(false));
           dispatch(setIsAuthLoading(false));
+          setIsLoadingUser(false);
         }
       } else {
         dispatch(
@@ -110,12 +113,14 @@ const useUser = (): {
 
         dispatch(setIsAuthModalOpen(false));
         dispatch(setIsAuthLoading(false));
+        setIsLoadingUser(false);
 
         router.push('/');
       }
 
       if (window.location.pathname === '/feed') {
         dispatch(setIsAuthLoading(false));
+        setIsLoadingUser(false);
       }
     });
 
@@ -128,7 +133,7 @@ const useUser = (): {
     }
   }, [currentUser?.email, refetch]);
 
-  return { user: userState, currentUser, fbAuthUser };
+  return { user: userState, currentUser, fbAuthUser, isLoadingUser };
 };
 
 export default useUser;
