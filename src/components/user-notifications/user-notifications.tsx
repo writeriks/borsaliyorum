@@ -18,7 +18,7 @@ const UserNotifications = (): React.ReactNode => {
   const [notifications, setNotifications] = React.useState<GroupedNotificationsResponseType>([]);
   const [lastNotificationId, setLastNotificationId] = React.useState<string | number>('');
 
-  const { fbAuthUser } = useUser();
+  const { currentUser } = useUser();
 
   const t = useTranslations('notifications');
 
@@ -43,11 +43,11 @@ const UserNotifications = (): React.ReactNode => {
   });
 
   useEffect(() => {
-    if (!fbAuthUser) return;
+    if (!currentUser) return;
 
     mutation.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fbAuthUser]);
+  }, [currentUser]);
 
   useInfiniteScroll({
     shouldFetchNextPage: !mutation.isPending,

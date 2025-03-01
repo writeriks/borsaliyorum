@@ -36,7 +36,7 @@ export interface UIState {
 }
 
 export const initialState: UIState = {
-  isAuthLoading: false,
+  isAuthLoading: true,
   isHamburgerMenuOpen: false,
   refetchUserStocks: false,
   activeSideBar: ActiveSideBar.PROFILE,
