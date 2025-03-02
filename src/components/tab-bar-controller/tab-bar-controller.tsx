@@ -6,6 +6,7 @@ import { Home, Compass, Search, User } from 'lucide-react';
 import {
   ActiveSideBar,
   setActiveSideBar,
+  setIsSearchModalOpen,
   toggleHamburgerMenuOpen,
 } from '@/store/reducers/ui-reducer/ui-slice';
 import { useRouter } from '@/i18n/routing';
@@ -56,6 +57,7 @@ const TabBarController: React.FC = () => {
 
   const onTabClick = (tab: ActiveTabEnum): void => {
     setActiveTab(tab);
+    dispatch(setIsSearchModalOpen(false));
 
     switch (tab) {
       case ActiveTabEnum.FEED:
@@ -66,7 +68,7 @@ const TabBarController: React.FC = () => {
         dispatch(setActiveSideBar(ActiveSideBar.DISCOVER));
         break;
       case ActiveTabEnum.SEARCH:
-        // TODO: Implement search modal
+        dispatch(setIsSearchModalOpen(true));
         break;
       case ActiveTabEnum.PROFILE:
         router.push(`/users/${currentUser?.username}`);
