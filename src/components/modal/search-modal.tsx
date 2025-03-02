@@ -20,9 +20,12 @@ import UserIdCard from '@/components/user-profile-card/user-id-card';
 import StockIdCard from '@/components/stock-profile-card/stock-id-card';
 import HashtagIdCard from '@/components/hashtag-id-card/hashtag-id-card';
 import { useTranslations } from 'next-intl';
+import { useSelector } from 'react-redux';
+import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
 
 export const SearchModal = (): React.ReactNode => {
   const t = useTranslations('search');
+  const isModalOpen = useSelector(uiReducerSelector.getIsSearchModalOpen);
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,6 +42,14 @@ export const SearchModal = (): React.ReactNode => {
     queryFn: () => searchApiService.getSearchResults(debouncedTerm),
     enabled: false,
   });
+
+  useEffect(() => {
+    if (isModalOpen) {
+      setOpen(true);
+    } else {
+      setOpen(false);
+    }
+  }, [isModalOpen]);
 
   // Fetch results when debounced term changes
   useEffect(() => {
@@ -74,13 +85,15 @@ export const SearchModal = (): React.ReactNode => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant='outline'
-          className='w-3/4 mr-2 ml-2 justify-start text-muted-foreground rounded-full'
-        >
-          <Search className='mr-2 h-4 w-4' />
-          <span>{t('search')}...</span>
-        </Button>
+        <span className='hidden lg:contents'>
+          <Button
+            variant='outline'
+            className='w-3/4 mr-2 ml-2 justify-start text-muted-foreground rounded-full'
+          >
+            <Search className='mr-2 h-4 w-4' />
+            <span>{t('search')}...</span>
+          </Button>
+        </span>
       </DialogTrigger>
       <DialogContent className='sm:max-w-[500px] max-h-[80vh] overflow-y-auto'>
         <DialogHeader>
