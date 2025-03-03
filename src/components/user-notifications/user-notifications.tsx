@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   GroupedNotificationsResponseType,
   NotificationResponse,
@@ -17,6 +17,7 @@ import { useTranslations } from 'next-intl';
 const UserNotifications = (): React.ReactNode => {
   const [notifications, setNotifications] = React.useState<GroupedNotificationsResponseType>([]);
   const [lastNotificationId, setLastNotificationId] = React.useState<string | number>('');
+  const [isRead, setIsRead] = React.useState(false);
 
   const { currentUser } = useUser();
 
@@ -42,10 +43,22 @@ const UserNotifications = (): React.ReactNode => {
     onError: err => console.log('error', err),
   });
 
+  const readNotificationsMutation = useMutation({
+    mutationFn: () => userApiService.readAllUserNotifications(),
+  });
+
+  /*   const { refetch } = useQuery({
+    queryKey: ['read-notifications'],
+    queryFn: () => userApiService.readAllUserNotifications(),
+    enabled: isRead,
+  }); */
+
   useEffect(() => {
     if (!currentUser) return;
 
     mutation.mutate();
+
+    setIsRead(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 

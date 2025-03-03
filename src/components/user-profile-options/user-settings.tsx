@@ -44,7 +44,7 @@ const UserSettings: React.FC = () => {
           <Bell className='mr-2 h-4 w-4' />
           <span className='relative'>
             {t('notifications')}
-            {notificationCount && notificationCount > 0 && (
+            {!!notificationCount && notificationCount > 0 && (
               <Label className='absolute top-[-6px] right-[-20px] px-1.5 py-[9px] bg-destructive rounded-md text-[11px] font-bold max-w-[15px] max-h-[15px] flex items-center justify-center'>
                 {notificationCount > 99 ? '99+' : notificationCount}
               </Label>
