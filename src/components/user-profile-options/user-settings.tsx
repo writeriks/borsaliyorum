@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { use, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
@@ -14,8 +14,8 @@ const UserSettings: React.FC = () => {
   const t = useTranslations('userProfileOptions.UserSettings');
   const router = useRouter();
 
-  const { data } = useQuery({
-    queryKey: ['get-notifications'],
+  const { data, refetch } = useQuery({
+    queryKey: ['get-user-notification-count'],
     queryFn: async () => await userApiService.getUserNotificationCount(),
   });
 
@@ -25,11 +25,13 @@ const UserSettings: React.FC = () => {
 
   const handleNotificationsClick = (): void => {
     dispatch(setHamburgerMenuOpen(false));
+    refetch();
     router.push('/notifications');
   };
 
   const handleSettingsClick = (): void => {
     dispatch(setHamburgerMenuOpen(false));
+    refetch();
     router.push('/settings');
   };
 

@@ -16,6 +16,7 @@ import { useTranslations } from 'next-intl';
 
 const UserNotifications = (): React.ReactNode => {
   const [notifications, setNotifications] = React.useState<GroupedNotificationsResponseType>([]);
+  console.log('🚀 ~ notifications:', notifications);
   const [lastNotificationId, setLastNotificationId] = React.useState<string | number>('');
   const [isRead, setIsRead] = React.useState(false);
 
@@ -44,14 +45,8 @@ const UserNotifications = (): React.ReactNode => {
   });
 
   const readNotificationsMutation = useMutation({
-    mutationFn: () => userApiService.readAllUserNotifications(),
+    mutationFn: async () => await userApiService.readAllUserNotifications(),
   });
-
-  /*   const { refetch } = useQuery({
-    queryKey: ['read-notifications'],
-    queryFn: () => userApiService.readAllUserNotifications(),
-    enabled: isRead,
-  }); */
 
   useEffect(() => {
     if (!currentUser) return;
@@ -61,6 +56,13 @@ const UserNotifications = (): React.ReactNode => {
     setIsRead(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
+
+  useEffect(() => {
+    if (isRead) {
+      readNotificationsMutation.mutate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRead]);
 
   useInfiniteScroll({
     shouldFetchNextPage: !mutation.isPending,
