@@ -1,4 +1,4 @@
-import React, { use, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
