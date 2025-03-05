@@ -45,7 +45,7 @@ const Notification: React.FC<NotificationProps> = ({ notification }) => {
           user={notification[0].fromUser}
           onUserAvatarClick={() => router.push(`/users/${notification[0].fromUser.username}`)}
         />
-        <p className={cn('ml-2', !notification[0].read ? 'font-bold' : 'font-normal')}>
+        <p className={cn('ml-2', notification[0].read ? 'font-normal' : 'font-bold')}>
           {buildNotificationText()}
         </p>
       </div>

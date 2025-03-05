@@ -37,6 +37,12 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
 
     // Use a transaction to delete likes, comment likes, comments, reposts, and the post atomically
     await prisma.$transaction([
+      // Delete notifications related to the post
+      prisma.notification.deleteMany({
+        where: {
+          OR: [{ postId }, { commentId: { in: post.comments.map(c => c.commentId) } }],
+        },
+      }),
       // Delete all post likes
       prisma.postLikes.deleteMany({
         where: {

@@ -1,6 +1,6 @@
 import {
+  getAllNotificationsCount,
   getGroupedNotifications,
-  getUnreadNotificationsCount,
 } from '@/services/notifications-service/notifications-service';
 import { verifyUserInRoute } from '@/services/user-service/user-service';
 import { createResponse, ResponseStatus } from '@/utils/api-utils/api-utils';
@@ -14,12 +14,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { searchParams } = new URL(request.url);
     const lastNotificationId = parseInt(searchParams.get('lastNotificationId') ?? '') || 0;
 
-    const unreadNotificationCount = await getUnreadNotificationsCount(userId);
+    const allNotificationsCount = await getAllNotificationsCount(userId);
 
     const newNotifications = await getGroupedNotifications(
       userId,
       lastNotificationId,
-      unreadNotificationCount
+      allNotificationsCount
     );
 
     const lastNotificationGroup =

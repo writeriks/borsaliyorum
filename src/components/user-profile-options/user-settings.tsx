@@ -14,8 +14,8 @@ const UserSettings: React.FC = () => {
   const t = useTranslations('userProfileOptions.UserSettings');
   const router = useRouter();
 
-  const { data } = useQuery({
-    queryKey: ['get-notifications'],
+  const { data, refetch } = useQuery({
+    queryKey: ['get-user-notification-count'],
     queryFn: async () => await userApiService.getUserNotificationCount(),
   });
 
@@ -25,11 +25,13 @@ const UserSettings: React.FC = () => {
 
   const handleNotificationsClick = (): void => {
     dispatch(setHamburgerMenuOpen(false));
+    refetch();
     router.push('/notifications');
   };
 
   const handleSettingsClick = (): void => {
     dispatch(setHamburgerMenuOpen(false));
+    refetch();
     router.push('/settings');
   };
 
@@ -44,7 +46,7 @@ const UserSettings: React.FC = () => {
           <Bell className='mr-2 h-4 w-4' />
           <span className='relative'>
             {t('notifications')}
-            {notificationCount && notificationCount > 0 && (
+            {!!notificationCount && notificationCount > 0 && (
               <Label className='absolute top-[-6px] right-[-20px] px-1.5 py-[9px] bg-destructive rounded-md text-[11px] font-bold max-w-[15px] max-h-[15px] flex items-center justify-center'>
                 {notificationCount > 99 ? '99+' : notificationCount}
               </Label>

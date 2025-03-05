@@ -54,6 +54,19 @@ export const getUnreadNotificationsCount = async (userId: number): Promise<numbe
 };
 
 /**
+ * Retrieves the number all notifications for a user.
+ * @param userId - The ID of the user.
+ * @returns The number of all notifications.
+ */
+export const getAllNotificationsCount = async (userId: number): Promise<number> => {
+  return prisma.notification.count({
+    where: {
+      userId,
+    },
+  });
+};
+
+/**
  * Retrieves unread notifications for a user.
  * @param userId - The ID of the user.
  * @returns The unread notifications.

@@ -392,6 +392,21 @@ class UserApiService {
   };
 
   /**
+   * Reads all user notifications.
+   * @returns The user notifications.
+   */
+  readAllUserNotifications = async (): Promise<NotificationResponse> => {
+    const response = await apiFetchProxy(`notifications/read-all-notifications`, 'POST');
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    return response.json();
+  };
+
+  /**
    * Fetches total notification count for the user.
    * @returns The total notification count.
    */
