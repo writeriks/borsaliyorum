@@ -38,12 +38,12 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
           commentId: commentId,
         },
       }),
-      prisma.comment.delete({
+      prisma.notification.deleteMany({
         where: {
           commentId: commentId,
         },
       }),
-      prisma.notification.deleteMany({
+      prisma.comment.delete({
         where: {
           commentId: commentId,
         },
