@@ -56,7 +56,12 @@
     "website": "Website",
     "followers": "Followers",
     "following": "Following",
-    "posts": "Posts"
+    "posts": "Posts",
+    "noFollowers": "No followers yet",
+    "noFollowing": "Not following anyone yet",
+    "loading": "Loading...",
+    "loadMore": "Load more",
+    "connections": "Connections"
   },
   "followButton": {
     "follow": "Follow",

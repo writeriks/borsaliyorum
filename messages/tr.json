@@ -53,10 +53,15 @@
   },
   "userProfileCard": {
     "bio": "Bio",
-    "website": "Website",
+    "website": "Web sitesi",
     "followers": "Takipçiler",
-    "following": "Takip Edilenler",
-    "posts": "Gönderiler"
+    "following": "Takip edilenler",
+    "posts": "Gönderiler",
+    "noFollowers": "Henüz takipçi yok",
+    "noFollowing": "Henüz kimseyi takip etmiyor",
+    "loading": "Yükleniyor...",
+    "loadMore": "Daha fazla yükle",
+    "connections": "Bağlantılar"
   },
   "followButton": {
     "follow": "Takip Et",

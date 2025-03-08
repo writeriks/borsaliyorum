@@ -405,6 +405,94 @@ class UserApiService {
 
     return response.json();
   };
+
+  /**
+   * Fetches user followers with pagination.
+   * @param userId - The ID of the user whose followers to fetch.
+   * @param page - The page number for pagination.
+   * @param limit - The number of followers per page.
+   * @returns The user followers with pagination info.
+   */
+  getUserFollowers = async (
+    userId: number,
+    page = 1,
+    limit = 10
+  ): Promise<{
+    followers: Array<{
+      userId: number;
+      username: string;
+      displayName: string;
+      profilePhoto: string | null;
+      bio: string | null;
+      isFollowing: boolean;
+    }>;
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }> => {
+    try {
+      const response = await apiFetchProxy(
+        `user/get-user-followers?userId=${userId}&page=${page}&limit=${limit}`
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Takipçiler yüklenirken bir hata oluştu.');
+      }
+
+      return response.json();
+    } catch (error: any) {
+      console.error('Error fetching followers:', error);
+      throw new Error(error.message || 'Takipçiler yüklenirken bir hata oluştu.');
+    }
+  };
+
+  /**
+   * Fetches users that a user is following with pagination.
+   * @param userId - The ID of the user whose followings to fetch.
+   * @param page - The page number for pagination.
+   * @param limit - The number of followings per page.
+   * @returns The user followings with pagination info.
+   */
+  getUserFollowings = async (
+    userId: number,
+    page = 1,
+    limit = 10
+  ): Promise<{
+    followings: Array<{
+      userId: number;
+      username: string;
+      displayName: string;
+      profilePhoto: string | null;
+      bio: string | null;
+      isFollowing: boolean;
+    }>;
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }> => {
+    try {
+      const response = await apiFetchProxy(
+        `user/get-user-followings?userId=${userId}&page=${page}&limit=${limit}`
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Takip edilenler yüklenirken bir hata oluştu.');
+      }
+
+      return response.json();
+    } catch (error: any) {
+      console.error('Error fetching followings:', error);
+      throw new Error(error.message || 'Takip edilenler yüklenirken bir hata oluştu.');
+    }
+  };
 }
 
 const userApiService = new UserApiService();
