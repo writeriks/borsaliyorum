@@ -7,34 +7,15 @@ import { useMutation } from '@tanstack/react-query';
 import { useRouter } from '@/i18n/routing';
 import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reducer/ui-slice';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
-import UserAvatar from '@/components/user-avatar/user-avatar';
-import FollowButton from '@/components/follow-button/follow-button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-interface UserConnection {
-  userId: number;
-  username: string;
-  displayName: string;
-  profilePhoto: string | null;
-  bio: string | null;
-  isFollowing: boolean;
-}
-
-export enum ConnectionType {
-  FOLLOWERS = 'followers',
-  FOLLOWING = 'following',
-}
-
-interface UserConnectionsModalProps {
-  userId: number;
-  isOpen: boolean;
-  onClose: () => void;
-  followerCount: number;
-  followingCount: number;
-  initialTab?: ConnectionType;
-}
+import useUser from '@/hooks/useUser';
+import {
+  ConnectionType,
+  UserConnection,
+  UserConnectionsModalProps,
+} from '@/components/user-connections-modal/user-connections-types';
+import UserConnectionsList from '@/components/user-connections-modal/user-connections-list';
 
 const UserConnectionsModal: React.FC<UserConnectionsModalProps> = ({
   userId,
@@ -47,6 +28,7 @@ const UserConnectionsModal: React.FC<UserConnectionsModalProps> = ({
   const t = useTranslations('userProfileCard');
   const router = useRouter();
   const dispatch = useDispatch();
+  const { currentUser } = useUser();
 
   const [activeTab, setActiveTab] = useState<ConnectionType>(initialTab);
   const [followers, setFollowers] = useState<UserConnection[]>([]);
@@ -118,6 +100,7 @@ const UserConnectionsModal: React.FC<UserConnectionsModalProps> = ({
         loadFollowings(1);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, userId, initialTab]);
 
   useEffect(() => {
@@ -136,6 +119,7 @@ const UserConnectionsModal: React.FC<UserConnectionsModalProps> = ({
     ) {
       loadFollowings(1);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, isOpen]);
 
   const followUserMutation = useMutation({
@@ -214,68 +198,6 @@ const UserConnectionsModal: React.FC<UserConnectionsModalProps> = ({
     onClose();
   };
 
-  const renderUserList = (
-    users: UserConnection[],
-    isLoading: boolean,
-    hasMore: boolean,
-    loadMore: () => void,
-    emptyMessage: string
-  ): React.ReactNode => {
-    return (
-      <div className='max-h-[60vh] md:max-h-[70vh] overflow-y-auto'>
-        {users.length === 0 && !isLoading ? (
-          <div className='py-4 text-center text-muted-foreground'>{emptyMessage}</div>
-        ) : (
-          <ul className='space-y-3 px-0 sm:px-1'>
-            {users.map(user => (
-              <li
-                key={user.userId}
-                className='flex items-center justify-between p-2 hover:bg-muted/30 rounded-md'
-              >
-                <div
-                  className='flex items-center gap-2 sm:gap-3 cursor-pointer flex-1 min-w-0'
-                  onClick={() => navigateToUserProfile(user.username)}
-                >
-                  <UserAvatar
-                    user={{
-                      profilePhoto: user.profilePhoto,
-                      displayName: user.displayName,
-                      username: user.username,
-                    }}
-                    onUserAvatarClick={() => navigateToUserProfile(user.username)}
-                  />
-                  <div className='min-w-0 flex-1 overflow-hidden'>
-                    <p className='font-medium text-sm truncate'>{user.displayName}</p>
-                    <p className='text-xs text-muted-foreground truncate'>@{user.username}</p>
-                    {user.bio && (
-                      <p className='text-xs text-muted-foreground mt-1 line-clamp-1 hidden sm:block'>
-                        {user.bio}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className='ml-2 flex-shrink-0'>
-                  <FollowButton
-                    isFollowing={user.isFollowing}
-                    toggleFollow={() => toggleUserFollow(user.userId, user.isFollowing)}
-                  />
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {hasMore && (
-          <div className='mt-4 flex justify-center'>
-            <Button variant='outline' onClick={loadMore} disabled={isLoading} className='w-full'>
-              {isLoading ? t('loading') : t('loadMore')}
-            </Button>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className='max-w-[95vw] sm:max-w-md md:max-w-2xl'>
@@ -299,23 +221,33 @@ const UserConnectionsModal: React.FC<UserConnectionsModalProps> = ({
           </TabsList>
 
           <TabsContent value={ConnectionType.FOLLOWERS}>
-            {renderUserList(
-              followers,
-              isLoadingFollowers,
-              hasMoreFollowers,
-              loadMoreFollowers,
-              t('noFollowers')
-            )}
+            <UserConnectionsList
+              users={followers}
+              isLoading={isLoadingFollowers}
+              hasMore={hasMoreFollowers}
+              loadMore={loadMoreFollowers}
+              emptyMessage={t('noFollowers')}
+              navigateToUserProfile={navigateToUserProfile}
+              toggleUserFollow={toggleUserFollow}
+              currentUser={currentUser}
+              loadMoreText={t('loadMore')}
+              loadingText={t('loading')}
+            />
           </TabsContent>
 
           <TabsContent value={ConnectionType.FOLLOWING}>
-            {renderUserList(
-              followings,
-              isLoadingFollowings,
-              hasMoreFollowings,
-              loadMoreFollowings,
-              t('noFollowing')
-            )}
+            <UserConnectionsList
+              users={followings}
+              isLoading={isLoadingFollowings}
+              hasMore={hasMoreFollowings}
+              loadMore={loadMoreFollowings}
+              emptyMessage={t('noFollowing')}
+              navigateToUserProfile={navigateToUserProfile}
+              toggleUserFollow={toggleUserFollow}
+              currentUser={currentUser}
+              loadMoreText={t('loadMore')}
+              loadingText={t('loading')}
+            />
           </TabsContent>
         </Tabs>
       </DialogContent>

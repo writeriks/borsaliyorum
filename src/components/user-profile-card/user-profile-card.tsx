@@ -12,9 +12,8 @@ import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reduc
 import { useMutation } from '@tanstack/react-query';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { UserWithFollowers } from '@/services/user-service/user-types';
-import UserConnectionsModal, {
-  ConnectionType,
-} from '@/components/user-connections-modal/user-connections-modal';
+import UserConnectionsModal from '@/components/user-connections-modal/user-connections-modal';
+import { ConnectionType } from '@/components/user-connections-modal/user-connections-types';
 
 interface UserProfileCardProps {
   user: UserWithFollowers;
@@ -131,21 +130,21 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({
         </div>
         <div className='flex flex-row min-w-full items-center mt-5'>
           <p className='flex mr-4'>
-            <span className='text-sm text-muted-foreground mr-1'>{t('following')}: </span>
-            <span
-              className='text-sm text-muted-foreground cursor-pointer hover:underline font-bold'
-              onClick={openFollowingModal}
-            >
-              {userFollowingCount}
-            </span>
-          </p>
-          <p className='flex mr-4'>
             <span className='text-sm text-muted-foreground mr-1'>{t('followers')}: </span>
             <span
               className='text-sm text-muted-foreground cursor-pointer hover:underline font-bold'
               onClick={openFollowersModal}
             >
               {userFollowerCount}
+            </span>
+          </p>
+          <p className='flex mr-4'>
+            <span className='text-sm text-muted-foreground mr-1'>{t('following')}: </span>
+            <span
+              className='text-sm text-muted-foreground cursor-pointer hover:underline font-bold'
+              onClick={openFollowingModal}
+            >
+              {userFollowingCount}
             </span>
           </p>
         </div>
