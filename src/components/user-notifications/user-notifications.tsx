@@ -16,7 +16,6 @@ import { useTranslations } from 'next-intl';
 
 const UserNotifications = (): React.ReactNode => {
   const [notifications, setNotifications] = React.useState<GroupedNotificationsResponseType>([]);
-  console.log('🚀 ~ notifications:', notifications);
   const [lastNotificationId, setLastNotificationId] = React.useState<string | number>('');
   const [isRead, setIsRead] = React.useState(false);
 
