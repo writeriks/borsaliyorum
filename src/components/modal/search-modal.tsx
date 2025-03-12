@@ -22,6 +22,7 @@ import HashtagIdCard from '@/components/hashtag-id-card/hashtag-id-card';
 import { useTranslations } from 'next-intl';
 import { useSelector } from 'react-redux';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
+import SearchSection from './search-section';
 
 export const SearchModal = (): React.ReactNode => {
   const t = useTranslations('search');
@@ -88,7 +89,7 @@ export const SearchModal = (): React.ReactNode => {
         <span className='hidden lg:contents'>
           <Button
             variant='outline'
-            className='w-3/4 mr-2 ml-2 justify-start text-muted-foreground rounded-full'
+            className='w-1/2 mr-2 ml-2 justify-start text-muted-foreground rounded-full'
           >
             <Search className='mr-2 h-4 w-4' />
             <span>{t('search')}...</span>
@@ -120,73 +121,64 @@ export const SearchModal = (): React.ReactNode => {
             <div className='space-y-6'>
               {/* Users section */}
               {results.users.length > 0 && (
-                <div>
-                  <div className='flex items-center mb-2'>
-                    <User className='mr-2 h-4 w-4 text-muted-foreground' />
-                    <h3 className='text-sm font-medium'>{t('users')}</h3>
-                  </div>
-                  <div className='space-y-2'>
-                    {results.users.map(({ userId, username, profilePhoto, displayName }) => (
-                      <UserIdCard
-                        key={userId}
-                        profilePhoto={profilePhoto ?? ''}
-                        displayName={displayName ?? ''}
-                        username={username ?? ''}
-                        className='rounded-md hover:bg-muted cursor-pointer'
-                        onClick={() => {
-                          setOpen(false);
-                          router.push(`/users/${username}`);
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
+                <SearchSection
+                  icon={User}
+                  title={t('users')}
+                  items={results.users}
+                  renderItem={({ userId, username, profilePhoto, displayName }) => (
+                    <UserIdCard
+                      key={userId}
+                      profilePhoto={profilePhoto ?? ''}
+                      displayName={displayName ?? ''}
+                      username={username ?? ''}
+                      className='rounded-md hover:bg-muted cursor-pointer'
+                      onClick={() => {
+                        setOpen(false);
+                        router.push(`/users/${username}`);
+                      }}
+                    />
+                  )}
+                />
               )}
 
               {/* Stocks section */}
               {results.stocks.length > 0 && (
-                <div>
-                  <div className='flex items-center mb-2'>
-                    <TrendingUp className='mr-2 h-4 w-4 text-muted-foreground' />
-                    <h3 className='text-sm font-medium'>{t('stocks')}</h3>
-                  </div>
-                  <div className='space-y-2'>
-                    {results.stocks.map(({ ticker, stockId, companyName }) => (
-                      <StockIdCard
-                        key={stockId}
-                        onClick={() => {
-                          setOpen(false);
-                          router.push(`/stocks/$${ticker}`);
-                        }}
-                        ticker={ticker}
-                        companyName={companyName}
-                      />
-                    ))}
-                  </div>
-                </div>
+                <SearchSection
+                  icon={TrendingUp}
+                  title={t('stocks')}
+                  items={results.stocks}
+                  renderItem={({ ticker, stockId, companyName }) => (
+                    <StockIdCard
+                      key={stockId}
+                      onClick={() => {
+                        setOpen(false);
+                        router.push(`/stocks/$${ticker}`);
+                      }}
+                      ticker={ticker}
+                      companyName={companyName}
+                    />
+                  )}
+                />
               )}
 
               {/* Hashtags section */}
               {results.tags.length > 0 && (
-                <div>
-                  <div className='flex items-center mb-2'>
-                    <Hash className='mr-2 h-4 w-4 text-muted-foreground' />
-                    <h3 className='text-sm font-medium'>{t('hashtags')}</h3>
-                  </div>
-                  <div className='space-y-2'>
-                    {results.tags.map(({ tag, postCount }) => (
-                      <HashtagIdCard
-                        key={tag.tagId}
-                        tagName={tag.tagName}
-                        postCount={t('postCount', { query: postCount.toLocaleString() })}
-                        onClick={() => {
-                          setOpen(false);
-                          router.push(`/tags/${tag.tagName}`);
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
+                <SearchSection
+                  icon={Hash}
+                  title={t('hashtags')}
+                  items={results.tags}
+                  renderItem={({ tag, postCount }) => (
+                    <HashtagIdCard
+                      key={tag.tagId}
+                      tagName={tag.tagName}
+                      postCount={t('postCount', { query: postCount.toLocaleString() })}
+                      onClick={() => {
+                        setOpen(false);
+                        router.push(`/tags/${tag.tagName}`);
+                      }}
+                    />
+                  )}
+                />
               )}
 
               {debouncedTerm &&
@@ -206,7 +198,7 @@ export const SearchModal = (): React.ReactNode => {
                 )}
 
               {!debouncedTerm && !isLoading && (
-                <div className='flex items-center text-center  justify-center py-8 text-muted-foreground'>
+                <div className='flex items-center text-center justify-center py-8 text-muted-foreground'>
                   <Search size={100} />
                 </div>
               )}
