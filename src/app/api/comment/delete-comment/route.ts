@@ -38,6 +38,11 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
           commentId: commentId,
         },
       }),
+      prisma.notification.deleteMany({
+        where: {
+          commentId: commentId,
+        },
+      }),
       prisma.comment.delete({
         where: {
           commentId: commentId,
