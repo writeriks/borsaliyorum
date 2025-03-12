@@ -108,6 +108,25 @@
     --description: 214deg 12.07% 50.11%;
     --blue-primary: 221.21deg 83.19% 53.33%;
   }
+
+  /* Custom scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--secondary));
+    border-radius: 6px;
+    border: 3px solid hsl(var(--background));
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--primary-foreground));
+  }
 }
 
 @layer base {

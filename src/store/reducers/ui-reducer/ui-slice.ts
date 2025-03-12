@@ -33,6 +33,7 @@ export interface UIState {
   activeSideBar: ActiveSideBar;
   isAuthModalOpen: boolean;
   isNewPostModalOpen: boolean;
+  isSearchModalOpen: boolean;
 }
 
 export const initialState: UIState = {
@@ -43,6 +44,7 @@ export const initialState: UIState = {
   uiNotification: null,
   isAuthModalOpen: false,
   isNewPostModalOpen: false,
+  isSearchModalOpen: false,
 };
 
 const uiSlice = createSlice({
@@ -76,6 +78,10 @@ const uiSlice = createSlice({
     setIsNewPostModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isNewPostModalOpen = action.payload;
     },
+
+    setIsSearchModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isSearchModalOpen = action.payload;
+    },
   },
 });
 
@@ -87,6 +93,7 @@ export const {
   setUINotification,
   setIsNewPostModalOpen,
   setHamburgerMenuOpen,
+  setIsSearchModalOpen,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

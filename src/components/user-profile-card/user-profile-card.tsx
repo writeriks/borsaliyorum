@@ -1,9 +1,7 @@
 'use client';
 
 import { Calendar } from 'lucide-react';
-import UserAvatar from '@/components/user-avatar/user-avatar';
 import { useTranslations } from 'next-intl';
-import { useRouter } from '@/i18n/routing';
 import { formatStringDateToDDMMYYYY } from '@/utils/date-utils/date-utils';
 import FollowButton from '@/components/follow-button/follow-button';
 import { useState } from 'react';
@@ -12,6 +10,7 @@ import { setUINotification, UINotificationEnum } from '@/store/reducers/ui-reduc
 import { useMutation } from '@tanstack/react-query';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
 import { UserWithFollowers } from '@/services/user-service/user-types';
+import UserIdCard from '@/components/user-profile-card/user-id-card';
 import UserConnectionsModal from '@/components/user-connections-modal/user-connections-modal';
 import { ConnectionType } from '@/components/user-connections-modal/user-connections-types';
 
@@ -35,7 +34,6 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({
   },
 }) => {
   const t = useTranslations('userProfileCard');
-  const router = useRouter();
 
   const [isUserFollowed, setIsUserFollowed] = useState<boolean>(isFollowingUser);
   const [isConnectionsModalOpen, setIsConnectionsModalOpen] = useState<boolean>(false);
@@ -94,20 +92,11 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({
   return (
     <div className='lg:p-6 flex flex-col p-2 min-w-full self-start md:border rounded'>
       <div className='flex justify-between'>
-        <div className='flex items-start'>
-          <UserAvatar
-            onUserAvatarClick={() => router.push(`/users/${username}`)}
-            user={{
-              profilePhoto: profilePhoto ?? null,
-              displayName: displayName ?? '',
-              username: username ?? '',
-            }}
-          />
-          <div className='flex flex-col ml-2'>
-            <h2 className='text-sm font-bold'>{displayName}</h2>
-            <p className='text-xs text-muted-foreground'>@{username}</p>
-          </div>
-        </div>
+        <UserIdCard
+          profilePhoto={profilePhoto ?? ''}
+          displayName={displayName ?? ''}
+          username={username ?? ''}
+        />
         <div>
           {!isProfileOwner && userId && (
             <FollowButton isFollowing={isUserFollowed} toggleFollow={toggleUserFollow} />
