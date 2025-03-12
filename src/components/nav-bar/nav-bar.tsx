@@ -33,7 +33,9 @@ const NavigationBar = (): React.ReactNode => {
         <div className='cursor-pointer' onClick={() => router.push('/feed')}>
           LOGO
         </div>
-        <SearchModal />
+        <div className='hidden lg:flex lg:w-4/6 md:w-full mx-44'>
+          <SearchModal />
+        </div>
         <div id='hamburger-menu' className='z-40 lg:hidden'>
           <button
             title='hamburger menu'

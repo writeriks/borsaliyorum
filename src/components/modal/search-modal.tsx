@@ -20,14 +20,15 @@ import UserIdCard from '@/components/user-profile-card/user-id-card';
 import StockIdCard from '@/components/stock-profile-card/stock-id-card';
 import HashtagIdCard from '@/components/hashtag-id-card/hashtag-id-card';
 import { useTranslations } from 'next-intl';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
 import SearchSection from './search-section';
+import { setIsSearchModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
 
 export const SearchModal = (): React.ReactNode => {
   const t = useTranslations('search');
-  const isModalOpen = useSelector(uiReducerSelector.getIsSearchModalOpen);
-  const [open, setOpen] = useState(false);
+  const isSearchModalOpen = useSelector(uiReducerSelector.getIsSearchModalOpen);
+  const dispatch = useDispatch();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedTerm = useDebounce(searchTerm, 300);
@@ -43,14 +44,6 @@ export const SearchModal = (): React.ReactNode => {
     queryFn: () => searchApiService.getSearchResults(debouncedTerm),
     enabled: false,
   });
-
-  useEffect(() => {
-    if (isModalOpen) {
-      setOpen(true);
-    } else {
-      setOpen(false);
-    }
-  }, [isModalOpen]);
 
   // Fetch results when debounced term changes
   useEffect(() => {
@@ -76,20 +69,28 @@ export const SearchModal = (): React.ReactNode => {
   // Focus input when modal opens
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (open && inputRef.current) {
+    if (isSearchModalOpen && inputRef.current) {
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
     }
-  }, [open]);
+  }, [isSearchModalOpen]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={isSearchModalOpen}
+      onOpenChange={() => {
+        dispatch(setIsSearchModalOpen(!isSearchModalOpen));
+      }}
+    >
       <DialogTrigger asChild>
         <span className='hidden lg:contents'>
           <Button
+            onClick={() => {
+              dispatch(setIsSearchModalOpen(true));
+            }}
             variant='outline'
-            className='w-1/2 mr-2 ml-2 justify-start text-muted-foreground rounded-full'
+            className='w-full justify-start text-muted-foreground rounded-full'
           >
             <Search className='mr-2 h-4 w-4' />
             <span>{t('search')}...</span>
@@ -133,7 +134,7 @@ export const SearchModal = (): React.ReactNode => {
                       username={username ?? ''}
                       className='rounded-md hover:bg-muted cursor-pointer'
                       onClick={() => {
-                        setOpen(false);
+                        dispatch(setIsSearchModalOpen(false));
                         router.push(`/users/${username}`);
                       }}
                     />
@@ -151,7 +152,7 @@ export const SearchModal = (): React.ReactNode => {
                     <StockIdCard
                       key={stockId}
                       onClick={() => {
-                        setOpen(false);
+                        dispatch(setIsSearchModalOpen(false));
                         router.push(`/stocks/$${ticker}`);
                       }}
                       ticker={ticker}
@@ -173,7 +174,7 @@ export const SearchModal = (): React.ReactNode => {
                       tagName={tag.tagName}
                       postCount={t('postCount', { query: postCount.toLocaleString() })}
                       onClick={() => {
-                        setOpen(false);
+                        dispatch(setIsSearchModalOpen(false));
                         router.push(`/tags/${tag.tagName}`);
                       }}
                     />
