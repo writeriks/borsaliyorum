@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import {
   GroupedNotificationsResponseType,
   NotificationResponse,
