@@ -97,12 +97,13 @@ export const SearchModal = (): React.ReactNode => {
           </Button>
         </span>
       </DialogTrigger>
-      <DialogContent className='sm:max-w-[500px] max-h-[80vh] overflow-y-auto'>
+      <DialogContent className='sm:max-w-[500px] h-[600px] flex flex-col overflow-hidden'>
         <DialogHeader>
           <DialogTitle className='sr-only'>{t('search')}</DialogTitle>
         </DialogHeader>
-        <div className='space-y-4'>
-          <div className='relative'>
+        <div className='space-y-4 flex-1 flex flex-col overflow-hidden'>
+          {/* Search Input */}
+          <div className='relative m-3'>
             <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
             <Input
               ref={inputRef}
@@ -114,97 +115,96 @@ export const SearchModal = (): React.ReactNode => {
             />
           </div>
 
-          {isLoading ? (
-            <div className='flex justify-center py-8'>
-              <Loader2 className='h-8 w-8 animate-spin text-muted-foreground' />
-            </div>
-          ) : (
-            <div className='space-y-6'>
-              {/* Users section */}
-              {results.users.length > 0 && (
-                <SearchSection
-                  icon={User}
-                  title={t('users')}
-                  items={results.users}
-                  renderItem={({ userId, username, profilePhoto, displayName }) => (
-                    <UserIdCard
-                      key={userId}
-                      profilePhoto={profilePhoto ?? ''}
-                      displayName={displayName ?? ''}
-                      username={username ?? ''}
-                      className='rounded-md hover:bg-muted cursor-pointer'
-                      onClick={() => {
-                        dispatch(setIsSearchModalOpen(false));
-                        router.push(`/users/${username}`);
-                      }}
-                    />
-                  )}
-                />
-              )}
-
-              {/* Stocks section */}
-              {results.stocks.length > 0 && (
-                <SearchSection
-                  icon={TrendingUp}
-                  title={t('stocks')}
-                  items={results.stocks}
-                  renderItem={({ ticker, stockId, companyName }) => (
-                    <StockIdCard
-                      key={stockId}
-                      onClick={() => {
-                        dispatch(setIsSearchModalOpen(false));
-                        router.push(`/stocks/$${ticker}`);
-                      }}
-                      ticker={ticker}
-                      companyName={companyName}
-                    />
-                  )}
-                />
-              )}
-
-              {/* Hashtags section */}
-              {results.tags.length > 0 && (
-                <SearchSection
-                  icon={Hash}
-                  title={t('hashtags')}
-                  items={results.tags}
-                  renderItem={({ tag, postCount }) => (
-                    <HashtagIdCard
-                      key={tag.tagId}
-                      tagName={tag.tagName}
-                      postCount={t('postCount', { query: postCount.toLocaleString() })}
-                      onClick={() => {
-                        dispatch(setIsSearchModalOpen(false));
-                        router.push(`/tags/${tag.tagName}`);
-                      }}
-                    />
-                  )}
-                />
-              )}
-
-              {debouncedTerm &&
-                !isLoading &&
-                results.users.length === 0 &&
-                results.stocks.length === 0 &&
-                results.tags.length === 0 && (
-                  <>
-                    <div className='flex justify-center '>
-                      {' '}
-                      {t('noResults', { query: debouncedTerm })}
-                    </div>
-                    <div className='flex items-center text-center  justify-center  text-muted-foreground'>
-                      <SearchX size={100} />
-                    </div>
-                  </>
+          {/* Search Results */}
+          <div className='flex-1  overflow-y-auto'>
+            {isLoading ? (
+              <div className='flex justify-center py-8'>
+                <Loader2 className='h-8 w-8 animate-spin text-muted-foreground' />
+              </div>
+            ) : (
+              <div className='space-y-6 m-3'>
+                {/* Users Section */}
+                {results.users.length > 0 && (
+                  <SearchSection
+                    icon={User}
+                    title={t('users')}
+                    items={results.users}
+                    renderItem={({ userId, username, profilePhoto, displayName }) => (
+                      <UserIdCard
+                        key={userId}
+                        profilePhoto={profilePhoto ?? ''}
+                        displayName={displayName ?? ''}
+                        username={username ?? ''}
+                        className='rounded-md hover:bg-muted cursor-pointer'
+                        onClick={() => {
+                          dispatch(setIsSearchModalOpen(false));
+                          router.push(`/users/${username}`);
+                        }}
+                      />
+                    )}
+                  />
                 )}
 
-              {!debouncedTerm && !isLoading && (
-                <div className='flex items-center text-center justify-center py-8 text-muted-foreground'>
-                  <Search size={100} />
-                </div>
-              )}
-            </div>
-          )}
+                {/* Stocks Section */}
+                {results.stocks.length > 0 && (
+                  <SearchSection
+                    icon={TrendingUp}
+                    title={t('stocks')}
+                    items={results.stocks}
+                    renderItem={({ ticker, stockId, companyName }) => (
+                      <StockIdCard
+                        key={stockId}
+                        onClick={() => {
+                          dispatch(setIsSearchModalOpen(false));
+                          router.push(`/stocks/$${ticker}`);
+                        }}
+                        ticker={ticker}
+                        companyName={companyName}
+                      />
+                    )}
+                  />
+                )}
+
+                {/* Hashtags Section */}
+                {results.tags.length > 0 && (
+                  <SearchSection
+                    icon={Hash}
+                    title={t('hashtags')}
+                    items={results.tags}
+                    renderItem={({ tag, postCount }) => (
+                      <HashtagIdCard
+                        key={tag.tagId}
+                        tagName={tag.tagName}
+                        postCount={t('postCount', { query: postCount.toLocaleString() })}
+                        onClick={() => {
+                          dispatch(setIsSearchModalOpen(false));
+                          router.push(`/tags/${tag.tagName}`);
+                        }}
+                      />
+                    )}
+                  />
+                )}
+
+                {/* No Results Handling */}
+                {debouncedTerm &&
+                  !isLoading &&
+                  results.users.length === 0 &&
+                  results.stocks.length === 0 &&
+                  results.tags.length === 0 && (
+                    <div className='flex flex-col items-center justify-center text-center text-muted-foreground'>
+                      <p>{t('noResults', { query: debouncedTerm })}</p>
+                      <SearchX size={100} />
+                    </div>
+                  )}
+
+                {!debouncedTerm && !isLoading && (
+                  <div className='flex flex-col items-center justify-center text-center py-8 text-muted-foreground'>
+                    <Search size={100} />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
