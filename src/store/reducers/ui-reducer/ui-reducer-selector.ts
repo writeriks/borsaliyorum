@@ -16,6 +16,8 @@ class UiReducerSelector {
   getIsAuthModalOpen = createSelector(this.getUiReducer, ui => ui.isAuthModalOpen);
 
   getIsNewPostModalOpen = createSelector(this.getUiReducer, ui => ui.isNewPostModalOpen);
+
+  getIsSearchModalOpen = createSelector(this.getUiReducer, ui => ui.isSearchModalOpen);
 }
 
 const uiReducerSelector = new UiReducerSelector();

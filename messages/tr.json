@@ -121,5 +121,15 @@
     "mentionedInCommentSingle": "{userDisplayName} bir yorumda senden bahsetti.",
     "mentionedInPostMultiple": "{userDisplayName} ve {count} kişi daha bir gönderide senden bahsetti.",
     "mentionedInPostSingle": "{userDisplayName} bir gönderide senden bahsetti."
+  },
+
+  "search": {
+    "postCount": "{query} gönderi",
+    "search": "Ara",
+    "users": "Kullanıcılar",
+    "stocks": "Hisseler",
+    "hashtags": "Konular",
+    "placeholder": "Kullanıcıları, hisseleri veya konuları arayın...",
+    "noResults": "\"{query}\" için sonuç bulunamadı."
   }
 }
