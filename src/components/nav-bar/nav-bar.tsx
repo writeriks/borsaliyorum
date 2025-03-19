@@ -10,6 +10,7 @@ import {
   toggleHamburgerMenuOpen,
 } from '@/store/reducers/ui-reducer/ui-slice';
 
+import useUser from '@/hooks/useUser';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
 import { cn } from '@/lib/utils';
 import { useRouter } from '@/i18n/routing';
@@ -19,6 +20,7 @@ const NavigationBar = (): React.ReactNode => {
   const dispatch = useDispatch();
 
   const router = useRouter();
+  const { currentUser } = useUser();
 
   const isHamburgerMenuOpen = useSelector(uiReducerSelector.getIsHamburgerMenuOpen);
 
@@ -33,9 +35,11 @@ const NavigationBar = (): React.ReactNode => {
         <div className='cursor-pointer' onClick={() => router.push('/feed')}>
           LOGO
         </div>
-        <div className='hidden lg:flex lg:w-4/6 md:w-full mx-44'>
-          <SearchModal />
-        </div>
+        {currentUser?.username && (
+          <div className='hidden lg:flex lg:w-4/6 md:w-full mx-44'>
+            <SearchModal />
+          </div>
+        )}
         <div id='hamburger-menu' className='z-40 lg:hidden'>
           <button
             title='hamburger menu'
