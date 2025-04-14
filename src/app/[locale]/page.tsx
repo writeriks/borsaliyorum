@@ -23,7 +23,9 @@ const Home = async (props: any): Promise<React.ReactNode> => {
 
   return (
     <PageWrapper>
-      <LandingPageFeed />
+      <div className='min-h-screen'>
+        <LandingPageFeed />
+      </div>
     </PageWrapper>
   );
 };
