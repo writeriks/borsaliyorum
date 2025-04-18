@@ -24,6 +24,8 @@ const config = {
       screens: {
         'min-1500': { 'min': '1500px' },
         'max-1500': { 'max': '1500px' },
+        'max-1250': { 'max': '1250px' },
+        'max-1170': { 'max': '1170px' },
       },
       height: {
         'screen-minus-60': 'calc(100vh - 60px)',

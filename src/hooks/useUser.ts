@@ -28,10 +28,8 @@ const useUser = (): {
   const userState = useSelector(userReducerSelector.getUser);
   const [fbAuthUser, setFBAuthUser] = useState<FBAuthUserType | null>(null);
   const [firebaseUserId, setFirebaseUserId] = useState<string | null>(null);
-
   const [currentUser, setCurrentUser] = useState<Partial<User | null>>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
-
   const router = useRouter();
 
   const {
@@ -92,6 +90,11 @@ const useUser = (): {
           dispatch(setIsAuthModalOpen(false));
           dispatch(setIsAuthLoading(false));
           setIsLoadingUser(false);
+
+          // If we're on the landing page, redirect to feed
+          if (window.location.pathname === '/') {
+            router.push('/feed');
+          }
         }
       } else {
         dispatch(
@@ -115,7 +118,10 @@ const useUser = (): {
         dispatch(setIsAuthLoading(false));
         setIsLoadingUser(false);
 
-        router.push('/');
+        // If we're on a protected route, redirect to home
+        if (window.location.pathname === '/feed') {
+          router.push('/');
+        }
       }
 
       if (window.location.pathname === '/feed') {

@@ -36,7 +36,7 @@ const NavigationBar = (): React.ReactNode => {
           LOGO
         </div>
         {currentUser?.username && (
-          <div className='hidden lg:flex lg:w-4/6 md:w-full mx-44'>
+          <div className='hidden lg:flex lg:w-[870px] max-1500:w-[750px]  max-1250:w-[700px] max-1170:w-[600px] max-1500:justify-self-start lg:ml-44'>
             <SearchModal />
           </div>
         )}
