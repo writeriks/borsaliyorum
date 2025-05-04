@@ -42,7 +42,7 @@ const Comment: React.FC<CommentProp> = ({ comment, onCommentClick, onDeleteClick
             />
           )}
 
-          {commentor && <EntryOwner entryOwner={commentor} />}
+          {commentor && <EntryOwner entryOwner={commentor} entryDate={comment.createdAt} />}
 
           {currentUser && (
             <EntryOptions

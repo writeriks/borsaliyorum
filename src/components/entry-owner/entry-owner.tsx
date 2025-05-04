@@ -6,14 +6,13 @@ import React, { useMemo } from 'react';
 
 interface EntryOwnerProps {
   entryOwner: Partial<User & { isUserFollowed: boolean }>;
+  entryDate: Date;
 }
 
-const EntryOwner: React.FC<EntryOwnerProps> = ({ entryOwner }) => {
-  const entryDate = useMemo(() => {
-    if (entryOwner.createdAt) {
-      return formatDateToTimeAgoString(entryOwner.createdAt.toString());
-    }
-  }, [entryOwner.createdAt]);
+const EntryOwner: React.FC<EntryOwnerProps> = ({ entryOwner, entryDate }) => {
+  const date = useMemo(() => {
+    return formatDateToTimeAgoString(entryDate.toString());
+  }, [entryDate]);
 
   const router = useRouter();
 
@@ -35,11 +34,11 @@ const EntryOwner: React.FC<EntryOwnerProps> = ({ entryOwner }) => {
           <span className='mr-1'>{entryOwner?.username}</span>
         </span>
 
-        {entryDate?.fullDate && (
+        {date?.fullDate && (
           <>
             <span className='font-bold'> · </span>
-            <TooltipWithEllipsis tooltipText={entryDate.fullDate}>
-              <span className='ml-1 hover:underline'>{`${entryDate.displayDate}`}</span>
+            <TooltipWithEllipsis tooltipText={date.fullDate}>
+              <span className='ml-1 hover:underline'>{`${date.displayDate}`}</span>
             </TooltipWithEllipsis>
           </>
         )}

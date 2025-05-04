@@ -80,7 +80,7 @@ const Post: React.FC<PostProp> = ({ post, onPostClick, onDeleteClick }) => {
           )}
 
           {(postOwner || landingPagePostUser) && (
-            <EntryOwner entryOwner={postOwner ?? landingPagePostUser} />
+            <EntryOwner entryOwner={postOwner ?? landingPagePostUser} entryDate={post.createdAt} />
           )}
 
           {currentUser && (
