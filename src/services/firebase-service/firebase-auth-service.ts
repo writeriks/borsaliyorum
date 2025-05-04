@@ -88,11 +88,17 @@ class FirebaseAuthService {
    */
   signOut = async (): Promise<void> => {
     try {
+      // First sign out from Firebase
       await signOut(auth);
+
+      // Then call the logout API
       await queryClient.fetchQuery({
         queryKey: ['logOutUser'],
         queryFn: () => userApiService.logOutUser(),
       });
+
+      // Force redirect to home page
+      window.location.href = '/';
     } catch (error: any) {
       console.error('Error signing out:', error);
       this.dispatchError(error);

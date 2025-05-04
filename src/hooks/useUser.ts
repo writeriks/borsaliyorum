@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -14,66 +14,65 @@ import { UserState, setUser } from '@/store/reducers/user-reducer/user-slice';
 import userReducerSelector from '@/store/reducers/user-reducer/user-reducer-selector';
 
 import userApiService from '@/services/api-service/user-api-service/user-api-service';
-import { useQuery } from '@tanstack/react-query';
-import { useRouter } from '@/i18n/routing';
+import { useQuery, UseQueryOptions } from '@tanstack/react-query';
+import { useRouter, usePathname } from '@/i18n/routing';
 import { User } from '@prisma/client';
+
+type UserData = Pick<User, 'displayName' | 'username' | 'email' | 'profilePhoto' | 'createdAt'>;
 
 const useUser = (): {
   user: UserState | null;
-  fbAuthUser: FBAuthUserType | null;
-  currentUser: Partial<User> | null;
+  currentUser: UserData | null;
   isLoadingUser: boolean;
+  error: Error | null;
 } => {
   const dispatch = useDispatch();
   const userState = useSelector(userReducerSelector.getUser);
-  const [fbAuthUser, setFBAuthUser] = useState<FBAuthUserType | null>(null);
   const [firebaseUserId, setFirebaseUserId] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<Partial<User | null>>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
-  const {
-    data: userData,
-    error,
-    isLoading,
-  } = useQuery({
-    queryKey: ['get-user-by-id'],
+  const userQueryOptions: UseQueryOptions<User | undefined, Error> = {
+    queryKey: ['user', firebaseUserId],
     queryFn: () => userApiService.getUserById(firebaseUserId as string),
     enabled: !!firebaseUserId,
-  });
+    retry: 2,
+  };
 
-  const { refetch } = useQuery({
-    queryKey: ['validate-user'],
-    queryFn: () => userApiService.validateUser(fbAuthUser as FBAuthUserType),
+  const { data: userData, error: queryError, isLoading } = useQuery(userQueryOptions);
+
+  const { refetch: validateUser } = useQuery({
+    queryKey: ['validate-user', firebaseUserId],
+    queryFn: () => userApiService.validateUser(auth.currentUser as FBAuthUserType),
     enabled: false,
   });
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async user => {
-      if (user) {
-        setFBAuthUser(auth.currentUser);
-        setFirebaseUserId(user.uid);
+  const handleAuthStateChange = useCallback(
+    async (user: FBAuthUserType | null) => {
+      try {
+        setIsLoadingUser(true);
+        setError(null);
 
-        // If loading, set the loading state
-        if (isLoading) {
-          dispatch(setIsAuthLoading(true));
-          return;
-        }
+        if (user) {
+          setFirebaseUserId(user.uid);
 
-        if (error) {
-          dispatch(setIsAuthModalOpen(true));
-          return;
-        }
+          if (isLoading) {
+            dispatch(setIsAuthLoading(true));
+            return;
+          }
 
-        // register case
-        if (!userData) {
-          dispatch(setIsAuthModalOpen(false));
-          return;
-        }
+          if (queryError) {
+            dispatch(setIsAuthModalOpen(true));
+            return;
+          }
 
-        // login case
-        if (userData) {
-          // Add more data if needed
+          if (!userData) {
+            dispatch(setIsAuthModalOpen(false));
+            return;
+          }
+
           const { displayName, username, email, profilePhoto, createdAt } = userData;
           dispatch(
             setUser({
@@ -82,64 +81,72 @@ const useUser = (): {
               email,
               profilePhoto,
               createdAt,
-              userId: firebaseUserId,
+              userId: user.uid,
             })
           );
-          setCurrentUser(userData);
+
+          await validateUser();
 
           dispatch(setIsAuthModalOpen(false));
           dispatch(setIsAuthLoading(false));
           setIsLoadingUser(false);
 
-          // If we're on the landing page, redirect to feed
-          if (window.location.pathname === '/') {
+          if (pathname === '/' && !isLoadingUser && !userState?.userId) {
             router.push('/feed');
           }
+        } else {
+          if (userState?.userId) {
+            dispatch(
+              setUser({
+                username: '',
+                displayName: '',
+                email: '',
+                profilePhoto: null,
+                createdAt: null,
+                userId: null,
+              })
+            );
+          }
+
+          dispatch(setIsAuthModalOpen(false));
+          dispatch(setIsAuthLoading(false));
+          setIsLoadingUser(false);
         }
-      } else {
-        dispatch(
-          setUser({
-            username: '',
-            displayName: '',
-            email: '',
-            profilePhoto: null,
-            createdAt: null,
-            userId: null,
-          })
-        );
-        await queryClient.fetchQuery({
-          queryKey: ['logOutUser'],
-          queryFn: () => userApiService.logOutUser(),
-        });
-
-        setCurrentUser(null);
-
-        dispatch(setIsAuthModalOpen(false));
-        dispatch(setIsAuthLoading(false));
-        setIsLoadingUser(false);
-
-        // If we're on a protected route, redirect to home
-        if (window.location.pathname === '/feed') {
-          router.push('/');
-        }
-      }
-
-      if (window.location.pathname === '/feed') {
-        dispatch(setIsAuthLoading(false));
+      } catch (err) {
+        setError(err as Error);
+        dispatch(setIsAuthModalOpen(true));
+      } finally {
         setIsLoadingUser(false);
       }
-    });
-
-    return () => unsubscribe();
-  }, [dispatch, router, userState?.username, userData, error, isLoading, firebaseUserId]);
+    },
+    [
+      dispatch,
+      router,
+      pathname,
+      userData,
+      queryError,
+      isLoading,
+      validateUser,
+      userState,
+      isLoadingUser,
+    ]
+  );
 
   useEffect(() => {
-    if (currentUser?.email) {
-      refetch();
-    }
-  }, [currentUser?.email, refetch]);
+    const unsubscribe = onAuthStateChanged(auth, handleAuthStateChange);
+    return () => {
+      unsubscribe();
+      queryClient.cancelQueries({ queryKey: ['user', firebaseUserId] });
+      queryClient.cancelQueries({ queryKey: ['validate-user', firebaseUserId] });
+    };
+  }, [handleAuthStateChange, firebaseUserId]);
 
-  return { user: userState || null, currentUser, fbAuthUser, isLoadingUser };
+  return {
+    user: userState || null,
+    currentUser: userData || null,
+    isLoadingUser,
+    error,
+  };
 };
 
 export default useUser;

@@ -32,13 +32,11 @@ interface SettingsFormProps {
 export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => {
   const dispatch = useDispatch();
   const t = useTranslations();
-  const { fbAuthUser } = useUser();
+  const { currentUser } = useUser();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [currentPasswordFromModal, setCurrentPasswordFromModal] = useState('');
-  const [isGoogleSignIn, setIsGoogleSignIn] = useState(
-    fbAuthUser?.providerData[0].providerId === 'google.com'
-  );
+  const [isGoogleSignIn, setIsGoogleSignIn] = useState(currentUser?.email?.includes('@gmail.com'));
   const [isChangingEmail, setIsChangingEmail] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isChangingUsername, setIsChangingUsername] = useState(false);
@@ -46,8 +44,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
   const { email, username: usernameFromProp } = settingsProps;
 
   useEffect(() => {
-    setIsGoogleSignIn(fbAuthUser?.providerData[0].providerId === 'google.com');
-  }, [fbAuthUser]);
+    setIsGoogleSignIn(currentUser?.email?.includes('@gmail.com'));
+  }, [currentUser]);
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
