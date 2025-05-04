@@ -24,6 +24,8 @@ import { TriangleAlertIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import useUser from '@/hooks/useUser';
 import { ConfirmationModal } from '@/components/modal/confirmation-modal';
+import { auth } from '@/services/firebase-service/firebase-config';
+import { UserInfo } from 'firebase/auth';
 
 interface SettingsFormProps {
   settingsProps: SettingsFormValues;
@@ -32,11 +34,10 @@ interface SettingsFormProps {
 export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => {
   const dispatch = useDispatch();
   const t = useTranslations();
-  const { currentUser } = useUser();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [currentPasswordFromModal, setCurrentPasswordFromModal] = useState('');
-  const [isGoogleSignIn, setIsGoogleSignIn] = useState(currentUser?.email?.includes('@gmail.com'));
+  const [isGoogleSignIn, setIsGoogleSignIn] = useState(false);
   const [isChangingEmail, setIsChangingEmail] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isChangingUsername, setIsChangingUsername] = useState(false);
@@ -44,8 +45,16 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ settingsProps }) => 
   const { email, username: usernameFromProp } = settingsProps;
 
   useEffect(() => {
-    setIsGoogleSignIn(currentUser?.email?.includes('@gmail.com'));
-  }, [currentUser]);
+    // Check if the user is signed in with Google by checking the provider ID
+    const checkGoogleSignIn = async (): Promise<void> => {
+      const user = auth.currentUser;
+      const isGoogle = user?.providerData.some(
+        (provider: UserInfo) => provider.providerId === 'google.com'
+      );
+      setIsGoogleSignIn(!!isGoogle);
+    };
+    checkGoogleSignIn();
+  }, []);
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
