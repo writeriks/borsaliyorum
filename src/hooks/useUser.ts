@@ -85,7 +85,9 @@ const useUser = (): {
             })
           );
 
-          await validateUser();
+          if (!userState?.userId || userState.userId !== user.uid) {
+            await validateUser();
+          }
 
           dispatch(setIsAuthModalOpen(false));
           dispatch(setIsAuthLoading(false));
