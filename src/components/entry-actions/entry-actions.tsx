@@ -24,10 +24,10 @@ interface EntryProp {
   entry: ExtendedPost | ExtendedComment;
   commentor?: User;
   onCommentClick?: (commentor: User) => void;
-  onPostClick?: (post: Post) => void;
+  _onPostClick?: (post: Post) => void;
 }
 
-const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, onPostClick }) => {
+const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, _onPostClick }) => {
   const [isLiked, setIsLiked] = useState<boolean>(entry.likedByCurrentUser);
   const [likeCount, setLikeCount] = useState<number>(entry.likeCount ?? 0);
 
@@ -61,11 +61,33 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
       }
     },
     onSuccess: data => {
-      setIsLiked(data.didLike);
-      setLikeCount(data.didLike ? likeCount + 1 : likeCount - 1);
+      // Verify the optimistic update was correct
+      // If server response differs from our optimistic update, correct it
+      if (data.didLike !== isLiked) {
+        setIsLiked(data.didLike);
+        setLikeCount(data.didLike ? likeCount + 1 : likeCount - 1);
+      }
     },
-    onError: handleError,
+    onError: error => {
+      // Revert the optimistic update on error
+      setIsLiked(!isLiked);
+      setLikeCount(isLiked ? likeCount + 1 : likeCount - 1);
+      handleError(error);
+    },
   });
+
+  const handleLikeClick = (): void => {
+    // Prevent multiple clicks while request is pending
+    if (likeMutation.isPending) return;
+
+    // Optimistic update: immediately update UI
+    const newIsLiked = !isLiked;
+    setIsLiked(newIsLiked);
+    setLikeCount(newIsLiked ? likeCount + 1 : likeCount - 1);
+
+    // Then make the API call
+    likeMutation.mutate();
+  };
 
   return (
     <>
@@ -74,21 +96,21 @@ const EntryActions: React.FC<EntryProp> = ({ entry, commentor, onCommentClick, o
           <Heart
             fill='#EF4444'
             color='#EF4444'
-            cursor='pointer'
-            onClick={() => likeMutation.mutate()}
-            className='h-5 w-5'
+            cursor={likeMutation.isPending ? 'default' : 'pointer'}
+            onClick={handleLikeClick}
+            className={`h-5 w-5 ${likeMutation.isPending ? 'opacity-60' : ''}`}
           />
         ) : (
           <Heart
-            cursor='pointer'
-            onClick={() => likeMutation.mutate()}
-            className='h-5 w-5 sm:hover:text-red-500'
+            cursor={likeMutation.isPending ? 'default' : 'pointer'}
+            onClick={handleLikeClick}
+            className={`h-5 w-5 sm:hover:text-red-500 ${likeMutation.isPending ? 'opacity-60' : ''}`}
           />
         )}
 
         <span className='ml-1 text-xs flex items-center'>{likeCount}</span>
       </div>
-      <div onClick={handleCommentClick} className='inline-flex'>
+      <div onClick={handleCommentClick} data-nav='true' className='inline-flex'>
         <MessageCircle className='h-5 w-5 hover:cursor-pointer hover:text-blue-500' />
         {!isComment && <span className='ml-1 text-xs flex items-center'>{entry.commentCount}</span>}
       </div>

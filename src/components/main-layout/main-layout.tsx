@@ -17,6 +17,8 @@ import { setIsMobile } from '@/store/reducers/context-reducer/context-slice';
 import { Toaster } from '@/components/ui/sonner';
 import useUINotification from '@/hooks/useUINotification';
 import useUser from '@/hooks/useUser';
+import useAuthNavigation from '@/hooks/useAuthNavigation';
+import NavigationProgress from '@/components/navigation-progress/navigation-progress';
 import { AuthModal } from '@/components/auth/auth-modal';
 import uiReducerSelector from '@/store/reducers/ui-reducer/ui-reducer-selector';
 import { setIsAuthModalOpen, setIsNewPostModalOpen } from '@/store/reducers/ui-reducer/ui-slice';
@@ -24,13 +26,12 @@ import Discover from '@/components/discover/discover';
 import TabBarController from '@/components/tab-bar-controller/tab-bar-controller';
 import NewPostTriggerMobile from '@/components/new-post/new-post-trigger-mobile';
 import NewPostDialog from '@/components/new-post/new-post-dialog';
-import { useRouter } from '@/i18n/routing';
 
 const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNode => {
   useUINotification();
+  useAuthNavigation(); // Handle auth-based navigation
 
   const dispatch = useDispatch();
-  const router = useRouter();
 
   const { currentUser } = useUser();
 
@@ -44,17 +45,11 @@ const MainLayout = ({ children }: { children: React.ReactNode }): React.ReactNod
     }
   }, [dispatch]);
 
-  useEffect(() => {
-    if (
-      (currentUser?.email && window.location.pathname === '/tr') ||
-      window.location.pathname === '/en'
-    ) {
-      router.push('/feed');
-    }
-  }, [currentUser, router]);
-
   return (
     <>
+      {/* Navigation Progress Bar */}
+      <NavigationProgress color='#3b82f6' height={3} showSpinner={false} />
+
       <main className='flex-column w-full text-base'>
         <div className='xl:container mx-auto'>
           <NavigationBar />
