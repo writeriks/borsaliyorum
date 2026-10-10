@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-import { decodeBase64Key } from '@/lib/crypto/base64-key';
+// Göreli import: next.config.ts bu dosyayı yol takma adları (@/) olmadan derler
+import { decodeBase64Key } from './crypto/base64-key';
 
 /**
  * Ortam değişkeni şemaları. Adlar v1 ile aynıdır (Vercel'de zaten tanımlı).
