@@ -10,24 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Inspect KAP market pages
+      - name: Inspect KAP market grouping
         shell: python
         run: |
           import re, urllib.request, base64
           def get(u):
               return urllib.request.urlopen(urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0'}), timeout=60).read().decode('utf-8')
-          h = get('https://www.kap.org.tr/tr/Pazarlar')
-          t = h.replace('\\"', '"')
-          markets = sorted(set(re.findall(r'market=([A-Za-z0-9+/=_-]+)', t)))
-          print('market params', len(markets))
-          for m in markets:
-              try: print(m, '=>', base64.b64decode(m + '=' * (-len(m) % 4)).decode('utf-8'))
-              except Exception as e: print(m, 'decode err', e)
-          names = sorted(set(re.findall(r'"(?:marketName|name|title)":"([^"]*PAZAR[^"]*)"', t)))
-          print('names', names[:40])
           code = base64.b64encode('YILDIZ PAZAR'.encode()).decode().rstrip('=')
           p = get('https://www.kap.org.tr/tr/Pazarlar?market=' + code).replace('\\"', '"')
-          codes = re.findall(r'"stockCode":"([^"]+)"', p)
-          print('YILDIZ stockCode count', len(codes), codes[:15])
-          print('THYAO in yildiz page:', 'THYAO' in p, 'len', len(p))
-          i = p.find('THYAO'); print(p[max(0, i - 600): i + 300])
+          for name in ['YILDIZ PAZAR', 'ANA PAZAR', 'ALT PAZAR', 'YAKIN İZLEME PAZARI', 'KESİN ALIM SATIM PAZARI', 'GİRİŞİM SERMAYESİ PAZARI']:
+              hits = [m.start() for m in re.finditer(re.escape('"' + name + '"'), p)]
+              print('=====', name, 'occurrences', len(hits))
+              for h in hits[:3]:
+                  print(repr(p[max(0, h - 250): h + 350]))
+          first = p.find('"stockCode"')
+          print('=== before first stockCode'); print(repr(p[max(0, first - 800): first + 100]))
