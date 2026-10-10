@@ -14,7 +14,11 @@
  */
 import { readFileSync, realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+// Prisma 7 istemcisi `prisma generate` ile TS olarak üretilir (src/generated, gitignore'da).
+// Node 22.18+ tipleri kendisi ayıkladığı için düz `node` ile çalışır; önce `npx prisma generate`.
+import { PrismaClient } from '../src/generated/prisma/client.ts';
 
 const TICKER_RE = /^[A-Z0-9]{3,6}$/;
 const HEADER_WORDS = new Set(['KOD', 'CODE', 'TICKER', 'SEMBOL', 'HISSE']);
@@ -68,7 +72,17 @@ const main = async () => {
     process.exit(1);
   }
 
-  const prisma = new PrismaClient();
+  if (!process.env.DATABASE_URL) {
+    console.error('DATABASE_URL tanımlı değil.');
+    process.exit(1);
+  }
+  // Tek seferlik script: küçük havuz, sonsuz bekleme yok (pg varsayılanı 0 = sonsuz)
+  const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL,
+    max: 2,
+    connectionTimeoutMillis: 10_000,
+  });
+  const prisma = new PrismaClient({ adapter });
   try {
     // ticker tüm tabloda unique; kripto/diğer tiplerle çakışmaları da görelim
     const existing = await prisma.stock.findMany({

@@ -65,6 +65,33 @@ jobs:
       - run: npm ci
       - run: npm run test:unit
 
+  # Gerçek Postgres ile migration kapısı + DAL testleri (ADR-0003 Karar 3, Karar 5).
+  # Gerçek secret kullanılmaz; DB yalnızca bu job'un service container'ı.
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        # Neon prod ana sürümüyle aynı olmalı (ADR-0003; doğrulanınca güncellenir)
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test
+        ports: ['54329:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:test@localhost:54329/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      # postinstall → prisma generate
+      - run: npm ci
+      - run: npm run db:migrations:check
+      - run: npm run test:integration
+
   build:
     if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'claude/')
     runs-on: ubuntu-latest

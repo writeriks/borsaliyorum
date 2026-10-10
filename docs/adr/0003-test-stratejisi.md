@@ -134,6 +134,23 @@ Bağlantı: `TEST_DATABASE_URL=postgresql://postgres:test@localhost:54329/postgr
 (hisseler: `THYAO`, `ASELS`, `SISE`, `BTC`; birkaç etiket). Testler kendi kullanıcı/gönderisini
 benzersiz adla oluşturur, yalnızca kendi verisini assert eder → paralel güvenli.
 
+**S3 uygulaması (2026-10-10):**
+- Yollar kökte (kararlar K1): `scripts/pg-local.sh`, `tests/db/` (config, admin, global-setup,
+  setup-worker, legacy-compat, migration-rules), `tests/factories.ts`,
+  `scripts/check-migrations.ts`. Integration job'u ayrı `v2-ci.yml` yerine mevcut
+  `.github/workflows/ci.yml`'de (`integration`, `postgres:16` service, port 54329).
+- Bu sandbox'ta docker daemon yok → `pg-local.sh` `/usr/lib/postgresql/16/bin` binary'lerini
+  kullanır (`initdb` root çalışamadığı için root iken `runuser -u postgres`). Binary yoksa
+  `PG_BIN` ile yol verilir ya da `apt-get install postgresql-16`. `docker-compose.test.yml`
+  eklenmedi: docker varsa script `docker run postgres:16` (tmpfs) ile aynı işi yapar.
+- Testler `TEST_DATABASE_URL`'in host'u yerel değilse başlamaz (`tests/db/config.ts`).
+- Her test **dosyası** başında tablolar boşaltılır; aynı dosyadaki testler veri paylaşır →
+  testler kendi oluşturdukları satırları assert eder (sayım yerine id/fark).
+- `db:migrations:check` ek olarak: rollback sonrası şemanın 4 v1 migration'ına eşitliği
+  (`migrate diff --to-migrations`, shadow DB ile), Prisma'nın görmediği nesnelerin
+  (fonksiyon/trigger/ifade index'i) varlığı/yokluğu, CONCURRENTLY dosyalarında tek ifade ve her
+  v2 migration'ına bir `rollback/*.down.sql`.
+
 ## Karar 4 — E2E login: Firebase Auth emulator
 
 - `firebase-tools` 15.33.0 devDependency; `web/firebase.json`:

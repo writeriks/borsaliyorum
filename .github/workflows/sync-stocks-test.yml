@@ -6,6 +6,8 @@ on:
       - scripts/*stocks*.mjs
       - .github/workflows/sync-stocks*.yml
       - prisma/schema.prisma
+      - prisma/migrations/**
+      - prisma.config.ts
       - package-lock.json
 
 permissions:
@@ -35,7 +37,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npx prisma generate && npx prisma db push --skip-generate
+      # Prisma 7: istemci src/generated'a üretilir; şema gerçek migration'larla kurulur (db push değil)
+      - run: npx prisma generate && npx prisma migrate deploy
       - name: Seed existing stocks (incl. a delisted one)
         run: |
           psql "$DATABASE_URL" -c "INSERT INTO \"Stock\" (ticker, \"companyName\", \"stockType\") VALUES ('THYAO','TURK HAVA YOLLARI','stock'),('KOZAL','KOZA ALTIN','stock'),('BTC','BITCOIN','crypto'),('ASELS','ASELSAN','crypto'),('ZZZ1','BACK\\SLASH O''NEIL','stock');"

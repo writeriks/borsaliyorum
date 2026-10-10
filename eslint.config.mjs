@@ -18,7 +18,7 @@ export default defineConfig([
     'playwright-report/**',
     'test-results/**',
     'next-env.d.ts',
-    'prisma/**',
+    'src/generated/**',
     'public/**',
   ]),
   ...nextVitals,
@@ -76,6 +76,12 @@ export default defineConfig([
       'next.config.ts',
       '**/*.config.*',
       'scripts/**',
+      // Test altyapısı ve seed, test DB URL'sini env'den okur; uygulama koduna girmez
+      'prisma/**',
+      'tests/**',
+      '**/*.test.ts',
+      // Yalnız DATABASE_URL'yi şemayla doğrular; getServerEnv() Firebase env'i de ister
+      'src/lib/db/index.ts',
     ],
     rules: { 'no-restricted-properties': 'off' },
   },
