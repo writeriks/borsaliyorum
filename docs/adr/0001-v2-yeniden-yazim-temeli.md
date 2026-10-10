@@ -249,6 +249,66 @@ güncellemez, coexist'te yanlış olur; M1'de `_count` alt sorgusu yeterli), `Po
 (bildirim + `entities` yeterli; "beni anan gönderiler" sorgusu gelince eklenir), id'leri UUID'ye
 çevirme (URL uyumu bozulur, kazanç yok).
 
+### S3 uygulaması: baseline ve prod adımları (2026-10-10)
+
+Kararlar K1 gereği yollar kökte (`prisma/`, `src/lib/db`); `web/` yok.
+
+**Baseline (prod'a erişim olmadan):** Prod'a salt-okunur drift raporu S3'te **çalıştırılamadı**
+(erişim yok). Bunun yerine repo içinden doğrulandı: 4 v1 migration'ı boş DB'ye uygulanıp
+v1 `schema.prisma` ile karşılaştırıldı (`prisma migrate diff`). Tek fark, Prisma 6+'nın implicit
+m2m tablolarını PK ile modellemesi (`_PostStocks_AB_pkey`); prod'u Prisma 5 kurduğu için prod'da
+unique index (`_PostStocks_AB_unique`) vardır ve v2 şeması bu tabloları **explicit model** olarak
+aynı unique index ile eşler. Yani v1 `db push` sonucu ile 4 migration'ın sonucu aynı şemadır →
+**baseline = mevcut 4 migration, checksum'ları korunarak**; `baseline_fix` migration'ı yok.
+v2 migration'ları (`20261010120000_*` … `20261010121300_*`) bunların üstüne eklenir.
+
+**Prod'da kullanıcının çalıştıracağı adımlar (S3 kapsamında prod'a migration UYGULANMAZ):**
+1. Drift raporu (yalnızca okur): `DATABASE_URL_UNPOOLED=<prod, salt-okunur, doğrudan URL>
+   SHADOW_DATABASE_URL=<boş atılabilir DB, prod değil> scripts/prod-baseline-check.sh`.
+   Çıktı: PG sürümü, `migrate status`, prod ↔ v1 baseline diff'i. Çıktı PR'a eklenir.
+2. Diff boşsa ve `migrate status` 4 v1 migration'ını **kayıtlı göstermiyorsa** (prod yalnızca
+   `db push` ile kurulmuşsa), migrator rolüyle her biri için:
+   `npx prisma migrate resolve --applied 20250105143157_test_user_roles` (ve
+   `20250105154711_add_security_role_id`, `20250105155936_add_security_role`,
+   `20250129182225_notication_model`). Bu yalnızca `_prisma_migrations`'a kayıt yazar, şemaya
+   dokunmaz. Kayıtlıysa bu adım atlanır.
+3. Diff boş değilse: diff çıktısından `2026xxxx_baseline_fix` migration'ı yazılır (S3'e ek PR),
+   prod'da `migrate resolve --applied <baseline_fix>` ile işaretlenir.
+4. v2 migration'ları **cutover adımında** (Karar 1 "Cutover" 1. adım) `production` environment'lı
+   workflow ile `prisma migrate deploy` (doğrudan URL) ile uygulanır; Vercel build'inde değil.
+5. Neon bölgesi ve PG ana sürümü 1. adımın çıktısıyla bu ADR'ye ve ADR-0003'e (`PG_MAJOR`,
+   CI `postgres:` imajı) işlenir. **Doğrulanana kadar varsayım: PG 16.**
+
+**CONCURRENTLY index runbook:** Index migration'ları tek ifadeli dosyalardır (Prisma onları
+transaction dışında çalıştırır; yerelde doğrulandı). `migrate deploy` bir index'te yarıda kalırsa
+INVALID index kalır: `DROP INDEX CONCURRENTLY "<ad>";` → `npx prisma migrate resolve
+--rolled-back <migration>` → yeniden `migrate deploy`. Dosyalar `IF NOT EXISTS` kullandığı için
+geçerli bir index varken yeniden çalıştırma zararsızdır.
+
+**Geri alma:** `prisma/rollback/<migration>.down.sql`, ters sırada `psql -v ON_ERROR_STOP=1 -f`.
+Her betik kendi transaction'ındadır ve son ifadesi `_prisma_migrations` kaydını siler.
+`m1_content_event` down'u tablo boş değilse durur (5651 kaydı). `m1_tag_slug_backfill` down'u
+slug'ları temizler ama **birleştirmeyi geri getirmez** (çift etiketlerin gönderileri kanonik
+etikete taşınmıştır; ilişki kaybı yok).
+
+**Uygulamada netleşen ayrıntılar:**
+- Eski uygulama `Tag.tagName`'i `#` önekiyle saklar (`#BIST100`). Backfill slug'ı önek olmadan
+  katlar (`fold_tag()`, SQL; ICU `lower`). Kanonik etiket: en eski `createdAt`. v2'ye
+  dönüşemeyen eski etiketler (boş, > 64 karakter, boşluk/ayraç) `slug = NULL` kalır.
+  **S10 için:** v2 yeni etiket yazarken `tagName`'i aynı `#` önekli biçimde yazmalı (rollback
+  penceresinde eski uygulama `tagName` ile arar); eski uygulamanın pencere içinde eklediği
+  etiketler `slug = NULL` gelir (trigger ile doldurulmadı: aynı slug'ın varlığında eski
+  uygulamanın gönderi oluşturması unique ihlaliyle kırılırdı).
+- `ContentEvent` koruması: `UPDATE`/`DELETE`/`TRUNCATE` trigger ile reddedilir; yalnızca
+  transaction'a özel `borsaliyorum.retention_purge = on` ile (purge fonksiyonu ve test
+  sıfırlaması) geçer. `content_event_purge(retention interval)` 1 yıldan kısa süreyi reddeder
+  (alt sınır legal L2 ile kesinleşecek).
+- `User_username_lower_pattern_idx` (`lower(username) text_pattern_ops`) Prisma şemasında
+  ifade edilemez; `migrate diff` onu yok sayar, `db:migrations:check` varlığını ayrıca doğrular.
+- Runtime: `src/lib/db` → `getDb()` (tembel, `attachDatabasePool`, havuz `max 5`,
+  `connectionTimeoutMillis 5000`, `idleTimeoutMillis 5000`). CLI URL'i `prisma.config.ts`:
+  `DATABASE_URL_UNPOOLED ?? DATABASE_URL`.
+
 ### Rollback penceresinde bilinen tutarsızlıklar (kabul edilen riskler)
 
 - v2'de soft-delete (`deletedAt`) edilen içerik eski uygulamada görünür. Moderasyonla kaldırılan
