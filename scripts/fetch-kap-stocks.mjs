@@ -1,41 +1,67 @@
 /**
- * KAP'ın BIST şirketler listesini çeker ve "KOD;ŞİRKET ADI" CSV'si olarak stdout'a yazar.
- * Sadece kamuya açık şirket kodu ve unvanı alınır; fiyat verisi alınmaz.
+ * KAP'tan pay piyasasında (Yıldız, Ana, Alt, Yakın İzleme…) işlem gören şirketleri çeker ve
+ * "KOD;ŞİRKET ADI" CSV'si olarak stdout'a yazar. Bono ihraççıları ve fonlar alınmaz.
+ * Sadece kamuya açık kod ve unvan alınır; fiyat verisi alınmaz.
  *
  *   node scripts/fetch-kap-stocks.mjs > hisseler.csv
  *   node scripts/fetch-kap-stocks.mjs --file sayfa.html > hisseler.csv   # kayıtlı sayfadan
  */
 import { readFileSync } from 'node:fs';
 
-const KAP_URL = 'https://www.kap.org.tr/tr/bist-sirketler';
+// Pazarlar sayfası seçilen pazardan bağımsız olarak tüm pazarların listesini gömülü taşır
+const KAP_URL = `https://www.kap.org.tr/tr/Pazarlar?market=${Buffer.from('YILDIZ PAZAR').toString('base64')}`;
+const EQUITY_GROUP = 'PAY PİYASASI';
 const TICKER_RE = /^[A-Z0-9]{3,6}$/;
 
-const decodeEntities = text =>
-  text
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&#x27;|&#39;/g, "'")
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
+// Next.js sayfası veriyi self.__next_f.push([1,"..."]) içindeki JS string'lerinde taşır
+const extractRscPayload = html =>
+  [...html.matchAll(/self\.__next_f\.push\(\[1,("(?:[^"\\]|\\.)*")\]\)/g)]
+    .map(([, literal]) => JSON.parse(literal))
+    .join('');
 
-const stripTags = html => decodeEntities(html.replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
+const readJsonArrayAt = (text, start) => {
+  let depth = 0;
+  let inString = false;
+  for (let i = start; i < text.length; i += 1) {
+    const char = text[i];
+    if (inString) {
+      if (char === '\\') i += 1;
+      else if (char === '"') inString = false;
+    } else if (char === '"') inString = true;
+    else if (char === '[') depth += 1;
+    else if (char === ']') {
+      depth -= 1;
+      if (depth === 0) return JSON.parse(text.slice(start, i + 1));
+    }
+  }
+  throw new Error('KAP pazar verisi eksik ya da bozuk.');
+};
 
-export const parseKapPage = html => {
+export const parseKapMarkets = html => {
+  const payload = extractRscPayload(html);
+  const marker = `"data":[{"title":"${EQUITY_GROUP}"`;
+  const index = payload.indexOf(marker);
+  if (index === -1) throw new Error('KAP sayfasında pazar verisi bulunamadı; sayfa yapısı değişmiş olabilir.');
+
+  const groups = readJsonArrayAt(payload, index + '"data":'.length);
   const stocks = new Map();
 
-  for (const [row] of html.matchAll(/<tr[\s>][\s\S]*?<\/tr>/g)) {
-    const cells = [...row.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map(([, cell]) => cell);
-    const nameCell = cells.find(cell => cell.includes('/sirket-bilgileri/ozet/'));
-    if (!nameCell) continue;
-
-    const companyName = stripTags(nameCell);
-    // Bir şirketin birden fazla işlem kodu olabilir: "ISATR, ISBTR, ISCTR"
-    const codes = stripTags(cells[0]).split(/[\s,]+/).filter(code => TICKER_RE.test(code));
-
-    codes.forEach(code => {
-      if (companyName && !stocks.has(code)) stocks.set(code, companyName);
-    });
-  }
+  groups
+    .filter(group => group.title === EQUITY_GROUP)
+    .flatMap(group => group.contents)
+    .forEach(market =>
+      market.marketDetailContentList
+        // fundOid dolu olanlar fon (ör. Girişim Sermayesi Pazarı), şirket değil
+        .filter(item => item.mkkMemberOid && !item.fundOid)
+        .forEach(item =>
+          item.stockCode
+            .split(/[\s,]+/)
+            .filter(code => TICKER_RE.test(code))
+            .forEach(code => {
+              if (!stocks.has(code)) stocks.set(code, { name: item.title.trim(), market: market.marketName });
+            })
+        )
+    );
 
   return stocks;
 };
@@ -50,14 +76,19 @@ const main = async () => {
           return res.text();
         });
 
-  const stocks = parseKapPage(html);
+  const stocks = parseKapMarkets(html);
   // Sayfa yapısı değişirse yarım listeyle DB'ye yazmayalım
   if (stocks.size < 300) {
     throw new Error(`Beklenenden az hisse bulundu (${stocks.size}); KAP sayfa yapısı değişmiş olabilir.`);
   }
 
-  process.stdout.write([...stocks].map(([code, name]) => `${code};${name}`).join('\n') + '\n');
-  console.error(`${stocks.size} hisse bulundu.`);
+  process.stdout.write([...stocks].map(([code, { name }]) => `${code};${name}`).join('\n') + '\n');
+
+  const perMarket = {};
+  stocks.forEach(({ market }) => {
+    perMarket[market] = (perMarket[market] ?? 0) + 1;
+  });
+  console.error(`${stocks.size} hisse bulundu:`, perMarket);
 };
 
 if (import.meta.url === `file://${process.argv[1]}`) {

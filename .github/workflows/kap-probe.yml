@@ -3,25 +3,22 @@ name: KAP probe (temporary)
 on:
   push:
     branches: [claude/rebuild-agents-skills]
-    paths: [.github/workflows/kap-probe.yml]
+    paths: [.github/workflows/kap-probe.yml, scripts/fetch-kap-stocks.mjs]
 
 jobs:
   probe:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Inspect KAP market grouping
-        shell: python
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Parse KAP equity list and compare with tickers.ts
         run: |
-          import re, urllib.request, base64
-          def get(u):
-              return urllib.request.urlopen(urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0'}), timeout=60).read().decode('utf-8')
-          code = base64.b64encode('YILDIZ PAZAR'.encode()).decode().rstrip('=')
-          p = get('https://www.kap.org.tr/tr/Pazarlar?market=' + code).replace('\\"', '"')
-          for name in ['YILDIZ PAZAR', 'ANA PAZAR', 'ALT PAZAR', 'YAKIN İZLEME PAZARI', 'KESİN ALIM SATIM PAZARI', 'GİRİŞİM SERMAYESİ PAZARI']:
-              hits = [m.start() for m in re.finditer(re.escape('"' + name + '"'), p)]
-              print('=====', name, 'occurrences', len(hits))
-              for h in hits[:3]:
-                  print(repr(p[max(0, h - 250): h + 350]))
-          first = p.find('"stockCode"')
-          print('=== before first stockCode'); print(repr(p[max(0, first - 800): first + 100]))
+          node scripts/fetch-kap-stocks.mjs > kap.csv
+          wc -l < kap.csv; head -3 kap.csv
+          grep -oE "'id': '[A-Z0-9]+'" src/tickers.ts | cut -d"'" -f4 | sort > old.txt
+          cut -d';' -f1 kap.csv | sort > new.txt
+          echo "--- NEW: $(comm -13 old.txt new.txt | wc -l)"; comm -13 old.txt new.txt | while read c; do grep "^$c;" kap.csv; done
+          echo "--- GONE: $(comm -23 old.txt new.txt | wc -l)"; comm -23 old.txt new.txt | tr '\n' ' '; echo
