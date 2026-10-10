@@ -161,9 +161,10 @@ model User {
   onboardedAt         DateTime?                         // null → onboarding zorunlu
   sessionsValidAfter  DateTime?                         // çıkış/ban: daha eski auth_time'lı oturumlar geçersiz
   status              UserStatus @default(active)
-  noticeVersion       String?   @db.VarChar(20)         // kabul edilen aydınlatma metni sürümü  [legal L3]
-  ageConfirmedAt      DateTime?                         // 18+ beyanı                           [legal L3]
-  marketingOptInAt    DateTime?                         // ayrı, işaretsiz onay                  [legal L3]
+  noticeVersion        String?   @db.VarChar(20)        // okunan aydınlatma metni sürümü        [legal L3]
+  noticeAcknowledgedAt DateTime?                        // aydınlatmanın okunduğu an (rıza değil) [legal L3]
+  ageConfirmedAt       DateTime?                        // 18+ beyanı                           [legal L3]
+  // pazarlama izni User'da değil: ConsentEvent (append-only) — S3 inceleme düzeltmesi
 }
 enum UserStatus { active suspended deleted }
 
@@ -206,18 +207,31 @@ model LinkPreview {               // ADR-0002 §6
 }
 enum LinkPreviewStatus { ok failed blocked }
 
-model ContentEvent {              // 5651 / moderasyon izi — append-only
+model ContentEvent {              // 5651 / moderasyon / erişim izi — append-only
   id          BigInt   @id @default(autoincrement())
   at          DateTime @default(now())
   actorUserId Int
-  action      String   @db.VarChar(40)   // 'post.create' | 'post.delete' | 'comment.create' | ...
-  entityType  String   @db.VarChar(20)
+  action      ContentEventAction        // post.create|post.update|post.delete|comment.create|
+                                        // comment.delete|auth.login|session.start|
+                                        // moderation.remove|system.remove
+  entityType  ContentEntityType         // post | comment | user
   entityId    Int
-  ip          String?  @db.Inet          // [legal L2]
-  userAgent   String?  @db.VarChar(300)
-  requestId   String?  @db.VarChar(64)
+  ipEncrypted Bytes?                    // AES-256-GCM (uygulama katmanı); system.* dışında zorunlu (CHECK) [legal L2]
+  port        Int?                      // kaynak port, alınabildiğinde              [legal L2]
+  requestId   String?  @db.VarChar(64)  // (userAgent yok: veri minimizasyonu)
   @@index([actorUserId, at])
   @@index([entityType, entityId])
+  @@index([at])
+}
+
+model ConsentEvent {              // izin verme/geri alma geçmişi — append-only, FK yok
+  id BigInt @id; userId Int; kind ConsentKind /* marketing_email|sms|call|push */
+  granted Boolean; textVersion String? /* granted ise zorunlu (CHECK) */
+  source ConsentSource /* signup|settings|unsubscribe_link|iys|support */; at DateTime
+}
+
+model LegalIdentityRetention {    // silinen hesabın yasal saklama kimliği (S5+ hesap silme yazar)
+  userId Int @id; firebaseUid String; email String; deletedAt DateTime; purgeAt DateTime
 }
 
 model RateLimitBucket {
@@ -272,10 +286,28 @@ v2 migration'ları (`20261010120000_*` … `20261010121300_*`) bunların üstün
    `20250105154711_add_security_role_id`, `20250105155936_add_security_role`,
    `20250129182225_notication_model`). Bu yalnızca `_prisma_migrations`'a kayıt yazar, şemaya
    dokunmaz. Kayıtlıysa bu adım atlanır.
-3. Diff boş değilse: diff çıktısından `2026xxxx_baseline_fix` migration'ı yazılır (S3'e ek PR),
-   prod'da `migrate resolve --applied <baseline_fix>` ile işaretlenir.
-4. v2 migration'ları **cutover adımında** (Karar 1 "Cutover" 1. adım) `production` environment'lı
-   workflow ile `prisma migrate deploy` (doğrudan URL) ile uygulanır; Vercel build'inde değil.
+3. Diff boş değilse: diff çıktısı **olduğu gibi** `2026xxxx_baseline_fix/migration.sql` olur
+   (S3'e ek PR), prod'da `migrate resolve --applied <baseline_fix>` ile işaretlenir. Yön:
+   `prisma migrate diff --from-migrations <legacy_dir> --to-config-datasource --script`, yani
+   v1 baseline → prod. Böylece boş bir DB'de v1 + baseline_fix = prod şeması olur. (S3 ilk
+   sürümündeki ters yön, prod'u baseline'a geri getiren SQL üretiyordu; düzeltildi ve
+   `tests/integration/prod-baseline-check.int.test.ts` yönü gerçek bir drift'le doğrular.)
+4. v2 migration'ları **cutover adımında** (Karar 1 "Cutover" 1. adım) uygulanır; Vercel
+   build'inde değil. Basit prod yolu (architect, S3 inceleme):
+   1. **Neon branch'inde dene:** prod'dan anlık bir Neon branch'i aç, branch'in doğrudan URL'iyle
+      `npx prisma migrate deploy` → uygulama smoke testi → aşağıdaki INVALID index kontrolü.
+      Süreyi ve kilit beklemelerini not et; sorun yoksa branch'i sil.
+   2. **Prod'da `migrate deploy` ayrı bir adımdır:** kod deploy'undan önce, `production`
+      environment'lı (manuel onaylı) workflow ya da migrator rolüyle elle:
+      `DATABASE_URL_UNPOOLED=<prod doğrudan URL> npx prisma migrate deploy`. Başlamadan önceki
+      zaman damgasını (UTC) not et.
+   3. **Deploy sonrası kontrol** (boş dönmeli; doluysa aşağıdaki CONCURRENTLY runbook'u):
+      `SELECT indexrelid::regclass FROM pg_index WHERE NOT indisvalid;`
+   4. **Birincil geri alma: Neon point-in-time restore** (2. adımda not edilen ana; Neon
+      konsolu → Branches → Restore, ya da o ana bir branch açıp uygulamayı ona yönelt). Restore
+      deploy sonrası yazılan veriyi de geri alır; rollback penceresi kısa tutulur.
+      `prisma/rollback/*.down.sql` betikleri ikincil yoldur (tek migration'ı veri kaybı
+      olmadan geri almak için).
 5. Neon bölgesi ve PG ana sürümü 1. adımın çıktısıyla bu ADR'ye ve ADR-0003'e (`PG_MAJOR`,
    CI `postgres:` imajı) işlenir. **Doğrulanana kadar varsayım: PG 16.**
 
@@ -291,23 +323,74 @@ Her betik kendi transaction'ındadır ve son ifadesi `_prisma_migrations` kaydı
 slug'ları temizler ama **birleştirmeyi geri getirmez** (çift etiketlerin gönderileri kanonik
 etikete taşınmıştır; ilişki kaybı yok).
 
+**Rol ayrımı (ContentEvent/ConsentEvent koruması, roller ayrılınca uygulanır):** Trigger
+uygulama hatalarına karşıdır; asıl sınır ayrıcalıklardır. Roller: `migrator` (DDL, tablo ve
+fonksiyon sahibi), `app_rw` (runtime DML), `app_maintenance` (günlük purge). Migration'lar bu
+roller **önceden** varsa GRANT/REVOKE'u kendisi uygular (`DO $$ … pg_roles …`); roller sonradan
+oluşturulursa migrator ile bir kez çalıştırılır:
+
+```sql
+-- app_rw: tüm tablolarda DML, append-only tablolarda yalnızca SELECT/INSERT
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_rw;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO app_rw;
+REVOKE UPDATE, DELETE, TRUNCATE ON "ContentEvent", "ConsentEvent" FROM app_rw;
+-- app_maintenance: purge (SECURITY DEFINER fonksiyon) + TTL tabloları
+GRANT EXECUTE ON FUNCTION content_event_purge(INTERVAL) TO app_maintenance;
+GRANT SELECT, DELETE ON "RateLimitBucket", "LinkPreview", "LegalIdentityRetention" TO app_maintenance;
+GRANT SELECT ON "Post" TO app_maintenance;
+-- Sonradan eklenen tablolar app_rw'ye otomatik açılmasın diye ALTER DEFAULT PRIVILEGES
+-- kullanılmaz; her yeni tablonun yetkisi kendi migration'ında verilir.
+```
+
+`content_event_purge` `SECURITY DEFINER` + `SET search_path = pg_catalog, pg_temp` ile tanımlıdır,
+tabloyu `public."ContentEvent"` diye tam adla siler ve `EXECUTE` `PUBLIC`'ten alınmıştır. Uygulama
+`app_rw` ile bağlandığında `borsaliyorum.retention_purge` GUC'unu kurması işe yaramaz (DELETE
+yetkisi yok). Vercel `DATABASE_URL` → `app_rw`, GitHub Actions purge secret'ı → `app_maintenance`.
+
+**S3 inceleme düzeltmeleri (2026-10-10, legal/security/architect):**
+- `ContentEvent`: IP düz metin/maske/hash değil, uygulamada AES-256-GCM ile şifreli
+  (`src/lib/crypto/ip.ts`; biçim: sürüm + 12 bayt IV + 16 bayt etiket + şifreli metin; anahtar
+  `IP_ENCRYPTION_KEY`, base64 32 bayt, production runtime'da zorunlu, build'de değil). Kullanıcı
+  kaynaklı her eylemde IP zorunlu (CHECK, yalnızca `system.remove` muaf); `port` eklendi;
+  `userAgent` kaldırıldı; `action` ve `entityType` enum oldu, `auth.login`/`session.start` eklendi.
+- Saklama: `content_event_purge` yalnızca 1–2 yıl arası süreyi kabul eder (takvimle
+  karşılaştırılır). `scripts/purge-retention.ts` her gün (`.github/workflows/purge-retention.yml`,
+  `DATABASE_URL` secret'ı yoksa atlanır): ContentEvent (varsayılan 2 yıl), RateLimitBucket
+  (en uzun pencere 24 saat + 24 saat), süresi dolmuş ve hiçbir gönderiye bağlı olmayan
+  LinkPreview, `purgeAt`'i geçmiş LegalIdentityRetention.
+- `ConsentEvent` (append-only) pazarlama iznini taşır; `User.marketingOptInAt` kaldırıldı (güncel
+  durum (userId, kind) için son satır). `User.noticeAcknowledgedAt` eklendi.
+- `LegalIdentityRetention(userId, firebaseUid, email, deletedAt, purgeAt)`: hesap silme (S5+).
+- `User.birthday` M1'de NULL'lanır (`20261010120610_m1_user_birthday_erase`, geri alınamaz);
+  **contract fazında** `ALTER TABLE "User" DROP COLUMN "birthday"`.
+- LinkPreview anahtarı `normalizePreviewUrl` (`src/lib/link-preview/normalize-url.ts`): izleme
+  parametreleri (`utm_*`, `fbclid`, `gclid`…) ve fragment atılır; `urlHash = sha256`.
+- Tag.slug backfill'i TS kurallarıyla birebir: `fold_tag`/`hashtag_slug`/`legacy_tag_slug`
+  `scripts/hashtag-sql.ts` ile Node'un Unicode sınıflarından üretilir (NFKC, Default_Ignorable,
+  şapkalı harf, gramer, homograf); eşdeğerlik integration testi var.
+- Onboarded backfill rezerve adları (`src/lib/users/reserved-usernames.ts`: admin, spk,
+  borsaliyorum…) onboarded saymaz; bu hesaplar yeni ad seçer.
+- Test/seed DB host'u `pg-connection-string` ile çözülür, `?host=`/`?hostaddr=` reddedilir;
+  paralel test koşuları koşuya özel DB adları kullanır (ADR-0003).
+
 **Uygulamada netleşen ayrıntılar:**
 - Eski uygulama `Tag.tagName`'i `#` önekiyle saklar (`#BIST100`). Backfill slug'ı önek olmadan
-  katlar (`fold_tag()`, SQL; ICU `lower`). Kanonik etiket: en eski `createdAt`. v2'ye
-  dönüşemeyen eski etiketler (boş, > 64 karakter, boşluk/ayraç) `slug = NULL` kalır.
+  katlar (`legacy_tag_slug()`, SQL; TS kurallarıyla aynı). Kanonik etiket: en eski `createdAt`.
+  v2 hashtag'ine dönüşemeyen eski etiketler (gramer dışı, > 50 karakter, harfsiz, homograf)
+  `slug = NULL` kalır.
   **S10 için:** v2 yeni etiket yazarken `tagName`'i aynı `#` önekli biçimde yazmalı (rollback
   penceresinde eski uygulama `tagName` ile arar); eski uygulamanın pencere içinde eklediği
   etiketler `slug = NULL` gelir (trigger ile doldurulmadı: aynı slug'ın varlığında eski
   uygulamanın gönderi oluşturması unique ihlaliyle kırılırdı).
 - `ContentEvent` koruması: `UPDATE`/`DELETE`/`TRUNCATE` trigger ile reddedilir; yalnızca
   transaction'a özel `borsaliyorum.retention_purge = on` ile (purge fonksiyonu ve test
-  sıfırlaması) geçer. `content_event_purge(retention interval)` 1 yıldan kısa süreyi reddeder
-  (alt sınır legal L2 ile kesinleşecek).
+  sıfırlaması) geçer. `content_event_purge(retention interval)` 1 yıldan kısa ve 2 yıldan uzun
+  süreyi reddeder (legal L2).
 - `User_username_lower_pattern_idx` (`lower(username) text_pattern_ops`) Prisma şemasında
   ifade edilemez; `migrate diff` onu yok sayar, `db:migrations:check` varlığını ayrıca doğrular.
 - Runtime: `src/lib/db` → `getDb()` (tembel, `attachDatabasePool`, havuz `max 5`,
   `connectionTimeoutMillis 5000`, `idleTimeoutMillis 5000`). CLI URL'i `prisma.config.ts`:
-  `DATABASE_URL_UNPOOLED ?? DATABASE_URL`.
+  `DATABASE_URL_UNPOOLED || DATABASE_URL` (boş string tanımsız sayılır).
 
 ### Rollback penceresinde bilinen tutarsızlıklar (kabul edilen riskler)
 
@@ -440,7 +523,8 @@ bekler), HTTP cache/AbortSignal desteği yoktur. Bu GET uçları ince sarmalayı
   sözleşme + Kurul'a bildirim) yerinde mi?
 - **L2** 5651: `ContentEvent`'te IP + zaman + kullanıcı + işlem yeterli mi; **kaynak port**
   gerekli mi (Vercel arkasında port alınamayabilir); saklama süresi alt/üst sınırı?
-- **L3** Kayıtta saklanacak onay alanları (`noticeVersion`, `ageConfirmedAt`, `marketingOptInAt`)
+- **L3** Kayıtta saklanacak onay alanları (`noticeVersion`, `ageConfirmedAt`, `marketingOptInAt`
+  → S3 incelemesinde `noticeAcknowledgedAt` + `ConsentEvent` olarak yanıtlandı)
   yeterli/gerekli mi? Mevcut `birthday` kolonu: v2 toplamayı bırakıyor; mevcut verinin silinmesi
   gerekir mi?
 - **L4** Kullanıcı adı = e-posta olan eski hesaplar şu an prod'da e-postayı herkese açık

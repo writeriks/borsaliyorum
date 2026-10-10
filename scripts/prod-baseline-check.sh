@@ -9,7 +9,8 @@
 # Rapor:
 #   1. PostgreSQL sürümü (ADR-0003: test PG ana sürümü bununla aynı olmalı)
 #   2. `prisma migrate status` → _prisma_migrations'ta hangi migration'lar kayıtlı
-#   3. Drift: prod şeması ↔ 4 v1 migration'ının ürettiği şema. Boş = drift yok.
+#   3. Drift: 4 v1 migration'ının ürettiği şema → prod şeması. Boş = drift yok. Doluysa çıkan SQL
+#      v1 baseline'ı prod'a getirir; aynen `<ts>_baseline_fix/migration.sql` olur (ADR-0001).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -40,14 +41,17 @@ echo "== 2. prisma migrate status"
 npx prisma migrate status || true
 
 echo
-echo "== 3. Drift: prod → v1 baseline (boş script = drift yok)"
+echo "== 3. Drift: v1 baseline → prod (boş script = drift yok)"
+# Yön önemli: baseline_fix migration'ı, migration geçmişini (v1) prod'un GERÇEK şemasına getiren
+# SQL'dir. Boş bir DB'de v1 + baseline_fix = prod; prod'da ise `migrate resolve --applied` ile
+# yalnızca kayıt olarak işaretlenir. Ters yön (prod → v1) prod'u değiştiren SQL üretirdi.
 set +e
-npx prisma migrate diff --from-config-datasource --to-migrations "$legacy_dir" --script --exit-code
+npx prisma migrate diff --from-migrations "$legacy_dir" --to-config-datasource --script --exit-code
 code=$?
 set -e
 case "$code" in
   0) echo "SONUÇ: drift yok." ;;
-  2) echo "SONUÇ: DRIFT VAR. Yukarıdaki SQL prod'u v1 baseline'a getirir; S3'e baseline_fix gerekir." ;;
+  2) echo "SONUÇ: DRIFT VAR. Yukarıdaki SQL v1 baseline'ı prod'a getirir: <ts>_baseline_fix/migration.sql olarak eklenir, prod'da 'migrate resolve --applied' ile işaretlenir (ADR-0001)." ;;
   *) echo "SONUÇ: diff çalıştırılamadı (çıkış $code)." ;;
 esac
 exit "$code"

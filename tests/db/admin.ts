@@ -124,3 +124,32 @@ export const truncateAll = async (client: Client): Promise<void> => {
     throw error;
   }
 };
+
+/**
+ * Repodaki bir script'i (ör. scripts/prod-baseline-check.sh) süreç env'i + verilen env ile
+ * çalıştırır. Sıfır olmayan çıkış kodu hata değil, sonuç olarak döner.
+ */
+export const runRepoScript = async (
+  relativePath: string,
+  extraEnv: Readonly<Record<string, string>>
+): Promise<{ code: number; stdout: string; stderr: string }> => {
+  try {
+    const { stdout, stderr } = await execFileAsync(path.join(ROOT_DIR, relativePath), [], {
+      cwd: ROOT_DIR,
+      env: { ...process.env, PRISMA_HIDE_UPDATE_MESSAGE: '1', ...extraEnv },
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    return { code: 0, stdout, stderr };
+  } catch (error) {
+    const {
+      code,
+      stdout = '',
+      stderr = '',
+    } = error as {
+      code?: number;
+      stdout?: string;
+      stderr?: string;
+    };
+    return { code: typeof code === 'number' ? code : -1, stdout, stderr };
+  }
+};

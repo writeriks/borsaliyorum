@@ -112,11 +112,17 @@ sürümü S3'te doğrulanıp eşitlenir).
 Bağlantı: `TEST_DATABASE_URL=postgresql://postgres:test@localhost:54329/postgres`.
 
 **İzolasyon (integration):**
-1. Vitest `globalSetup`: `bt_template` veritabanını sıfırdan oluşturur, `prisma migrate deploy`
+1. Vitest `globalSetup` koşuya özel bir kimlik üretir (`r<pid>_<6 hex>`) ve `provide` ile
+   worker'lara verir. `bt_<runId>_tpl` veritabanını sıfırdan oluşturur, `prisma migrate deploy`
    ile tüm migration'ları uygular (yani testler **gerçek migration'ları** test eder, `db push`
-   değil).
-2. Her worker için `CREATE DATABASE bt_w<VITEST_POOL_ID> TEMPLATE bt_template` (milisaniyeler);
-   `setupFiles` Prisma client'ını bu DB'ye bağlar.
+   değil). Aynı Postgres'i paylaşan paralel koşular (worktree'ler) birbirinin DB'sine dokunmaz;
+   teardown yalnızca `bt_<runId>_` önekli DB'leri düşürür, kurulum yalnızca sahibi (pid) artık
+   çalışmayan koşuların DB'lerini temizler. `db:migrations:check` de koşuya özel ad kullanır.
+2. Her worker için `CREATE DATABASE bt_<runId>_w<VITEST_POOL_ID> TEMPLATE bt_<runId>_tpl`
+   (milisaniyeler); `setupFiles` Prisma client'ını bu DB'ye bağlar. Ek DB açan test adı
+   `workerDatabaseName()` önekiyle kurar (tests/db/worker.ts).
+   `TEST_DATABASE_URL` yalnızca yerel host kabul eder: host, pg'nin kullandığı
+   `pg-connection-string` ile çözülür ve `?host=`/`?hostaddr=` parametresi reddedilir.
 3. Her test dosyasından önce `TRUNCATE ... RESTART IDENTITY CASCADE` (`_prisma_migrations`
    hariç). Test verisi `tests/factories.ts` (`createUser`, `createStock`, `createPost`...) ile.
 
