@@ -197,3 +197,19 @@ test.describe('dokunma hedefleri', () => {
     expect(await measureTargets(page)).toEqual([]);
   });
 });
+
+test.describe('uygulama kabuğu: oturum açık (sunucu render)', () => {
+  // Kabuk Server Component; avatar baş harfleri sunucuda hesaplanır. Daha önce `'use client'`
+  // modülünden fonksiyon çağrıldığı için bu durum RSC render'ında hata veriyordu.
+  test('profil bağlantısı ve baş harfler görünür, giriş/kayıt UI yok', async ({ page }) => {
+    const response = await page.goto('/dev/composer?shell=authenticated');
+    expect(response?.status()).toBe(200);
+
+    // Mobilde sol menü CSS ile gizli (rol sorguları gizli öğeyi görmez); DOM'da olması yeterli
+    const profile = page.locator('a[aria-label="Ayşe Kaya @aysek"]');
+    await expect(profile.first()).toBeAttached();
+    await expect(profile.first().locator('[data-slot="avatar-fallback"]')).toHaveText('AK');
+    await expect(page.getByRole('link', { name: tr.common.login })).toHaveCount(0);
+    await expect(page.getByTestId('auth-slot-skeleton')).toHaveCount(0);
+  });
+});

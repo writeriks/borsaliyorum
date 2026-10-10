@@ -6,7 +6,8 @@ import { defineConfig, devices } from '@playwright/test';
 if (existsSync('.env.test.local')) process.loadEnvFile('.env.test.local');
 
 const isCI = Boolean(process.env.CI);
-const PORT = 3100;
+// Paralel worktree'lerde çakışmasın diye yerelde değiştirilebilir (.env.test.local: PW_PORT=3108)
+const PORT = Number(process.env.PW_PORT) || 3100;
 const baseURL = `http://localhost:${PORT}`;
 
 // Yerelde önceden kurulu Chromium (ADR-0003 Karar 2); CI'da boş → `playwright install` tarayıcısı
@@ -34,7 +35,9 @@ export default defineConfig({
   ],
   webServer: {
     // E2E kendi build'ini alır (ADR-0003); S5'te emulator env'i bu build'e eklenecek
-    command: 'npm run build:e2e && npm run start:e2e',
+    command: `npm run build:e2e && npx next start -p ${PORT}`,
+    // `/dev/*` önizleme sayfaları (ör. composer) production build'inde yalnızca bu bayrakla açılır
+    env: { ENABLE_DEV_PAGES: '1' },
     url: baseURL,
     timeout: 180_000,
     reuseExistingServer: !isCI,

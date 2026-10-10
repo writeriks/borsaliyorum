@@ -40,13 +40,3 @@ export const AvatarFallback = ({
     {...props}
   />
 );
-
-/** Görsel yoksa baş harfler; Türkçe büyük harf kuralıyla (i → İ). */
-export const initialsOf = (name: string): string =>
-  name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map(part => part.charAt(0))
-    .join('')
-    .toLocaleUpperCase('tr-TR');

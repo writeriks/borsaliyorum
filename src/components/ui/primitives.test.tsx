@@ -2,7 +2,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
-import { initialsOf } from './avatar';
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from './dialog';
 import {
   DropdownMenu,
@@ -123,11 +122,5 @@ describe("UI primitive'leri", () => {
   it('Skeleton dekoratiftir (ekran okuyucudan gizli)', () => {
     const { container } = render(<Skeleton className='h-4 w-20' />);
     expect(container.firstChild).toHaveAttribute('aria-hidden', 'true');
-  });
-
-  it('initialsOf Türkçe büyük harf kuralını uygular', () => {
-    expect(initialsOf('ilker şahin')).toBe('İŞ');
-    expect(initialsOf('  ayşe  ')).toBe('A');
-    expect(initialsOf('ıhlamur ağacı yolu')).toBe('IA');
   });
 });

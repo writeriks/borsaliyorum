@@ -193,6 +193,16 @@ başlanabilir.
   aşım işareti; bilinmeyen cashtag işareti; ekran okuyucu öznitelikleri (`aria-activedescendant`
   vb.) doğru; composer chunk'ı ≤ 120 KB gz (`@next/bundle-analyzer` çıktısı PR'da); mobil
   (Pixel 7 emülasyonu) dokunma ile seçim. **ui-ux-designer hızlı review.**
+- **Uygulama notu (2026-10-10):** Sözleşme `src/features/composer/types.ts` + `schemas.ts`'te;
+  S7/S9 buna uymalı ya da S8 istemcisi (`services/http.ts`) güncellenmeli. ADR-0002'ye ekler:
+  `StockIndexItem.m` (7 günlük gönderi sayısı, eşitlik bozucu), `UserSuggestion.following`
+  ("Takip ediyorsun"), `GET /api/autocomplete/stocks/default` → `{ source, tickers }`,
+  `GET /api/link-preview` → `{ status: 'ok', url, host, siteName, title, description } |
+  { status: 'none' }`; `CommentSubmitInput.clientRequestId` (Karar 7'de yorumda yok).
+  MSW yerine Playwright route mock'ları; önizleme `/dev/composer` (yalnızca development ve
+  `ENABLE_DEV_PAGES=1`'li E2E build'i, Vercel production'da 404). Editörde `aria-expanded`
+  yok: ARIA 1.2'de `textbox` rolünde geçersiz (axe `aria-allowed-attr`); açık liste
+  `aria-controls` + `aria-activedescendant` ile bildirilir. Yorum sınırı istemcide 500.
 
 ### S9 — Link önizleme servisi (SSRF korumalı)
 - `lib/safe-fetch` (ADR-0002 Karar 6 kuralları, `undici` 8 + `ipaddr.js` 2.5), HTML meta

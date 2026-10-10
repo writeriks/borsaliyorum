@@ -2,10 +2,11 @@ import { LogIn } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { ReactElement } from 'react';
 
-import { Avatar, AvatarFallback, AvatarImage, initialsOf } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from '@/i18n/navigation';
+import { initialsOf } from '@/lib/users/initials';
 
 import { NAV_HREF, profileHref } from './nav-routes';
 import type { ShellViewer } from './types';

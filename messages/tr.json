@@ -76,7 +76,15 @@
     "VALIDATION": "Girdiğin bilgileri kontrol edip tekrar dene.",
     "CONFLICT": "Bu işlem şu anda tamamlanamıyor. Sayfayı yenileyip tekrar dene.",
     "RATE_LIMITED": "Çok fazla deneme yaptın. Biraz bekleyip tekrar dene.",
-    "INTERNAL": "Bir şeyler ters gitti. Lütfen tekrar dene."
+    "INTERNAL": "Bir şeyler ters gitti. Lütfen tekrar dene.",
+    "ONBOARDING_REQUIRED": "Devam etmek için hesap kurulumunu tamamla.",
+    "EMAIL_NOT_VERIFIED": "Paylaşım yapmak için e-posta adresini doğrula.",
+    "ACCOUNT_SUSPENDED": "Hesabın şu anda bu işlemi yapamıyor.",
+    "CONTENT_EMPTY": "Bir şeyler yaz.",
+    "CONTENT_TOO_LONG": "Metin karakter sınırını aşıyor.",
+    "UNKNOWN_CASHTAG": "Gönderide tanınmayan bir hisse kodu var.",
+    "SPONSORED_CASHTAG_BLOCKED": "Hisse, kripto ya da başka yatırım aracı içeren gönderiler reklam/işbirliği olarak paylaşılamaz.",
+    "TOO_MANY_ENTITIES": "Bir gönderide en fazla 10 hisse, 10 etiket ve 10 kişi anabilirsin."
   },
   "entity": {
     "newTab": "(yeni sekmede açılır)",
@@ -116,5 +124,136 @@
     "loading": "Gönderi yükleniyor",
     "error": "Gönderi yüklenemedi.",
     "unavailable": "Bu gönderi kaldırılmış ya da artık görüntülenemiyor."
+  },
+  "composer": {
+    "placeholder": {
+      "post": "Ne düşünüyorsun?",
+      "comment": "Yanıtını yaz"
+    },
+    "label": {
+      "post": "Gönderi yaz",
+      "comment": "Yanıt yaz"
+    },
+    "title": "Yeni gönderi",
+    "replyingTo": "Yanıtlanan: @{username}",
+    "submit": {
+      "post": "Paylaş",
+      "comment": "Yanıtla"
+    },
+    "submitting": "Paylaşılıyor",
+    "loading": "Gönderi alanı yükleniyor",
+    "disabled": {
+      "empty": "Bir şeyler yaz"
+    },
+    "toolbar": {
+      "label": "Gönderi araçları",
+      "cashtag": "Hisse ekle",
+      "hashtag": "Etiket ekle",
+      "mention": "Kişi an"
+    },
+    "counter": {
+      "remaining": "Kalan karakter: {n}",
+      "over": "Karakter sınırı {n} aşıldı"
+    },
+    "sentiment": {
+      "label": "Görüşün",
+      "bullish": "Yükseliş",
+      "bearish": "Düşüş",
+      "neutral": "Nötr",
+      "help": "Seçimin gönderinde küçük bir etiket olarak görünür ve kişisel görüşün olarak gösterilir."
+    },
+    "sponsored": {
+      "label": "Bu gönderi reklam veya işbirliği içeriyor",
+      "help": "Bir marka ya da kişiden para, hediye, indirim veya başka bir menfaat aldıysan aç. Gönderinin başında \"Reklam / İşbirliği\" etiketi görünür.",
+      "preview": "Reklam / İşbirliği",
+      "cashtagBlocked": "Hisse, kripto ya da başka yatırım aracı içeren gönderiler reklam/işbirliği olarak paylaşılamaz."
+    },
+    "unknownCashtag": "Tanınmayan hisse kodu: {tickers}. Kodu düzelt ya da listeden seç.",
+    "linkPreview": {
+      "remove": "Önizlemeyi kaldır"
+    },
+    "success": {
+      "post": "Gönderin paylaşıldı.",
+      "view": "Görüntüle",
+      "comment": "Yanıtın paylaşıldı."
+    },
+    "error": {
+      "generic": "Gönderin paylaşılamadı. Bağlantını kontrol edip tekrar dene.",
+      "rateLimit": "Çok sık paylaşım yapıyorsun. Biraz bekleyip tekrar dene.",
+      "session": "Oturumunun süresi doldu. Tekrar giriş yap, taslağın saklandı.",
+      "restricted": "Hesabın şu anda gönderi paylaşamıyor. Ayrıntılar bildirimlerinde."
+    },
+    "draft": {
+      "restored": "Kaydedilmemiş taslağın geri yüklendi.",
+      "discard": "Taslağı sil",
+      "confirmTitle": "Taslak kaydedilsin mi?",
+      "confirmBody": "Bu gönderiyi daha sonra tamamlayabilirsin.",
+      "save": "Taslağı kaydet",
+      "delete": "Sil"
+    },
+    "anon": {
+      "post": "Fikrini paylaşmak için giriş yap.",
+      "comment": "Yanıt yazmak için giriş yap."
+    }
+  },
+  "ac": {
+    "listbox": {
+      "stocks": "Hisse önerileri",
+      "tags": "Etiket önerileri",
+      "users": "Kişi önerileri"
+    },
+    "heading": {
+      "stocks": "Hisseler",
+      "followedStocks": "Takip ettiğin hisseler",
+      "mostMentioned": "Çok konuşulanlar (son 24 saat)",
+      "tags": "Etiketler",
+      "trendingTags": "Son 24 saatte çok kullanılanlar",
+      "users": "Kişiler",
+      "following": "Takip ettiklerin"
+    },
+    "market": {
+      "stock": "BIST",
+      "crypto": "Kripto",
+      "other": "Diğer"
+    },
+    "tagCount": "{count, number} gönderi",
+    "following": "Takip ediyorsun",
+    "empty": {
+      "stock": "\"{query}\" ile eşleşen hisse yok.",
+      "tag": "\"#{query}\" henüz kullanılmamış. Yazmaya devam edebilirsin.",
+      "user": "\"@{query}\" ile eşleşen kişi yok.",
+      "stockDefault": "Hisse kodu ya da şirket adı yaz."
+    },
+    "error": "Öneriler yüklenemedi.",
+    "sr": {
+      "count": "{count} öneri. Yukarı ve aşağı oklarla gezin, Enter ile seç.",
+      "none": "Sonuç yok."
+    }
+  },
+  "devComposer": {
+    "title": "Composer önizlemesi (yalnızca geliştirme)",
+    "intro": "Bu sayfa yalnızca geliştirme ve test ortamında açılır. Veriler sahtedir.",
+    "variant": "Varyant",
+    "variants": {
+      "inline": "Akış başı",
+      "dialog": "Dialog",
+      "sheet": "Mobil sayfa",
+      "comment": "Yorum"
+    },
+    "outcome": "Gönderme sonucu",
+    "outcomes": {
+      "ok": "Başarılı",
+      "internal": "Sunucu hatası (500)",
+      "network": "Ağ hatası",
+      "rateLimited": "Hız sınırı (429)",
+      "unauthenticated": "Oturum düştü (401)",
+      "restricted": "Kısıtlı hesap (403)",
+      "unknownCashtag": "Bilinmeyen hisse (422)"
+    },
+    "delay": "Gecikme (ms)",
+    "calls": "Gönderme çağrısı: {count}",
+    "lastPayload": "Son gönderilen veri",
+    "openDialog": "Gönderi paylaş",
+    "openSheet": "Mobil composer'ı aç"
   }
 }
