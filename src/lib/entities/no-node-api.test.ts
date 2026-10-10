@@ -44,10 +44,8 @@ describe('lib/entities istemci-güvenli', () => {
     expect(stripComments(code)).not.toMatch(NODE_GLOBALS_RE);
   });
 
-  // Trojan Source: kaynakta görünmez bidi/kontrol karakteri yerine `\u` kaçışı kullanılır.
+  // Trojan Source: kaynakta görünmez bidi/kontrol/biçim karakteri yerine `\u` kaçışı kullanılır.
   it.each(allFiles)('$name görünmez bidi/kontrol karakteri içermez', ({ code }) => {
-    expect(code).not.toMatch(
-      /[\u0000-\u0008\u000B-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2066-\u2069]/
-    );
+    expect(code).not.toMatch(/(?![\n\r\t])[\p{Cc}\p{Cf}\p{Default_Ignorable_Code_Point}]/u);
   });
 });

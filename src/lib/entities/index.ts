@@ -3,7 +3,9 @@
 export { foldTag, toTicker } from './fold';
 export { fromLegacyMarkup } from './legacy';
 export { countChars, normalizeContent } from './normalize';
-export { firstPreviewableUrl, MAX_HASHTAG_LENGTH, parseEntities } from './parse';
+export { MAX_HASHTAG_LENGTH } from './hashtag';
+export type { LegacyConversion, LegacyMarkupOptions } from './legacy';
+export { firstPreviewableUrl, parseEntities } from './parse';
 export { findActiveTrigger } from './trigger';
 export { ENTITY_SCHEMA_VERSION } from './types';
 export type {

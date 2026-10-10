@@ -85,9 +85,9 @@ describe('parseEntities — mention', () => {
 
 describe('parseEntities — url', () => {
   it.each([
-    ['https://kap.org.tr', ['url:https://kap.org.tr']],
-    ['HTTPS://KAP.ORG.TR/x', ['url:HTTPS://KAP.ORG.TR/x']],
-    ['WWW.kap.org.tr', ['url:https://WWW.kap.org.tr']],
+    ['https://kap.org.tr', ['url:https://kap.org.tr/']],
+    ['HTTPS://KAP.ORG.TR/x', ['url:https://kap.org.tr/x']],
+    ['WWW.kap.org.tr', ['url:https://www.kap.org.tr/']],
     ['http://a.b/c?d=1&e=2#f', ['url:http://a.b/c?d=1&e=2#f']],
     [
       'https://tr.wikipedia.org/wiki/Borsa_(ekonomi)',
@@ -95,10 +95,10 @@ describe('parseEntities — url', () => {
     ],
     ['(https://a.com/x_(y))', ['url:https://a.com/x_(y)']],
     ['https://a.com/x?!.,:;', ['url:https://a.com/x']],
-    ['“https://a.com”', ['url:https://a.com']],
-    ['"https://a.com"', ['url:https://a.com']],
+    ['“https://a.com”', ['url:https://a.com/']],
+    ['"https://a.com"', ['url:https://a.com/']],
     ['<https://a.com>', []],
-    ['https://a.com’dan', ['url:https://a.com']],
+    ['https://a.com’dan', ['url:https://a.com/']],
     ['kap.org.tr', []],
     ['A.Ş. THYAO.IS', []],
     ['xhttps://a.com', []],
@@ -109,7 +109,7 @@ describe('parseEntities — url', () => {
     ['https://:pw@a.com', []],
     ['https://[::1]/x', []],
     ['https://a.com:99999', []],
-    ['https://a.com/ https://b.com', ['url:https://a.com/', 'url:https://b.com']],
+    ['https://a.com/ https://b.com', ['url:https://a.com/', 'url:https://b.com/']],
     ['https://a.com/@ali/$THYAO', ['url:https://a.com/@ali/$THYAO']],
   ])('%j', (input, expected) => {
     expect(values(input)).toEqual(expected);
@@ -130,7 +130,7 @@ describe('parseEntities — url', () => {
   it('URL ile diğer entity türleri sırayla döner', () => {
     expect(values('$THYAO https://a.com #bist @ali')).toEqual([
       'cashtag:THYAO',
-      'url:https://a.com',
+      'url:https://a.com/',
       'hashtag:bist',
       'mention:ali',
     ]);
@@ -158,7 +158,7 @@ describe('parseEntities — genel', () => {
 describe('firstPreviewableUrl', () => {
   it('ilk URL’nin href’ini döner', () => {
     expect(firstPreviewableUrl(parseEntities('$THYAO www.a.com https://b.com'))).toBe(
-      'https://www.a.com'
+      'https://www.a.com/'
     );
   });
 

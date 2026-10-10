@@ -1,16 +1,23 @@
-import { hasLeftBoundary } from './boundaries';
+import { hasUrlLeftBoundary } from './boundaries';
 
 export const MAX_URL_LENGTH = 2048;
 
 // URL adayı: şema ya da `www.` ile başlar; boşluk, `<>"` ve apostrof (`www.borsa.com'da`) bitirir.
 const URL_CANDIDATE_RE = /(?:https?:\/\/|www\.)[^\s<>"'’]*/giu;
 const TRAILING_PUNCT = new Set(['.', ',', ':', ';', '!', '?', '"', '”']);
+// `URL.hostname` punycode'a çevrilmiş ve küçük harflidir; etiketler LDH olmalı. `www.$THYAO`
+// gibi WHATWG'nin kabul ettiği ama alan adı olamayacak host'lar link sayılmaz.
+const HOST_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 
 export type UrlCandidate = {
   /** Aday metnin tamamı; içine düşen tetikleyiciler (geçerli olsun olmasın) entity olmaz. */
   rawStart: number;
   rawEnd: number;
-  /** Geçerliyse URL entity'si; değilse (kullanıcı bilgisi, `localhost`, çok uzun …) null. */
+  /**
+   * Geçerliyse URL entity'si; değilse (sol sınır yok, kullanıcı bilgisi, `localhost`, çok
+   * uzun …) null. `href` kanonik WHATWG biçimidir (punycode host, `\` → `/`); görünen metin
+   * `start`/`end` aralığıdır.
+   */
   url: { start: number; end: number; href: string } | null;
 };
 
@@ -34,35 +41,41 @@ const trimTrailing = (candidate: string): string => {
   }
 };
 
-const toHref = (text: string): string => (/^www\./i.test(text) ? `https://${text}` : text);
-
-const isAcceptableHref = (href: string): boolean => {
+/** Kabul edilebilir URL'nin kanonik `href`'i; değilse null. */
+const toCanonicalHref = (text: string): string | null => {
   let url: URL;
   try {
-    url = new URL(href);
+    url = new URL(/^www\./i.test(text) ? `https://${text}` : text);
   } catch {
     // Geçersiz URL beklenen bir kullanıcı girdisi; entity üretilmez, loglanacak bir hata değil.
-    return false;
+    return null;
   }
-  if (url.username !== '' || url.password !== '') return false;
-  // `localhost` gibi noktasız ve `a..b` gibi boş etiketli host'lar link sayılmaz.
+  if (url.username !== '' || url.password !== '') return null;
+  // `localhost` gibi noktasız, `a..b` gibi boş etiketli ve LDH dışı host'lar link sayılmaz.
   const labels = url.hostname.replace(/\.$/, '').split('.');
-  return labels.length >= 2 && labels.every(label => label !== '');
+  if (labels.length < 2 || !labels.every(label => HOST_LABEL_RE.test(label))) return null;
+  // Kanonik biçim (punycode, yüzde kodlama) uzayabilir; saklanan href de sınırı aşmamalı.
+  return url.href.length <= MAX_URL_LENGTH ? url.href : null;
 };
 
 export const findUrlCandidates = (text: string): UrlCandidate[] => {
   const result: UrlCandidate[] = [];
   for (const match of text.matchAll(URL_CANDIDATE_RE)) {
     const rawStart = match.index;
-    if (!hasLeftBoundary(text, rawStart)) continue;
     const raw = match[0];
+    const rawEnd = rawStart + raw.length;
+    // Sol sınırı olmayan aday (`x=https://x.com/@ali`) link değildir ama aralığı yine de
+    // engellenir; aksi halde içindeki `@ali` mention olur.
+    if (!hasUrlLeftBoundary(text, rawStart)) {
+      result.push({ rawStart, rawEnd, url: null });
+      continue;
+    }
     const trimmed = trimTrailing(raw);
-    const href = toHref(trimmed);
-    const valid = trimmed.length <= MAX_URL_LENGTH && isAcceptableHref(href);
+    const href = trimmed.length <= MAX_URL_LENGTH ? toCanonicalHref(trimmed) : null;
     result.push({
       rawStart,
-      rawEnd: rawStart + raw.length,
-      url: valid ? { start: rawStart, end: rawStart + trimmed.length, href } : null,
+      rawEnd,
+      url: href === null ? null : { start: rawStart, end: rawStart + trimmed.length, href },
     });
   }
   return result;

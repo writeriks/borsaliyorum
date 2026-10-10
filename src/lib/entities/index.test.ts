@@ -31,15 +31,11 @@ describe('lib/entities genel API', () => {
   });
 
   it('sunucu akışı: normalize → parse uçtan uca', () => {
-    const text = entities.normalizeContent(
-      entities.fromLegacyMarkup(' $(THYAO) #(BİST100)\r\nbkz. https://kap.org.tr/x. @(ali_1) ')
+    const { text, entities: parsed } = entities.fromLegacyMarkup(
+      ' $(THYAO) #(BİST100)\r\nbkz. https://kap.org.tr/x. @(ali_1) '
     );
-    expect(entities.parseEntities(text).map(e => e.type)).toEqual([
-      'cashtag',
-      'hashtag',
-      'url',
-      'mention',
-    ]);
+    expect(parsed).toEqual(entities.parseEntities(text));
+    expect(parsed.map(e => e.type)).toEqual(['cashtag', 'hashtag', 'url', 'mention']);
     expect(entities.firstPreviewableUrl(entities.parseEntities(text))).toBe('https://kap.org.tr/x');
   });
 });

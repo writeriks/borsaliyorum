@@ -16,6 +16,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run --project unit --project dom --project integration",
     "test:unit": "vitest run --project unit --project dom",
+    "test:coverage": "vitest run --project unit --coverage",
     "test:browser": "vitest run --project browser --passWithNoTests",
     "test:e2e": "playwright test",
     "build:e2e": "SKIP_ENV_VALIDATION=1 next build",

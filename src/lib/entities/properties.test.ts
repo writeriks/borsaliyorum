@@ -136,11 +136,11 @@ describe('normalizeContent özellikleri', () => {
     );
   });
 
-  it('çıktıda CR, bidi override/isolate ve \\n/\\t dışı C0 yoktur', () => {
+  it('çıktıda CR, bidi, görünmez ayırıcı ve \\n/\\t dışı C0 yoktur', () => {
     fc.assert(
       fc.property(anyText, text => {
         expect(normalizeContent(text)).not.toMatch(
-          /[\r\u0000-\u0008\u000B\u000C\u000E-\u001F\u202A-\u202E\u2066-\u2069]/
+          /[\r\u0000-\u0008\u000B\u000C\u000E-\u001F\u00AD\u061C\u180E\u200B\u200C\u200E\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF\u{E0000}-\u{E007F}]/u
         );
       }),
       RUNS

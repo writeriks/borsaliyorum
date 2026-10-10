@@ -13,6 +13,13 @@ export const hasLeftBoundary = (text: string, index: number): boolean => {
   return LEFT_BOUNDARY_CHARS.has(prev) || WHITESPACE_RE.test(prev);
 };
 
+/**
+ * URL'ler ek olarak `:` sonrasında da başlayabilir (`Kaynak:https://kap.org.tr/x`, ADR-0002
+ * notu). Tetikleyicilerde `:` sınır değildir (`a:$THYAO` cashtag olmaz).
+ */
+export const hasUrlLeftBoundary = (text: string, index: number): boolean =>
+  hasLeftBoundary(text, index) || text.charAt(index - 1) === ':';
+
 const WORD_CHAR_AT_RE = /[\p{L}\p{N}\p{M}_]/uy;
 
 /** `index`'te harf/rakam/işaret/`_` yoksa (ya da metin bittiyse) sağ sınır geçerlidir. */

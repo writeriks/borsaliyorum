@@ -1,6 +1,11 @@
-// C0 (\n ve \t hariç), DEL ve C1 kontrol karakterleri; bidi override/isolate (U+202A–202E,
-// U+2066–2069) — `$THYAO` görünüp başka metin okunmasın diye. ZWJ (U+200D) emoji için korunur.
-const STRIP_RE = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u202A-\u202E\u2066-\u2069]/g;
+// C0 (\n ve \t hariç), DEL ve C1 kontrol karakterleri; bidi işaret/override/isolate (U+061C,
+// U+200E–200F, U+202A–202E, U+2066–2069) — `$THYAO` görünüp başka metin okunmasın diye.
+// Görünmez ayırıcılar (U+00AD, U+180E, U+200B–200C, U+2060–2064, U+FEFF) ve etiket karakterleri
+// (U+E0000–E007F): `$TH\u200BYAO` gibi görünen ile ayrıştırılanın ayrışmasını önler.
+// ZWJ (U+200D) emoji dizileri için korunur. Bilinen bedel: etiket karakterli bölge bayrakları
+// (🏴 + U+E0067 …) düz siyah bayrağa iner.
+const STRIP_RE =
+  /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u00AD\u061C\u180E\u200B\u200C\u200E\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF\u{E0000}-\u{E007F}]/gu;
 // Yalnızca boşluk/tab içeren satırlar da boş sayılır; 3+ boş satır 2'ye iner.
 const EXCESS_BLANK_LINES_RE = /\n(?:[ \t]*\n){3,}/g;
 

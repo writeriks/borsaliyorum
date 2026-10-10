@@ -76,7 +76,7 @@ tetikleyicisi, sunucu doğrulaması ve render hep bunu kullanır.
 export const normalizeContent = (raw: string): string;          // NFC, CRLF→LF, kontrol/bidi karakterleri sil, 3+ boş satırı 2'ye indir, trim
 export const parseEntities = (text: string): ParsedEntity[];      // çözümsüz (id'siz), sıralı, çakışmasız
 export const findActiveTrigger = (textBeforeCaret: string): ActiveTrigger | null; // autocomplete: {kind, query, start}
-export const fromLegacyMarkup = (legacy: string): string;
+export const fromLegacyMarkup = (legacy: string, options?: { resolveMention?: (id: string) => string | null }): { text: string; entities: ParsedEntity[] };
 export const countChars = (text: string): number;                 // grafem sayısı (Intl.Segmenter)
 export const foldTag = (name: string): string;                    // hashtag slug / arama katlaması
 export const toTicker = (raw: string): string;                    // ASCII büyük harf
@@ -140,7 +140,7 @@ isolate (`U+202A–202E`, `U+2066–2069`) — `$THYAO` görünüp başka metin 
 | `#1 hisse`, `C# öğren`, `abc#def` | — |
 | `https://x.com/a#b?c=$d @ali` | url (tamamı) + mention `ali` |
 | `(bkz. https://kap.org.tr/tr/Bildirim/123).` | url `https://kap.org.tr/tr/Bildirim/123` |
-| `www.borsa.com'da` | url `www.borsa.com` → href `https://www.borsa.com` |
+| `www.borsa.com'da` | url `www.borsa.com` → href `https://www.borsa.com/` (kanonik) |
 | `ali@gmail.com @veli_1. @ab @a.b` | mention `veli_1` |
 | `@ayşe`, `http://user:pw@evil.com`, `https://localhost/x` | — |
 | `😀#emoji $SISE` | yalnızca cashtag `SISE` (offset'ler UTF-16: start 9) |
@@ -148,6 +148,36 @@ isolate (`U+202A–202E`, `U+2066–2069`) — `$THYAO` görünüp başka metin 
 Ek olarak `fast-check` (4.10.2) ile özellik testleri: (a) entity'ler sıralı ve çakışmasız,
 (b) `text.slice(start,end)` her zaman tetikleyiciyle başlar, (c) `parseEntities` hiçbir girdide
 exception atmaz, (d) `normalizeContent` idempotent.
+
+### Review notları (S4 sonrası, 2026-10-10)
+
+- **Hashtag slug'ı:** `foldTag` önce Default_Ignorable karakterleri (U+034F, U+FE00–FE0F,
+  U+3164, U+115F, U+1160, U+180B–180F, ZWJ …) siler, sonra **NFKC** uygular (tam genişlik,
+  matematiksel harf, bağ biçimleri sade harfe iner). `#bist` + U+034F + `100` → `bist100`; `#` + U+3164 ×2 boş slug
+  → entity yok. Katlanmış slug'da Latin ile Kiril/Yunan harfi birlikteyse (`#ВIST100`) entity
+  yok; tek yazı sistemli `#борса` geçerli. Gövde birleştirici işaretle başlayamaz; slug ≤ 50
+  code point ve boşluk/kontrol içeremez.
+- **Karar:** `foldTag` şapkalı harfleri katlar (`â→a`, `î→i`, `û→u`): `#kâr` = `#kar`.
+- **`normalizeContent` ek olarak siler:** U+00AD, U+061C, U+180E, U+200B, U+200C, U+200E,
+  U+200F, U+2060–2064, U+FEFF, U+E0000–E007F (`$TH` + U+200B + `YAO` → `$THYAO`). ZWJ korunur. Bedel:
+  etiket karakterli bölge bayrakları (🏴 + tag dizisi) düz bayrağa iner.
+- **URL `href` kanonik:** `new URL(...).href` (punycode host, küçük harf şema/host, `\` → `/`,
+  sonda `/`); görünen metin `start`/`end` aralığı. `http://①②⑦.0.0.1/` → `http://127.0.0.1/`.
+  Host etiketleri LDH olmalı (`www.$THYAO` link değil); kanonik href de ≤ 2048.
+  IP literal host'lar parser'da link olabilir; engelleme `safeFetch`'in ve render kontrolünün işi.
+- **Karar:** `:` URL için geçerli sol sınırdır (`Kaynak:https://kap.org.tr/x`); tetikleyiciler
+  için değildir.
+- Sol sınırı olmayan URL adayı (`x=https://x.com/(@ali)`) link olmaz ama aralığı engellenir:
+  içindeki tetikleyiciler entity/autocomplete olmaz.
+- Autocomplete hashtag sorgusu `\p{M}` kabul eder (NFD `#temettü`); işaretle başlayan sorgu
+  tetiklemez.
+- **Eski veri:** `fromLegacyMarkup` girdiyi `normalizeContent`'ten geçirip `{ text, entities }`
+  döner; markup entity'leri markup sınırlarından üretilir (`$(THYAO)$(ASELS)` iki cashtag,
+  `#(borsa.istanbul)` bütün), düz metin kısmı parser'dan geçer. E-posta id'li eski mention
+  (`@(ali@x.com)`) `resolveMention` ile kullanıcı adına çevrilir; çözülemezse metne
+  `@kullanıcı` yazılır, e-posta **görünmez** (KVKK), mention üretilmez. Dönen metin tekrar
+  normalize edilmez.
+- Kapsam: `npm run test:coverage`, `src/lib/entities` dosya başına satır+dal ≥ %95.
 
 ## Karar 3 — Editör teknolojisi: TipTap 3 (ProseMirror), düz metin şeması + dekorasyon
 

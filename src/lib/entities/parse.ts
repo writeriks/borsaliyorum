@@ -1,14 +1,12 @@
 import { hasLeftBoundary, hasRightBoundary, matchAt } from './boundaries';
-import { foldTag, toTicker } from './fold';
+import { toTicker } from './fold';
+import { MAX_HASHTAG_LENGTH, toHashtagSlug } from './hashtag';
 import type { ParsedEntity } from './types';
 import { findUrlCandidates } from './url';
-
-export const MAX_HASHTAG_LENGTH = 50;
 
 const CASHTAG_BODY_RE = /[A-Za-z0-9]+/y;
 const HASHTAG_BODY_RE = /[\p{L}\p{N}\p{M}_]+/uy;
 const MENTION_BODY_RE = /[A-Za-z0-9_]+/y;
-const LETTER_RE = /\p{L}/u;
 const LETTER_AT_RE = /\p{L}/uy;
 
 type Range = { start: number; end: number };
@@ -26,9 +24,10 @@ const parseCashtag: TriggerParser = (text, start) => {
 const parseHashtag: TriggerParser = (text, start) => {
   const body = matchAt(HASHTAG_BODY_RE, text, start + 1);
   // Uzunluk code point cinsinden (regex niceleyicisiyle aynı); 50'yi aşan etiket hiç entity değil.
-  if (body === '' || [...body].length > MAX_HASHTAG_LENGTH || !LETTER_RE.test(body)) return null;
-  const end = start + 1 + body.length;
-  return { type: 'hashtag', start, end, slug: foldTag(body), name: body };
+  if ([...body].length > MAX_HASHTAG_LENGTH) return null;
+  const slug = toHashtagSlug(body);
+  if (slug === null) return null;
+  return { type: 'hashtag', start, end: start + 1 + body.length, slug, name: body };
 };
 
 const parseMention: TriggerParser = (text, start) => {
@@ -77,8 +76,9 @@ export const parseEntities = (text: string): ParsedEntity[] => {
     }
     const parser = TRIGGER_PARSERS.get(text.charAt(i));
     const entity = parser && hasLeftBoundary(text, i) ? parser(text, i) : null;
-    // Bir entity bir sonraki URL adayına taşamaz: aday her zaman bir sınırda başlar,
-    // gövdeler ise sınır karakteri içermez.
+    // Bir entity geçerli bir URL'ye taşamaz: URL her zaman bir sınırda başlar, gövdeler ise
+    // sınır karakteri içermez. Sol sınırı olmayan (engellenmiş) bir adayın içine taşan entity
+    // ise adaydan önce başladığı için korunur (`$THYAOwww.x.com`); aday sonraki turda atlanır.
     if (entity) {
       triggers.push(entity);
       i = entity.end;

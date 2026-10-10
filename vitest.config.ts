@@ -22,6 +22,17 @@ export default defineConfig({
   test: {
     restoreMocks: true,
     unstubEnvs: true,
+    // Eşik yalnızca kritik saf modüllerde (ADR-0003): `npm run test:coverage`
+    coverage: {
+      provider: 'v8',
+      include: ['src/lib/entities/**/*.ts'],
+      exclude: ['**/*.test.ts', '**/test-utils.ts'],
+      reporter: ['text', 'html'],
+      thresholds: {
+        // Glob eşikleri üst düzey `perFile`'ı devralmaz; dosya bazında kontrol için burada.
+        'src/lib/entities/**/*.ts': { lines: 95, branches: 95, perFile: true },
+      },
+    },
     projects: [
       {
         extends: true,

@@ -27,12 +27,16 @@ const ACCEPTANCE: ReadonlyArray<readonly [string, EntitySummary[]]> = [
   ['abc#def', []],
   ['https://x.com/a#b?c=$d @ali', [url('https://x.com/a#b?c=$d'), mention('@ali', 'ali')]],
   ['(bkz. https://kap.org.tr/tr/Bildirim/123).', [url('https://kap.org.tr/tr/Bildirim/123')]],
-  ["www.borsa.com'da", [url('www.borsa.com', 'https://www.borsa.com')]],
+  ["www.borsa.com'da", [url('www.borsa.com', 'https://www.borsa.com/')]],
   ['ali@gmail.com @veli_1. @ab @a.b', [mention('@veli_1', 'veli_1')]],
   ['@ayşe', []],
   ['http://user:pw@evil.com', []],
   ['https://localhost/x', []],
   ['😀#emoji $SISE', [cashtag('$SISE', 'SISE')]],
+  // S4 review sonrası eklenenler
+  ['javascript:alert(1)', []],
+  ['Kaynak:https://kap.org.tr/x', [url('https://kap.org.tr/x')]],
+  ['#kâr #kar', [hashtag('#kâr', 'kar'), hashtag('#kar', 'kar')]],
 ];
 
 describe('ADR-0002 kabul tablosu', () => {
