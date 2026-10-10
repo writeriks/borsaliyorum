@@ -1,0 +1,312 @@
+# ADR-0002: Composer (gönderi/yorum editörü) ve entity parsing
+
+- Tarih: 2026-10-10
+- Durum: **Önerildi**
+- İlgili: ADR-0001 (veri modeli: `contentFormat`, `entities`, `LinkPreview`), ADR-0003 (test)
+
+## Bağlam
+
+Eski çözüm (`src/components/content-input/`, `src/components/content/`,
+`src/services/tag-service/`, `src/hooks/useHighlightUrls.tsx`) incelendi. Sorunlar:
+
+| # | Sorun | Yer |
+|---|-------|-----|
+| 1 | Saklama formatı react-mentions markup'ı (`$(THYAO)`); format editör kütüphanesine kilitli, arama/SEO/dışa aktarım için kirli | `content-input.tsx` `markup=` |
+| 2 | Üç ayrı ayrıştırma: editör (react-mentions), render (`content.tsx` regex), sunucu (`tag-service.ts` regex) — kurallar birbirinden habersiz | |
+| 3 | URL vurgusu `innerHTML` ile, kullanıcı metni escape edilmeden yazılıyor (self-XSS) | `useHighlightUrls.tsx:22` |
+| 4 | Link önizleme: doğrulamasız `fetch(url)` → **SSRF**; her gönderi render'ında istemciden ayrı istek; jsdom ile parse | `api/content/get-preview/route.ts` |
+| 5 | Hashtag autocomplete yok (yazılanı öneriyor), mention araması her tuşta tam liste kopyası, cashtag araması 581 elemanlı statik dosyada (`src/tickers.ts`) | |
+| 6 | Yorumda cashtag doğrulaması hiç çalışmıyor: `"$THYAO"` (önekli) `ticker` ile karşılaştırılıyor → cashtag'li her yorum reddediliyor | `api/comment/create-comment/route.ts` |
+| 7 | Mention'lar kullanıcı adıyla saklanıyor; kullanıcı adı değişince eski gönderideki mention başkasına gidebilir | |
+
+**Öğrenilen iş kuralları (taşınacak):** gönderi ≤ 1000 karakter; gönderide **en az bir geçerli
+cashtag** zorunlu ve geçersiz cashtag gönderiyi reddeder; hashtag'ler `Tag` tablosuna upsert
+edilir ve gönderiye bağlanır (`_PostTags`); cashtag'ler `_PostStocks`'a bağlanır; mention edilen
+kullanıcıya (kendisi değilse) `MENTION` bildirimi; `sentiment` (bullish/bearish/neutral) zorunlu.
+
+## Karar 1 — Saklama formatı: düz metin + sunucuda hesaplanan entity listesi
+
+- `content`: **düz metin** (NFC, `\n` satır sonu). Ör. `"$THYAO'da #bist100 kırılımı @ali"`.
+- `entities` (jsonb): sunucunun yazma anında **kendi** parse edip çözdüğü liste. İstemcinin
+  gönderdiği entity'lere asla güvenilmez.
+- `contentFormat`: `1` eski markup, `2` düz metin. Eski uygulamanın INSERT'leri DEFAULT ile `1`
+  alır → coexist güvenli.
+- Offset birimi **UTF-16 code unit** (JS `string.slice` ile birebir), `[start, end)`. Parse ve
+  render yalnızca JS'te yapılır; Postgres tarafında offset kullanılmaz.
+
+```ts
+// web/src/lib/entities/types.ts
+export const ENTITY_SCHEMA_VERSION = 1;
+export type Entity =
+  | { type: 'cashtag'; start: number; end: number; ticker: string; stockId: number }
+  | { type: 'hashtag'; start: number; end: number; slug: string; tagId: number }
+  | { type: 'mention'; start: number; end: number; username: string; userId: number }
+  | { type: 'url'; start: number; end: number; href: string };
+export type StoredEntities = { v: typeof ENTITY_SCHEMA_VERSION; items: Entity[] };
+```
+
+- Sorgulanabilirlik ilişkisel tablolarda kalır (`_PostStocks`, `_PostTags`, `Notification`);
+  `entities` yalnızca **render** içindir. İkisi aynı transaction'da aynı parse çıktısından yazılır.
+- Mention `userId` ile saklanır; render'da güncel kullanıcı adı batch sorgu ile çözülür
+  (sayfa başına 1 sorgu) → kullanıcı adı değişikliği eski gönderileri bozmaz, yanlış kişiye gitmez.
+  Görünen metin yazıldığı gibi kalır.
+- Çözülemeyen mention (kullanıcı yok) ve çözülmeyen hashtag entity'ye girmez → düz metin render.
+  Geçersiz cashtag gönderiyi reddeder (iş kuralı), bu yüzden kayıtlı gönderide çözülmemiş
+  cashtag olmaz.
+
+**Alternatifler:**
+- *Yalnızca metin, render'da parse:* basit ama mention çözümü kullanıcı adına bağlı kalır (#7)
+  ve her render'da ek sorgu.
+- *Editör JSON'u (ProseMirror/Lexical doc) saklamak:* format editör kütüphanesine kilitlenir
+  (eski #1 hatasının tekrarı), sunucu doğrulaması zorlaşır.
+- *Markdown/HTML:* gereksiz zenginlik, XSS yüzeyi.
+
+**Eski veri:** `contentFormat=1` satırlar okunurken `fromLegacyMarkup()` ile
+(`$(X)`→`$X`, `#(x)`→`#x`, `@(x)`→`@x`) düz metne çevrilip aynı parser'dan geçirilir; cashtag'ler
+hisse indeksinden, mention'lar sayfa başına tek `username IN (...)` sorgusuyla çözülür. Kalıcı
+backfill (metni ve `entities`'i yazma) contract fazında, eski uygulama emekliye ayrıldıktan sonra.
+
+## Karar 2 — Tek entity parser (`web/src/lib/entities/`)
+
+Saf TypeScript, bağımlılıksız, istemci ve sunucuda **aynı modül**. Editör vurgusu, autocomplete
+tetikleyicisi, sunucu doğrulaması ve render hep bunu kullanır.
+
+```ts
+export const normalizeContent = (raw: string): string;          // NFC, CRLF→LF, kontrol/bidi karakterleri sil, 3+ boş satırı 2'ye indir, trim
+export const parseEntities = (text: string): ParsedEntity[];      // çözümsüz (id'siz), sıralı, çakışmasız
+export const findActiveTrigger = (textBeforeCaret: string): ActiveTrigger | null; // autocomplete: {kind, query, start}
+export const fromLegacyMarkup = (legacy: string): string;
+export const countChars = (text: string): number;                 // code point sayısı ([...text].length)
+export const foldTag = (name: string): string;                    // hashtag slug / arama katlaması
+export const toTicker = (raw: string): string;                    // ASCII büyük harf
+export const firstPreviewableUrl = (entities: ParsedEntity[]): string | null;
+```
+
+### Algoritma
+
+1. **URL'ler önce** bulunur; aralıkları "dolu" işaretlenir. URL içindeki `#`, `$`, `@`
+   (`https://x.com/a#b`, `https://x.com/@ali`) asla entity olmaz.
+2. Sonra soldan sağa tek geçişte `$`, `#`, `@` tetikleyicileri; URL aralığına düşen ya da
+   başka entity ile çakışan atlanır.
+3. **Sol sınır** (tüm tetikleyiciler): metnin başı ya da önceki karakter
+   `[\p{L}\p{N}\p{M}_$#@&=]` **değil**. Böylece `US$100`, `abc#def`, `C#`, `ali@gmail.com`,
+   `fiyat=$THYAO` entity değil; `—$THYAO`, `($THYAO)`, `$BTC/$ETH` entity.
+4. **Sağ sınır:** gövdeden sonra harf/rakam/işaret/`_` gelemez. Apostrof ve noktalama sınırdır
+   → `$THYAO'nun`, `#bist100'de`, `@ali.` doğru ayrılır.
+
+| Tür | Gövde | Ek kural | Normalizasyon |
+|-----|-------|----------|---------------|
+| cashtag | `[A-Za-z][A-Za-z0-9]{1,7}` | İlk karakter harf → `$100`, `$5K` değil. 2-8 karakter (mevcut 581 hissede 4-7; kripto `BTC` 3) | `toTicker`: **ASCII** büyük harf. `toLocaleUpperCase('tr')` yasak: `$sise` → `SİSE` olur, `SISE` bulunamaz |
+| hashtag | `[\p{L}\p{N}\p{M}_]{1,50}` | En az bir harf (`#1` değil). 50'yi aşan hiç entity değil | `slug = foldTag`: `İ I ı → i` **önce**, sonra lowercase, `ş→s ğ→g ü→u ö→o ç→c`. `#BIST100`, `#bist100`, `#BİST100` → `bist100`. Görünen ad ilk kullanılan biçim (`Tag.tagName`) |
+| mention | `[A-Za-z0-9_]{3,20}` | Sağda `@` ya da `.harf` gelemez (`@a.b`, e-posta parçaları) | lowercase. Türkçe harfli (`@ayşe`) mention değil — kullanıcı adı kuralı ASCII |
+| url | `https?://` ya da `www.` ile başlar, boşluk/`<>"` ile biter | Sondaki `.,:;!?"”` ve dengesiz `)` atılır; **`'` ve `’` URL'yi bitirir** (`www.borsa.com'da`); `new URL()` geçmeli; kullanıcı:şifre içeren, nokta içermeyen host (`localhost`) reddedilir; ≤ 2048 | `href` = `www.` için `https://` eklenmiş biçim. Şemasız alan adları (`kap.org.tr`) link **değil** (yanlış pozitif: `A.Ş.`, `THYAO.IS`) |
+
+Ek sınırlar (sunucu, Zod şemasında): boş olmayan metin; `countChars ≤ 1000` (gönderi ve yorum);
+≤ 10 cashtag, ≤ 10 hashtag, ≤ 10 mention (spam; mention bildirimleri tekil ilk 10 kişiye).
+Gönderide ≥ 1 geçerli cashtag (eski kural, bkz. karar gerekli K4).
+
+`normalizeContent` şunları siler: C0 kontrol karakterleri (`\n`, `\t` hariç), bidi override/
+isolate (`U+202A–202E`, `U+2066–2069`) — `$THYAO` görünüp başka metin okunmasın diye. ZWJ
+(`U+200D`) emoji için korunur.
+
+### Kabul tablosu (parser unit testlerinin çekirdeği, prototiple doğrulandı)
+
+| Girdi | Beklenen |
+|-------|----------|
+| `$THYAO yükselir` | cashtag `THYAO` |
+| `$100 kazandım`, `US$100`, `fiyat=$THYAO`, `$THYAOXYZ1` | — |
+| `$thyao'nun bilançosu` | cashtag `THYAO` (metin `$thyao`) |
+| `$THYAO, $ASELS.` | cashtag ×2 |
+| `$ALTINS1` | cashtag `ALTINS1` |
+| `$BTC/$ETH` | cashtag ×2 |
+| `#bist100'de düşüş` | hashtag `bist100` |
+| `#İstanbul #ŞİŞE` | hashtag `istanbul`, `sise` |
+| `#1 hisse`, `C# öğren`, `abc#def` | — |
+| `https://x.com/a#b?c=$d @ali` | url (tamamı) + mention `ali` |
+| `(bkz. https://kap.org.tr/tr/Bildirim/123).` | url `https://kap.org.tr/tr/Bildirim/123` |
+| `www.borsa.com'da` | url `www.borsa.com` → href `https://www.borsa.com` |
+| `ali@gmail.com @veli_1. @ab @a.b` | mention `veli_1` |
+| `@ayşe`, `http://user:pw@evil.com`, `https://localhost/x` | — |
+| `😀#emoji $SISE` | hashtag `emoji`, cashtag `SISE` (offset'ler UTF-16) |
+
+Ek olarak `fast-check` (4.10.2) ile özellik testleri: (a) entity'ler sıralı ve çakışmasız,
+(b) `text.slice(start,end)` her zaman tetikleyiciyle başlar, (c) `parseEntities` hiçbir girdide
+exception atmaz, (d) `normalizeContent` idempotent.
+
+## Karar 3 — Editör teknolojisi: TipTap 3 (ProseMirror), düz metin şeması + dekorasyon
+
+| Kriter | Textarea + overlay (react-mentions benzeri) | Lexical 0.52 | **TipTap 3.31 (öneri)** | Kendi contenteditable |
+|--------|------|---------|--------|------|
+| Zengin stil (renk, arka plan, padding, hover kartı, ikon) | Sadece genişliği değiştirmeyen stil (overlay hizası) → kullanıcının "çok sınırlı" şikâyetinin kaynağı | Var (node'lar) | Var (inline decoration) | Var |
+| Model = düz metin | Doğal | Node ağacı; `getTextContent()` | Doc yalnızca `paragraph` + `text`; `getText({blockSeparator:'\n'})` | Elle |
+| Parser ile tutarlılık | Overlay ayrı regex | Transform'lar text node'ları **böler**; entity node'ları ile parser senkronu ayrı kod | **Decoration'lar doc'u değiştirmez**: her değişiklikte `parseEntities(paragraphText)` → `Decoration.inline` — editör ile sunucu aynı fonksiyonu kullanır, imleç zıplaması yok | Elle, yüksek risk |
+| Autocomplete | Elle (caret ölçümü) | `LexicalTypeaheadMenuPlugin` | `@tiptap/suggestion` (klavye, konum, çoklu tetikleyici); tetikleme kuralı `findActiveTrigger` ile override | Elle |
+| IME / mobil klavye | En iyi (yerel textarea) | İyi | İyi (ProseMirror olgun) | Zor |
+| Olgunluk / API kararlılığı | — | 0.x, sık kırıcı değişiklik | 3.x kararlı, ProseMirror 10+ yıllık | — |
+| Paket | ~0 | Orta | Orta-büyük (`@tiptap/pm`) | ~0 |
+
+**Neden TipTap:** Gereken her şey (zengin inline stil, çoklu tetikleyicili autocomplete, düz
+metin modeli) karşılanıyor ve **dekorasyon** modeli "tek parser" ilkesini editöre doğrudan
+taşıyor. Lexical da yapabilir ama stil için doc'u bölmek gerekir; 0.x API'si ekstra bakım yükü.
+Overlay yaklaşımı kullanıcının açıkça reddettiği sınırı taşır.
+
+**Kurulum** (StarterKit **kullanılmaz** — bold/italic/list istenmiyor):
+`@tiptap/react`, `@tiptap/pm`, `@tiptap/core`, `@tiptap/suggestion`,
+`@tiptap/extension-document`, `-paragraph`, `-text`, `@tiptap/extensions` (Placeholder,
+UndoRedo) — hepsi 3.31.4, `@floating-ui/dom` 1.8.0 (popup konumu).
+
+**Davranış kuralları:**
+- Şema yalnızca `doc > paragraph+ > text*`. Hiç mark/node yok → yapıştırılan HTML **yapısal
+  olarak** düz metne düşer; ayrıca `editorProps.clipboardTextParser` + `transformPastedHTML`
+  ile her yapıştırma düz metin yolundan geçer ve `normalizeContent` uygulanır.
+- `EntityDecorations` eklentisi: her `docChanged`'de paragraf başına `parseEntities` →
+  `Decoration.inline(from, to, { class, 'data-entity': type })`. İstemcideki hisse indeksiyle
+  bilinmeyen cashtag ayrı sınıf alır (ör. kesikli alt çizgi + `aria-invalid` mesajı) — stil
+  kararları ui-ux-designer'da.
+- Mention/cashtag/hashtag seçimi **düz metin** ekler (`$THYAO `, sonda boşluk); atom node yok →
+  kullanıcı serbestçe düzenleyebilir, saklama formatıyla birebir.
+- Karakter sayacı `countChars` (sunucuyla aynı); 1000'i aşınca gönder pasif, aşan kısım
+  dekorasyonla işaretlenir (metin kesilmez).
+- SSR: `useEditor({ immediatelyRender: false })`; composer `next/dynamic` ile lazy, yüklenene
+  kadar aynı yükseklikte skeleton (CLS yok). Composer chunk bütçesi ≤ 120 KB gz (S8'de ölçülür).
+- Taslak koruma (auth-session kural 5): `UNAUTHENTICATED` dönüşünde editör içeriği korunur;
+  ayrıca bağlam başına (`draft:post`, `draft:comment:<postId>`) `sessionStorage` taslağı,
+  başarılı gönderimde silinir. Taslak cihazdan çıkmaz.
+- Erişilebilirlik: editör `role="textbox" aria-multiline="true"` + etiket; popup açıkken
+  `aria-autocomplete="list"`, `aria-controls`, `aria-activedescendant`; liste `role="listbox"`,
+  öğeler `role="option"`. Sonuç sayısı `aria-live="polite"` ile duyurulur.
+
+## Karar 4 — Autocomplete veri kaynakları ve API
+
+| Tetikleyici | Kaynak | Sıralama | Gecikme |
+|-------------|--------|----------|---------|
+| `$` | `GET /api/autocomplete/stocks` → **tüm hisse indeksi** (`{t, n, type}[]`, ~600 kayıt, ~15 KB gz), `'use cache'` + `cacheTag('stocks')` (stock sync sonrası invalidation), `Cache-Control: public, s-maxage=86400`. İstemcide TanStack Query `staleTime: 1 saat`, filtreleme yerel | 1) kod tam eşleşme 2) kod önek 3) şirket adında kelime başı eşleşme (`foldTag` ile ı/i, ş/s katlamalı) 4) içerir; eşitlikte kod alfabetik (`localeCompare('tr')`). En fazla 8 | 0 ms (ağ yok), debounce yok |
+| `@` | `GET /api/autocomplete/users?q=` (girişli kullanıcı) | 1) kullanıcı adı tam eşleşme 2) takip ettiklerim önek 3) diğerleri kullanıcı adı önek 4) görünen ad kelime başı. Engelleyen/engellenen (iki yön) ve `status != active` hariç. En fazla 8 | debounce 150 ms, `q` ≥ 1 karakter |
+| `#` | `GET /api/autocomplete/tags?q=` | `slug` önek, `updatedAt` (son kullanım) azalan. En fazla 8. Yazılan etiket listede yoksa "yeni etiket: #..." son satır | debounce 150 ms |
+
+- İstemci: `useQuery({ queryKey: ['ac', kind, q], signal })` → eski istekler `AbortSignal` ile
+  iptal, `placeholderData: keepPreviousData` ile liste titremez. Yarış durumu, `findActiveTrigger`
+  sonucunun güncel sorguyla eşleşmesi kontrol edilerek önlenir.
+- Klavye: `↑/↓` gezinir (döngüsel), `Enter`/`Tab` seçer, `Esc` kapatır (metin kalır), boşluk
+  veya sınır karakteri popup'ı kapatır. IME composition sürerken tetiklenmez. Mobilde dokunma
+  hedefi ≥ 44px.
+- Durumlar: yükleniyor (ilk 150 ms boş, sonra 3 satır skeleton), boş ("Eşleşen hisse yok"),
+  hata (tek satır, liste kapanmaz, yazım engellenmez).
+- Sunucu: `q` Zod ile (`1–20` karakter, `[A-Za-z0-9_]` kullanıcı/etiket için katlanmış).
+  Sorgu `username` için `lower(username) text_pattern_ops` btree önek index'i (yeni migration),
+  `Tag.slug` önek için aynısı. Trigram (`pg_trgm`) M1'de yok; görünen adda "içerir" araması
+  gerekirse eklenir.
+- Rate limit: kullanıcı başına 60 istek/dk (Postgres bucket yerine bellek içi, instance başına
+  best-effort + Vercel Firewall kuralı; autocomplete'te her tuşta DB'ye sayaç yazmak sorgunun
+  kendisinden pahalı).
+- DTO: `{ username, displayName, avatarUrl }` — e-posta/firebaseUid asla.
+
+## Karar 5 — Render ve XSS güvenliği
+
+- `<RichText text entities />` **Server Component**; metni entity sınırlarından parçalara bölüp
+  React çocukları olarak döndürür. Düz parçalar string (React escape eder). Satır sonları CSS
+  `white-space: pre-wrap` ile (`<br>` üretimi yok). `dangerouslySetInnerHTML` yok — ESLint
+  `react/no-danger: error`.
+- cashtag → `<Link href="/hisse/THYAO">` (hover kartı: şirket adı + yatırım tavsiyesi değildir
+  uyarısı; fiyat yok, v1 kapsamı). hashtag → `/etiket/<slug>`. mention → `/u/<güncel ad>`.
+- url → `<a href={href} target="_blank" rel="nofollow ugc noopener noreferrer">`; `href`
+  render anında yeniden doğrulanır (yalnızca `http:`/`https:`; aksi halde düz metin). Görünen
+  metin: şema atılmış, 40 karakterde `…` ile kısaltılmış hâl; tam URL `title`'da. Host
+  punycode gösterilir (homograf).
+- Entity offset'leri metinle uyuşmazsa (bozuk veri) `RichText` o entity'yi atlar, log yazar,
+  düz metin render eder — asla throw etmez.
+- Eski `useHighlightUrls` deseni (DOM'a `innerHTML`) yeniden üretilmez.
+
+## Karar 6 — Link önizleme (SSRF korumalı)
+
+**Akış:**
+1. Composer, ilk önizlenebilir URL'yi (`firstPreviewableUrl`) 600 ms debounce ile
+   `GET /api/link-preview?url=` çağırır (girişli, kullanıcı başına 20/dk). Kullanıcı kartı
+   kapatabilir (`previewDisabled: true` gönderilir).
+2. Sunucu `urlHash = sha256(normalize(url))` ile `LinkPreview`'a bakar; geçerliyse döner,
+   değilse `safeFetch` ile çeker, kaydeder (başarısızlık da `failed`/`blocked` olarak 1 saat
+   cache'lenir).
+3. `createPost`, önizleme URL'sini sunucuda yeniden parse eder; kayıt yoksa gönderiyi
+   bekletmez — `after()` ile arka planda çeker ve `Post.linkPreviewId`'yi bağlar.
+4. Akış/detay, önizlemeyi gönderiyle aynı sorguda (`include`) okur. **Gönderi başına istemci
+   isteği yok** (eski hatanın tersine).
+
+**`lib/safe-fetch` kuralları:**
+- Yalnızca `http:`/`https:`, port 80/443, kullanıcı bilgisi yok, host IP literal ise de aynı
+  kontrol.
+- DNS çözümü (`dns.lookup(all)`) → **tüm** adresler kontrol: loopback, private (10/8,
+  172.16/12, 192.168/16), link-local (169.254/16 — bulut metadata dahil), CGNAT (100.64/10),
+  0/8, multicast, reserved, IPv6 `::1`, `fc00::/7`, `fe80::/10`, IPv4-mapped IPv6 (`::ffff:a.b.c.d`)
+  → `blocked`. Kontrol `ipaddr.js` 2.5.0 ile (`range() === 'unicast'`).
+- **DNS rebinding:** doğrulanan IP'ye bağlanılır — `undici` 8 `Agent({ connect: { lookup } })`
+  ile özel lookup, bağlantı anında aynı kontrolü tekrar yapar.
+- Yönlendirmeler elle (`redirect: 'manual'`), en fazla 3, her adım baştan doğrulanır.
+- Toplam zaman aşımı 3 sn, gövde en fazla 512 KB (stream sayılarak kesilir), yalnızca
+  `text/html`. Sabit User-Agent `BorsaliyorumBot/1.0 (+https://borsaliyorum.com/bot)`.
+  Cookie/Authorization başlığı gönderilmez.
+- Parse `htmlparser2` ile (stream, `</head>` görülünce durur): `og:title`, `og:description`,
+  `og:site_name`, `twitter:*`, `<title>`, `meta[name=description]`. Değerler: kontrol/bidi
+  karakterleri temizlenir, HTML entity'leri çözülür, uzunluk kırpılır (başlık 200, açıklama
+  300). Render'da yine düz metin.
+- **Görsel M1'de yok** (karar gerekli K6): `og:image`'ı doğrudan göstermek (hotlink) her
+  izleyicinin IP'sini üçüncü tarafa sızdırır ve keyfi içerik gösterir; proxy'lemek de
+  `_next/image`'i açık proxy yapmamak için ayrı bir indir→`sharp` ile yeniden kodla→Storage'a
+  yaz hattı gerektirir. Öneri: M1 metin kartı (site, başlık, açıklama, alan adı); M2'de
+  görsel hattı.
+- Alan adı engelleme listesi (moderasyon) `safeFetch` öncesi kontrol edilir (M2'de admin'den).
+
+## Karar 7 — Sunucu sözleşmeleri (M1)
+
+```ts
+// features/posts/server/actions.ts  ('use server')
+createPost(input: { text: string; sentiment: Sentiment; previewUrl?: string | null })
+  : Promise<Result<{ postId: number }>>
+deletePost(input: { postId: number }): Promise<Result<null>>          // sahibi ya da moderator/admin
+setPostLike(input: { postId: number; liked: boolean }): Promise<Result<{ liked: boolean }>> // idempotent
+
+// features/comments/server/actions.ts
+createComment(input: { postId: number; text: string }): Promise<Result<{ commentId: number }>>
+deleteComment(input: { commentId: number }): Promise<Result<null>>
+setCommentLike(input: { commentId: number; liked: boolean }): Promise<Result<{ liked: boolean }>>
+
+type Result<T> = { ok: true; data: T } | { ok: false; error: ErrorCode; meta?: ErrorMeta };
+```
+
+`createPost` sırası: Zod parse → `requireUser()` (Server Action'da redirect değil
+`UNAUTHENTICATED` döner) → `status`/`emailVerified`/onboarding kontrolü → rate limit
+(10 gönderi/10 dk, 60/gün) → `normalizeContent` → `parseEntities` → sınırlar → hisse çözümü
+(`ticker IN`) → tek transaction: `Tag` upsert (`slug` üzerinden `ON CONFLICT`), `Post`
+(`contentFormat=2`, `entities`), `_PostStocks`, `_PostTags`, mention bildirimleri (engelleme
+kontrolüyle, tek `createMany`), `ContentEvent` → transaction sonrası `revalidatePath` +
+`after()` ile önizleme.
+
+Hata kodları (i18n anahtarı olarak): `UNAUTHENTICATED`, `ONBOARDING_REQUIRED`,
+`EMAIL_NOT_VERIFIED`, `ACCOUNT_SUSPENDED`, `VALIDATION`, `CONTENT_EMPTY`, `CONTENT_TOO_LONG`,
+`CASHTAG_REQUIRED`, `UNKNOWN_CASHTAG` (`meta.tickers`), `TOO_MANY_ENTITIES`, `RATE_LIMITED`
+(`meta.retryAfter`), `NOT_FOUND`, `FORBIDDEN`, `INTERNAL`.
+
+## Sonuçlar
+
+- (+) Tek parser: editör vurgusu, autocomplete, sunucu doğrulaması ve render aynı kuralla.
+- (+) Saklama formatı editörden bağımsız; editör ileride değişse veri değişmez.
+- (+) Önizleme sunucuda, cache'li, SSRF korumalı; akışta N istek yok.
+- (−) TipTap/ProseMirror paketi büyük → composer lazy yüklenir, bütçe ölçülür.
+- (−) contenteditable davranışı jsdom'da test edilemez → composer testleri gerçek tarayıcıda
+  (ADR-0003).
+- (−) `entities` ile ilişkisel tablolar arasında çift kayıt; tek transaction ve tek parse
+  çıktısı ile tutarlı tutulur, test edilir.
+
+## Karar gerekli (kullanıcı)
+
+| # | Konu | Öneri |
+|---|------|-------|
+| K4 | Gönderide ≥ 1 geçerli cashtag zorunluluğu (eski kural) sürsün mü? | Gönderide evet (platform odağı), yorumda hayır |
+| K5 | Bilinmeyen cashtag: gönderiyi reddet mi, düz metin mi say? | Reddet (eski kural) + editörde önceden işaretle, hata mesajında hangi kodlar olduğu |
+| K6 | Link önizlemede görsel | M1'de görsel yok; M2'de proxy + Storage hattı |
+
+## Hukuki sorular (legal-advisor'a)
+
+- **L5** Link önizleme: üçüncü taraf sayfanın başlık/açıklamasını gösterme (ve M2'de küçük
+  görselini kopyalayıp barındırma) telif/5651 açısından sorun mu? Kaldırma talebinde süreç?
+- **L7** Cashtag hover kartında ve hisse içeren her yüzeyde zorunlu uyarı metni (ifade ve
+  yerleşim) — `turkish-legal-compliance` metniyle birebir mi kullanılmalı?
