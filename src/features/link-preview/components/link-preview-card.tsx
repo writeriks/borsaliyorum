@@ -8,7 +8,8 @@ import { cn } from '@/lib/utils';
 import type { LinkPreviewDto } from '../types';
 
 // Kart yüksekliği sabittir (tasarım §6: kompakt 88px); yükleme ↔ içerik geçişinde CLS olmaz.
-const CARD_CLASS = 'flex h-22 w-full items-start gap-3 rounded-lg border border-border p-3';
+const CARD_CLASS =
+  'flex h-22 w-full items-start gap-3 overflow-hidden rounded-lg border border-border p-3';
 
 type LinkPreviewCardProps = {
   preview: LinkPreviewDto;

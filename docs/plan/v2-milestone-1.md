@@ -206,6 +206,11 @@ başlanabilir.
   3 sn zaman aşımı; `text/html` dışı reddedilir; meta değerleri kırpılır ve kontrol karakterleri
   temizlenir; aynı URL ikinci kez fetch edilmez (cache); prod'da `SAFE_FETCH_TEST_ALLOW`
   set ise başlangıç hatası. **security-reviewer zorunlu.**
+- **Not (S9 review sonrası):** `getOrFetchPreview` `src/lib/link-preview/get-or-fetch-preview.ts`
+  altındadır (DTO tipi `src/lib/link-preview/types.ts`); S10'da `features/posts` doğrudan buradan
+  import eder. `features/link-preview`'da yalnızca route-handler ve `LinkPreviewCard` kalır.
+  Kayıtlı alan adını (eTLD+1, `tldts`) değiştiren yönlendirmeler önizlenmez (`blocked`);
+  `lib/rate-limit` `$transaction` istemcisini kabul eder.
 
 ### S10 — Gönderi/yorum yazma, beğeni, silme (Server Actions)
 - `createPost`, `deletePost`, `setPostLike`, `createComment`, `deleteComment`,

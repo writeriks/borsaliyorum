@@ -66,6 +66,11 @@ export const clientEnvSchema = z.object({
   NEXT_PUBLIC_APP_ID: required,
   // v2'de analitik yok; tanımlı olmasa da build kırılmaz
   NEXT_PUBLIC_MEASUREMENT_ID: optional,
+  // Sitenin kök URL'si (ör. https://borsaliyorum.com); iç linkleri tanımak için (link önizleme)
+  NEXT_PUBLIC_SITE_URL: z.preprocess(
+    value => (value === '' ? undefined : value),
+    z.url({ protocol: /^https?$/, error: message('http(s):// URL olmalı') }).optional()
+  ),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

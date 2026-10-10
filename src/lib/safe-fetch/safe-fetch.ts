@@ -1,19 +1,23 @@
 import 'server-only';
 
-import { lookup as dnsLookup, type LookupAddress } from 'node:dns';
+import { promises as dnsPromises, type LookupAddress } from 'node:dns';
 import type { LookupFunction } from 'node:net';
 import type { Readable } from 'node:stream';
 
 import { Agent, request } from 'undici';
 
+import type { Logger } from '@/lib/logger';
+
 import { ipLiteralOf, isBlockedHostname, isPublicAddress } from './ip-policy';
+import { isSameSite } from './site';
 
 /**
  * Kullanıcının verdiği URL'yi sunucudan güvenle çeker (ADR-0002 Karar 6). Kurallar:
  * yalnızca http/https, port 80/443, kullanıcı bilgisi yok; host'un **tüm** DNS adresleri genel
- * unicast olmalı; bağlantı, `connect.lookup` içinde yeniden çözülüp doğrulanan adrese açılır
- * (DNS rebinding: doğrulama ile bağlantı arasında boşluk yok); yönlendirmeler elle, en fazla 3,
- * her adım baştan doğrulanır; toplam süre 3 sn, gövde 512 KB, yalnızca `text/html`.
+ * unicast olmalı; DNS tek kez çözülür ve bağlantı yalnızca doğrulanan bu adreslere açılır
+ * (`connect.lookup` pinleme: DNS rebinding için ikinci çözüm yok); yönlendirmeler elle, en fazla
+ * 3, her adım baştan doğrulanır ve kayıtlı alan adını (eTLD+1) değiştiren yönlendirme engellenir;
+ * toplam süre (DNS dahil) 3 sn, gövde 512 KB, yalnızca `text/html`.
  */
 
 export const SAFE_FETCH_DEFAULTS = {
@@ -37,6 +41,7 @@ export const SafeFetchReason = {
   HOSTNAME: 'hostname',
   ADDRESS: 'address',
   TOO_MANY_REDIRECTS: 'too_many_redirects',
+  CROSS_SITE_REDIRECT: 'cross_site_redirect',
   DNS: 'dns',
   TIMEOUT: 'timeout',
   NETWORK: 'network',
@@ -58,10 +63,15 @@ export type SafeFetchSuccess<T> = {
 };
 export type SafeFetchResult<T> = SafeFetchSuccess<T> | SafeFetchFailure;
 
-/** `dns.lookup(host, { all: true })` eşdeğeri; testlerde sahte DNS için değiştirilir. */
-export type Resolver = (hostname: string) => Promise<readonly LookupAddress[]>;
+/**
+ * Host'u A/AAAA adreslerine çözer. `signal` toplam zaman aşımında tetiklenir; uygulama sorguyu
+ * iptal etmelidir. safeFetch ayrıca sinyalle yarıştırır: asılı kalan bir resolver da süreyi
+ * aşamaz. Testlerde sahte DNS için değiştirilir.
+ */
+export type Resolver = (hostname: string, signal: AbortSignal) => Promise<readonly LookupAddress[]>;
 
 export type SafeFetchOptions = {
+  /** Verilmezse `createSystemResolver({ timeoutMs })`. */
   readonly resolve?: Resolver;
   /**
    * Yalnızca testler: bu IP'ler politika dışı tutulur ve her porta izin verilir (yerel test
@@ -71,6 +81,13 @@ export type SafeFetchOptions = {
   readonly timeoutMs?: number;
   readonly maxBytes?: number;
   readonly maxRedirects?: number;
+  /**
+   * Kayıtlı alan adını (eTLD+1) değiştiren yönlendirmelere izin ver. Varsayılan false: kısa link
+   * (bit.ly → başka site) önizlemede kaynağı yanıltıcı gösterirdi.
+   */
+  readonly allowCrossSiteRedirects?: boolean;
+  /** Beklenen (kullanıcı girdisi kaynaklı) hatalar debug seviyesinde loglanır. */
+  readonly logger?: Logger;
 };
 
 export type SafeFetchBody = {
@@ -87,12 +104,67 @@ const failure = (kind: SafeFetchFailure['kind'], reason: SafeFetchReason): SafeF
   reason,
 });
 
-const defaultResolve: Resolver = hostname =>
-  new Promise((resolve, reject) => {
-    dnsLookup(hostname, { all: true, order: 'verbatim' }, (error, addresses) => {
-      if (error) reject(error);
-      else resolve(addresses);
-    });
+const errorCodeOf = (error: unknown): string | undefined =>
+  error instanceof Error ? (error as NodeJS.ErrnoException).code : undefined;
+
+export type SystemResolverOptions = {
+  /** Sorgu başına c-ares zaman aşımı; toplam süre ayrıca `signal` ile sınırlıdır. */
+  readonly timeoutMs: number;
+  /** Yalnızca testler: sistem DNS sunucuları yerine bunlar (`ip:port`). */
+  readonly servers?: readonly string[];
+};
+
+/**
+ * c-ares tabanlı çözücü (`dns.promises.Resolver`): libuv threadpool'unu kullanmaz (yavaş DNS
+ * diğer `fs`/`crypto` işlerini bekletmez) ve `cancel()` ile gerçekten iptal edilir.
+ * `dns.lookup`'ın aksine /etc/hosts okumaz; önizleme yalnızca genel DNS adlarıyla çalışır.
+ */
+export const createSystemResolver =
+  ({ timeoutMs, servers }: SystemResolverOptions): Resolver =>
+  async (hostname, signal) => {
+    const resolver = new dnsPromises.Resolver({ timeout: timeoutMs, tries: 1 });
+    if (servers) resolver.setServers([...servers]);
+    const cancel = (): void => resolver.cancel();
+    if (signal.aborted) cancel();
+    else signal.addEventListener('abort', cancel, { once: true });
+    try {
+      const [a, aaaa] = await Promise.allSettled([
+        resolver.resolve4(hostname),
+        resolver.resolve6(hostname),
+      ]);
+      const addresses: LookupAddress[] = [
+        ...(a.status === 'fulfilled' ? a.value.map(address => ({ address, family: 4 })) : []),
+        ...(aaaa.status === 'fulfilled' ? aaaa.value.map(address => ({ address, family: 6 })) : []),
+      ];
+      if (addresses.length > 0) return addresses;
+      if (a.status === 'rejected') throw a.reason;
+      throw Object.assign(new Error(`safe-fetch: no address for ${hostname}`), {
+        code: 'ENODATA',
+      });
+    } finally {
+      signal.removeEventListener('abort', cancel);
+    }
+  };
+
+/** `promise`'i sinyalle yarıştırır: sinyal tetiklenince hemen `signal.reason` ile reddeder. */
+const raceSignal = <T>(promise: Promise<T>, signal: AbortSignal): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(signal.reason);
+      return;
+    }
+    const onAbort = (): void => reject(signal.reason);
+    signal.addEventListener('abort', onAbort, { once: true });
+    promise.then(
+      value => {
+        signal.removeEventListener('abort', onAbort);
+        resolve(value);
+      },
+      (error: unknown) => {
+        signal.removeEventListener('abort', onAbort);
+        reject(error);
+      }
+    );
   });
 
 type AddressPolicy = {
@@ -103,11 +175,19 @@ type AddressPolicy = {
 const isAcceptable = (policy: AddressPolicy, ip: string): boolean =>
   policy.allow.has(ip) || isPublicAddress(ip);
 
-type TargetCheck = { readonly ok: true } | SafeFetchFailure;
-const PASS: TargetCheck = { ok: true };
+/** IP literal için `addresses` null'dır (soket DNS'siz, doğrudan o adrese açılır). */
+type TargetCheck =
+  { readonly ok: true; readonly addresses: readonly LookupAddress[] | null } | SafeFetchFailure;
+
+type CheckContext = {
+  readonly policy: AddressPolicy;
+  readonly signal: AbortSignal;
+  readonly log: Logger | undefined;
+};
 
 /** Tek bir hedefi (ilk URL ya da yönlendirme) bağlantı açmadan doğrular. */
-const checkTarget = async (url: URL, policy: AddressPolicy): Promise<TargetCheck> => {
+const checkTarget = async (url: URL, ctx: CheckContext): Promise<TargetCheck> => {
+  const { policy } = ctx;
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
     return failure('blocked', SafeFetchReason.PROTOCOL);
   }
@@ -118,28 +198,32 @@ const checkTarget = async (url: URL, policy: AddressPolicy): Promise<TargetCheck
   const portAllowed = ALLOWED_PORTS.has(port);
 
   const literal = ipLiteralOf(url.hostname);
-  let addresses: readonly string[];
+  let resolved: readonly LookupAddress[] | null = null;
+  let ips: readonly string[];
   if (literal !== null) {
-    addresses = [literal];
+    ips = [literal];
   } else {
     if (isBlockedHostname(url.hostname)) return failure('blocked', SafeFetchReason.HOSTNAME);
     // Gereksiz DNS sorgusu olmasın: üretimde (allowlist boş) port kuralı önce.
     if (!portAllowed && policy.allow.size === 0) return failure('blocked', SafeFetchReason.PORT);
     try {
-      addresses = (await policy.resolve(url.hostname)).map(a => a.address);
-    } catch {
-      // NXDOMAIN vb. kullanıcı girdisinin olağan sonucu; çağıran `failed`/`dns` olarak loglar.
+      resolved = await raceSignal(policy.resolve(url.hostname, ctx.signal), ctx.signal);
+    } catch (error) {
+      if (ctx.signal.aborted) return failure('failed', SafeFetchReason.TIMEOUT);
+      // NXDOMAIN vb. kullanıcı girdisinin olağan sonucu; hata değil, sonuçtur.
+      ctx.log?.debug('safe-fetch dns failed', { host: url.hostname, code: errorCodeOf(error) });
       return failure('failed', SafeFetchReason.DNS);
     }
-    if (addresses.length === 0) return failure('failed', SafeFetchReason.DNS);
+    if (resolved.length === 0) return failure('failed', SafeFetchReason.DNS);
+    ips = resolved.map(a => a.address);
   }
 
-  if (!addresses.every(ip => isAcceptable(policy, ip))) {
+  if (!ips.every(ip => isAcceptable(policy, ip))) {
     return failure('blocked', SafeFetchReason.ADDRESS);
   }
-  const allAllowlisted = addresses.every(ip => policy.allow.has(ip));
+  const allAllowlisted = ips.every(ip => policy.allow.has(ip));
   if (!portAllowed && !allAllowlisted) return failure('blocked', SafeFetchReason.PORT);
-  return PASS;
+  return { ok: true, addresses: resolved };
 };
 
 const blockedLookupError = (hostname: string): NodeJS.ErrnoException =>
@@ -148,28 +232,21 @@ const blockedLookupError = (hostname: string): NodeJS.ErrnoException =>
   });
 
 /**
- * Soket bu lookup'ın döndürdüğü adreslere açılır. Ön kontrolden sonra DNS cevabı değişse bile
- * (rebinding) burada yeniden doğrulanır; doğrulanmamış bir adrese bağlanılmaz.
+ * Soket yalnızca `checkTarget`'ın doğruladığı adreslere açılır: lookup DNS'e gitmez, pinlenen
+ * listeyi döner. Doğrulama ile bağlantı arasında ikinci bir çözüm (DNS rebinding penceresi)
+ * yoktur. Pinlenmemiş bir host'a bağlantı denemesi engellenir.
  */
-const guardedLookup =
-  (policy: AddressPolicy): LookupFunction =>
+const pinnedLookup =
+  (pinned: ReadonlyMap<string, readonly LookupAddress[]>): LookupFunction =>
   (hostname, options, callback) => {
-    policy.resolve(hostname).then(
-      addresses => {
-        if (addresses.length === 0) {
-          callback(Object.assign(new Error('safe-fetch: no address'), { code: 'ENOTFOUND' }), '');
-          return;
-        }
-        if (!addresses.every(a => isAcceptable(policy, a.address))) {
-          callback(blockedLookupError(hostname), '');
-          return;
-        }
-        const [first] = addresses;
-        if (options.all === true) callback(null, [...addresses]);
-        else if (first) callback(null, first.address, first.family);
-      },
-      (error: NodeJS.ErrnoException) => callback(error, '')
-    );
+    const addresses = pinned.get(hostname);
+    const first = addresses?.[0];
+    if (!addresses || !first) {
+      callback(blockedLookupError(hostname), '');
+      return;
+    }
+    if (options.all === true) callback(null, [...addresses]);
+    else callback(null, first.address, first.family);
   };
 
 const hasCode = (error: unknown, code: string): boolean => {
@@ -188,13 +265,12 @@ const hasCode = (error: unknown, code: string): boolean => {
  * Okunmayacak gövdeyi bırakır. `destroy()` bitmemiş gövdede `RequestAbortedError` yayar;
  * bu beklenen bir kapanıştır, işlenmemiş hata olarak süreci düşürmemeli.
  */
-const discard = (body: Readable): void => {
-  body.on('error', ignoreExpectedAbort);
+const discard = (body: Readable, log: Logger | undefined): void => {
+  body.on('error', (error: unknown) => {
+    // Bilinçli kapatma; sonuç zaten belirlendi.
+    log?.debug('safe-fetch body discarded', { code: errorCodeOf(error) });
+  });
   body.destroy();
-};
-
-const ignoreExpectedAbort = (): void => {
-  // Bilinçli kapatma; sonuç zaten belirlendi.
 };
 
 const headerValue = (value: string | string[] | undefined): string | undefined =>
@@ -242,31 +318,38 @@ export const safeFetchHtml = async <T>(
   const maxBytes = options.maxBytes ?? SAFE_FETCH_DEFAULTS.maxBytes;
   const maxRedirects = options.maxRedirects ?? SAFE_FETCH_DEFAULTS.maxRedirects;
   const policy: AddressPolicy = {
-    resolve: options.resolve ?? defaultResolve,
+    resolve: options.resolve ?? createSystemResolver({ timeoutMs }),
     allow: new Set(options.allowAddresses ?? []),
   };
+  const log = options.logger;
 
-  let current: URL;
+  let origin: URL;
   try {
-    current = new URL(rawUrl);
+    origin = new URL(rawUrl);
   } catch {
-    // Geçersiz URL kullanıcı girdisidir; hata değil, sonuçtur.
+    // Geçersiz URL kullanıcı girdisidir; hata değil, sonuçtur. İçeriği loglanmaz.
+    log?.debug('safe-fetch invalid url');
     return failure('blocked', SafeFetchReason.INVALID_URL);
   }
 
+  // Zaman aşımı DNS'ten itibaren her şeyi kapsar: çözüm, bağlantı, başlıklar, gövde okuma.
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const ctx: CheckContext = { policy, signal: controller.signal, log };
+  const pinned = new Map<string, readonly LookupAddress[]>();
   const agent = new Agent({
-    connect: { lookup: guardedLookup(policy), timeout: timeoutMs },
+    connect: { lookup: pinnedLookup(pinned), timeout: timeoutMs },
     headersTimeout: timeoutMs,
     bodyTimeout: timeoutMs,
     allowH2: false,
   });
 
+  let current = origin;
   try {
     for (let hop = 0; ; hop += 1) {
-      const check = await checkTarget(current, policy);
+      const check = await checkTarget(current, ctx);
       if (!check.ok) return check;
+      if (check.addresses) pinned.set(current.hostname, check.addresses);
 
       const response = await request(current, {
         dispatcher: agent,
@@ -282,21 +365,28 @@ export const safeFetchHtml = async <T>(
       });
 
       if (REDIRECT_STATUSES.has(response.statusCode)) {
-        discard(response.body);
+        discard(response.body, log);
         if (hop >= maxRedirects) return failure('blocked', SafeFetchReason.TOO_MANY_REDIRECTS);
         const location = headerValue(response.headers.location);
         if (!location) return failure('failed', SafeFetchReason.REDIRECT_LOCATION);
+        let next: URL;
         try {
-          current = new URL(location, current);
+          next = new URL(location, current);
         } catch {
           // Bozuk Location başlığı uzak sunucu kaynaklı; sonuç olarak döner.
+          log?.debug('safe-fetch bad redirect location', { host: current.hostname });
           return failure('failed', SafeFetchReason.REDIRECT_LOCATION);
         }
+        // İlk URL'nin sitesiyle karşılaştırılır: zincirin ortasında başka siteye geçiş de sayılır.
+        if (!options.allowCrossSiteRedirects && !isSameSite(origin.hostname, next.hostname)) {
+          return failure('blocked', SafeFetchReason.CROSS_SITE_REDIRECT);
+        }
+        current = next;
         continue;
       }
 
       if (response.statusCode < 200 || response.statusCode > 299) {
-        discard(response.body);
+        discard(response.body, log);
         return failure('failed', SafeFetchReason.HTTP_STATUS);
       }
 
@@ -304,7 +394,7 @@ export const safeFetchHtml = async <T>(
         headerValue(response.headers['content-type'])
       );
       if (mediaType !== 'text/html') {
-        discard(response.body);
+        discard(response.body, log);
         return failure('failed', SafeFetchReason.CONTENT_TYPE);
       }
 
@@ -317,7 +407,7 @@ export const safeFetchHtml = async <T>(
         });
         return { ok: true, finalUrl, value };
       } finally {
-        discard(response.body);
+        discard(response.body, log);
       }
     }
   } catch (error) {
@@ -327,14 +417,15 @@ export const safeFetchHtml = async <T>(
     throw error;
   } finally {
     clearTimeout(timer);
-    agent.destroy().catch(() => {
+    agent.destroy().catch((error: unknown) => {
       // Kapanış hatası yalnızca zaten kopmuş soketleri ifade eder; sonucu etkilemez.
+      log?.debug('safe-fetch agent close failed', { code: errorCodeOf(error) });
     });
   }
 };
 
 // undici hataları `UND_ERR_*`, Node soket/DNS hataları `E*` kodu taşır.
 const isNetworkError = (error: unknown): boolean => {
-  const code = error instanceof Error ? (error as NodeJS.ErrnoException).code : undefined;
+  const code = errorCodeOf(error);
   return typeof code === 'string' && (code.startsWith('UND_ERR') || /^E[A-Z]+$/.test(code));
 };

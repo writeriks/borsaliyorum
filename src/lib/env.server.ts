@@ -1,6 +1,11 @@
 import 'server-only';
 
-import { parseSafeFetchTestAllow, parseServerEnv, type ServerEnv } from '@/lib/env';
+import {
+  clientEnvSchema,
+  parseSafeFetchTestAllow,
+  parseServerEnv,
+  type ServerEnv,
+} from '@/lib/env';
 
 let cached: ServerEnv | undefined;
 
@@ -15,3 +20,10 @@ export const getServerEnv = (): ServerEnv => {
  * üretimde tanımlıysa her çağrıda hata fırlatır, böylece önizleme hiç çalışmaz (fail-closed).
  */
 export const getSafeFetchTestAllow = (): readonly string[] => parseSafeFetchTestAllow(process.env);
+
+/**
+ * Sitenin kök URL'si (`NEXT_PUBLIC_SITE_URL`, opsiyonel). Sunucu tarafında iç link tespiti için;
+ * testler env'i değiştirebildiği için önbelleğe alınmaz. Geçersiz değer yapılandırma hatasıdır.
+ */
+export const getSiteUrl = (): string | undefined =>
+  clientEnvSchema.shape.NEXT_PUBLIC_SITE_URL.parse(process.env.NEXT_PUBLIC_SITE_URL);

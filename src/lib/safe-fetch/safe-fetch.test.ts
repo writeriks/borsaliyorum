@@ -1,3 +1,4 @@
+import { createSocket } from 'node:dgram';
 import type { LookupAddress } from 'node:dns';
 
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -10,6 +11,7 @@ import {
 } from '@tests/utils/test-http-server';
 
 import {
+  createSystemResolver,
   SAFE_FETCH_DEFAULTS,
   SAFE_FETCH_USER_AGENT,
   safeFetchHtml,
@@ -114,19 +116,34 @@ describe('safeFetchHtml — bağlantı açmadan engellenenler', () => {
     expect(result).toEqual({ ok: false, kind: 'failed', reason: 'dns' });
   });
 
-  it('DNS rebinding: ön kontrolde genel, bağlantı anında özel adres → blocked, soket açılmaz', async () => {
-    let call = 0;
-    const rebinding: Resolver = async () => {
-      call += 1;
-      return call === 1 ? [v4('93.184.216.34')] : [v4('127.0.0.1')];
+  it('yavaş DNS toplam süreye dahil: timeoutMs aşılınca failed (timeout), sinyal iptal eder', async () => {
+    let received: AbortSignal | undefined;
+    const hanging: Resolver = async (_hostname, signal) => {
+      received = signal;
+      // Hiç cevap vermeyen DNS (sinyali yok sayan kötü bir resolver da süreyi aşamaz).
+      return new Promise<never>(() => undefined);
     };
-    const result = await safeFetchHtml('http://rebind.example.com/', read, {
-      resolve: rebinding,
+    const started = Date.now();
+    const result = await safeFetchHtml('https://yavas.example.com/', read, {
+      resolve: hanging,
+      timeoutMs: 100,
     });
-    expect(result).toEqual({ ok: false, kind: 'blocked', reason: 'address' });
-    // İkinci çözüm undici'nin connect.lookup'ından gelir: doğrulama bağlantının kendisinde.
-    expect(call).toBe(2);
+    expect(result).toEqual({ ok: false, kind: 'failed', reason: 'timeout' });
+    expect(Date.now() - started).toBeLessThan(1_000);
+    expect(received?.aborted).toBe(true);
     expect(read).not.toHaveBeenCalled();
+  });
+
+  it('sonunda cevap veren ama süreyi aşan DNS de timeout olur (sonuç beklenmez)', async () => {
+    const slow: Resolver = async () => {
+      await new Promise(resolve => setTimeout(resolve, 150));
+      return [v4('10.0.0.1')];
+    };
+    const result = await safeFetchHtml('https://yavas.example.com/', read, {
+      resolve: slow,
+      timeoutMs: 100,
+    });
+    expect(result).toEqual({ ok: false, kind: 'failed', reason: 'timeout' });
   });
 
   it('varsayılan sınırlar ADR-0002 ile aynı', () => {
@@ -153,6 +170,10 @@ describe('safeFetchHtml — yerel test sunucusu (127.0.0.1 bilinçli allowlist)'
     server.route('/to-metadata', redirect('http://169.254.169.254/latest/meta-data/', 301));
     server.route('/to-mapped', redirect('http://[::ffff:127.0.0.1]/'));
     server.route('/to-host', redirect('http://internal.example.com/'));
+    server.route('/kisa', redirect(`http://kotu.com:${server.port}/hedef`));
+    server.route('/hedef', html('<title>kötü</title>'));
+    server.route('/eski', redirect(`http://haber.ornek.com.tr:${server.port}/ok`, 301));
+    server.route('/to-sub-private', redirect('http://ic.ornek.com.tr/'));
     server.route('/to-ftp', redirect('ftp://foo.com/'));
     server.route('/no-location', (_req, res) => {
       res.writeHead(302);
@@ -224,11 +245,63 @@ describe('safeFetchHtml — yerel test sunucusu (127.0.0.1 bilinçli allowlist)'
     ['/to-ftp', 'protocol'],
   ])('yönlendirme her adımda yeniden doğrulanır: %s → blocked (%s)', async (path, reason) => {
     const dns = fakeDns({ 'internal.example.com': [v4('192.168.0.10')] });
+    // Adres kuralını site kuralından bağımsız sınamak için siteler arası yönlendirme açık.
     const result = await safeFetchHtml(`${server.origin}${path}`, readText, {
       ...allow,
       resolve: dns,
+      allowCrossSiteRedirects: true,
     });
     expect(result).toEqual({ ok: false, kind: 'blocked', reason });
+  });
+
+  it('varsayılan: başka siteye (eTLD+1) yönlendirme → blocked (cross_site_redirect)', async () => {
+    const dns = fakeDns({ 'internal.example.com': [v4('192.168.0.10')] });
+    const result = await safeFetchHtml(`${server.origin}/to-host`, readText, {
+      ...allow,
+      resolve: dns,
+    });
+    expect(result).toEqual({ ok: false, kind: 'blocked', reason: 'cross_site_redirect' });
+    expect(dns.calls).toEqual([]);
+  });
+
+  it('kısa link başka siteye gidiyorsa (bit.ly → kotu.com) hedef hiç çekilmez', async () => {
+    const dns = fakeDns({ 'bit.ly': [v4('127.0.0.1')], 'kotu.com': [v4('127.0.0.1')] });
+    const result = await safeFetchHtml(`http://bit.ly:${server.port}/kisa`, readText, {
+      ...allow,
+      resolve: dns,
+    });
+    expect(result).toEqual({ ok: false, kind: 'blocked', reason: 'cross_site_redirect' });
+    expect(server.hits.get('/hedef')).toBeUndefined();
+    expect(dns.calls).toEqual(['bit.ly']);
+  });
+
+  it('aynı site içi yönlendirme izinli; finalUrl son adres, her host bir kez çözülür', async () => {
+    const dns = fakeDns({
+      'ornek.com.tr': [v4('127.0.0.1')],
+      'haber.ornek.com.tr': [v4('127.0.0.1')],
+    });
+    const result = await safeFetchHtml(`http://ornek.com.tr:${server.port}/eski`, readText, {
+      ...allow,
+      resolve: dns,
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      finalUrl: `http://haber.ornek.com.tr:${server.port}/ok`,
+    });
+    expect(dns.calls).toEqual(['ornek.com.tr', 'haber.ornek.com.tr']);
+  });
+
+  it('aynı site içinde özel adrese yönlendirme yine engellenir', async () => {
+    const dns = fakeDns({
+      'ornek.com.tr': [v4('127.0.0.1')],
+      'ic.ornek.com.tr': [v4('192.168.0.10')],
+    });
+    const result = await safeFetchHtml(
+      `http://ornek.com.tr:${server.port}/to-sub-private`,
+      readText,
+      { ...allow, resolve: dns }
+    );
+    expect(result).toEqual({ ok: false, kind: 'blocked', reason: 'address' });
   });
 
   it('3 yönlendirmeye izin verir', async () => {
@@ -241,17 +314,54 @@ describe('safeFetchHtml — yerel test sunucusu (127.0.0.1 bilinçli allowlist)'
     expect(result).toEqual({ ok: false, kind: 'blocked', reason: 'too_many_redirects' });
   });
 
-  it('DNS rebinding (yerel): ilk çözüm izinli, bağlantıdaki çözüm özel → blocked', async () => {
-    let call = 0;
+  it('DNS pinleme: host bir kez çözülür, bağlantı doğrulanan adrese açılır (rebinding yok)', async () => {
+    let calls = 0;
+    const before = server.hits.get('/ok') ?? 0;
     const result = await safeFetchHtml(`http://rebind.example.com:${server.port}/ok`, readText, {
       ...allow,
+      // İkinci bir çözüm yapılsaydı özel adres dönerdi; yapılmamalı.
       resolve: async () => {
-        call += 1;
-        return call === 1 ? [v4('127.0.0.1')] : [v4('10.0.0.1')];
+        calls += 1;
+        return calls === 1 ? [v4('127.0.0.1')] : [v4('10.0.0.1')];
       },
     });
-    expect(result).toEqual({ ok: false, kind: 'blocked', reason: 'address' });
-    expect(server.hits.get('/ok')).toBe(1); // yalnızca ilk testteki istek
+    expect(result).toMatchObject({ ok: true, value: expect.stringContaining('Merhaba') });
+    expect(calls).toBe(1);
+    expect(server.hits.get('/ok')).toBe(before + 1);
+  });
+
+  it('gerçek c-ares çözücü: cevap vermeyen DNS sunucusu → timeoutMs içinde failed (timeout)', async () => {
+    // UDP soketi paketleri alır ama hiç cevaplamaz: kara delik DNS sunucusu.
+    const blackhole = createSocket('udp4');
+    await new Promise<void>(resolve => blackhole.bind(0, '127.0.0.1', resolve));
+    const { port } = blackhole.address();
+    try {
+      const started = Date.now();
+      const result = await safeFetchHtml('https://yavas.example.com/', readText, {
+        // c-ares'in kendi zaman aşımı uzun; iptal toplam süre sinyalinden gelmeli.
+        resolve: createSystemResolver({ timeoutMs: 10_000, servers: [`127.0.0.1:${port}`] }),
+        timeoutMs: 150,
+      });
+      expect(result).toEqual({ ok: false, kind: 'failed', reason: 'timeout' });
+      expect(Date.now() - started).toBeLessThan(1_500);
+    } finally {
+      blackhole.close();
+    }
+  });
+
+  it('gerçek c-ares çözücü: iptal edilen sorgu reddedilir (asılı kalmaz)', async () => {
+    const blackhole = createSocket('udp4');
+    await new Promise<void>(resolve => blackhole.bind(0, '127.0.0.1', resolve));
+    const { port } = blackhole.address();
+    try {
+      const resolve = createSystemResolver({ timeoutMs: 10_000, servers: [`127.0.0.1:${port}`] });
+      const controller = new AbortController();
+      const pending = resolve('yavas.example.com', controller.signal);
+      setTimeout(() => controller.abort(), 50);
+      await expect(pending).rejects.toMatchObject({ code: 'ECANCELLED' });
+    } finally {
+      blackhole.close();
+    }
   });
 
   it('cevap vermeyen sunucu → failed (timeout), süre sınırı aşılmaz', async () => {

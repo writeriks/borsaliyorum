@@ -137,6 +137,18 @@ describe('parseClientEnv', () => {
     );
     expect(error.issues).toEqual(['NEXT_PUBLIC_FIREBASE_API_KEY: tanımlı değil']);
   });
+
+  it('NEXT_PUBLIC_SITE_URL opsiyoneldir; verilirse http(s) URL olmalı', () => {
+    expect(parseClientEnv({ ...validClient, NEXT_PUBLIC_SITE_URL: '' })).toEqual(validClient);
+    expect(
+      parseClientEnv({ ...validClient, NEXT_PUBLIC_SITE_URL: 'https://borsaliyorum.com' })
+        .NEXT_PUBLIC_SITE_URL
+    ).toBe('https://borsaliyorum.com');
+    const error = captureError(() =>
+      parseClientEnv({ ...validClient, NEXT_PUBLIC_SITE_URL: 'ftp://borsaliyorum.com' })
+    );
+    expect(error.issues).toEqual(['NEXT_PUBLIC_SITE_URL: http(s):// URL olmalı']);
+  });
 });
 
 describe('şema sınırı', () => {

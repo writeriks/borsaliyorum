@@ -57,6 +57,17 @@ describe('LinkPreviewCard', () => {
     expect(container.querySelector('img, script')).toBeNull();
   });
 
+  it('sabit yükseklikli kabuk taşan içeriği keser (kart ve iskelet)', () => {
+    renderWithIntl(
+      <>
+        <LinkPreviewCard preview={{ ...preview, title: 'Ç'.repeat(500) }} />
+        <LinkPreviewCardSkeleton />
+      </>
+    );
+    expect(screen.getByRole('link')).toHaveClass('overflow-hidden', 'h-22');
+    expect(screen.getByRole('status')).toHaveClass('overflow-hidden', 'h-22');
+  });
+
   it('açıklama yoksa yalnızca host ve başlık', () => {
     renderWithIntl(<LinkPreviewCard preview={{ ...preview, description: null }} />);
     expect(screen.queryByText(preview.description ?? '')).toBeNull();

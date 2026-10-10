@@ -14,6 +14,7 @@ export const getClientEnv = (): ClientEnv => {
     NEXT_PUBLIC_MESSAGE_SENDER_ID: process.env.NEXT_PUBLIC_MESSAGE_SENDER_ID,
     NEXT_PUBLIC_APP_ID: process.env.NEXT_PUBLIC_APP_ID,
     NEXT_PUBLIC_MEASUREMENT_ID: process.env.NEXT_PUBLIC_MEASUREMENT_ID,
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   });
   return cached;
 };

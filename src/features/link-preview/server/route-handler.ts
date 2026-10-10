@@ -2,14 +2,13 @@ import 'server-only';
 
 import { getDb, type PrismaClient } from '@/lib/db';
 import { ErrorCode, fail, ok, toFailure, type Failure, type Result } from '@/lib/errors';
+import { getOrFetchPreview } from '@/lib/link-preview/get-or-fetch-preview';
 import { logger as defaultLogger, type Logger } from '@/lib/logger';
 import { consumeRateLimit } from '@/lib/rate-limit';
 import type { SafeFetchOptions } from '@/lib/safe-fetch';
 
 import { linkPreviewQuerySchema } from '../schemas';
 import type { LinkPreviewResponse } from '../types';
-
-import { getOrFetchPreview } from './get-or-fetch-preview';
 
 /** Kullanıcı başına dakikada 20 önizleme isteği (ADR-0002 Karar 6). */
 export const LINK_PREVIEW_RATE_LIMIT = { limit: 20, windowMs: 60_000 } as const;
