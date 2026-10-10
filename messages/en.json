@@ -47,7 +47,9 @@
       "privacy": "Privacy notice (KVKK)",
       "terms": "Terms of use",
       "copyright": "© Borsalıyorum"
-    }
+    },
+    "completeSignup": "Complete sign-up",
+    "completeSignupPrompt": "Your account is almost ready:"
   },
   "theme": {
     "menuLabel": "Theme",
@@ -77,14 +79,18 @@
     "CONFLICT": "This can't be completed right now. Refresh the page and try again.",
     "RATE_LIMITED": "Too many attempts. Please wait a moment and try again.",
     "INTERNAL": "Something went wrong. Please try again.",
-    "ONBOARDING_REQUIRED": "Finish setting up your account to continue.",
-    "EMAIL_NOT_VERIFIED": "Verify your email address to post.",
-    "ACCOUNT_SUSPENDED": "Your account can't do this right now.",
+    "ONBOARDING_REQUIRED": "Complete your account to continue.",
+    "EMAIL_NOT_VERIFIED": "Verify your email address before writing posts or comments.",
+    "ACCOUNT_SUSPENDED": "This account has been suspended.",
     "CONTENT_EMPTY": "Write something first.",
     "CONTENT_TOO_LONG": "The text is over the character limit.",
     "UNKNOWN_CASHTAG": "Your post contains a ticker we don't recognise.",
     "SPONSORED_CASHTAG_BLOCKED": "Posts mentioning stocks, crypto or other investment instruments can't be shared as ads or collaborations.",
-    "TOO_MANY_ENTITIES": "You can mention up to 10 stocks, 10 hashtags and 10 people in a post."
+    "TOO_MANY_ENTITIES": "You can mention up to 10 stocks, 10 hashtags and 10 people in a post.",
+    "REAUTH_REQUIRED": "For your security, please log in again.",
+    "USERNAME_TAKEN": "This username is taken.",
+    "USERNAME_RESERVED": "This username can't be used.",
+    "ACCOUNT_EMAIL_CONFLICT": "This email address belongs to an account created with a different sign-in method."
   },
   "entity": {
     "newTab": "(opens in a new tab)",
@@ -255,5 +261,138 @@
     "lastPayload": "Last submitted payload",
     "openDialog": "Share a post",
     "openSheet": "Open mobile composer"
+  },
+  "auth": {
+    "accountMenu": {
+      "label": "Account menu: {name}"
+    },
+    "signOut": {
+      "action": "Log out",
+      "pending": "Logging out…",
+      "failed": "Couldn't log out. Check your connection and try again.",
+      "allDevicesNote": "Logging out ends your sessions on all devices."
+    },
+    "or": "or",
+    "google": {
+      "action": "Continue with Google",
+      "pending": "Connecting to Google…"
+    },
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "passwordHint": "At least 8 characters."
+    },
+    "validation": {
+      "emailInvalid": "Enter a valid email address.",
+      "passwordRequired": "Enter your password.",
+      "passwordTooShort": "Password must be at least 8 characters.",
+      "passwordTooLong": "Password can be at most 128 characters."
+    },
+    "login": {
+      "metaTitle": "Log in",
+      "title": "Log in",
+      "lead": "Log in to join the conversation about stocks and investors.",
+      "submit": "Log in",
+      "submitting": "Logging in…",
+      "noAccount": "Don't have an account?",
+      "signupLink": "Sign up"
+    },
+    "signup": {
+      "metaTitle": "Sign up",
+      "title": "Sign up",
+      "lead": "Create a free account. You'll choose your username in the next step.",
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "haveAccount": "Already have an account?",
+      "loginLink": "Log in",
+      "privacyNote": "You can find out how your personal data is processed in the <link>Privacy Notice</link>."
+    },
+    "errors": {
+      "invalidCredentials": "Incorrect email or password.",
+      "signupUnavailable": "Couldn't create an account with this email. If you already have an account, log in.",
+      "weakPassword": "Choose a stronger password (at least 8 characters).",
+      "invalidEmail": "Enter a valid email address.",
+      "tooManyRequests": "Too many attempts. Wait a moment and try again.",
+      "network": "Couldn't connect. Check your internet connection and try again.",
+      "popupBlocked": "Your browser blocked the sign-in window. Allow pop-ups and try again.",
+      "otherProvider": "This email is registered with another sign-in method. Use that method to log in.",
+      "reauth": "For your security, please log in again.",
+      "suspended": "This account has been suspended. Contact support.",
+      "generic": "Couldn't log in. Please try again.",
+      "signupGeneric": "Couldn't create your account. Please try again."
+    },
+    "onboarding": {
+      "metaTitle": "Complete your account",
+      "title": "Complete your account",
+      "lead": "One last step: choose the name other people will know you by.",
+      "signedInAs": "Signed in as: {email}",
+      "switchAccount": "Use a different account",
+      "username": {
+        "label": "Username",
+        "hint": "3-20 characters: lowercase letters (a-z), digits and underscore (_).",
+        "checking": "Checking…",
+        "available": "This username is available.",
+        "errors": {
+          "tooShort": "Username must be at least 3 characters.",
+          "tooLong": "Username can be at most 20 characters.",
+          "invalidChars": "Use only lowercase letters (a-z), digits and underscore (_).",
+          "reserved": "This username can't be used. Try another one.",
+          "taken": "This username is taken. Try another one."
+        }
+      },
+      "displayName": {
+        "label": "Display name",
+        "hint": "Shown on your profile and posts.",
+        "errors": {
+          "required": "Enter your display name.",
+          "tooLong": "Display name can be at most 50 characters."
+        }
+      },
+      "age": {
+        "label": "I am over 18 years old.",
+        "required": "To continue, confirm that you are over 18."
+      },
+      "notice": {
+        "label": "I have read the <link>Privacy Notice</link>.",
+        "required": "To continue, confirm that you have read the Privacy Notice."
+      },
+      "marketing": {
+        "label": "I'd like to receive campaigns, newsletters and announcements by email (optional).",
+        "hint": "You can withdraw this at any time; not giving it doesn't affect your membership."
+      },
+      "submit": "Continue",
+      "submitting": "Saving…",
+      "failed": "Couldn't save your details. Please try again.",
+      "emailConflict": {
+        "title": "This email is already registered to another account",
+        "body": "An account was previously created for {email} with a different sign-in method (e.g. password or Google). Log in with that method, or contact support to have your accounts merged.",
+        "contact": "Support: <link>{supportEmail}</link>"
+      }
+    },
+    "verify": {
+      "title": "Verify your email address",
+      "body": "We sent a verification link to {email}. Until you verify, you can read posts but can't write posts or comments.",
+      "resend": "Resend link",
+      "resending": "Sending…",
+      "resent": "Verification link sent. Check your inbox.",
+      "resendFailed": "Couldn't send the link. Wait a moment and try again.",
+      "check": "I've verified",
+      "checking": "Checking…",
+      "stillUnverified": "Your email address doesn't look verified yet. Click the link, then try again.",
+      "verified": "Your email address is verified.",
+      "resendRateLimited": "You've requested too many links in a short time. Wait a moment and try again."
+    },
+    "sessionExpired": "Your session has expired. Log in again to continue; your draft won't be lost.",
+    "reverify": {
+      "metaTitle": "Verification link",
+      "title": "Send the verification link",
+      "lead": "For your security, log in again and we'll send the verification link to your email right away.",
+      "submit": "Log in and send",
+      "submitting": "Sending…"
+    }
+  },
+  "feedPlaceholder": {
+    "title": "Feed",
+    "body": "Posts from the people and stocks you follow will appear here soon."
   }
 }

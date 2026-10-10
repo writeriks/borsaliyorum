@@ -1,3 +1,5 @@
+'use client';
+
 import { Bell, CircleUser, Compass, House, SquarePen } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { ReactElement } from 'react';
@@ -9,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { NavLink } from './nav-link';
 import { NAV_HREF, profileHref } from './nav-routes';
 import type { ShellViewer } from './types';
+import { useShellViewer } from './use-shell-viewer';
 
 const TabSkeleton = ({ label }: { label?: string }): ReactElement => (
   <li className='flex min-h-hit flex-1 flex-col items-center justify-center gap-1' aria-busy='true'>
@@ -28,8 +31,26 @@ type TabBarProps = { viewer: ShellViewer; className?: string };
  * Anonim kullanıcıya tab bar yerine "Sohbete katıl" bandı (tasarım §7.1); bu bant auth
  * çözülmeden render edilmez — `unknown` iken kişisel sekmeler skeleton.
  */
-export const TabBar = ({ viewer, className }: TabBarProps): ReactElement => {
+export const TabBar = ({ viewer: serverViewer, className }: TabBarProps): ReactElement => {
   const t = useTranslations();
+  const viewer = useShellViewer(serverViewer);
+
+  if (viewer.status === 'needs-onboarding') {
+    return (
+      <div data-testid='complete-signup-banner' className={cn(bottomBarClasses, className)}>
+        <p className='flex min-h-tabbar items-center justify-center gap-1 px-4 text-sm'>
+          <span className='text-fg-muted'>{t('shell.completeSignupPrompt')}</span>
+          <Link
+            href={NAV_HREF.onboarding}
+            data-testid='complete-signup-cta'
+            className='inline-flex min-h-hit min-w-hit items-center justify-center px-2 font-semibold text-accent'
+          >
+            {t('shell.completeSignup')}
+          </Link>
+        </p>
+      </div>
+    );
+  }
 
   if (viewer.status === 'anonymous') {
     return (
@@ -47,6 +68,7 @@ export const TabBar = ({ viewer, className }: TabBarProps): ReactElement => {
           </span>
           <Link
             href={NAV_HREF.login}
+            data-testid='login-cta'
             className='inline-flex min-h-hit min-w-hit items-center justify-center px-2 font-semibold text-accent'
           >
             {t('common.login')}

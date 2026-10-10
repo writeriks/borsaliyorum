@@ -1,11 +1,11 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getDb } from '@/lib/db';
+import { ErrorCode, fail, ok } from '@/lib/errors';
 import { createLogger } from '@/lib/logger';
 import { html, startTestHttpServer, type TestHttpServer } from '@tests/utils/test-http-server';
 
 import {
-  anonymousSessionStub,
   handleLinkPreviewRequest,
   LINK_PREVIEW_RATE_LIMIT,
   type LinkPreviewHandlerDeps,
@@ -40,20 +40,23 @@ beforeEach(async () => {
 
 describe('GET /api/link-preview', () => {
   const asUser = (userId: number): LinkPreviewHandlerDeps => ({
-    getSessionUser: async () => ({ userId }),
+    authorize: async () => ok({ userId }),
     logger: silent,
     now: () => T0,
   });
   const get = (query: string, deps: LinkPreviewHandlerDeps): Promise<Response> =>
     handleLinkPreviewRequest(new Request(`http://app.test/api/link-preview${query}`), deps);
 
-  it('oturum yoksa 401 UNAUTHENTICATED; S5 öncesi stub her isteği anonim sayar', async () => {
+  it.each([
+    [ErrorCode.UNAUTHENTICATED, 401],
+    [ErrorCode.ONBOARDING_REQUIRED, 403],
+  ] as const)('oturum kapısı %s → %i; hedefe istek atılmaz', async (error, status) => {
     const response = await get(`?url=${encodeURIComponent(`${server.origin}/haber`)}`, {
-      getSessionUser: anonymousSessionStub,
+      authorize: async () => fail(error),
       logger: silent,
     });
-    expect(response.status).toBe(401);
-    expect(await response.json()).toEqual({ ok: false, error: 'UNAUTHENTICATED' });
+    expect(response.status).toBe(status);
+    expect(await response.json()).toEqual({ ok: false, error });
     expect(server.hits.get('/haber')).toBeUndefined();
   });
 
@@ -108,7 +111,7 @@ describe('GET /api/link-preview', () => {
   it('beklenmeyen hata 500 INTERNAL olur, ayrıntı sızmaz', async () => {
     const response = await get(`?url=${encodeURIComponent(`${server.origin}/haber`)}`, {
       ...asUser(1),
-      getSessionUser: async () => {
+      authorize: async () => {
         throw new Error('db down: postgres://secret');
       },
     });

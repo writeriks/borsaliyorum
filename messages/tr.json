@@ -47,7 +47,9 @@
       "privacy": "KVKK Aydınlatma Metni",
       "terms": "Kullanım Koşulları",
       "copyright": "© Borsalıyorum"
-    }
+    },
+    "completeSignup": "Kaydı tamamla",
+    "completeSignupPrompt": "Hesabın neredeyse hazır:"
   },
   "theme": {
     "menuLabel": "Tema",
@@ -77,14 +79,18 @@
     "CONFLICT": "Bu işlem şu anda tamamlanamıyor. Sayfayı yenileyip tekrar dene.",
     "RATE_LIMITED": "Çok fazla deneme yaptın. Biraz bekleyip tekrar dene.",
     "INTERNAL": "Bir şeyler ters gitti. Lütfen tekrar dene.",
-    "ONBOARDING_REQUIRED": "Devam etmek için hesap kurulumunu tamamla.",
-    "EMAIL_NOT_VERIFIED": "Paylaşım yapmak için e-posta adresini doğrula.",
-    "ACCOUNT_SUSPENDED": "Hesabın şu anda bu işlemi yapamıyor.",
+    "ONBOARDING_REQUIRED": "Devam etmek için hesabını tamamla.",
+    "EMAIL_NOT_VERIFIED": "Gönderi ve yorum yazmak için önce e-posta adresini doğrula.",
+    "ACCOUNT_SUSPENDED": "Bu hesap askıya alınmış.",
     "CONTENT_EMPTY": "Bir şeyler yaz.",
     "CONTENT_TOO_LONG": "Metin karakter sınırını aşıyor.",
     "UNKNOWN_CASHTAG": "Gönderide tanınmayan bir hisse kodu var.",
     "SPONSORED_CASHTAG_BLOCKED": "Hisse, kripto ya da başka yatırım aracı içeren gönderiler reklam/işbirliği olarak paylaşılamaz.",
-    "TOO_MANY_ENTITIES": "Bir gönderide en fazla 10 hisse, 10 etiket ve 10 kişi anabilirsin."
+    "TOO_MANY_ENTITIES": "Bir gönderide en fazla 10 hisse, 10 etiket ve 10 kişi anabilirsin.",
+    "REAUTH_REQUIRED": "Güvenliğin için yeniden giriş yapman gerekiyor.",
+    "USERNAME_TAKEN": "Bu kullanıcı adı alınmış.",
+    "USERNAME_RESERVED": "Bu kullanıcı adı kullanılamaz.",
+    "ACCOUNT_EMAIL_CONFLICT": "Bu e-posta adresi başka bir giriş yöntemiyle açılmış bir hesaba bağlı."
   },
   "entity": {
     "newTab": "(yeni sekmede açılır)",
@@ -255,5 +261,138 @@
     "lastPayload": "Son gönderilen veri",
     "openDialog": "Gönderi paylaş",
     "openSheet": "Mobil composer'ı aç"
+  },
+  "auth": {
+    "accountMenu": {
+      "label": "Hesap menüsü: {name}"
+    },
+    "signOut": {
+      "action": "Çıkış yap",
+      "pending": "Çıkış yapılıyor…",
+      "failed": "Çıkış yapılamadı. Bağlantını kontrol edip tekrar dene.",
+      "allDevicesNote": "Çıkış yaptığında tüm cihazlardaki oturumların kapanır."
+    },
+    "or": "ya da",
+    "google": {
+      "action": "Google ile devam et",
+      "pending": "Google ile bağlanılıyor…"
+    },
+    "fields": {
+      "email": "E-posta",
+      "password": "Şifre",
+      "passwordHint": "En az 8 karakter."
+    },
+    "validation": {
+      "emailInvalid": "Geçerli bir e-posta adresi gir.",
+      "passwordRequired": "Şifreni gir.",
+      "passwordTooShort": "Şifre en az 8 karakter olmalı.",
+      "passwordTooLong": "Şifre en fazla 128 karakter olabilir."
+    },
+    "login": {
+      "metaTitle": "Giriş yap",
+      "title": "Giriş yap",
+      "lead": "Hesabına giriş yap, hisseler ve yatırımcılar hakkındaki sohbete katıl.",
+      "submit": "Giriş yap",
+      "submitting": "Giriş yapılıyor…",
+      "noAccount": "Hesabın yok mu?",
+      "signupLink": "Kayıt ol"
+    },
+    "signup": {
+      "metaTitle": "Kayıt ol",
+      "title": "Kayıt ol",
+      "lead": "Ücretsiz hesap oluştur. Kullanıcı adını bir sonraki adımda seçeceksin.",
+      "submit": "Hesap oluştur",
+      "submitting": "Hesap oluşturuluyor…",
+      "haveAccount": "Zaten hesabın var mı?",
+      "loginLink": "Giriş yap",
+      "privacyNote": "Kişisel verilerinin nasıl işlendiğini <link>Aydınlatma Metni</link> içinde bulabilirsin."
+    },
+    "errors": {
+      "invalidCredentials": "E-posta veya şifre hatalı.",
+      "signupUnavailable": "Bu e-posta ile hesap oluşturulamadı. Zaten hesabın varsa giriş yap.",
+      "weakPassword": "Daha güçlü bir şifre seç (en az 8 karakter).",
+      "invalidEmail": "Geçerli bir e-posta adresi gir.",
+      "tooManyRequests": "Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.",
+      "network": "Bağlantı kurulamadı. İnternetini kontrol edip tekrar dene.",
+      "popupBlocked": "Tarayıcın giriş penceresini engelledi. Açılır pencerelere izin verip tekrar dene.",
+      "otherProvider": "Bu e-posta başka bir giriş yöntemiyle kayıtlı. O yöntemle giriş yap.",
+      "reauth": "Güvenliğin için yeniden giriş yapman gerekiyor.",
+      "suspended": "Bu hesap askıya alınmış. Destek ekibiyle iletişime geç.",
+      "generic": "Giriş yapılamadı. Lütfen tekrar dene.",
+      "signupGeneric": "Hesap oluşturulamadı. Lütfen tekrar dene."
+    },
+    "onboarding": {
+      "metaTitle": "Hesabını tamamla",
+      "title": "Hesabını tamamla",
+      "lead": "Son bir adım: diğer kullanıcıların seni tanıyacağı adı seç.",
+      "signedInAs": "Giriş yapılan hesap: {email}",
+      "switchAccount": "Farklı bir hesapla gir",
+      "username": {
+        "label": "Kullanıcı adı",
+        "hint": "3-20 karakter: küçük harf (a-z), rakam ve alt çizgi (_).",
+        "checking": "Kontrol ediliyor…",
+        "available": "Bu kullanıcı adı uygun.",
+        "errors": {
+          "tooShort": "Kullanıcı adı en az 3 karakter olmalı.",
+          "tooLong": "Kullanıcı adı en fazla 20 karakter olabilir.",
+          "invalidChars": "Yalnızca küçük harf (a-z), rakam ve alt çizgi (_) kullanabilirsin.",
+          "reserved": "Bu kullanıcı adı kullanılamaz. Başka bir ad dene.",
+          "taken": "Bu kullanıcı adı alınmış. Başka bir ad dene."
+        }
+      },
+      "displayName": {
+        "label": "Görünen ad",
+        "hint": "Profilinde ve gönderilerinde görünür.",
+        "errors": {
+          "required": "Görünen adını gir.",
+          "tooLong": "Görünen ad en fazla 50 karakter olabilir."
+        }
+      },
+      "age": {
+        "label": "18 yaşından büyüğüm.",
+        "required": "Devam etmek için 18 yaşından büyük olduğunu belirtmelisin."
+      },
+      "notice": {
+        "label": "<link>Aydınlatma Metni</link>'ni okudum.",
+        "required": "Devam etmek için Aydınlatma Metni'ni okuduğunu belirtmelisin."
+      },
+      "marketing": {
+        "label": "Kampanya, bülten ve duyuruları e-posta ile almak istiyorum (isteğe bağlı).",
+        "hint": "Bu izni istediğin zaman geri alabilirsin; vermemen üyeliğini etkilemez."
+      },
+      "submit": "Devam et",
+      "submitting": "Kaydediliyor…",
+      "failed": "Bilgilerin kaydedilemedi. Lütfen tekrar dene.",
+      "emailConflict": {
+        "title": "Bu e-posta başka bir hesapta kayıtlı",
+        "body": "{email} adresiyle daha önce farklı bir giriş yöntemi (ör. şifre ya da Google) kullanılarak bir hesap açılmış. O yöntemle giriş yapabilir ya da hesaplarının birleştirilmesi için destek ekibine yazabilirsin.",
+        "contact": "Destek: <link>{supportEmail}</link>"
+      }
+    },
+    "verify": {
+      "title": "E-posta adresini doğrula",
+      "body": "{email} adresine bir doğrulama bağlantısı gönderdik. Doğrulayana kadar gönderileri okuyabilirsin ama gönderi ve yorum yazamazsın.",
+      "resend": "Bağlantıyı yeniden gönder",
+      "resending": "Gönderiliyor…",
+      "resent": "Doğrulama bağlantısı gönderildi. Gelen kutunu kontrol et.",
+      "resendFailed": "Bağlantı gönderilemedi. Biraz bekleyip tekrar dene.",
+      "check": "Doğruladım",
+      "checking": "Kontrol ediliyor…",
+      "stillUnverified": "E-posta adresin henüz doğrulanmamış görünüyor. Bağlantıya tıkladıktan sonra tekrar dene.",
+      "verified": "E-posta adresin doğrulandı.",
+      "resendRateLimited": "Kısa sürede çok fazla bağlantı istedin. Biraz bekleyip tekrar dene."
+    },
+    "sessionExpired": "Oturumun sona erdi. Devam etmek için tekrar giriş yap; yazdıkların kaybolmaz.",
+    "reverify": {
+      "metaTitle": "Doğrulama bağlantısı",
+      "title": "Doğrulama bağlantısını gönder",
+      "lead": "Güvenliğin için tekrar giriş yap; doğrulama bağlantısını hemen e-posta adresine gönderelim.",
+      "submit": "Giriş yap ve gönder",
+      "submitting": "Gönderiliyor…"
+    }
+  },
+  "feedPlaceholder": {
+    "title": "Akış",
+    "body": "Takip ettiğin kişi ve hisselerin gönderileri yakında burada olacak."
   }
 }

@@ -51,6 +51,9 @@ describe('runRetentionPurge', () => {
       data: [
         { key: 'post.create:u:1', windowStart: ago(49 * HOUR), count: 3 },
         { key: 'post.create:u:1', windowStart: ago(47 * HOUR), count: 3 },
+        // IP anahtarlı (hash'li) kovalar en geç 24 saatte silinir (legal kararı)
+        { key: 'auth.session.ip:old', windowStart: ago(25 * HOUR), count: 1 },
+        { key: 'auth.session.ip:new', windowStart: ago(23 * HOUR), count: 1 },
       ],
     });
 
@@ -82,14 +85,16 @@ describe('runRetentionPurge', () => {
 
     expect(summary).toEqual({
       contentEvents: 1,
-      rateLimitBuckets: 1,
+      rateLimitBuckets: 2,
       linkPreviews: 1,
       legalIdentities: 1,
     });
     const events = await getDb().contentEvent.findMany({ select: { id: true } });
     expect(events.map(e => e.id)).toEqual([recentEvent.id]);
     expect(events.map(e => e.id)).not.toContain(oldEvent.id);
-    expect((await getDb().rateLimitBucket.findMany()).length).toBe(1);
+    expect(
+      (await getDb().rateLimitBucket.findMany({ orderBy: { key: 'asc' } })).map(b => b.key)
+    ).toEqual(['auth.session.ip:new', 'post.create:u:1']);
     const previews = await getDb().linkPreview.findMany({
       select: { id: true },
       orderBy: { id: 'asc' },

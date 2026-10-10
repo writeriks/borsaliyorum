@@ -91,7 +91,7 @@ type OpenOptions = {
   outcome?: string;
   delay?: number;
   postId?: number;
-  auth?: 'authenticated' | 'unknown' | 'anonymous';
+  auth?: 'authenticated' | 'unknown' | 'anonymous' | 'session';
   mocks?: ComposerMocks;
   /** Taslakları temizlemeden aç (yeniden yükleme senaryoları). */
   keepStorage?: boolean;

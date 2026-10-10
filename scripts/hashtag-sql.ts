@@ -87,10 +87,23 @@ const bracket = (name: ClassName, prefix: string, suffix: string, indent: string
   return [first, ...lines, last].map(line => `${indent}'${line}'`).join('\n');
 };
 
-export const generateHashtagSql = (): string => {
+/** Üretilen bloğun hangi Unicode tablosuyla üretildiği (`-- Unicode 16.0`). */
+export const UNICODE_STAMP_PREFIX = '-- Unicode ';
+
+/** Migration'daki Unicode damgası; yoksa null. */
+export const readUnicodeStamp = (sql: string): string | null => {
+  const block = extractGeneratedBlock(sql) ?? '';
+  const line = block.split('\n').find(candidate => candidate.startsWith(UNICODE_STAMP_PREFIX));
+  return line ? line.slice(UNICODE_STAMP_PREFIX.length).trim() : null;
+};
+
+export const generateHashtagSql = (
+  unicodeVersion: string = process.versions.unicode ?? 'bilinmiyor'
+): string => {
   const i = '      ';
   return `${BEGIN_MARKER}
 -- Elle düzenlenmez. Karakter sınıfları Node'un Unicode tablolarından kod noktası aralıklarıdır.
+${UNICODE_STAMP_PREFIX}${unicodeVersion}
 
 -- TS foldTag (fold.ts) karşılığı: Default_Ignorable silme → NFKC → İ I ı → i → lowercase (ICU)
 -- → ş ğ ü ö ç â î û katlama → NFKC; sonuç değişmeyene kadar tekrar.

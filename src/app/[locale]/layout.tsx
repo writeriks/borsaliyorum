@@ -7,6 +7,8 @@ import type { ReactElement, ReactNode } from 'react';
 
 import { Providers } from '@/components/providers';
 import { routing } from '@/i18n/routing';
+import { getSession } from '@/lib/auth/session';
+import { toClientSession } from '@/lib/auth/types';
 
 import '../globals.css';
 
@@ -42,13 +44,15 @@ const LocaleLayout = async ({
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
+  // Oturum sunucuda, istek başına bir kez çözülür; ilk HTML doğru durumla gelir (flash yok)
+  const session = toClientSession(await getSession());
 
   return (
     // suppressHydrationWarning: next-themes tema sınıfını hidrasyondan önce <html>'e yazar
     <html lang={locale} className={inter.variable} suppressHydrationWarning>
       <body className='min-h-dvh antialiased'>
         <NextIntlClientProvider>
-          <Providers>{children}</Providers>
+          <Providers session={session}>{children}</Providers>
         </NextIntlClientProvider>
       </body>
     </html>

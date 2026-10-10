@@ -10,6 +10,8 @@ export const DEV_OUTCOMES = [
   'unknownCashtag',
 ] as const;
 export const DEV_AUTH = ['authenticated', 'unknown', 'anonymous'] as const;
+/** `session`: composer sahte kullanıcı yerine gerçek oturumun kullanıcısıyla (çıkış E2E'si). */
+export const DEV_COMPOSER_AUTH = [...DEV_AUTH, 'session'] as const;
 
 export type DevVariant = (typeof DEV_VARIANTS)[number];
 export type DevOutcome = (typeof DEV_OUTCOMES)[number];
@@ -21,9 +23,7 @@ export type DevComposerConfig = {
   outcome: DevOutcome;
   delayMs: number;
   postId: number;
-  auth: (typeof DEV_AUTH)[number];
-  /** Kabuğun (AppShell) oturum durumu; composer'ın sahte kullanıcısından bağımsız. */
-  shell: (typeof DEV_AUTH)[number];
+  auth: (typeof DEV_COMPOSER_AUTH)[number];
 };
 
 const pick = <T extends string>(
@@ -45,6 +45,5 @@ export const parseDevComposerParams = (
   outcome: pick(DEV_OUTCOMES, params.outcome, 'ok'),
   delayMs: toInt(params.delay, 300, 10_000),
   postId: toInt(params.postId, 1, 1_000_000) || 1,
-  auth: pick(DEV_AUTH, params.auth, 'authenticated'),
-  shell: pick(DEV_AUTH, params.shell, 'unknown'),
+  auth: pick(DEV_COMPOSER_AUTH, params.auth, 'authenticated'),
 });

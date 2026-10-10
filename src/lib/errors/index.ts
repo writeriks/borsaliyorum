@@ -13,10 +13,23 @@ export const ErrorCode = {
   CONFLICT: 'CONFLICT',
   RATE_LIMITED: 'RATE_LIMITED',
   INTERNAL: 'INTERNAL',
-  // Gönderi/yorum yazma (ADR-0002 Karar 7); composer (S8) bunları kullanıcı mesajına eşler
+  // --- Auth (S5) ---
+  /** Kimlik doğrulandı ama hesap henüz kullanıcı adı seçmedi (onboarding). */
   ONBOARDING_REQUIRED: 'ONBOARDING_REQUIRED',
+  /** E-posta doğrulanmamış kullanıcı yazamaz (spam ve 5651 sorumluluğu). */
   EMAIL_NOT_VERIFIED: 'EMAIL_NOT_VERIFIED',
   ACCOUNT_SUSPENDED: 'ACCOUNT_SUSPENDED',
+  /** Giriş 5 dakikadan eski: oturum açmak/hassas işlem için yeniden giriş gerekir. */
+  REAUTH_REQUIRED: 'REAUTH_REQUIRED',
+  USERNAME_TAKEN: 'USERNAME_TAKEN',
+  USERNAME_RESERVED: 'USERNAME_RESERVED',
+  /**
+   * Bu e-posta başka bir Firebase kimliğine bağlı bir hesapta kayıtlı (v1'de aynı e-postayla
+   * farklı giriş yöntemiyle açılmış hesap). v1 kararı: otomatik birleştirme yok; kullanıcıya
+   * açık mesaj + destek iletişimi.
+   */
+  ACCOUNT_EMAIL_CONFLICT: 'ACCOUNT_EMAIL_CONFLICT',
+  // --- Gönderi/yorum yazma (ADR-0002 Karar 7); composer (S8) bunları kullanıcı mesajına eşler ---
   CONTENT_EMPTY: 'CONTENT_EMPTY',
   CONTENT_TOO_LONG: 'CONTENT_TOO_LONG',
   UNKNOWN_CASHTAG: 'UNKNOWN_CASHTAG',

@@ -1,7 +1,9 @@
-import { expect, type Locator, type Page, test } from '@playwright/test';
+import { expect, type Locator, type Page, test } from './support/test';
 
 import en from '../../messages/en.json' with { type: 'json' };
 import tr from '../../messages/tr.json' with { type: 'json' };
+
+import { loginViaUi, seedOnboardedUser } from './support/auth';
 
 const box = async (
   locator: Locator
@@ -20,10 +22,11 @@ const expectNoHorizontalScroll = async (page: Page): Promise<void> => {
 
 test.describe('uygulama kabuğu: layout', () => {
   test(
-    'mobil: üst bar + alt tab bar, sol menü ve sağ kolon yok',
+    'mobil: üst bar + alt tab bar (girişli), sol menü ve sağ kolon yok',
     { tag: '@mobile' },
     async ({ page }) => {
-      await page.goto('/');
+      await loginViaUi(page, await seedOnboardedUser());
+      await page.waitForURL('**/akis');
       const viewport = page.viewportSize();
       if (!viewport) throw new Error('viewport yok');
 
@@ -52,6 +55,22 @@ test.describe('uygulama kabuğu: layout', () => {
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
       const copyRect = await box(copyright);
       expect(copyRect.y + copyRect.height).toBeLessThanOrEqual(tabRect.y);
+    }
+  );
+
+  test(
+    'mobil anonim: tab bar yerine alttaki "Sohbete katıl" bandı',
+    { tag: '@mobile' },
+    async ({ page }) => {
+      await page.goto('/');
+      const viewport = page.viewportSize();
+      if (!viewport) throw new Error('viewport yok');
+      const banner = page.getByTestId('join-banner');
+      await expect(banner).toBeVisible();
+      const rect = await box(banner);
+      expect(Math.round(rect.y + rect.height)).toBe(viewport.height);
+      await expect(page.getByTestId('tab-bar')).toHaveCount(0);
+      await expectNoHorizontalScroll(page);
     }
   );
 
@@ -117,13 +136,14 @@ test.describe('uygulama kabuğu: layout', () => {
     }
   );
 
-  test('auth çözülmeden "Giriş yap"/"Kayıt ol" hiç görünmez, skeleton görünür', async ({
+  test('anonim durum sunucudan gelir: ilk HTML giriş çağrısını içerir, auth skeleton yok', async ({
     page,
   }) => {
+    const html = await (await page.request.get('/')).text();
+    expect(html).toContain('data-testid="login-cta"');
+    expect(html).not.toContain('data-testid="auth-slot-skeleton"');
     await page.goto('/');
-    await expect(page.getByRole('main')).toBeVisible();
-    await expect(page.getByText(tr.common.login, { exact: true })).toHaveCount(0);
-    await expect(page.getByText(tr.common.signup, { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId('login-cta').filter({ visible: true }).first()).toBeVisible();
   });
 
   test('skip link ilk Tab ile görünür ve içeriğe odak taşır', async ({ page }) => {
@@ -140,7 +160,7 @@ test.describe('uygulama kabuğu: layout', () => {
     await page.goto('/en');
     await expect(page.getByRole('link', { name: en.shell.skipToContent })).toBeAttached();
     await expect(
-      page.getByRole('navigation', { name: en.shell.mainNav }).filter({ visible: true })
+      page.getByRole('link', { name: en.common.signup }).filter({ visible: true }).first()
     ).toBeVisible();
     await expect(page.getByText(en.legal.disclaimer.full).filter({ visible: true })).toBeVisible();
   });
@@ -201,14 +221,24 @@ test.describe('dokunma hedefleri', () => {
 test.describe('uygulama kabuğu: oturum açık (sunucu render)', () => {
   // Kabuk Server Component; avatar baş harfleri sunucuda hesaplanır. Daha önce `'use client'`
   // modülünden fonksiyon çağrıldığı için bu durum RSC render'ında hata veriyordu.
-  test('profil bağlantısı ve baş harfler görünür, giriş/kayıt UI yok', async ({ page }) => {
-    const response = await page.goto('/dev/composer?shell=authenticated');
+  test('hesap menüsü ve baş harfler sunucu render ile görünür, giriş/kayıt UI yok', async ({
+    page,
+  }) => {
+    // S5: kabuk oturumu AuthProvider'dan (sunucuda çözülmüş gerçek oturum) okur
+    const account = await seedOnboardedUser();
+    await loginViaUi(page, account);
+    await page.waitForURL('**/akis');
+    const response = await page.reload();
     expect(response?.status()).toBe(200);
 
-    // Mobilde sol menü CSS ile gizli (rol sorguları gizli öğeyi görmez); DOM'da olması yeterli
-    const profile = page.locator('a[aria-label="Ayşe Kaya @aysek"]');
-    await expect(profile.first()).toBeAttached();
-    await expect(profile.first().locator('[data-slot="avatar-fallback"]')).toHaveText('AK');
+    // Mobilde sol menü CSS ile gizli; DOM'da olması yeterli
+    const trigger = page.getByTestId('account-menu-trigger').first();
+    await expect(trigger).toBeAttached();
+    await expect(trigger).toHaveAttribute(
+      'aria-label',
+      tr.auth.accountMenu.label.replace('{name}', account.displayName)
+    );
+    await expect(trigger.locator('[data-slot="avatar-fallback"]')).toHaveText('ET');
     await expect(page.getByRole('link', { name: tr.common.login })).toHaveCount(0);
     await expect(page.getByTestId('auth-slot-skeleton')).toHaveCount(0);
   });

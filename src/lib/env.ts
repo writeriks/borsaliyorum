@@ -56,6 +56,13 @@ export const serverEnvSchema = z.object({
     .transform(key => key.replace(/\\n/g, '\n')),
   FIREBASE_STORAGE_BUCKET: required,
   IP_ENCRYPTION_KEY: ipEncryptionKey,
+  /**
+   * Yalnızca test/E2E: Firebase Auth emulator adresi (`127.0.0.1:9099`). Emulator token'ları
+   * imzasızdır; production'da set ise uygulama başlamaz (`assertNoAuthEmulatorInProduction`).
+   */
+  FIREBASE_AUTH_EMULATOR_HOST: optional,
+  /** Vercel'in verdiği ortam adı: production | preview | development. */
+  VERCEL_ENV: optional,
 });
 
 export const clientEnvSchema = z.object({
@@ -66,6 +73,8 @@ export const clientEnvSchema = z.object({
   NEXT_PUBLIC_APP_ID: required,
   // v2'de analitik yok; tanımlı olmasa da build kırılmaz
   NEXT_PUBLIC_MEASUREMENT_ID: optional,
+  /** Yalnızca E2E build'i: istemci SDK'sı emulator'e bağlanır (`connectAuthEmulator`). */
+  NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: optional,
   // Sitenin kök URL'si (ör. https://borsaliyorum.com); iç linkleri tanımak için (link önizleme)
   NEXT_PUBLIC_SITE_URL: z.preprocess(
     value => (value === '' ? undefined : value),
@@ -111,7 +120,52 @@ export const isProductionRuntime = (source: EnvSource): boolean =>
 /** Yalnızca production runtime'da zorunlu olan sunucu değişkenleri. */
 const PRODUCTION_RUNTIME_REQUIRED = ['IP_ENCRYPTION_KEY'] as const;
 
+/** Emulator'e bağlanmayı sağlayan değişkenler; production'da hiçbiri set olamaz. */
+const AUTH_EMULATOR_VARS = [
+  'FIREBASE_AUTH_EMULATOR_HOST',
+  'NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST',
+] as const;
+
+/** Firebase'in yalnızca emulator'de çalışan, gerçek projeye bağlanamayan proje öneki. */
+const EMULATOR_ONLY_PROJECT_PREFIX = 'demo-';
+const PROJECT_ID_VARS = ['FIREBASE_PROJECT_ID', 'NEXT_PUBLIC_FIREBASE_PROJECT_ID'] as const;
+
+/**
+ * Yalnızca `demo-` projeleri: E2E (`next start` = production runtime) emulator ile koşar ama
+ * gerçek Firebase projesine hiç bağlanamaz. Tanımlı her proje kimliği `demo-` olmalı.
+ */
+const usesEmulatorOnlyProject = (source: EnvSource): boolean => {
+  const ids = PROJECT_ID_VARS.map(name => (source[name] ?? '').trim()).filter(id => id !== '');
+  return ids.length > 0 && ids.every(id => id.startsWith(EMULATOR_ONLY_PROJECT_PREFIX));
+};
+
+/**
+ * Emulator token'ları imzasızdır: dağıtılmış bir ortamda emulator değişkeni set ise herkes
+ * istediği kullanıcı olarak oturum açabilirdi. Hata koşulları:
+ * - Vercel production **veya preview** (preview URL'leri herkese açık)
+ * - production runtime (`next start`, `NEXT_PHASE` build değil), proje `demo-` değilse
+ * Bu yüzden build, sunucu başlangıcı (instrumentation) ve Admin SDK kurulumu bu kontrolü yapar
+ * (ADR-0001 Karar 5, ADR-0003 Karar 4). Emulator modunda yerel doğrulamaya düşen bir yol yoktur:
+ * `resolveSession` tek bir `verifySessionCookie(…, false)` çağrısı yapar.
+ */
+export const assertNoAuthEmulatorInProduction = (source: EnvSource): void => {
+  const present = AUTH_EMULATOR_VARS.filter(name => (source[name] ?? '').trim() !== '');
+  if (present.length === 0) return;
+  const deployed = source.VERCEL_ENV === 'production' || source.VERCEL_ENV === 'preview';
+  const unsafeRuntime = isProductionRuntime(source) && !usesEmulatorOnlyProject(source);
+  if (deployed || unsafeRuntime) {
+    throw new EnvValidationError(
+      'server',
+      present.map(
+        name =>
+          `${name}: production/preview'da ya da demo- olmayan projeyle production runtime'da tanımlı olamaz (emulator token'ları imzasız)`
+      )
+    );
+  }
+};
+
 export const parseServerEnv = (source: EnvSource): ServerEnv => {
+  assertNoAuthEmulatorInProduction(source);
   const env = parseWith(serverEnvSchema, 'server', source);
   if (isProductionRuntime(source)) {
     const missing = PRODUCTION_RUNTIME_REQUIRED.filter(name => env[name] === undefined);
@@ -161,6 +215,8 @@ export const parseSafeFetchTestAllow = (source: EnvSource): readonly string[] =>
 
 /** Build anında sunucu ve istemci env'ini birlikte doğrular; hataları tek listede verir. */
 export const assertBuildEnv = (source: EnvSource): { skipped: boolean } => {
+  // Atlanamaz: E2E build'i (emulator'lü) asla production'a çıkmamalı
+  assertNoAuthEmulatorInProduction(source);
   // SKIP_ENV_VALIDATION'dan önce: test allowlist'i hiçbir build'e girmemeli.
   if (source.SAFE_FETCH_TEST_ALLOW?.trim()) {
     throw new EnvValidationError('build', [

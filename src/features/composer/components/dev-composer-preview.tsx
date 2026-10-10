@@ -33,7 +33,14 @@ const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(r
  * Geçici geliştirme önizlemesi: composer'ın her varyantı sahte servislerle. Gönderme sonucu ve
  * gecikme sayfadan seçilir (S10 action'ları gelene kadar SND-* durumlarını görmek için).
  */
-export const DevComposerPreview = ({ config }: { config: DevComposerConfig }): ReactElement => {
+export const DevComposerPreview = ({
+  config,
+  sessionUserId = null,
+}: {
+  config: DevComposerConfig;
+  /** `auth=session`: sunucuda çözülmüş gerçek oturumun kullanıcısı (anonimse null). */
+  sessionUserId?: number | null;
+}): ReactElement => {
   const t = useTranslations('devComposer');
   const tComposer = useTranslations('composer');
   const tShell = useTranslations('shell');
@@ -69,10 +76,17 @@ export const DevComposerPreview = ({ config }: { config: DevComposerConfig }): R
     return OUTCOME_RESULT[current.outcome]();
   };
 
-  const viewer: ComposerViewer =
-    config.auth === 'authenticated'
+  const viewerOf = (): ComposerViewer => {
+    if (config.auth === 'session') {
+      return sessionUserId === null
+        ? { status: 'anonymous' }
+        : { status: 'authenticated', userId: sessionUserId };
+    }
+    return config.auth === 'authenticated'
       ? { status: 'authenticated', userId: DEV_USER_ID }
       : { status: config.auth };
+  };
+  const viewer = viewerOf();
 
   const requestDialogClose = (): void => {
     if (handle.current?.hasContent()) setConfirmOpen(true);

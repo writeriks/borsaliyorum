@@ -86,12 +86,32 @@ describe('AppShell', () => {
     expect(screen.queryByTestId('auth-slot-skeleton')).not.toBeInTheDocument();
   });
 
+  it('onboarding eksik: "Giriş yap" yerine "Kaydı tamamla" (→ /hos-geldin)', () => {
+    renderShell({ status: 'needs-onboarding' });
+    expect(screen.queryByText(tr.common.login)).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: tr.common.login })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('login-cta')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('join-banner')).not.toBeInTheDocument();
+    const ctas = screen.getAllByTestId('complete-signup-cta');
+    expect(ctas.length).toBeGreaterThan(0);
+    for (const cta of ctas) expect(cta).toHaveAttribute('href', '/hos-geldin');
+    expect(screen.getByTestId('complete-signup-banner')).toHaveTextContent(tr.shell.completeSignup);
+  });
+
+  it('mobil üst bar skeleton’ı test kimliğiyle işaretli (flash testi yakalasın)', () => {
+    renderShell({ status: 'unknown' });
+    expect(screen.getByTestId('top-bar-account-skeleton')).toBeInTheDocument();
+  });
+
   it('girişli: profil ve bildirim linkleri, avatar baş harfleri', () => {
     renderShell(authenticated);
     const profileLinks = screen.getAllByRole('link', { name: tr.shell.nav.profile });
     for (const link of profileLinks) expect(link).toHaveAttribute('href', '/u/aysek');
     expect(screen.getAllByRole('link', { name: tr.shell.nav.notifications }).length).toBe(2);
-    expect(screen.getByRole('link', { name: 'Ayşe Kaya @aysek' })).toHaveTextContent('AK');
+    // Hesap menüsü: sol menü (md+) ve mobil üst bar; ikisi de avatar baş harfleriyle
+    const accountMenus = screen.getAllByRole('button', { name: 'Hesap menüsü: Ayşe Kaya' });
+    expect(accountMenus).toHaveLength(2);
+    for (const trigger of accountMenus) expect(trigger).toHaveTextContent('AK');
     expect(screen.queryByText(tr.common.login)).not.toBeInTheDocument();
   });
 

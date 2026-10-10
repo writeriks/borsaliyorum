@@ -40,7 +40,7 @@ export const AppShell = ({ children, viewer = UNKNOWN_VIEWER }: AppShellProps): 
           data-testid='feed-column'
           className='flex w-full max-w-feed min-w-0 flex-col md:border-x md:border-border'
         >
-          <TopBar className='md:hidden' />
+          <TopBar className='md:hidden' viewer={viewer} />
           <main id={MAIN_CONTENT_ID} tabIndex={-1} className='flex-1 outline-none'>
             {children}
           </main>

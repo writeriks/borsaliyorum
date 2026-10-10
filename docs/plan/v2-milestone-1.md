@@ -181,7 +181,10 @@ başlanabilir.
   üç `Suggestion` (tetikleme `findActiveTrigger` ile), popup (`@floating-ui/dom`, ARIA
   combobox/listbox), grafem sayacı, sentiment seçici (yalnızca tanınmış cashtag varken),
   sponsorluk anahtarı (cashtag ile birlikte paylaşımı engeller), kısa yatırım uyarısı,
-  boş sorgu varsayılan önerileri, düz metin yapıştırma, `localStorage` taslak (çıkışta silinir),
+  boş sorgu varsayılan önerileri, düz metin yapıştırma, `localStorage` taslak (çıkışta silinir:
+  `AuthProvider` başarılı çıkışta `window`'a `SIGNED_OUT_EVENT` = `'borsaliyorum:signed-out'`
+  yayınlar (`components/auth/auth-provider.tsx`, unit testli); composer bunu dinleyip taslağı
+  siler. Oturum süresi dolması çıkış değildir: o durumda olay yayınlanmaz, taslak korunur),
   `clientRequestId` ile tek gönderim, link önizleme alanı (S9 uç sözleşmesiyle), `mode: 'post' | 'comment'`,
   `onSubmit` dışarıdan (S10 action'ları bağlanır). Hisse indeksi istemcide TanStack Query.
 - **Bağımlılık:** S4, S2. S7 ve S9 için sözleşme + MSW mock'u yeterli; gerçek bağlantı
@@ -241,8 +244,12 @@ başlanabilir.
   idempotent (iki kez `liked:true` tek satır); metin sınırı `CONTENT_MAX_CHARS`'tan
   (`src/lib/content-limits.ts`: gönderi 1000, yorum 500 — K11; şema sayıyı tekrar yazmaz,
   1001/501 grafem → `CONTENT_TOO_LONG`); `Comment.clientRequestId` migration'ı + aynı kimlikle
-  ikinci `createComment` ilk `commentId`'yi döner (ADR-0002 Karar 7). **security-reviewer + legal-advisor (5651
-  kaydı) zorunlu.**
+  ikinci `createComment` ilk `commentId`'yi döner (ADR-0002 Karar 7); **her yazma action'ı
+  `requireWriter()` (`lib/auth/session.ts`) kullanır** — `requireActionUser` + gerekirse
+  Firebase'den bir kez e-posta doğrulama tazelemesi → `EMAIL_NOT_VERIFIED` (kendi kontrolünü
+  yazan action yok); istemci sonuçları ortak `useActionResult` (`lib/client/action-result.ts`)
+  ile işler (`UNAUTHENTICATED` → "Oturumun sona erdi" + `/giris?next=`, taslak korunur).
+  **security-reviewer + legal-advisor (5651 kaydı) zorunlu.**
 
 ### S11 — Akış sayfası
 - `/akis` (girişli: "Takip" ve "Son" sekmeleri), landing'de (`/`) anonim için "Son" akışı +

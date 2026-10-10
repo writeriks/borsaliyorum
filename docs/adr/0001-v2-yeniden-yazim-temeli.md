@@ -463,6 +463,9 @@ bekler), HTTP cache/AbortSignal desteği yoktur. Bu GET uçları ince sarmalayı
   `decoded.auth_time < user.sessionsValidAfter` ya da `status != active` ise **anonim**.
   Böylece çıkış/ban anında etkili olur ve her istekte Firebase'e ağ çağrısı yapılmaz.
   Hassas işlemler (şifre, hesap silme) ek olarak `checkRevoked=true` + taze `auth_time` ister.
+  Uygulama (S5): `resolveSession` tek çağrı `verifySessionCookie(cookie, false)` (ağ hatasında
+  ikinci/gevşek deneme yok → anonim); hassas işlemler `requireSensitiveSession()` →
+  `verifySensitiveSession` (`checkRevoked=true`, Firebase'e ulaşılamazsa `REAUTH_REQUIRED`).
 - Dönüş: `{ status: 'authenticated', user: SessionUser } | { status: 'needs-onboarding',
   email } | { status: 'anonymous' }`. `SessionUser` = PublicUser + sahibine özel `email`,
   `emailVerified`, `role`.
@@ -481,9 +484,16 @@ bekler), HTTP cache/AbortSignal desteği yoktur. Bu GET uçları ince sarmalayı
 - Oturum ömrü en fazla 14 gün (Firebase session cookie üst sınırı); sessiz yenileme yok
   (auth_time ≤ 5 dk kuralı yüzünden yenileme yeniden giriş ister).
 - Google girişi `signInWithPopup` (redirect akışı üçüncü taraf depolama bölümlemesi yüzünden
-  güvenilmez). v2 alan adları Firebase *Authorized domains*'e eklenir.
-- Emulator güvenliği: `FIREBASE_AUTH_EMULATOR_HOST` set ve `VERCEL_ENV === 'production'` ise
-  `lib/auth/firebase-admin.ts` başlangıçta hata fırlatır (emulator token'ları imzasızdır).
+  güvenilmez). v2 alan adları Firebase *Authorized domains*'e eklenir. Popup engellenmesin diye
+  SDK form açılınca önceden yüklenir ve popup tıklamada senkron açılır; tarayıcı yine de
+  engellerse (`auth/popup-blocked`) yalnızca fallback olarak `signInWithRedirect` kullanılır.
+- Doğrulama e-postasını yeniden gönderme: istemciye **özel (custom) token verilmez**. Mail
+  altyapısı gelene kadar Firebase istemci `sendEmailVerification`'ı: açık istemci oturumu varsa
+  onunla, yoksa "tekrar giriş yap ve gönder" (`/giris?dogrula=1`); hesap başına rate limit.
+  Mail altyapısı gelince sunucuda `generateEmailVerificationLink` + kendi gönderimimiz.
+- Emulator güvenliği: emulator değişkeni set iken `VERCEL_ENV` production **ya da preview** ise,
+  ya da production runtime'da (`next start`) proje `demo-` değilse build/başlangıç hata verir
+  (emulator token'ları imzasızdır). E2E yalnızca `demo-` projesiyle koşar.
 
 ## Alternatifler (özet)
 

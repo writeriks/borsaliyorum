@@ -1,12 +1,10 @@
-import {
-  anonymousSessionStub,
-  handleLinkPreviewRequest,
-} from '@/features/link-preview/server/route-handler';
+import { handleLinkPreviewRequest } from '@/features/link-preview/server/route-handler';
+import { requireActionUser } from '@/lib/auth/session';
 
 // safeFetch Node API'leri (dns, net, undici) kullanır; Edge'de çalışmaz.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// TODO(S5): anonymousSessionStub → lib/auth/session getCurrentUser (şimdilik uç hep 401).
+// Oturum çerezden çözülür (S5); anonim → 401, onboarding'i bitmemiş → 403.
 export const GET = (request: Request): Promise<Response> =>
-  handleLinkPreviewRequest(request, { getSessionUser: anonymousSessionStub });
+  handleLinkPreviewRequest(request, { authorize: requireActionUser });

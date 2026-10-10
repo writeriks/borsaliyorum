@@ -13,17 +13,14 @@ import type { LinkPreviewResponse } from '../types';
 /** Kullanıcı başına dakikada 20 önizleme isteği (ADR-0002 Karar 6). */
 export const LINK_PREVIEW_RATE_LIMIT = { limit: 20, windowMs: 60_000 } as const;
 
-/** Oturumdaki kullanıcının kimliği; anonimse null. */
-export type SessionUserResolver = () => Promise<{ readonly userId: number } | null>;
-
 /**
- * S5 (oturum) gelene kadar yer tutucu: her isteği anonim sayar, yani uç `UNAUTHENTICATED`
- * döner (fail-closed). S5'te `lib/auth/session`'daki `getCurrentUser` ile değiştirilir.
+ * Oturum kapısı: girişli ve onboarding'i bitmiş kullanıcı → `ok({ userId })`; değilse
+ * `UNAUTHENTICATED` / `ONBOARDING_REQUIRED`. Route'ta `lib/auth/session`'daki `requireActionUser`.
  */
-export const anonymousSessionStub: SessionUserResolver = async () => null;
+export type SessionAuthorizer = () => Promise<Result<{ readonly userId: number }>>;
 
 export type LinkPreviewHandlerDeps = {
-  readonly getSessionUser: SessionUserResolver;
+  readonly authorize: SessionAuthorizer;
   readonly db?: () => PrismaClient;
   readonly logger?: Logger;
   readonly now?: () => Date;
@@ -32,6 +29,7 @@ export type LinkPreviewHandlerDeps = {
 
 const STATUS_BY_ERROR: Partial<Record<ErrorCode, number>> = {
   [ErrorCode.UNAUTHENTICATED]: 401,
+  [ErrorCode.ONBOARDING_REQUIRED]: 403,
   [ErrorCode.VALIDATION]: 400,
   [ErrorCode.RATE_LIMITED]: 429,
 };
@@ -52,8 +50,9 @@ const resolvePreview = async (
   });
   if (!parsed.success) return fail(ErrorCode.VALIDATION);
 
-  const user = await deps.getSessionUser();
-  if (!user) return fail(ErrorCode.UNAUTHENTICATED);
+  const auth = await deps.authorize();
+  if (!auth.ok) return auth;
+  const user = auth.data;
 
   const db = (deps.db ?? getDb)();
   const now = deps.now?.() ?? new Date();
