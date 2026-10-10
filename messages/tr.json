@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "title": "Borsalıyorum",
+    "description": "Borsa İstanbul hisseleri ve yatırım üzerine konuşan Türkçe topluluk."
+  },
+  "home": {
+    "title": "Borsalıyorum",
+    "lead": "Hisseler, etiketler ve yatırımcılar hakkında konuşan topluluk. Yeni sürüm hazırlanıyor.",
+    "switchLocale": "English",
+    "switchLocaleLabel": "Sayfayı İngilizce görüntüle"
+  },
+  "notFound": {
+    "title": "Sayfa bulunamadı",
+    "description": "Aradığın sayfa taşınmış ya da hiç var olmamış olabilir.",
+    "backHome": "Ana sayfaya dön"
+  },
+  "errors": {
+    "UNAUTHENTICATED": "Bu işlem için giriş yapmalısın.",
+    "FORBIDDEN": "Bu işlem için yetkin yok.",
+    "NOT_FOUND": "Aradığın içerik bulunamadı.",
+    "VALIDATION": "Girdiğin bilgileri kontrol edip tekrar dene.",
+    "CONFLICT": "Bu işlem şu anda tamamlanamıyor. Sayfayı yenileyip tekrar dene.",
+    "RATE_LIMITED": "Çok fazla deneme yaptın. Biraz bekleyip tekrar dene.",
+    "INTERNAL": "Bir şeyler ters gitti. Lütfen tekrar dene."
+  }
+}

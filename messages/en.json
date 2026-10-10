@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "title": "Borsalıyorum",
+    "description": "A Turkish community talking about Borsa Istanbul stocks and investing."
+  },
+  "home": {
+    "title": "Borsalıyorum",
+    "lead": "A community talking about stocks, tags and investors. A new version is on its way.",
+    "switchLocale": "Türkçe",
+    "switchLocaleLabel": "View this page in Turkish"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for may have moved or never existed.",
+    "backHome": "Back to home"
+  },
+  "errors": {
+    "UNAUTHENTICATED": "You need to sign in to do this.",
+    "FORBIDDEN": "You don't have permission to do this.",
+    "NOT_FOUND": "We couldn't find what you were looking for.",
+    "VALIDATION": "Please check the information you entered and try again.",
+    "CONFLICT": "This can't be completed right now. Refresh the page and try again.",
+    "RATE_LIMITED": "Too many attempts. Please wait a moment and try again.",
+    "INTERNAL": "Something went wrong. Please try again."
+  }
+}

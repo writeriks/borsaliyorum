@@ -1,0 +1,8 @@
+@import 'tailwindcss';
+
+/* v1 referans kodu ve belgeler sınıf taramasına girmesin */
+@source not '../../legacy';
+@source not '../../docs';
+@source not '../../.claude';
+
+/* Tasarım token'ları S2'de (design-system skill'i) eklenecek. */
