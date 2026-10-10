@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 import { LoaderCircle } from 'lucide-react';
 import { Slot } from 'radix-ui';
-import type { ComponentProps, ReactElement } from 'react';
+import type { ComponentProps, MouseEvent, ReactElement } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -9,7 +9,7 @@ export const buttonVariants = cva(
   [
     'inline-flex shrink-0 items-center justify-center gap-2 rounded-md font-medium whitespace-nowrap',
     'transition-colors duration-(--duration-fast) ease-out select-none',
-    'disabled:pointer-events-none disabled:opacity-60 aria-disabled:opacity-60',
+    'disabled:pointer-events-none disabled:opacity-60 aria-disabled:pointer-events-none aria-disabled:opacity-60',
     '[&_svg]:pointer-events-none [&_svg]:shrink-0',
   ],
   {
@@ -21,11 +21,15 @@ export const buttonVariants = cva(
         outline: 'border border-border-strong bg-transparent text-fg hover:bg-bg-muted',
         danger: 'bg-danger text-bg hover:bg-danger/90',
       },
-      // sm yalnızca masaüstü yoğun listeler için (32px); dokunma yüzeylerinde lg/icon kullan
+      /*
+       * Dokunma hedefi ≥44px (design-system): sm (32px) ve md (40px) yalnızca ince işaretçili
+       * (fare) yoğun yüzeyler içindir; kaba işaretçide (`pointer: coarse`, dokunmatik) kendiliğinden
+       * 44px'e büyür. Bu yüzden boyut seçimi cihaz tahminine bırakılmaz.
+       */
       size: {
-        sm: 'h-8 px-3 text-sm [&_svg]:size-4',
-        md: 'h-10 px-4 text-sm [&_svg]:size-4',
-        lg: 'min-h-hit px-5 text-sm [&_svg]:size-5',
+        sm: 'h-8 px-3 text-sm pointer-coarse:h-hit [&_svg]:size-4',
+        md: 'h-10 px-4 text-sm pointer-coarse:h-hit [&_svg]:size-4',
+        lg: 'min-h-hit px-4 text-sm [&_svg]:size-5',
         icon: 'size-hit [&_svg]:size-5',
       },
     },
@@ -52,11 +56,31 @@ export const Button = ({
   ...props
 }: ButtonProps): ReactElement => {
   const classes = cn(buttonVariants({ variant, size }), className);
+  const inactive = Boolean(disabled || loading);
+  const spinner = loading ? (
+    <LoaderCircle aria-hidden='true' className='animate-spin' data-testid='button-spinner' />
+  ) : null;
 
   if (asChild) {
+    // Bağlantı gibi öğelerde `disabled` yok: devre dışılık aria-disabled ile duyurulur, sekme
+    // sırasından çıkarılır ve tıklama/Enter ile gezinme engellenir.
+    const inactiveProps = inactive
+      ? {
+          'aria-disabled': true,
+          tabIndex: -1,
+          onClick: (event: MouseEvent<HTMLElement>): void => event.preventDefault(),
+        }
+      : {};
     return (
-      <Slot.Root data-slot='button' className={classes} {...props}>
-        {children}
+      <Slot.Root
+        data-slot='button'
+        className={classes}
+        aria-busy={loading || undefined}
+        {...props}
+        {...inactiveProps}
+      >
+        {spinner}
+        <Slot.Slottable>{children}</Slot.Slottable>
       </Slot.Root>
     );
   }
@@ -65,13 +89,11 @@ export const Button = ({
     <button
       data-slot='button'
       className={classes}
-      disabled={disabled || loading}
+      disabled={inactive}
       aria-busy={loading || undefined}
       {...props}
     >
-      {loading ? (
-        <LoaderCircle aria-hidden='true' className='animate-spin' data-testid='button-spinner' />
-      ) : null}
+      {spinner}
       {children}
     </button>
   );

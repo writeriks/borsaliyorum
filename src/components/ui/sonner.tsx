@@ -4,18 +4,29 @@ import { useTheme } from 'next-themes';
 import type { CSSProperties, ReactElement } from 'react';
 import { Toaster as Sonner, type ToasterProps } from 'sonner';
 
+import { cn } from '@/lib/utils';
+
 /**
- * Uygulamada tek Toaster (Providers). Tema next-themes'ten okunur; renkler token'lardan.
- * Mobilde alt tab bar'ın (56px + safe area) üstünde kalır.
+ * Alt boşluk tek CSS değişkeninden okunur, kesme noktasını Tailwind belirler: sonner'ın kendi
+ * `mobileOffset`'i yalnızca ≤600px'te devreye girer, oysa tab bar md (768px) altında görünür.
+ * 601–767px aralığında toast tab bar'ın üstüne binmesin diye iki offset de aynı değişkene bağlı.
+ * md ve üstünde sonner'ın varsayılanı (24px).
  */
-export const Toaster = (props: ToasterProps): ReactElement => {
+const BOTTOM_OFFSET = 'var(--toast-offset-bottom)';
+const offsetClasses =
+  '[--toast-offset-bottom:calc(var(--spacing-tabbar)_+_16px_+_env(safe-area-inset-bottom))] md:[--toast-offset-bottom:24px]';
+
+/** Uygulamada tek Toaster (Providers). Tema next-themes'ten okunur; renkler token'lardan. */
+export const Toaster = ({ className, ...props }: ToasterProps): ReactElement => {
   const { resolvedTheme } = useTheme();
 
   return (
     <Sonner
       theme={resolvedTheme === 'light' ? 'light' : 'dark'}
       position='bottom-center'
-      mobileOffset={{ bottom: 'calc(56px + 16px + env(safe-area-inset-bottom))' }}
+      offset={{ bottom: BOTTOM_OFFSET }}
+      mobileOffset={{ bottom: BOTTOM_OFFSET }}
+      className={cn(offsetClasses, className)}
       style={
         {
           '--normal-bg': 'hsl(var(--bg-elevated))',

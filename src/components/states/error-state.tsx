@@ -5,14 +5,19 @@ import { useTranslations } from 'next-intl';
 import { type ReactElement, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { logger } from '@/lib/logger';
 import { cn } from '@/lib/utils';
+
+const log = logger.child({ module: 'error-state' });
 
 type ErrorStateProps = {
   /** Ne oldu (+ ne yapabilir). Teknik ayrıntı yok: ErrorCode → i18n mesajı. */
   message: string;
   /**
    * Tekrar deneme. Promise dönerse bitene kadar buton devre dışı + spinner.
-   * Hatayı çağıran ele alır (yeni ErrorState/toast); burada yutulmaz.
+   * Kullanıcıya gösterilecek hata durumunu çağıran yönetir (yeni ErrorState/toast). Reject
+   * edilirse burada yalnızca loglanır ve buton yeniden etkinleşir: `onClick` içindeki promise'i
+   * bekleyen kimse yok, yakalanmazsa unhandled rejection olur.
    */
   onRetry?: () => void | Promise<void>;
   /** `block`: tüm alan; `inline`: liste sonunda satır içi (Partial durumu) */
@@ -34,6 +39,8 @@ export const ErrorState = ({
     setRetrying(true);
     try {
       await onRetry();
+    } catch (error) {
+      log.error('retry failed', { error });
     } finally {
       setRetrying(false);
     }

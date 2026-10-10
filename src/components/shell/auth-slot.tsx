@@ -26,8 +26,8 @@ export const AuthSlot = ({ viewer }: { viewer: ShellViewer }): ReactElement => {
       >
         <span className='sr-only'>{t('shell.accountLoading')}</span>
         <Skeleton className='size-10 shrink-0 rounded-full' />
-        <div className='hidden flex-1 flex-col gap-1.5 xl:flex'>
-          <Skeleton className='h-3.5 w-28' />
+        <div className='hidden flex-1 flex-col gap-2 xl:flex'>
+          <Skeleton className='h-4 w-28' />
           <Skeleton className='h-3 w-20' />
         </div>
       </div>

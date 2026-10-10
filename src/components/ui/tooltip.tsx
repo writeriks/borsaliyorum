@@ -26,7 +26,7 @@ export const TooltipContent = ({
       data-slot='tooltip-content'
       sideOffset={sideOffset}
       className={cn(
-        'z-60 rounded-md border border-border bg-bg-elevated px-3 py-1.5 text-xs text-fg shadow-md',
+        'z-60 rounded-md border border-border bg-bg-elevated px-3 py-1 text-xs text-fg shadow-md',
         'animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
         className
       )}

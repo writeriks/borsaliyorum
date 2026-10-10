@@ -1,12 +1,17 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Inbox } from 'lucide-react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { MESSAGES, renderWithIntl } from '../../../tests/utils/render';
 
 import { EmptyState } from './empty-state';
 import { ErrorState } from './error-state';
+
+const logError = vi.hoisted(() => vi.fn());
+vi.mock('@/lib/logger', () => ({
+  logger: { child: () => ({ error: logError, warn: vi.fn(), info: vi.fn(), debug: vi.fn() }) },
+}));
 
 describe('EmptyState', () => {
   it('ikon (dekoratif) + tek cümle + aksiyon', () => {
@@ -58,6 +63,34 @@ describe('ErrorState', () => {
     resolve();
     await screen.findByRole('button', { name: 'Tekrar dene' });
     await expect.poll(() => button.hasAttribute('disabled')).toBe(false);
+  });
+
+  it('onRetry reject ederse unhandled rejection yok: loglanır, buton yeniden etkin', async () => {
+    const user = userEvent.setup();
+    const failure = new Error('ağ hatası');
+    const unhandled = vi.fn();
+    window.addEventListener('unhandledrejection', unhandled);
+    process.on('unhandledRejection', unhandled);
+    try {
+      const onRetry = vi.fn(() => Promise.reject(failure));
+      renderWithIntl(<ErrorState message='Akış yüklenemedi.' onRetry={onRetry} />);
+      const button = screen.getByRole('button', { name: 'Tekrar dene' });
+
+      await user.click(button);
+      await expect.poll(() => button.hasAttribute('disabled')).toBe(false);
+      expect(onRetry).toHaveBeenCalledOnce();
+      expect(logError).toHaveBeenCalledWith('retry failed', { error: failure });
+      expect(screen.queryByTestId('button-spinner')).not.toBeInTheDocument();
+
+      // Yeniden denenebilir
+      await user.click(button);
+      expect(onRetry).toHaveBeenCalledTimes(2);
+      await new Promise(done => setTimeout(done, 0));
+      expect(unhandled).not.toHaveBeenCalled();
+    } finally {
+      window.removeEventListener('unhandledrejection', unhandled);
+      process.off('unhandledRejection', unhandled);
+    }
   });
 
   it('onRetry yoksa buton yok; inline (Partial) varyantında ikon yok', () => {

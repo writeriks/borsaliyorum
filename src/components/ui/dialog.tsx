@@ -65,11 +65,7 @@ export const DialogContent = ({
 );
 
 export const DialogHeader = ({ className, ...props }: ComponentProps<'div'>): ReactElement => (
-  <div
-    data-slot='dialog-header'
-    className={cn('flex flex-col gap-2 pr-10', className)}
-    {...props}
-  />
+  <div data-slot='dialog-header' className={cn('flex flex-col gap-2 pr-8', className)} {...props} />
 );
 
 export const DialogFooter = ({ className, ...props }: ComponentProps<'div'>): ReactElement => (
