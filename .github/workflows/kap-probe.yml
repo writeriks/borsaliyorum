@@ -3,23 +3,19 @@ name: KAP probe (temporary)
 on:
   push:
     branches: [claude/rebuild-agents-skills]
-    paths: [.github/workflows/kap-probe.yml, scripts/fetch-kap-stocks.mjs]
+    paths: [.github/workflows/kap-probe.yml]
 
 jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Parse KAP list and compare with tickers.ts
+      - name: Inspect KAP JSON objects
         run: |
-          node scripts/fetch-kap-stocks.mjs > kap.csv
-          wc -l kap.csv
-          head -5 kap.csv
-          echo "--- multi-code companies"; cut -d';' -f2 kap.csv | sort | uniq -d | head -10
-          grep -oE "'id': '[A-Z0-9]+'" src/tickers.ts | cut -d"'" -f4 | sort > old.txt
-          cut -d';' -f1 kap.csv | sort > new.txt
-          echo "--- NEW (in KAP, not in tickers.ts): $(comm -13 old.txt new.txt | wc -l)"; comm -13 old.txt new.txt | while read c; do grep "^$c;" kap.csv; done
-          echo "--- GONE (in tickers.ts, not in KAP): $(comm -23 old.txt new.txt | wc -l)"; comm -23 old.txt new.txt | tr '\n' ' '; echo
+          curl -sSL -A 'Mozilla/5.0' -o page.html https://www.kap.org.tr/tr/bist-sirketler
+          sed 's/\\"/"/g' page.html > p.txt
+          for c in THYAO GARAN ISFAK TIB A1CAP; do
+            echo "=== $c"; grep -o '{[^{}]*"[A-Za-z]*":"[^"]*\b'"$c"'\b[^{}]*}' p.txt | head -2 | cut -c1-700
+          done
+          echo "=== keys"; grep -oE '"[a-zA-Z]+":' p.txt | sort | uniq -c | sort -rn | head -40
+          echo "=== memberTypes"; grep -oE '"kapMemberType":"[A-Z]+"' p.txt | sort | uniq -c
+          echo "=== first td row html"; grep -o '<tr[^>]*>.\{0,1200\}THYAO.\{0,600\}' page.html | head -1
