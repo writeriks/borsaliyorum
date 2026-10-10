@@ -44,7 +44,8 @@ export const parseKapMarkets = html => {
   const payload = extractRscPayload(html);
   const marker = `"data":[{"title":"${EQUITY_GROUP}"`;
   const index = payload.indexOf(marker);
-  if (index === -1) throw new Error('KAP sayfasında pazar verisi bulunamadı; sayfa yapısı değişmiş olabilir.');
+  if (index === -1)
+    throw new Error('KAP sayfasında pazar verisi bulunamadı; sayfa yapısı değişmiş olabilir.');
 
   const groups = readJsonArrayAt(payload, index + '"data":'.length);
   const stocks = new Map();
@@ -61,7 +62,8 @@ export const parseKapMarkets = html => {
             .split(/[\s,]+/)
             .filter(code => TICKER_RE.test(code))
             .forEach(code => {
-              if (!stocks.has(code)) stocks.set(code, { name: item.title.trim(), market: market.marketName });
+              if (!stocks.has(code))
+                stocks.set(code, { name: item.title.trim(), market: market.marketName });
             })
         )
     );
@@ -85,7 +87,9 @@ const main = async () => {
   const stocks = parseKapMarkets(html);
   // Sayfa yapısı değişirse yarım listeyle DB'ye yazmayalım
   if (stocks.size < 300) {
-    throw new Error(`Beklenenden az hisse bulundu (${stocks.size}); KAP sayfa yapısı değişmiş olabilir.`);
+    throw new Error(
+      `Beklenenden az hisse bulundu (${stocks.size}); KAP sayfa yapısı değişmiş olabilir.`
+    );
   }
 
   process.stdout.write([...stocks].map(([code, { name }]) => `${code};${name}`).join('\n') + '\n');

@@ -1,17 +1,18 @@
 /**
- * BIST hisse listesini Stock tablosuna ekler ve src/tickers.ts'i yeniden üretir.
+ * BIST hisse listesini Stock tablosuna ekler. v2'de otomatik tamamlama doğrudan DB'den
+ * okunduğu için kaynak koda (eski src/tickers.ts) dosya üretilmez.
  *
  * Girdi: her satırı "KOD;ŞİRKET ADI" (ya da virgül/tab ile ayrılmış) olan bir CSV.
  * Liste KAP'ın BIST şirketler sayfasından alınır; fiyat verisi içermez.
  *
  *   node scripts/sync-stocks.mjs hisseler.csv            # dry-run: sadece rapor
- *   node scripts/sync-stocks.mjs hisseler.csv --apply    # DB'ye yazar + tickers.ts günceller
+ *   node scripts/sync-stocks.mjs hisseler.csv --apply    # DB'ye yazar
  *   ... --apply --max-new=700                            # ilk toplu senkronizasyon için limiti aşar
  *
  * Mevcut hisseler silinmez ve adları değişmez (gönderiler bu kayıtlara bağlı);
  * listede olmayanlar sadece raporlanır.
  */
-import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { PrismaClient } from '@prisma/client';
 
@@ -19,7 +20,6 @@ const TICKER_RE = /^[A-Z0-9]{3,6}$/;
 const HEADER_WORDS = new Set(['KOD', 'CODE', 'TICKER', 'SEMBOL', 'HISSE']);
 // Normal bir haftada 0-3 halka arz olur; fazlası KAP yapısının değiştiğine işaret eder
 const DEFAULT_MAX_NEW = 15;
-const TICKERS_FILE = new URL('../src/tickers.ts', import.meta.url);
 
 export const parseStockCsv = text => {
   const stocks = new Map();
@@ -31,8 +31,14 @@ export const parseStockCsv = text => {
 
     // Sadece ilk ayraçtan böl; şirket adında virgül olabilir
     const separator = line.search(/[;\t]/);
-    const ticker = (separator === -1 ? line : line.slice(0, separator)).trim().replace(/^"|"$/g, '');
-    const companyName = line.slice(separator + 1).trim().replace(/^"|"$/g, '').replace(/\s+/g, ' ');
+    const ticker = (separator === -1 ? line : line.slice(0, separator))
+      .trim()
+      .replace(/^"|"$/g, '');
+    const companyName = line
+      .slice(separator + 1)
+      .trim()
+      .replace(/^"|"$/g, '')
+      .replace(/\s+/g, ' ');
 
     if (HEADER_WORDS.has(ticker)) return;
     if (separator === -1 || !TICKER_RE.test(ticker) || !companyName) {
@@ -43,21 +49,6 @@ export const parseStockCsv = text => {
   });
 
   return { stocks, invalid };
-};
-
-const toSingleQuoted = text =>
-  text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/[\r\n]+/g, ' ');
-
-export const renderTickersFile = stocks => {
-  const entries = [...stocks]
-    .sort(([a], [b]) => a.localeCompare(b, 'tr'))
-    .map(
-      ([ticker, name]) =>
-        `  {\n    'id': '${ticker}',\n    'display': '${toSingleQuoted(`${ticker} ${name}`)}',\n  },`
-    )
-    .join('\n');
-
-  return `import { SuggestionDataItem } from 'react-mentions';\n\nexport const tickers: SuggestionDataItem[] = [\n${entries}\n];\n`;
 };
 
 const main = async () => {
@@ -92,9 +83,13 @@ const main = async () => {
 
     console.log(`CSV: ${listed.size} hisse, DB: ${existingStocks.length} hisse`);
     console.log(`Eklenecek (${toCreate.length}): ${toCreate.map(([t]) => t).join(', ') || '-'}`);
-    console.log(`DB'de olup listede olmayan (${notInList.length}, dokunulmadı): ${notInList.join(', ') || '-'}`);
+    console.log(
+      `DB'de olup listede olmayan (${notInList.length}, dokunulmadı): ${notInList.join(', ') || '-'}`
+    );
     if (conflicts.length) {
-      console.log(`Başka tiple çakışan (atlandı): ${conflicts.map(s => `${s.ticker} (${s.stockType})`).join(', ')}`);
+      console.log(
+        `Başka tiple çakışan (atlandı): ${conflicts.map(s => `${s.ticker} (${s.stockType})`).join(', ')}`
+      );
     }
     if (invalid.length) console.log(`Atlanan satırlar:\n  ${invalid.join('\n  ')}`);
 
@@ -113,14 +108,7 @@ const main = async () => {
       skipDuplicates: true,
     });
 
-    // Otomatik tamamlama listesi DB'deki tüm hisseleri içersin
-    const all = await prisma.stock.findMany({
-      where: { stockType: 'stock' },
-      select: { ticker: true, companyName: true },
-    });
-    writeFileSync(TICKERS_FILE, renderTickersFile(all.map(s => [s.ticker, s.companyName])));
-
-    console.log(`\n${count} hisse eklendi. src/tickers.ts güncellendi (${all.length} hisse).`);
+    console.log(`\n${count} hisse eklendi.`);
   } finally {
     await prisma.$disconnect();
   }

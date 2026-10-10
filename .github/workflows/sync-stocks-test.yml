@@ -2,7 +2,11 @@ name: Sync stocks e2e test
 
 on:
   pull_request:
-    paths: [scripts/*stocks*.mjs, .github/workflows/sync-stocks*.yml, prisma/schema.prisma]
+    paths:
+      - scripts/*stocks*.mjs
+      - .github/workflows/sync-stocks*.yml
+      - prisma/schema.prisma
+      - package-lock.json
 
 permissions:
   contents: read
@@ -52,9 +56,8 @@ jobs:
           test "$(psql "$DATABASE_URL" -tAc "SELECT count(*) FROM \"Stock\" WHERE ticker IN ('BNPPI','GSIPD','DRPHN','KOCFN')")" = "0"
       - name: Second apply is a no-op
         run: node scripts/sync-stocks.mjs kap-stocks.csv --apply | grep -E "^Eklenecek \(0\)"
-      - name: tickers.ts still type-checks
+      - name: No source file is generated
         run: |
-          git diff --stat src/tickers.ts
-          grep -c "'id':" src/tickers.ts
-          grep -F "ZZZ1" src/tickers.ts
-          npx tsc --noEmit -p .
+          test ! -e src/tickers.ts
+          git status --porcelain -- ':!kap-stocks.csv'
+          test -z "$(git status --porcelain -- ':!kap-stocks.csv')"

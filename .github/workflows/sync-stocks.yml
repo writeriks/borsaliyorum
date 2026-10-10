@@ -1,14 +1,14 @@
 name: Sync BIST stocks
 
-# KAP'tan güncel hisse listesini alır, DB'de olmayanları ekler ve
-# src/tickers.ts güncellemesini chore/sync-stocks branch'ine push'lar. Mevcut hisseler silinmez.
+# KAP'tan güncel hisse listesini alır ve DB'de olmayanları ekler. Mevcut hisseler silinmez.
+# v2'de otomatik tamamlama DB'den okunur; repoya dosya yazılmaz, bu yüzden yazma izni gerekmez.
 on:
   schedule:
     - cron: '17 5 * * 1' # Pazartesi 08:17 (TR)
   workflow_dispatch:
     inputs:
       apply:
-        description: "DB'ye yaz ve PR aç (kapalıysa sadece rapor)"
+        description: "DB'ye yaz (kapalıysa sadece rapor)"
         type: boolean
         default: false
       max_new:
@@ -17,7 +17,7 @@ on:
         default: 15
 
 permissions:
-  contents: write
+  contents: read
 
 defaults:
   run:
@@ -52,21 +52,3 @@ jobs:
         run: |
           node scripts/sync-stocks.mjs kap-stocks.csv --max-new="$MAX_NEW" $([ "$APPLY" = "true" ] && echo --apply) 2>&1 | tee sync-report.txt
           { echo '```'; cat sync-report.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-
-      # GITHUB_TOKEN ile açılan PR'da CI tetiklenmez; üretilen dosyayı burada doğrula
-      - name: Type-check generated tickers.ts
-        if: env.APPLY == 'true'
-        run: npx tsc --noEmit -p .
-
-      # PR açma izni gerektirmesin diye sadece branch push'lanır; PR'ı elle açılır
-      - name: Push tickers.ts to a branch
-        if: env.APPLY == 'true'
-        run: |
-          git diff --quiet src/tickers.ts && { echo "tickers.ts değişmedi."; exit 0; }
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git checkout -b chore/sync-stocks
-          git commit -m 'chore: sync BIST stock list from KAP' src/tickers.ts
-          git push --force origin chore/sync-stocks
-          url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/main...chore/sync-stocks?expand=1"
-          echo "PR açmak için: $url" | tee -a "$GITHUB_STEP_SUMMARY"
