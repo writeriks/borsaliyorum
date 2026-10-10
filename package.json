@@ -21,7 +21,7 @@
     "test:browser": "vitest run --project browser --passWithNoTests",
     "test:e2e": "playwright test",
     "build:e2e": "SKIP_ENV_VALIDATION=1 next build",
-    "start:e2e": "next start -p 3100",
+    "start:e2e": "ENABLE_DEV_PAGES=1 next start -p 3100",
     "db:test:up": "scripts/pg-local.sh start",
     "db:test:down": "scripts/pg-local.sh stop",
     "db:migrations:check": "tsx scripts/check-migrations.ts",
