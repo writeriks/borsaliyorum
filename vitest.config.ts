@@ -43,13 +43,18 @@ export default defineConfig({
         },
       },
       {
-        // Gerçek Postgres ile DAL/Server Action testleri; DB kurulumu (globalSetup) S3'te
+        // Gerçek Postgres ile DAL/Server Action testleri (ADR-0003 Karar 3): globalSetup şablon
+        // DB'yi migration'larla kurar, setupFile her worker'a şablondan kopya DB verir.
         extends: true,
         test: {
           name: 'integration',
           environment: 'node',
-          include: ['src/**/*.int.test.ts'],
+          include: ['src/**/*.int.test.ts', 'tests/integration/**/*.int.test.ts'],
           pool: 'forks',
+          globalSetup: ['tests/db/global-setup.ts'],
+          setupFiles: ['tests/db/setup-worker.ts'],
+          testTimeout: 30_000,
+          hookTimeout: 120_000,
         },
       },
       {
