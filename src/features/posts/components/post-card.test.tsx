@@ -18,7 +18,6 @@ import type { PostCardData } from '../types';
 
 import { PostCard } from './post-card';
 import { PostCardError, PostCardSkeleton, PostCardUnavailable } from './post-card-states';
-import { toSafeMediaSrc } from './post-media';
 
 const renderCard = (post: PostCardData, locale: 'tr' | 'en' = 'tr') =>
   renderWithIntl(<PostCard post={post} now={FIXTURE_NOW} />, locale);
@@ -173,25 +172,6 @@ describe('PostCard', () => {
       const { container } = renderCard({ ...POST_WITH_MEDIA, mediaUrl: 'https://ornek.com/a.png' });
       expect(screen.queryByRole('img')).toBeNull();
       expect(container.querySelector('[data-slot="link-preview-card"]')).not.toBeNull();
-    });
-  });
-
-  describe('toSafeMediaSrc', () => {
-    it.each([
-      'https://firebasestorage.googleapis.com/v0/b/ornek/o/a.png?alt=media',
-      'https://storage.googleapis.com/ornek-bucket/a.png',
-    ])('%s kabul edilir', src => {
-      expect(toSafeMediaSrc(src)).toBe(src);
-    });
-
-    it.each([
-      'https://lh3.googleusercontent.com/a/x',
-      'https://ornek.com/a.png',
-      'https://user:pw@storage.googleapis.com/a.png',
-      'data:image/png;base64,AAAA',
-      'bozuk url',
-    ])('%s reddedilir', src => {
-      expect(toSafeMediaSrc(src)).toBeNull();
     });
   });
 

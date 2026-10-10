@@ -45,11 +45,29 @@ describe('createHttpComposerServices (S7/S9 sözleşmesi)', () => {
     ).rejects.toThrow();
   });
 
-  it('javascript: avatar URL’si kabul edilmez', async () => {
+  it.each([
+    'javascript:alert(1)',
+    'http://firebasestorage.googleapis.com/a.png',
+    'https://izleme.ornek.com/pixel.png',
+    'https://firebasestorage.googleapis.com:8443/a.png',
+    'https://kullanici:sifre@firebasestorage.googleapis.com/a.png',
+    'data:image/png;base64,AAAA',
+  ])('izinsiz avatar (%s) → null, öneri satırı korunur (baş harfler)', async avatarUrl => {
     const fetchImpl = fetchReturning([
-      { username: 'x_1', displayName: 'X', avatarUrl: 'javascript:alert(1)', following: false },
+      { username: 'x_1', displayName: 'X', avatarUrl, following: false },
     ]);
-    await expect(createHttpComposerServices(fetchImpl).users('x', signal)).rejects.toThrow();
+    await expect(createHttpComposerServices(fetchImpl).users('x', signal)).resolves.toEqual([
+      { username: 'x_1', displayName: 'X', avatarUrl: null, following: false },
+    ]);
+  });
+
+  it('Firebase Storage https avatarı olduğu gibi geçer', async () => {
+    const avatarUrl = 'https://firebasestorage.googleapis.com/v0/b/ornek/o/a.png?alt=media';
+    const fetchImpl = fetchReturning([
+      { username: 'x_1', displayName: 'X', avatarUrl, following: false },
+    ]);
+    const [user] = await createHttpComposerServices(fetchImpl).users('x', signal);
+    expect(user?.avatarUrl).toBe(avatarUrl);
   });
 
   it('link önizleme: ok → kart, none → null', async () => {

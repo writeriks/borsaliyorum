@@ -4,6 +4,7 @@ import type { ReactElement } from 'react';
 import { RichText, userHref } from '@/components/rich-text';
 import { LinkPreviewCard } from '@/features/link-preview/components/link-preview-card';
 import { Link } from '@/i18n/navigation';
+import { toSafeMediaSrc } from '@/lib/media';
 import { cn } from '@/lib/utils';
 
 import { toLinkPreviewDto } from '../link-preview';
@@ -12,7 +13,7 @@ import type { PostCardData } from '../types';
 import { AuthorAvatar } from './author-avatar';
 import { ClampedBody } from './clamped-body';
 import { SentimentTag, SponsoredLabel } from './post-labels';
-import { PostMedia, toSafeMediaSrc } from './post-media';
+import { PostMedia } from './post-media';
 import { PostStats } from './post-stats';
 import { RelativeTime } from './relative-time';
 

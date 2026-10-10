@@ -152,7 +152,10 @@ export const AutocompleteList = ({
         return (
           <div key={option.key} {...optionProps(index, label)}>
             <Avatar className='size-8'>
-              {user.avatarUrl ? <AvatarImage src={user.avatarUrl} alt='' /> : null}
+              {user.avatarUrl ? (
+                // `avatarUrl` şemada `toSafeMediaSrc`'den geçti; composer adresi Referer olarak gitmesin
+                <AvatarImage src={user.avatarUrl} alt='' referrerPolicy='no-referrer' />
+              ) : null}
               <AvatarFallback className='text-xs'>{initialsOf(user.displayName)}</AvatarFallback>
             </Avatar>
             <span className='flex min-w-0 flex-1 flex-col'>

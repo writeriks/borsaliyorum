@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { toSafeMediaSrc } from '@/lib/media';
+
 import { STOCK_TYPES } from './types';
 
 /**
@@ -25,7 +27,9 @@ export const userSuggestionsSchema = z.array(
   z.object({
     username: z.string().regex(/^[A-Za-z0-9_]{1,20}$/),
     displayName: z.string().max(100),
-    avatarUrl: z.url({ protocol: /^https?$/ }).nullable(),
+    // https + medya allowlist host'u + port/kullanıcı bilgisi yok; uymayan → null (baş harfler).
+    // Tüm yanıtı reddetmek yerine yalnızca görsel düşer: öneri listesi çalışmaya devam eder
+    avatarUrl: z.string().max(2048).nullable().transform(toSafeMediaSrc),
     following: z.boolean(),
   })
 );
