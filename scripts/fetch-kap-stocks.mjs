@@ -6,7 +6,8 @@
  *   node scripts/fetch-kap-stocks.mjs > hisseler.csv
  *   node scripts/fetch-kap-stocks.mjs --file sayfa.html > hisseler.csv   # kayıtlı sayfadan
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 
 // Pazarlar sayfası seçilen pazardan bağımsız olarak tüm pazarların listesini gömülü taşır
 const KAP_URL = `https://www.kap.org.tr/tr/Pazarlar?market=${Buffer.from('YILDIZ PAZAR').toString('base64')}`;
@@ -73,7 +74,10 @@ const main = async () => {
   const html =
     fileIndex > -1
       ? readFileSync(process.argv[fileIndex + 1], 'utf8')
-      : await fetch(KAP_URL, { headers: { 'User-Agent': 'borsaliyorum-stock-sync' } }).then(res => {
+      : await fetch(KAP_URL, {
+          headers: { 'User-Agent': 'borsaliyorum-stock-sync' },
+          signal: AbortSignal.timeout(60_000),
+        }).then(res => {
           if (!res.ok) throw new Error(`KAP yanıtı ${res.status}`);
           return res.text();
         });
@@ -93,7 +97,7 @@ const main = async () => {
   console.error(`${stocks.size} hisse bulundu:`, perMarket);
 };
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   main().catch(error => {
     console.error(error.message);
     process.exit(1);

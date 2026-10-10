@@ -5,6 +5,13 @@ on:
     branches: [claude/rebuild-agents-skills]
     paths: [scripts/**, .github/workflows/sync-stocks*.yml]
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   e2e:
     runs-on: ubuntu-latest
@@ -28,15 +35,19 @@ jobs:
       - run: npx prisma generate && npx prisma db push --skip-generate
       - name: Seed existing stocks (incl. a delisted one)
         run: |
-          psql "$DATABASE_URL" -c "INSERT INTO \"Stock\" (ticker, \"companyName\", \"stockType\") VALUES ('THYAO','TURK HAVA YOLLARI','stock'),('KOZAL','KOZA ALTIN','stock'),('BTC','BITCOIN','crypto');"
+          psql "$DATABASE_URL" -c "INSERT INTO \"Stock\" (ticker, \"companyName\", \"stockType\") VALUES ('THYAO','TURK HAVA YOLLARI','stock'),('KOZAL','KOZA ALTIN','stock'),('BTC','BITCOIN','crypto'),('ASELS','ASELSAN','crypto'),('ZZZ1','BACK\\SLASH O''NEIL','stock');"
       - run: node scripts/fetch-kap-stocks.mjs > kap-stocks.csv
       - name: Dry-run must not write
         run: |
           node scripts/sync-stocks.mjs kap-stocks.csv | tail -4
-          test "$(psql "$DATABASE_URL" -tAc 'SELECT count(*) FROM "Stock"')" = "3"
+          test "$(psql "$DATABASE_URL" -tAc 'SELECT count(*) FROM "Stock"')" = "5"
+      - name: Apply above the limit must fail without writing
+        run: |
+          if node scripts/sync-stocks.mjs kap-stocks.csv --apply; then echo "limit not enforced"; exit 1; fi
+          test "$(psql "$DATABASE_URL" -tAc 'SELECT count(*) FROM "Stock"')" = "5"
       - name: Apply
         run: |
-          node scripts/sync-stocks.mjs kap-stocks.csv --apply | tail -2
+          node scripts/sync-stocks.mjs kap-stocks.csv --apply --max-new=1000 | tail -3
           psql "$DATABASE_URL" -tAc "SELECT count(*), count(*) FILTER (WHERE \"stockType\"='stock') FROM \"Stock\""
           psql "$DATABASE_URL" -tAc "SELECT \"companyName\" FROM \"Stock\" WHERE ticker IN ('THYAO','KOZAL','TRALT','GARAN') ORDER BY ticker"
           test "$(psql "$DATABASE_URL" -tAc "SELECT count(*) FROM \"Stock\" WHERE ticker IN ('BNPPI','GSIPD','DRPHN','KOCFN')")" = "0"
@@ -46,4 +57,5 @@ jobs:
         run: |
           git diff --stat src/tickers.ts
           grep -c "'id':" src/tickers.ts
+          grep -F "ZZZ1" src/tickers.ts
           npx tsc --noEmit -p .

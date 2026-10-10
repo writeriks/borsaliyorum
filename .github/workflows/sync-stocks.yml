@@ -11,10 +11,18 @@ on:
         description: "DB'ye yaz ve PR aç (kapalıysa sadece rapor)"
         type: boolean
         default: false
+      max_new:
+        description: 'Tek seferde eklenebilecek en fazla hisse (ilk toplu senkronizasyon için artır)'
+        type: number
+        default: 15
 
 permissions:
   contents: write
   pull-requests: write
+
+defaults:
+  run:
+    shell: bash # -eo pipefail: tee hatayı gizlemesin
 
 concurrency:
   group: sync-stocks
@@ -26,6 +34,7 @@ jobs:
     timeout-minutes: 15
     env:
       APPLY: ${{ github.event_name == 'schedule' || inputs.apply }}
+      MAX_NEW: ${{ inputs.max_new || 15 }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -42,8 +51,13 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          node scripts/sync-stocks.mjs kap-stocks.csv $([ "$APPLY" = "true" ] && echo --apply) | tee sync-report.txt
+          node scripts/sync-stocks.mjs kap-stocks.csv --max-new="$MAX_NEW" $([ "$APPLY" = "true" ] && echo --apply) 2>&1 | tee sync-report.txt
           { echo '```'; cat sync-report.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      # GITHUB_TOKEN ile açılan PR'da CI tetiklenmez; üretilen dosyayı burada doğrula
+      - name: Type-check generated tickers.ts
+        if: env.APPLY == 'true'
+        run: npx tsc --noEmit -p .
 
       - name: Open PR for tickers.ts
         if: env.APPLY == 'true'

@@ -6,14 +6,19 @@
  *
  *   node scripts/sync-stocks.mjs hisseler.csv            # dry-run: sadece rapor
  *   node scripts/sync-stocks.mjs hisseler.csv --apply    # DB'ye yazar + tickers.ts günceller
+ *   ... --apply --max-new=700                            # ilk toplu senkronizasyon için limiti aşar
  *
  * Mevcut hisseler silinmez ve adları değişmez (gönderiler bu kayıtlara bağlı);
  * listede olmayanlar sadece raporlanır.
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 import { PrismaClient } from '@prisma/client';
 
 const TICKER_RE = /^[A-Z0-9]{3,6}$/;
+const HEADER_WORDS = new Set(['KOD', 'CODE', 'TICKER', 'SEMBOL', 'HISSE']);
+// Normal bir haftada 0-3 halka arz olur; fazlası KAP yapısının değiştiğine işaret eder
+const DEFAULT_MAX_NEW = 15;
 const TICKERS_FILE = new URL('../src/tickers.ts', import.meta.url);
 
 export const parseStockCsv = text => {
@@ -24,14 +29,14 @@ export const parseStockCsv = text => {
     const line = rawLine.trim();
     if (!line) return;
 
-    const [rawTicker, ...rest] = line.split(/[;,\t]/);
-    // Kodlar büyük harf gelir; "Kod" gibi başlık satırları böylece elenir
-    const ticker = rawTicker.trim().replace(/^"|"$/g, '');
-    const companyName = rest.join(' ').trim().replace(/^"|"$/g, '').replace(/\s+/g, ' ');
+    // Sadece ilk ayraçtan böl; şirket adında virgül olabilir
+    const separator = line.search(/[;\t]/);
+    const ticker = (separator === -1 ? line : line.slice(0, separator)).trim().replace(/^"|"$/g, '');
+    const companyName = line.slice(separator + 1).trim().replace(/^"|"$/g, '').replace(/\s+/g, ' ');
 
-    if (!TICKER_RE.test(ticker) || !companyName) {
-      // Başlık satırı ya da bozuk satır
-      if (i > 0) invalid.push(`${i + 1}: ${line}`);
+    if (HEADER_WORDS.has(ticker)) return;
+    if (separator === -1 || !TICKER_RE.test(ticker) || !companyName) {
+      invalid.push(`${i + 1}: ${line}`);
       return;
     }
     if (!stocks.has(ticker)) stocks.set(ticker, companyName);
@@ -40,12 +45,15 @@ export const parseStockCsv = text => {
   return { stocks, invalid };
 };
 
+const toSingleQuoted = text =>
+  text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/[\r\n]+/g, ' ');
+
 export const renderTickersFile = stocks => {
   const entries = [...stocks]
     .sort(([a], [b]) => a.localeCompare(b, 'tr'))
     .map(
       ([ticker, name]) =>
-        `  {\n    'id': '${ticker}',\n    'display': '${`${ticker} ${name}`.replace(/'/g, "\\'")}',\n  },`
+        `  {\n    'id': '${ticker}',\n    'display': '${toSingleQuoted(`${ticker} ${name}`)}',\n  },`
     )
     .join('\n');
 
@@ -55,6 +63,8 @@ export const renderTickersFile = stocks => {
 const main = async () => {
   const [csvPath] = process.argv.slice(2).filter(arg => !arg.startsWith('--'));
   const apply = process.argv.includes('--apply');
+  const maxNewArg = process.argv.find(arg => arg.startsWith('--max-new='));
+  const maxNew = maxNewArg ? Number(maxNewArg.split('=')[1]) : DEFAULT_MAX_NEW;
 
   if (!csvPath) {
     console.error('Kullanım: node scripts/sync-stocks.mjs <hisseler.csv> [--apply]');
@@ -69,23 +79,33 @@ const main = async () => {
 
   const prisma = new PrismaClient();
   try {
+    // ticker tüm tabloda unique; kripto/diğer tiplerle çakışmaları da görelim
     const existing = await prisma.stock.findMany({
-      where: { stockType: 'stock' },
-      select: { ticker: true, companyName: true },
+      select: { ticker: true, companyName: true, stockType: true },
     });
     const existingTickers = new Set(existing.map(s => s.ticker));
+    const existingStocks = existing.filter(s => s.stockType === 'stock');
 
     const toCreate = [...listed].filter(([ticker]) => !existingTickers.has(ticker));
-    const notInList = existing.filter(s => !listed.has(s.ticker)).map(s => s.ticker);
+    const conflicts = existing.filter(s => s.stockType !== 'stock' && listed.has(s.ticker));
+    const notInList = existingStocks.filter(s => !listed.has(s.ticker)).map(s => s.ticker);
 
-    console.log(`CSV: ${listed.size} hisse, DB: ${existing.length} hisse`);
+    console.log(`CSV: ${listed.size} hisse, DB: ${existingStocks.length} hisse`);
     console.log(`Eklenecek (${toCreate.length}): ${toCreate.map(([t]) => t).join(', ') || '-'}`);
     console.log(`DB'de olup listede olmayan (${notInList.length}, dokunulmadı): ${notInList.join(', ') || '-'}`);
+    if (conflicts.length) {
+      console.log(`Başka tiple çakışan (atlandı): ${conflicts.map(s => `${s.ticker} (${s.stockType})`).join(', ')}`);
+    }
     if (invalid.length) console.log(`Atlanan satırlar:\n  ${invalid.join('\n  ')}`);
 
     if (!apply) {
       console.log('\nDry-run. Yazmak için --apply ekle.');
       return;
+    }
+    if (toCreate.length > maxNew) {
+      throw new Error(
+        `${toCreate.length} yeni hisse, limit ${maxNew}. Listeyi kontrol et; doğruysa --max-new=${toCreate.length} ile çalıştır.`
+      );
     }
 
     const { count } = await prisma.stock.createMany({
@@ -106,7 +126,7 @@ const main = async () => {
   }
 };
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   main().catch(error => {
     console.error(error);
     process.exit(1);
