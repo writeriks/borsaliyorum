@@ -2,7 +2,6 @@
 
 import { autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom';
 import { TextSelection } from '@tiptap/pm/state';
-import { EditorContent } from '@tiptap/react';
 import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import {
@@ -19,7 +18,6 @@ import {
   useState,
 } from 'react';
 import { toast } from 'sonner';
-import { exitSuggestion } from '@tiptap/suggestion';
 
 import { InvestmentDisclaimer } from '@/components/legal/investment-disclaimer';
 import { Button } from '@/components/ui/button';
@@ -33,11 +31,11 @@ import { cn } from '@/lib/utils';
 import {
   type AutocompleteBridge,
   type AutocompleteSession,
-  autocompletePluginKeys,
+  exitAutocomplete,
 } from '../editor/autocomplete';
 import { getDocText } from '../editor/doc-text';
 import { entityDecorationsKey } from '../editor/entity-decorations';
-import { textToDoc, useComposerEditor } from '../editor/use-composer-editor';
+import { ComposerEditorContent, textToDoc, useComposerEditor } from '../editor/use-composer-editor';
 import { useAutocompleteData, useStockIndex } from '../hooks/use-autocomplete-data';
 import { useDelayedFlag, useIsDesktop, useVisualViewport } from '../hooks/use-browser';
 import {
@@ -202,7 +200,6 @@ export const Composer = (props: ComposerProps): ReactElement => {
     placeholder: t(mode === 'post' ? 'placeholder.post' : 'placeholder.comment'),
     limit,
     bridge,
-    autoFocus,
     onSubmitShortcut: () => submitRef.current(),
     onTextChange: instance => setText(getDocText(instance.state.doc)),
     onFocusChange: setEditorFocused,
@@ -527,7 +524,7 @@ export const Composer = (props: ComposerProps): ReactElement => {
     (): ComposerHandle => ({
       isAutocompleteOpen: () => popupOpen,
       closeAutocomplete: () => {
-        if (editor && session) exitSuggestion(editor.view, autocompletePluginKeys[session.kind]);
+        if (editor && session) exitAutocomplete(editor.view);
       },
       hasContent: () => !analysis.isBlank,
       saveDraft: () => persistDraft(draftRef.current),
@@ -714,8 +711,9 @@ export const Composer = (props: ComposerProps): ReactElement => {
           </p>
         ) : null}
         {mode === 'post' && isSponsored ? <SponsoredPreview /> : null}
-        <EditorContent
+        <ComposerEditorContent
           editor={editor}
+          autoFocus={autoFocus}
           className={cn(expanded && layout !== 'inline' && 'min-h-18')}
         />
         {editor ? null : <div aria-hidden='true' className='h-6' />}

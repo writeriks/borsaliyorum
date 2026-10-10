@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Switch } from 'radix-ui';
 import { type ReactElement, useId } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -35,26 +34,33 @@ export const SponsoredSwitch = ({
           {t('help')}
         </span>
       </div>
-      <Switch.Root
-        checked={checked}
-        onCheckedChange={onCheckedChange}
+      {/* Yerel `role="switch"` düğmesi (WAI-ARIA switch deseni): Space/Enter düğmenin kendi
+          davranışı. Radix Switch composer chunk'ına ~5 KB gz ekliyordu (ADR-0002 bütçesi). */}
+      <button
+        type='button'
+        role='switch'
+        aria-checked={checked}
+        data-state={checked ? 'checked' : 'unchecked'}
+        onClick={() => onCheckedChange(!checked)}
         disabled={disabled}
         aria-labelledby={labelId}
         aria-describedby={helpId}
         className={cn(
+          'group',
           // Görünür 24 px; dokunma alanı 44 px
           'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-border-strong bg-bg-muted transition-colors',
           'before:absolute before:-inset-2.5 before:content-[""]',
-          'disabled:opacity-60 data-[state=checked]:border-accent data-[state=checked]:bg-accent'
+          'disabled:opacity-60 aria-checked:border-accent aria-checked:bg-accent'
         )}
       >
-        <Switch.Thumb
+        <span
+          aria-hidden='true'
           className={cn(
             'block size-4.5 translate-x-0.5 rounded-full bg-fg-muted shadow-sm transition-transform',
-            'data-[state=checked]:translate-x-5.5 data-[state=checked]:bg-accent-fg'
+            'group-aria-checked:translate-x-5.5 group-aria-checked:bg-accent-fg'
           )}
         />
-      </Switch.Root>
+      </button>
     </div>
   );
 };

@@ -186,8 +186,8 @@ export const stocksListbox = (page: Page): Locator => listbox(page, tr.ac.listbo
 export const submitButton = (page: Page): Locator => page.getByTestId('composer-submit');
 
 /**
- * Tasarım "aria-expanded" diyor ([AC-01], [AC-09]) ama ARIA 1.2'de `textbox` rolünde geçersiz
- * ([AC-23] axe ile çelişir). Açık liste editörün `aria-controls` → listbox bağıyla doğrulanır.
+ * Açık liste editörün `aria-controls` → listbox bağıyla doğrulanır (tasarım §2.5, [AC-01]);
+ * `aria-expanded` ARIA 1.2'de `textbox` rolünde geçersiz olduğu için kullanılmaz ([AC-23]).
  */
 export const expectOpenList = async (page: Page): Promise<void> => {
   const controls = await editor(page).getAttribute('aria-controls');

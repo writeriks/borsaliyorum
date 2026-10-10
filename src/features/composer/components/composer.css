@@ -1,6 +1,6 @@
 /*
  * Editör içi vurgular (tasarım §3.1). Sınıflar ProseMirror dekorasyonlarından gelir
- * (editor/entity-decorations.ts, @tiptap/suggestion); renkler yalnızca token'lardan.
+ * (editor/entity-decorations.ts, editor/autocomplete.ts); renkler yalnızca token'lardan.
  * Yazı ağırlığı değişmez: kalınlaşan metin satırı kaydırır, imleç zıplar.
  */
 .cmp-editor {

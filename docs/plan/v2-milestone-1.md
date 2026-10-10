@@ -191,7 +191,7 @@ başlanabilir.
   olarak; ek olarak: her tetikleyici için öneri + klavye ile seçim + Esc; IME
   composition sırasında popup açık kalır ama tuşlar yakalanmaz (`[AC-24]`, Gboard); HTML yapıştırma düz metin olur; 1000 sınırı ve
   aşım işareti; bilinmeyen cashtag işareti; ekran okuyucu öznitelikleri (`aria-activedescendant`
-  vb.) doğru; composer chunk'ı ≤ 100 KB gz (`npm run size:check`, CI build job'unda); mobil
+  vb.) doğru; composer chunk'ı hedef ≤ 100 KB gz (`npm run size:check`, CI build job'unda; ölçülen 102,5 KB, CI bütçesi 104 KB — kalan fark ADR-0002 Karar 3 kararına bağlı); mobil
   (Pixel 7 emülasyonu) dokunma ile seçim. **ui-ux-designer hızlı review.**
 - **Uygulama notu (2026-10-10):** Sözleşme `src/features/composer/types.ts` + `schemas.ts`'te;
   S7/S9 buna uymalı ya da S8 istemcisi (`services/http.ts`) güncellenmeli. ADR-0002'ye ekler:

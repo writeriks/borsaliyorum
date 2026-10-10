@@ -112,6 +112,8 @@ jobs:
           restore-keys: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
       - run: npm ci
       - run: npm run build
+      # Lazy chunk bütçeleri (composer, ADR-0002 Karar 3): scripts/bundle-budget.ts
+      - run: npm run size:check
 
   e2e:
     if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'claude/')

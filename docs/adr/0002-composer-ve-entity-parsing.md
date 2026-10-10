@@ -186,7 +186,7 @@ exception atmaz, (d) `normalizeContent` idempotent.
 | Zengin stil (renk, arka plan, padding, hover kartı, ikon) | Sadece genişliği değiştirmeyen stil (overlay hizası) → kullanıcının "çok sınırlı" şikâyetinin kaynağı | Var (node'lar) | Var (inline decoration) | Var |
 | Model = düz metin | Doğal | Node ağacı; `getTextContent()` | Doc yalnızca `paragraph` + `text`; `getText({blockSeparator:'\n'})` | Elle |
 | Parser ile tutarlılık | Overlay ayrı regex | Transform'lar text node'ları **böler**; entity node'ları ile parser senkronu ayrı kod | **Decoration'lar doc'u değiştirmez**: her değişiklikte `parseEntities(paragraphText)` → `Decoration.inline` — editör ile sunucu aynı fonksiyonu kullanır, imleç zıplaması yok | Elle, yüksek risk |
-| Autocomplete | Elle (caret ölçümü) | `LexicalTypeaheadMenuPlugin` | `@tiptap/suggestion` (klavye, konum, çoklu tetikleyici); tetikleme kuralı `findActiveTrigger` ile override | Elle |
+| Autocomplete | Elle (caret ölçümü) | `LexicalTypeaheadMenuPlugin` | `@tiptap/suggestion` (klavye, konum, çoklu tetikleyici); tetikleme kuralı `findActiveTrigger` ile override — S8 review'da bütçe için yerine tek ProseMirror eklentisi yazıldı | Elle |
 | IME / mobil klavye | En iyi (yerel textarea) | İyi | İyi (ProseMirror olgun) | Zor |
 | Olgunluk / API kararlılığı | — | 0.x, sık kırıcı değişiklik | 3.x kararlı, ProseMirror 10+ yıllık | — |
 | Paket | ~0 | Orta | Orta-büyük (`@tiptap/pm`) | ~0 |
@@ -197,9 +197,11 @@ taşıyor. Lexical da yapabilir ama stil için doc'u bölmek gerekir; 0.x API'si
 Overlay yaklaşımı kullanıcının açıkça reddettiği sınırı taşır.
 
 **Kurulum** (StarterKit **kullanılmaz** — bold/italic/list istenmiyor):
-`@tiptap/react`, `@tiptap/pm`, `@tiptap/core`, `@tiptap/suggestion`,
-`@tiptap/extension-document`, `-paragraph`, `-text`, `@tiptap/extensions` (Placeholder,
-UndoRedo) — hepsi 3.31.4, `@floating-ui/dom` 1.8.0 (popup konumu).
+`@tiptap/pm`, `@tiptap/core`, `@tiptap/extension-document`, `-paragraph`, `-text` — hepsi
+3.31.4, `@floating-ui/dom` 1.8.0 (popup konumu). `@tiptap/react`, `@tiptap/suggestion` ve
+`@tiptap/extensions` S8 review'da bütçe için çıkarıldı: editör `useComposerEditor` +
+`ComposerEditorContent` ile kurulur, autocomplete `editor/autocomplete.ts`'teki tek eklenti,
+placeholder/geçmiş `editor/basics.ts`.
 
 **Davranış kuralları:**
 - Şema yalnızca `doc > paragraph+ > text*`. Hiç mark/node yok → yapıştırılan HTML **yapısal
@@ -218,7 +220,12 @@ UndoRedo) — hepsi 3.31.4, `@floating-ui/dom` 1.8.0 (popup konumu).
 - Yapıştırma ve sürükle-bırak aynı düz metin yolundan geçer (`normalizePastedText`); tek
   seferde en fazla 20.000 karakter eklenir, fazlası kırpılır (taslak şemasının üst sınırı).
 - SSR: `useEditor({ immediatelyRender: false })`; composer `next/dynamic` ile lazy, yüklenene
-  kadar aynı yükseklikte skeleton (CLS yok). Composer chunk bütçesi ≤ 120 KB gz (S8'de ölçülür).
+  kadar aynı yükseklikte skeleton (CLS yok). Composer chunk hedefi ≤ 100 KB gz; CI'da
+  `npm run size:check` (`scripts/bundle-budget.ts`) gerileme kapısı. S8 review sonrası ölçüm:
+  120,3 → 102,5 KB gz (`@tiptap/react`, `@tiptap/suggestion`, `@tiptap/extensions` ve Radix
+  RadioGroup/Switch çıkarıldı; autocomplete tek ProseMirror eklentisi). Kalanın ~82 KB'ı
+  `@tiptap/core` + ProseMirror; 100'ün altı `@tiptap/core`'u bırakıp doğrudan ProseMirror
+  kullanmayı gerektirir (≈ −24 KB, **karar gerekli**). CI bütçesi şimdilik 104 KB.
 - Taslak koruma (auth-session kural 5): `UNAUTHENTICATED` dönüşünde editör içeriği korunur.
   Kalıcı taslak tasarım spec'i §1.8'deki gibi `localStorage` (`bz:draft:{userId}:post`,
   `bz:draft:{userId}:comment:{postId}`, 7 gün, **çıkışta hepsi silinir**). Anahtarda DB'deki

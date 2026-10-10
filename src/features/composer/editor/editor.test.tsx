@@ -4,7 +4,13 @@ import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Autocomplete, type AutocompleteBridge, type AutocompleteSession } from './autocomplete';
+import {
+  Autocomplete,
+  type AutocompleteBridge,
+  type AutocompleteSession,
+  exitAutocomplete,
+} from './autocomplete';
+import { ComposerHistory, ComposerPlaceholder } from './basics';
 import { getDocText } from './doc-text';
 import { EntityDecorations } from './entity-decorations';
 import { PlainTextPaste } from './plain-text';
@@ -86,6 +92,33 @@ describe('autocomplete tetikleme (findActiveTrigger ile)', () => {
     expect(sessions.at(-1)).toBeNull();
   });
 
+  it('Esc/exitAutocomplete kapatır; imleç hareketi açmaz, yeni karakter yeniden açar [AC-09]', async () => {
+    const { editor, sessions } = setup();
+    type(editor, '$th');
+    await flush();
+    exitAutocomplete(editor.view);
+    expect(sessions.at(-1)).toBeNull();
+    editor.commands.setTextSelection(2);
+    editor.commands.setTextSelection(4);
+    expect(sessions.at(-1)).toBeNull();
+    type(editor, 'y');
+    expect(sessions.at(-1)).toMatchObject({ kind: 'cashtag', query: 'thy' });
+  });
+
+  it('tür değişince önceki tür kapanır, yenisi açılır', () => {
+    const { editor, sessions } = setup();
+    type(editor, '$th #bi');
+    const kinds = sessions.map(session => session?.kind ?? null);
+    expect(kinds).toContain(null);
+    expect(sessions.at(-1)).toMatchObject({ kind: 'hashtag', query: 'bi' });
+  });
+
+  it('eşleşen token `cmp-query` dekorasyonu alır', () => {
+    const { editor } = setup();
+    type(editor, 'a @ay');
+    expect(editor.view.dom.querySelector('.cmp-query')?.textContent).toBe('@ay');
+  });
+
   it('kapanışta tam eşleşen cashtag kanonik koda çevrilir [AC-06]', () => {
     const { editor } = setup();
     type(editor, '$thyao ');
@@ -114,5 +147,45 @@ describe('yapıştırma [CMP-08]', () => {
     editor.view.dom.dispatchEvent(event);
     expect(getDocText(editor.state.doc)).toBe('Kalın metin\nikinci');
     expect(editor.view.dom.querySelector('b')).toBeNull();
+  });
+});
+
+describe('placeholder ve geçmiş (ComposerPlaceholder, ComposerHistory)', () => {
+  const create = (): Editor => {
+    const editor = new Editor({
+      element: document.createElement('div'),
+      extensions: [
+        Document,
+        Paragraph,
+        Text,
+        ComposerHistory,
+        ComposerPlaceholder.configure({ placeholder: 'Ne düşünüyorsun?' }),
+      ],
+    });
+    editors.push(editor);
+    return editor;
+  };
+
+  it('boş editörde ilk paragraf placeholder taşır, yazınca kalkar', () => {
+    const editor = create();
+    const first = (): Element | null => editor.view.dom.querySelector('p');
+    expect(first()?.getAttribute('data-placeholder')).toBe('Ne düşünüyorsun?');
+    expect(first()?.classList.contains('is-editor-empty')).toBe(true);
+    type(editor, 'a');
+    expect(first()?.hasAttribute('data-placeholder')).toBe(false);
+  });
+
+  it('Mod-z geri alır, Shift-Mod-z yineler', () => {
+    const editor = create();
+    type(editor, 'abc');
+    const press = (key: string, shiftKey = false): void => {
+      editor.view.dom.dispatchEvent(
+        new KeyboardEvent('keydown', { key, ctrlKey: true, shiftKey, bubbles: true })
+      );
+    };
+    press('z');
+    expect(getDocText(editor.state.doc)).toBe('');
+    press('z', true);
+    expect(getDocText(editor.state.doc)).toBe('abc');
   });
 });

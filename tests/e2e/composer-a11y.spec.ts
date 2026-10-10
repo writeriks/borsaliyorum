@@ -86,10 +86,7 @@ test.describe('composer erişilebilirlik', () => {
     await page.keyboard.press('ArrowRight');
     await expect(page.getByRole('radio', { name: tr.composer.sentiment.bullish })).toBeFocused();
     await page.keyboard.press('Space');
-    await expect(page.getByRole('radio', { name: tr.composer.sentiment.bullish })).toHaveAttribute(
-      'aria-checked',
-      'true'
-    );
+    await expect(page.getByRole('radio', { name: tr.composer.sentiment.bullish })).toBeChecked();
     await page.keyboard.press('Control+Enter');
     await expect(page.getByText(tr.composer.success.post)).toBeVisible();
     await expect(page.getByTestId('dev-payload')).toContainText('"sentiment":"bullish"');

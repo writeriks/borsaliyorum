@@ -33,6 +33,10 @@ const lastPayload = async (page: Page): Promise<Record<string, unknown>> =>
 const selectOutcome = (page: Page, label: string): Promise<string[]> =>
   page.getByRole('combobox', { name: tr.devComposer.outcome }).selectOption({ label });
 
+/** Kullanıcı gibi: görünür seçenek etiketine dokunur (yerel radio görsel olarak gizli). */
+const selectSentiment = (page: Page, name: string): Promise<void> =>
+  page.getByRole('radiogroup').locator('label').filter({ hasText: name }).click();
+
 const readDraft = (page: Page, key = DRAFT_KEY): Promise<string | null> =>
   page.evaluate(name => window.localStorage.getItem(name), key);
 
@@ -255,10 +259,7 @@ test.describe('composer: duyarlılık', () => {
     await typeInEditor(page, '$thy');
     await page.keyboard.press('Enter');
     await expect(page.getByRole('radiogroup', { name: tr.composer.sentiment.label })).toBeVisible();
-    await expect(page.getByRole('radio', { name: tr.composer.sentiment.neutral })).toHaveAttribute(
-      'aria-checked',
-      'true'
-    );
+    await expect(page.getByRole('radio', { name: tr.composer.sentiment.neutral })).toBeChecked();
   });
 
   test('[SEN-03] ok tuşlarıyla gezilir, radiogroup tek tab durağı', async ({ page }) => {
@@ -270,10 +271,17 @@ test.describe('composer: duyarlılık', () => {
     await expect(page.getByRole('radio', { name: tr.composer.sentiment.bearish })).toBeFocused();
     await page.keyboard.press('ArrowLeft');
     await expect(page.getByRole('radio', { name: tr.composer.sentiment.bullish })).toBeFocused();
-    const tabbable = await page
-      .getByRole('radio')
-      .evaluateAll(nodes => nodes.filter(node => (node as HTMLElement).tabIndex === 0).length);
-    expect(tabbable).toBe(1);
+    // Ok tuşu seçimi de taşır (yerel radio); grup tek tab durağı: Tab gruptan çıkar
+    await expect(page.getByRole('radio', { name: tr.composer.sentiment.bullish })).toBeChecked();
+    await page.keyboard.press('Tab');
+    await expect(
+      page.getByRole('radio', { name: tr.composer.sentiment.bearish })
+    ).not.toBeFocused();
+    await expect(
+      page.getByRole('radio', { name: tr.composer.sentiment.neutral })
+    ).not.toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(page.getByRole('radio', { name: tr.composer.sentiment.bullish })).toBeFocused();
   });
 
   test('[SEN-04] Yükseliş seçilip gönderilince gönderi bullish olarak iletilir', async ({
@@ -281,10 +289,13 @@ test.describe('composer: duyarlılık', () => {
   }) => {
     await openComposer(page);
     await typeInEditor(page, '$thyao ');
-    await page.getByRole('radio', { name: tr.composer.sentiment.bullish }).click();
-    await expect(page.getByRole('radio', { name: tr.composer.sentiment.bullish })).toContainText(
-      '▲'
-    );
+    await selectSentiment(page, tr.composer.sentiment.bullish);
+    // Yön yalnızca renkle değil: seçeneğin görünür metninde glif var
+    await expect(
+      page
+        .getByRole('radiogroup')
+        .locator('label', { has: page.getByRole('radio', { name: tr.composer.sentiment.bullish }) })
+    ).toContainText('▲');
     await submitButton(page).click();
     await expect.poll(() => calls(page)).toBe(1);
     expect((await lastPayload(page)).sentiment).toBe('bullish');
@@ -293,7 +304,7 @@ test.describe('composer: duyarlılık', () => {
   test('[SEN-05] cashtag silinince radiogroup kaybolur, gönderi neutral', async ({ page }) => {
     await openComposer(page);
     await typeInEditor(page, '$thyao ');
-    await page.getByRole('radio', { name: tr.composer.sentiment.bullish }).click();
+    await selectSentiment(page, tr.composer.sentiment.bullish);
     await editor(page).click();
     await page.keyboard.press('Control+a');
     await page.keyboard.type('Sadece metin');
