@@ -86,7 +86,7 @@ describe('parseClientEnv', () => {
     const error = captureError(() =>
       parseClientEnv({ ...validClient, NEXT_PUBLIC_FIREBASE_API_KEY: undefined })
     );
-    expect(error.issues[0]).toMatch(/^NEXT_PUBLIC_FIREBASE_API_KEY:/);
+    expect(error.issues).toEqual(['NEXT_PUBLIC_FIREBASE_API_KEY: tanımlı değil']);
   });
 });
 

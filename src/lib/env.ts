@@ -9,15 +9,25 @@ import { z } from 'zod';
  */
 
 type EnvSource = Readonly<Record<string, string | undefined>>;
+type EnvScope = 'server' | 'client' | 'build';
 
-const required = z.string().trim().min(1, 'boş olamaz');
+// Tanımsız değişken, Zod'un genel "expected string" mesajı yerine açıkça söylenir
+const message =
+  (fallback: string) =>
+  (issue: { input?: unknown }): string =>
+    issue.input === undefined ? 'tanımlı değil' : fallback;
+
+const required = z
+  .string({ error: message('metin olmalı') })
+  .trim()
+  .min(1, 'boş olamaz');
 // Vercel panelinde boş bırakılmış değer "tanımsız" sayılır
 const optional = z.preprocess(value => (value === '' ? undefined : value), required.optional());
 
 export const serverEnvSchema = z.object({
-  DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/, error: 'postgresql:// URL olmalı' }),
+  DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/, error: message('postgresql:// URL olmalı') }),
   FIREBASE_PROJECT_ID: required,
-  FIREBASE_CLIENT_EMAIL: z.email({ error: 'geçerli bir servis hesabı e-postası olmalı' }),
+  FIREBASE_CLIENT_EMAIL: z.email({ error: message('geçerli bir servis hesabı e-postası olmalı') }),
   FIREBASE_PRIVATE_KEY: required
     .refine(key => key.includes('PRIVATE KEY'), 'PEM biçiminde özel anahtar olmalı')
     // Vercel/.env satır sonlarını "\n" kaçışı olarak saklar
@@ -41,7 +51,7 @@ export type ClientEnv = z.infer<typeof clientEnvSchema>;
 export class EnvValidationError extends Error {
   readonly issues: readonly string[];
 
-  constructor(scope: 'server' | 'client', issues: readonly string[]) {
+  constructor(scope: EnvScope, issues: readonly string[]) {
     super(`Geçersiz ortam değişkenleri (${scope}):\n  - ${issues.join('\n  - ')}`);
     this.name = 'EnvValidationError';
     this.issues = issues;
@@ -54,7 +64,7 @@ const describeIssues = (error: z.ZodError): string[] =>
 
 const parseWith = <T extends z.ZodType>(
   schema: T,
-  scope: 'server' | 'client',
+  scope: Exclude<EnvScope, 'build'>,
   source: EnvSource
 ): z.infer<T> => {
   const result = schema.safeParse(source);
@@ -87,6 +97,6 @@ export const assertBuildEnv = (source: EnvSource): { skipped: boolean } => {
     const result = schema.safeParse(source);
     if (!result.success) issues.push(...describeIssues(result.error).map(i => `[${scope}] ${i}`));
   }
-  if (issues.length > 0) throw new EnvValidationError('server', issues);
+  if (issues.length > 0) throw new EnvValidationError('build', issues);
   return { skipped: false };
 };
