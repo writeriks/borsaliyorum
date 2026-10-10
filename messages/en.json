@@ -72,6 +72,145 @@
     "VALIDATION": "Please check the information you entered and try again.",
     "CONFLICT": "This can't be completed right now. Refresh the page and try again.",
     "RATE_LIMITED": "Too many attempts. Please wait a moment and try again.",
-    "INTERNAL": "Something went wrong. Please try again."
+    "INTERNAL": "Something went wrong. Please try again.",
+    "ONBOARDING_REQUIRED": "Finish setting up your account to continue.",
+    "EMAIL_NOT_VERIFIED": "Verify your email address to post.",
+    "ACCOUNT_SUSPENDED": "Your account can't do this right now.",
+    "CONTENT_EMPTY": "Write something first.",
+    "CONTENT_TOO_LONG": "The text is over the character limit.",
+    "UNKNOWN_CASHTAG": "Your post contains a ticker we don't recognise.",
+    "SPONSORED_CASHTAG_BLOCKED": "Posts mentioning stocks, crypto or other investment instruments can't be shared as ads or collaborations.",
+    "TOO_MANY_ENTITIES": "You can mention up to 10 stocks, 10 hashtags and 10 people in a post."
+  },
+  "composer": {
+    "placeholder": {
+      "post": "What's on your mind?",
+      "comment": "Write a reply"
+    },
+    "label": {
+      "post": "Write a post",
+      "comment": "Write a reply"
+    },
+    "title": "New post",
+    "replyingTo": "Replying to @{username}",
+    "submit": {
+      "post": "Post",
+      "comment": "Reply"
+    },
+    "submitting": "Posting",
+    "loading": "Loading the post editor",
+    "disabled": {
+      "empty": "Write something first"
+    },
+    "toolbar": {
+      "label": "Post tools",
+      "cashtag": "Add stock",
+      "hashtag": "Add hashtag",
+      "mention": "Mention someone"
+    },
+    "counter": {
+      "remaining": "Characters left: {n}",
+      "over": "Over the limit by {n}"
+    },
+    "sentiment": {
+      "label": "Your view",
+      "bullish": "Bullish",
+      "bearish": "Bearish",
+      "neutral": "Neutral",
+      "help": "Your choice appears as a small tag on your post, shown as your personal view."
+    },
+    "sponsored": {
+      "label": "This post is an ad or paid collaboration",
+      "help": "Turn on if you received money, gifts, discounts or any other benefit from a brand or person. A \"Reklam / İşbirliği\" (Ad / Collaboration) label will appear at the top of your post.",
+      "preview": "Ad / Collaboration (Reklam)",
+      "cashtagBlocked": "Posts mentioning stocks, crypto or other investment instruments can't be shared as ads or collaborations."
+    },
+    "unknownCashtag": "Unknown ticker: {tickers}. Fix the code or pick one from the list.",
+    "linkPreview": {
+      "remove": "Remove preview"
+    },
+    "success": {
+      "post": "Your post is live.",
+      "view": "View",
+      "comment": "Your reply is live."
+    },
+    "error": {
+      "generic": "Couldn't share your post. Check your connection and try again.",
+      "rateLimit": "You're posting too often. Wait a bit and try again.",
+      "session": "Your session expired. Log in again, your draft is saved.",
+      "restricted": "Your account can't post right now. See your notifications for details."
+    },
+    "draft": {
+      "restored": "Your unsaved draft was restored.",
+      "discard": "Discard draft",
+      "confirmTitle": "Save draft?",
+      "confirmBody": "You can finish this post later.",
+      "save": "Save draft",
+      "delete": "Discard"
+    },
+    "anon": {
+      "post": "Log in to share your thoughts.",
+      "comment": "Log in to reply."
+    }
+  },
+  "ac": {
+    "listbox": {
+      "stocks": "Stock suggestions",
+      "tags": "Hashtag suggestions",
+      "users": "People suggestions"
+    },
+    "heading": {
+      "stocks": "Stocks",
+      "followedStocks": "Stocks you follow",
+      "mostMentioned": "Most mentioned (last 24h)",
+      "tags": "Hashtags",
+      "trendingTags": "Most used in the last 24h",
+      "users": "People",
+      "following": "People you follow"
+    },
+    "market": {
+      "stock": "BIST",
+      "crypto": "Crypto",
+      "other": "Other"
+    },
+    "tagCount": "{count, plural, one {# post} other {# posts}}",
+    "following": "Following",
+    "empty": {
+      "stock": "No stocks match \"{query}\".",
+      "tag": "\"#{query}\" hasn't been used yet. Keep typing.",
+      "user": "No one matches \"@{query}\".",
+      "stockDefault": "Type a ticker or company name."
+    },
+    "error": "Couldn't load suggestions.",
+    "sr": {
+      "count": "{count} suggestions. Use up and down arrows, Enter to select.",
+      "none": "No results."
+    }
+  },
+  "devComposer": {
+    "title": "Composer preview (development only)",
+    "intro": "This page only opens in development and test. All data is fake.",
+    "variant": "Variant",
+    "variants": {
+      "inline": "Feed inline",
+      "dialog": "Dialog",
+      "sheet": "Mobile sheet",
+      "comment": "Comment"
+    },
+    "outcome": "Submit outcome",
+    "outcomes": {
+      "ok": "Success",
+      "internal": "Server error (500)",
+      "network": "Network error",
+      "rateLimited": "Rate limited (429)",
+      "unauthenticated": "Session expired (401)",
+      "restricted": "Restricted account (403)",
+      "unknownCashtag": "Unknown ticker (422)"
+    },
+    "delay": "Delay (ms)",
+    "calls": "Submit calls: {count}",
+    "lastPayload": "Last submitted payload",
+    "openDialog": "Share a post",
+    "openSheet": "Open mobile composer"
   }
 }

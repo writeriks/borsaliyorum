@@ -100,3 +100,11 @@ export const assertBuildEnv = (source: EnvSource): { skipped: boolean } => {
   if (issues.length > 0) throw new EnvValidationError('build', issues);
   return { skipped: false };
 };
+
+/**
+ * Geliştirme önizleme sayfaları (ör. `/dev/composer`): yerel `next dev`'de ve E2E build'inde
+ * (`ENABLE_DEV_PAGES=1`) açık. Vercel production'da bayrak set edilse bile **kapalı**.
+ */
+export const areDevPagesEnabled = (source: EnvSource): boolean =>
+  source.VERCEL_ENV !== 'production' &&
+  (source.NODE_ENV !== 'production' || source.ENABLE_DEV_PAGES === '1');

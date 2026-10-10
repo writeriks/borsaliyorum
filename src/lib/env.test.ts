@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  areDevPagesEnabled,
   assertBuildEnv,
   clientEnvSchema,
   EnvValidationError,
@@ -164,5 +165,27 @@ describe('erişimciler', () => {
     vi.stubEnv('NEXT_PUBLIC_MEASUREMENT_ID', 'G-TEST');
     const { getClientEnv } = await import('./env.client');
     expect(getClientEnv()).toEqual({ ...validClient, NEXT_PUBLIC_MEASUREMENT_ID: 'G-TEST' });
+  });
+});
+
+describe('areDevPagesEnabled', () => {
+  it('yerel geliştirmede açık', () => {
+    expect(areDevPagesEnabled({ NODE_ENV: 'development' })).toBe(true);
+  });
+
+  it('production build/start yalnızca ENABLE_DEV_PAGES=1 ile açık (E2E)', () => {
+    expect(areDevPagesEnabled({ NODE_ENV: 'production' })).toBe(false);
+    expect(areDevPagesEnabled({ NODE_ENV: 'production', ENABLE_DEV_PAGES: '1' })).toBe(true);
+  });
+
+  it('Vercel production ortamında bayrak olsa da kapalı', () => {
+    expect(
+      areDevPagesEnabled({
+        NODE_ENV: 'production',
+        VERCEL_ENV: 'production',
+        ENABLE_DEV_PAGES: '1',
+      })
+    ).toBe(false);
+    expect(areDevPagesEnabled({ NODE_ENV: 'development', VERCEL_ENV: 'production' })).toBe(false);
   });
 });
