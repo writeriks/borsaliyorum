@@ -1,0 +1,44 @@
+name: Purge retention
+
+# Günlük saklama süresi / TTL temizliği (scripts/purge-retention.ts): ContentEvent (1–2 yıl,
+# varsayılan 2), RateLimitBucket (pencere + 24 saat), bağlantısız süresi dolmuş LinkPreview,
+# LegalIdentityRetention (purgeAt). DATABASE_URL secret'ı (tercihen doğrudan/pooler olmayan URL;
+# roller ayrılınca app_maintenance rolü) tanımlı değilse iş atlanır.
+on:
+  schedule:
+    - cron: '23 1 * * *' # her gün 04:23 (TR)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: purge-retention
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: Skip when DATABASE_URL secret is missing
+        if: env.DATABASE_URL == ''
+        run: echo "::notice::DATABASE_URL secret tanımlı değil; temizlik atlandı."
+      - if: env.DATABASE_URL != ''
+        uses: actions/checkout@v4
+      - if: env.DATABASE_URL != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      # Prisma istemcisi gerekmez (pg ile çalışır); postinstall'daki generate atlanır
+      - if: env.DATABASE_URL != ''
+        run: npm ci --ignore-scripts
+      - if: env.DATABASE_URL != ''
+        run: npx tsx scripts/purge-retention.ts

@@ -1,6 +1,6 @@
 import { inject } from 'vitest';
 
-import { templateDatabaseName, workerDatabaseNameFor } from './config';
+import { databaseUrl, templateDatabaseName, workerDatabaseNameFor } from './config';
 
 /**
  * Worker tarafı DB adları (yalnızca integration testlerinde, globalSetup'ın `provide` ettiği
@@ -13,3 +13,6 @@ export const workerDatabaseName = (): string =>
   workerDatabaseNameFor(runId(), process.env.VITEST_POOL_ID ?? '1');
 
 export const templateDatabase = (): string => templateDatabaseName(runId());
+
+/** Bu worker'ın DB adresi (setup-worker.ts'in `DATABASE_URL`'e yazdığıyla aynı). */
+export const workerDatabaseUrl = (): string => databaseUrl(workerDatabaseName());
