@@ -35,6 +35,23 @@ export const TabBar = ({ viewer: serverViewer, className }: TabBarProps): ReactE
   const t = useTranslations();
   const viewer = useShellViewer(serverViewer);
 
+  if (viewer.status === 'needs-onboarding') {
+    return (
+      <div data-testid='complete-signup-banner' className={cn(bottomBarClasses, className)}>
+        <p className='flex min-h-tabbar items-center justify-center gap-1 px-4 text-sm'>
+          <span className='text-fg-muted'>{t('shell.completeSignupPrompt')}</span>
+          <Link
+            href={NAV_HREF.onboarding}
+            data-testid='complete-signup-cta'
+            className='inline-flex min-h-hit min-w-hit items-center justify-center px-2 font-semibold text-accent'
+          >
+            {t('shell.completeSignup')}
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
   if (viewer.status === 'anonymous') {
     return (
       <div data-testid='join-banner' className={cn(bottomBarClasses, className)}>

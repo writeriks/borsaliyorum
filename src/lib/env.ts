@@ -126,18 +126,40 @@ const AUTH_EMULATOR_VARS = [
   'NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST',
 ] as const;
 
+/** Firebase'in yalnızca emulator'de çalışan, gerçek projeye bağlanamayan proje öneki. */
+const EMULATOR_ONLY_PROJECT_PREFIX = 'demo-';
+const PROJECT_ID_VARS = ['FIREBASE_PROJECT_ID', 'NEXT_PUBLIC_FIREBASE_PROJECT_ID'] as const;
+
 /**
- * Emulator token'ları imzasızdır: production'da emulator değişkeni set ise herkes istediği
- * kullanıcı olarak oturum açabilirdi. Bu yüzden build, sunucu başlangıcı (instrumentation) ve
- * Admin SDK kurulumu bu kontrolü yapar (ADR-0001 Karar 5, ADR-0003 Karar 4).
+ * Yalnızca `demo-` projeleri: E2E (`next start` = production runtime) emulator ile koşar ama
+ * gerçek Firebase projesine hiç bağlanamaz. Tanımlı her proje kimliği `demo-` olmalı.
+ */
+const usesEmulatorOnlyProject = (source: EnvSource): boolean => {
+  const ids = PROJECT_ID_VARS.map(name => (source[name] ?? '').trim()).filter(id => id !== '');
+  return ids.length > 0 && ids.every(id => id.startsWith(EMULATOR_ONLY_PROJECT_PREFIX));
+};
+
+/**
+ * Emulator token'ları imzasızdır: dağıtılmış bir ortamda emulator değişkeni set ise herkes
+ * istediği kullanıcı olarak oturum açabilirdi. Hata koşulları:
+ * - Vercel production **veya preview** (preview URL'leri herkese açık)
+ * - production runtime (`next start`, `NEXT_PHASE` build değil), proje `demo-` değilse
+ * Bu yüzden build, sunucu başlangıcı (instrumentation) ve Admin SDK kurulumu bu kontrolü yapar
+ * (ADR-0001 Karar 5, ADR-0003 Karar 4). Emulator modunda yerel doğrulamaya düşen bir yol yoktur:
+ * `resolveSession` tek bir `verifySessionCookie(…, false)` çağrısı yapar.
  */
 export const assertNoAuthEmulatorInProduction = (source: EnvSource): void => {
-  if (source.VERCEL_ENV !== 'production') return;
   const present = AUTH_EMULATOR_VARS.filter(name => (source[name] ?? '').trim() !== '');
-  if (present.length > 0) {
+  if (present.length === 0) return;
+  const deployed = source.VERCEL_ENV === 'production' || source.VERCEL_ENV === 'preview';
+  const unsafeRuntime = isProductionRuntime(source) && !usesEmulatorOnlyProject(source);
+  if (deployed || unsafeRuntime) {
     throw new EnvValidationError(
       'server',
-      present.map(name => `${name}: production'da tanımlı olamaz (emulator token'ları imzasız)`)
+      present.map(
+        name =>
+          `${name}: production/preview'da ya da demo- olmayan projeyle production runtime'da tanımlı olamaz (emulator token'ları imzasız)`
+      )
     );
   }
 };

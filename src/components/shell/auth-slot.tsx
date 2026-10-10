@@ -1,6 +1,6 @@
 'use client';
 
-import { LogIn } from 'lucide-react';
+import { LogIn, UserRoundCheck } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { ReactElement } from 'react';
 
@@ -15,7 +15,8 @@ import { useShellViewer } from './use-shell-viewer';
 
 /**
  * Sol menünün altındaki kullanıcı alanı. `unknown` → aynı ölçüde skeleton; "Giriş yap"
- * yalnızca sunucu `anonymous` dediğinde (auth-session UX kuralı 1).
+ * yalnızca sunucu `anonymous` dediğinde (auth-session UX kuralı 1); onboarding'i bitmemiş
+ * hesap "Kaydı tamamla" görür.
  */
 export const AuthSlot = ({ viewer: serverViewer }: { viewer: ShellViewer }): ReactElement => {
   const t = useTranslations();
@@ -34,6 +35,27 @@ export const AuthSlot = ({ viewer: serverViewer }: { viewer: ShellViewer }): Rea
           <Skeleton className='h-4 w-28' />
           <Skeleton className='h-3 w-20' />
         </div>
+      </div>
+    );
+  }
+
+  if (viewer.status === 'needs-onboarding') {
+    return (
+      <div className='flex flex-col items-center gap-2 xl:items-stretch'>
+        <Button asChild size='lg' className='hidden xl:inline-flex'>
+          <Link href={NAV_HREF.onboarding} data-testid='complete-signup-cta'>
+            {t('shell.completeSignup')}
+          </Link>
+        </Button>
+        <Button asChild variant='ghost' size='icon' className='xl:hidden'>
+          <Link
+            href={NAV_HREF.onboarding}
+            aria-label={t('shell.completeSignup')}
+            data-testid='complete-signup-cta'
+          >
+            <UserRoundCheck aria-hidden='true' />
+          </Link>
+        </Button>
       </div>
     );
   }

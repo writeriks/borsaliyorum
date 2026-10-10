@@ -244,17 +244,68 @@ describe('emulator production koruması (ADR-0001 Karar 5)', () => {
     }
   );
 
-  it('preview/yerel/E2E ortamında emulator serbest', () => {
-    for (const VERCEL_ENV of ['preview', 'development', undefined]) {
+  it.each([
+    ['Vercel preview', { VERCEL_ENV: 'preview' }],
+    ['production runtime (next start), gerçek proje', { NODE_ENV: 'production' }],
+    [
+      'production runtime, demo- projesi ama Vercel preview',
+      { NODE_ENV: 'production', VERCEL_ENV: 'preview', FIREBASE_PROJECT_ID: 'demo-borsaliyorum' },
+    ],
+  ])('%s → emulator değişkeni başlangıç hatası', (_label, env) => {
+    expect(() =>
+      assertNoAuthEmulatorInProduction({
+        FIREBASE_PROJECT_ID: 'borsaliyorum',
+        ...env,
+        FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
+      })
+    ).toThrow(EnvValidationError);
+    expect(() =>
+      assertNoAuthEmulatorInProduction({
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'borsaliyorum',
+        ...env,
+        NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
+      })
+    ).toThrow(EnvValidationError);
+  });
+
+  it('yerel geliştirme / test (production runtime değil) → emulator serbest', () => {
+    for (const source of [
+      { VERCEL_ENV: 'development' },
+      { NODE_ENV: 'development' },
+      { NODE_ENV: 'test' },
+      // `next build` aşaması runtime sayılmaz
+      { NODE_ENV: 'production', NEXT_PHASE: 'phase-production-build' },
+    ]) {
       expect(() =>
         assertNoAuthEmulatorInProduction({
-          VERCEL_ENV,
+          ...source,
           FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
         })
       ).not.toThrow();
     }
     const env = parseServerEnv({ ...validServer, FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099' });
     expect(env.FIREBASE_AUTH_EMULATOR_HOST).toBe('127.0.0.1:9099');
+  });
+
+  it('E2E (next start + yalnızca demo- projesi, Vercel dışı) → izinli; gerçek Firebase projesine bağlanamaz', () => {
+    expect(() =>
+      assertNoAuthEmulatorInProduction({
+        NODE_ENV: 'production',
+        FIREBASE_PROJECT_ID: 'demo-borsaliyorum',
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-borsaliyorum',
+        FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
+        NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
+      })
+    ).not.toThrow();
+    // Projelerden biri gerçekse yine hata
+    expect(() =>
+      assertNoAuthEmulatorInProduction({
+        NODE_ENV: 'production',
+        FIREBASE_PROJECT_ID: 'demo-borsaliyorum',
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'borsaliyorum',
+        FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
+      })
+    ).toThrow(EnvValidationError);
   });
 
   it("production'da boş değer set sayılmaz", () => {

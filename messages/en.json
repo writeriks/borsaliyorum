@@ -47,7 +47,9 @@
       "privacy": "Privacy notice (KVKK)",
       "terms": "Terms of use",
       "copyright": "© Borsalıyorum"
-    }
+    },
+    "completeSignup": "Complete sign-up",
+    "completeSignupPrompt": "Your account is almost ready:"
   },
   "theme": {
     "menuLabel": "Theme",
@@ -78,7 +80,8 @@
     "ACCOUNT_SUSPENDED": "This account has been suspended.",
     "REAUTH_REQUIRED": "For your security, please log in again.",
     "USERNAME_TAKEN": "This username is taken.",
-    "USERNAME_RESERVED": "This username can't be used."
+    "USERNAME_RESERVED": "This username can't be used.",
+    "ACCOUNT_EMAIL_CONFLICT": "This email address belongs to an account created with a different sign-in method."
   },
   "auth": {
     "accountMenu": {
@@ -136,7 +139,8 @@
       "otherProvider": "This email is registered with another sign-in method. Use that method to log in.",
       "reauth": "For your security, please log in again.",
       "suspended": "This account has been suspended. Contact support.",
-      "generic": "Couldn't log in. Please try again."
+      "generic": "Couldn't log in. Please try again.",
+      "signupGeneric": "Couldn't create your account. Please try again."
     },
     "onboarding": {
       "metaTitle": "Complete your account",
@@ -179,7 +183,12 @@
       },
       "submit": "Continue",
       "submitting": "Saving…",
-      "failed": "Couldn't save your details. Please try again."
+      "failed": "Couldn't save your details. Please try again.",
+      "emailConflict": {
+        "title": "This email is already registered to another account",
+        "body": "An account was previously created for {email} with a different sign-in method (e.g. password or Google). Log in with that method, or contact support to have your accounts merged.",
+        "contact": "Support: <link>{supportEmail}</link>"
+      }
     },
     "verify": {
       "title": "Verify your email address",
@@ -191,7 +200,16 @@
       "check": "I've verified",
       "checking": "Checking…",
       "stillUnverified": "Your email address doesn't look verified yet. Click the link, then try again.",
-      "verified": "Your email address is verified."
+      "verified": "Your email address is verified.",
+      "resendRateLimited": "You've requested too many links in a short time. Wait a moment and try again."
+    },
+    "sessionExpired": "Your session has expired. Log in again to continue; your draft won't be lost.",
+    "reverify": {
+      "metaTitle": "Verification link",
+      "title": "Send the verification link",
+      "lead": "For your security, log in again and we'll send the verification link to your email right away.",
+      "submit": "Log in and send",
+      "submitting": "Sending…"
     }
   },
   "feedPlaceholder": {

@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, type Page, test } from '@playwright/test';
+import { expect, type Page, test } from './support/test';
 
 import tr from '../../messages/tr.json' with { type: 'json' };
 
@@ -7,7 +7,21 @@ import { createFirebaseAccount, loginViaUi, seedOnboardedUser } from './support/
 
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
+/**
+ * Açılış animasyonları (Radix menü fade/zoom) bitmeden ölçülen kontrast, yarı saydam metin
+ * yüzünden yanlış "serious" ihlal verir (aralıklı başarısızlık). Önce animasyonlar bitsin.
+ */
+const settleAnimations = (page: Page): Promise<void> =>
+  page.evaluate(async () => {
+    // Sonsuz animasyonlar (skeleton nabzı, spinner) hiç bitmez; yalnızca sonlu olanlar beklenir
+    const finite = document
+      .getAnimations()
+      .filter(animation => animation.effect?.getComputedTiming().iterations !== Infinity);
+    await Promise.all(finite.map(animation => animation.finished));
+  });
+
 const scan = async (page: Page): Promise<{ id: string; impact: string; targets: string[] }[]> => {
+  await settleAnimations(page);
   const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
   return results.violations
     .filter(violation => violation.impact === 'serious' || violation.impact === 'critical')

@@ -5,6 +5,7 @@ import type { Logger } from '@/lib/logger';
 import type { RequestMeta } from '@/lib/request-meta';
 
 import { SESSION_MAX_AGE_MS } from './cookies';
+import type { RateLimitDecision } from './rate-limit-keys';
 import { isAuthTimeFresh, isSessionInvalidated } from './rules';
 import { type ClientSession, toClientUser } from './types';
 import { sessionUserSelect, toSessionUser } from './user-record';
@@ -25,6 +26,8 @@ export type CreateSessionDeps = {
   readonly ipKey: () => Uint8Array;
   readonly now: () => Date;
   readonly log: Logger;
+  /** Hesap (Firebase uid) başına rate limit; token doğrulandıktan sonra çağrılır. */
+  readonly rateLimitUid: (uid: string) => Promise<RateLimitDecision>;
 };
 
 export type CreatedSession = {
@@ -64,6 +67,9 @@ export const createSessionFromIdToken = async (
   // Eski (ör. çalınmış ya da uzun süre açık kalmış) bir token'dan 14 günlük oturum üretilmesin
   if (!isAuthTimeFresh(claims.auth_time, deps.now())) return fail(ErrorCode.REAUTH_REQUIRED);
   if (!claims.email) return fail(ErrorCode.VALIDATION);
+
+  const limit = await deps.rateLimitUid(claims.uid);
+  if (!limit.ok) return fail(ErrorCode.RATE_LIMITED, { retryAfter: limit.retryAfterSeconds });
 
   const record = await deps.db.user.findUnique({
     where: { firebaseUserId: claims.uid },

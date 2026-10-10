@@ -23,6 +23,12 @@ export const ErrorCode = {
   REAUTH_REQUIRED: 'REAUTH_REQUIRED',
   USERNAME_TAKEN: 'USERNAME_TAKEN',
   USERNAME_RESERVED: 'USERNAME_RESERVED',
+  /**
+   * Bu e-posta başka bir Firebase kimliğine bağlı bir hesapta kayıtlı (v1'de aynı e-postayla
+   * farklı giriş yöntemiyle açılmış hesap). v1 kararı: otomatik birleştirme yok; kullanıcıya
+   * açık mesaj + destek iletişimi.
+   */
+  ACCOUNT_EMAIL_CONFLICT: 'ACCOUNT_EMAIL_CONFLICT',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];

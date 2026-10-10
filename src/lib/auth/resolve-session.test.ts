@@ -2,7 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { Logger } from '@/lib/logger';
 
-import { type ResolveSessionDeps, resolveSession, type SessionClaims } from './resolve-session';
+import {
+  type ResolveSessionDeps,
+  resolveSession,
+  type SessionClaims,
+  verifySensitiveSession,
+} from './resolve-session';
 import { toClientSession } from './types';
 import type { SessionUserRecord } from './user-record';
 
@@ -58,10 +63,11 @@ const deps = (
 };
 
 describe('resolveSession', () => {
-  it('geçerli çerez + onboard edilmiş kullanıcı → authenticated; iptal kontrolü açık (checkRevoked)', async () => {
+  it('geçerli çerez + onboard edilmiş kullanıcı → authenticated; her istekte ağ çağrısı yok (checkRevoked=false, ADR-0001)', async () => {
     const d = deps();
     const session = await resolveSession('cookie', d);
-    expect(d.verifySessionCookie).toHaveBeenCalledWith('cookie', true);
+    expect(d.verifySessionCookie).toHaveBeenCalledTimes(1);
+    expect(d.verifySessionCookie).toHaveBeenCalledWith('cookie', false);
     expect(session).toMatchObject({
       status: 'authenticated',
       firebaseUid: 'uid-1',
@@ -74,34 +80,14 @@ describe('resolveSession', () => {
     'auth/session-cookie-expired',
     'auth/argument-error',
     'auth/user-disabled',
-  ])('%s → anonim, yerel doğrulamaya düşülmez', async code => {
+    'app/network-error',
+  ])('%s → anonim; ikinci (gevşek) doğrulama denemesi yok', async code => {
     const verifySessionCookie = vi.fn(async () => {
       throw firebaseError(code);
     });
     const d = deps({ verifySessionCookie });
     expect(await resolveSession('cookie', d)).toEqual({ status: 'anonymous' });
     expect(verifySessionCookie).toHaveBeenCalledTimes(1);
-  });
-
-  it('Firebase erişilemezse (ağ) yerel doğrulamaya düşer; kullanıcı çıkış yapmış sayılmaz', async () => {
-    const verifySessionCookie = vi.fn(async (_cookie: string, checkRevoked: boolean) => {
-      if (checkRevoked) throw firebaseError('app/network-error');
-      return claims();
-    });
-    const d = deps({ verifySessionCookie });
-    const session = await resolveSession('cookie', d);
-    expect(session.status).toBe('authenticated');
-    expect(verifySessionCookie).toHaveBeenLastCalledWith('cookie', false);
-    expect(d.log.warn).toHaveBeenCalled();
-  });
-
-  it('yerel doğrulamada da sahte/bozuk çerez → anonim', async () => {
-    const verifySessionCookie = vi.fn(async (_cookie: string, checkRevoked: boolean) => {
-      throw firebaseError(checkRevoked ? 'app/network-error' : 'auth/argument-error');
-    });
-    expect(await resolveSession('cookie', deps({ verifySessionCookie }))).toEqual({
-      status: 'anonymous',
-    });
   });
 
   it('sessionsValidAfter (başka cihazdan çıkış) sonrasında açılmamış oturum → anonim', async () => {
@@ -194,5 +180,46 @@ describe('resolveSession', () => {
         },
       })
     ).toEqual({ status: 'needs-onboarding' });
+  });
+});
+
+describe('verifySensitiveSession (hassas işlemler: checkRevoked=true + taze giriş)', () => {
+  const NOW = new Date(NOW_SECONDS * 1000 + 60_000);
+
+  it('iptal kontrolü açık; taze girişte authenticated döner', async () => {
+    const d = deps();
+    const result = await verifySensitiveSession('cookie', d, NOW);
+    expect(d.verifySessionCookie).toHaveBeenCalledWith('cookie', true);
+    expect(result).toMatchObject({ ok: true, data: { status: 'authenticated' } });
+  });
+
+  it.each(['auth/session-cookie-revoked', 'app/network-error'])(
+    '%s → REAUTH_REQUIRED (yerel doğrulamaya düşmez; fail-closed)',
+    async code => {
+      const verifySessionCookie = vi.fn(async () => {
+        throw firebaseError(code);
+      });
+      expect(await verifySensitiveSession('cookie', deps({ verifySessionCookie }), NOW)).toEqual({
+        ok: false,
+        error: 'REAUTH_REQUIRED',
+      });
+      expect(verifySessionCookie).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it('5 dakikadan eski giriş → REAUTH_REQUIRED', async () => {
+    const later = new Date(NOW_SECONDS * 1000 + 6 * 60_000);
+    expect(await verifySensitiveSession('cookie', deps(), later)).toEqual({
+      ok: false,
+      error: 'REAUTH_REQUIRED',
+    });
+  });
+
+  it('sessionsValidAfter / askı DB kontrolleri de uygulanır', async () => {
+    const d = deps({ findUserByFirebaseUid: vi.fn(async () => record({ status: 'suspended' })) });
+    expect(await verifySensitiveSession('cookie', d, NOW)).toEqual({
+      ok: false,
+      error: 'UNAUTHENTICATED',
+    });
   });
 });

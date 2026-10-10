@@ -43,6 +43,7 @@ const depsFor = (claims: IdTokenClaims, overrides: Partial<CreateSessionDeps> = 
     ipKey: () => IP_KEY,
     now: () => NOW,
     log,
+    rateLimitUid: vi.fn(async () => ({ ok: true }) as const),
     ...overrides,
   } satisfies CreateSessionDeps;
 };
@@ -71,6 +72,17 @@ describe('createSessionFromIdToken (gerçek DB)', () => {
     expect(deps.verifyIdToken).toHaveBeenCalledWith('id-token', true);
     expect(deps.createSessionCookie).toHaveBeenCalledWith('id-token', 14 * 24 * 60 * 60 * 1000);
     expect(await getDb().user.findUnique({ where: { firebaseUserId: uid } })).toBeNull();
+  });
+
+  it('hesap başına rate limit: token doğrulandıktan sonra uid ile; aşımda çerez üretilmez', async () => {
+    const uid = `limited-${randomUUID()}`;
+    const rateLimitUid = vi.fn(async () => ({ ok: false, retryAfterSeconds: 90 }) as const);
+    const deps = depsFor(claimsFor(uid), { rateLimitUid });
+    const result = await createSessionFromIdToken('id-token', meta(), deps);
+
+    expect(result).toEqual({ ok: false, error: 'RATE_LIMITED', meta: { retryAfter: 90 } });
+    expect(rateLimitUid).toHaveBeenCalledWith(uid);
+    expect(deps.createSessionCookie).not.toHaveBeenCalled();
   });
 
   it('mevcut kullanıcı: authenticated, e-posta doğrulama durumu tazelenir, auth.login yazılır (IP şifreli)', async () => {

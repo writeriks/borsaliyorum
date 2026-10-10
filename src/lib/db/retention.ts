@@ -16,6 +16,12 @@ export const DEFAULT_CONTENT_EVENT_RETENTION = '2 years';
  */
 export const RATE_LIMIT_MAX_WINDOW_HOURS = 24;
 export const RATE_LIMIT_GRACE_HOURS = 24;
+/**
+ * Hash'lenmiş IP anahtarlı kovalar (`auth.<kural>.ip:<hmac>`, `lib/auth/rate-limit-keys.ts`):
+ * legal kararı gereği en fazla 24 saat. Uygulama da her IP'li tüketimde aynı sınırla siler.
+ */
+export const RATE_LIMIT_IP_RETENTION_HOURS = 24;
+export const RATE_LIMIT_IP_KEY_LIKE = 'auth.%.ip:%';
 
 export type Queryable = {
   query: (
@@ -54,6 +60,12 @@ export const runRetentionPurge = async (
      WHERE "windowStart" < (now() AT TIME ZONE 'UTC') - make_interval(hours => $1)`,
     [RATE_LIMIT_MAX_WINDOW_HOURS + RATE_LIMIT_GRACE_HOURS]
   );
+  const ipBuckets = await db.query(
+    `DELETE FROM "RateLimitBucket"
+     WHERE "windowStart" < (now() AT TIME ZONE 'UTC') - make_interval(hours => $1)
+       AND "key" LIKE $2`,
+    [RATE_LIMIT_IP_RETENTION_HOURS, RATE_LIMIT_IP_KEY_LIKE]
+  );
 
   // Süresi dolan önizlemeler; bir gönderiye bağlı olanlar gönderinin parçasıdır, kalır
   // (yeniden çekilince expiresAt ileri alınır).
@@ -69,7 +81,7 @@ export const runRetentionPurge = async (
 
   return {
     contentEvents: firstNumber(events.rows, 'deleted'),
-    rateLimitBuckets: buckets.rowCount ?? 0,
+    rateLimitBuckets: (buckets.rowCount ?? 0) + (ipBuckets.rowCount ?? 0),
     linkPreviews: previews.rowCount ?? 0,
     legalIdentities: identities.rowCount ?? 0,
   };

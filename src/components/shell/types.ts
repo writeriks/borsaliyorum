@@ -7,10 +7,13 @@ export type ShellUser = {
 
 /**
  * Kabuğun gördüğü oturum durumu. `unknown` iken giriş/kayıt UI'ı ASLA render edilmez; aynı
- * ölçüde skeleton gösterilir (auth-session). S5'e kadar sayfalar `unknown` geçer; S5'ten sonra
- * sunucu `getCurrentUser()` sonucundan `anonymous | authenticated` gelir.
+ * ölçüde skeleton gösterilir (auth-session). `needs-onboarding`: kimliği doğrulanmış ama
+ * kullanıcı adı seçmemiş hesap; "Giriş yap" yerine "Kaydı tamamla" (→ /hos-geldin) görür.
  */
 export type ShellViewer =
-  { status: 'unknown' } | { status: 'anonymous' } | { status: 'authenticated'; user: ShellUser };
+  | { status: 'unknown' }
+  | { status: 'anonymous' }
+  | { status: 'needs-onboarding' }
+  | { status: 'authenticated'; user: ShellUser };
 
 export const UNKNOWN_VIEWER: ShellViewer = { status: 'unknown' };

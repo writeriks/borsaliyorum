@@ -43,6 +43,24 @@ export const checkUsername = async (
 };
 
 /**
+ * Kimliğin e-postası başka bir Firebase kimliğinin hesabında mı? Onboarding sayfası formu
+ * göstermeden önce sorar: kullanıcı doldurup gönderdikten sonra hata almasın.
+ */
+export const emailBelongsToOtherIdentity = async (
+  db: PrismaClient,
+  identity: Pick<OnboardingIdentity, 'email' | 'firebaseUid'>
+): Promise<boolean> => {
+  const other = await db.user.findFirst({
+    where: {
+      email: { equals: identity.email, mode: 'insensitive' },
+      NOT: { firebaseUserId: identity.firebaseUid },
+    },
+    select: { userId: true },
+  });
+  return other !== null;
+};
+
+/**
  * Çakışan alan(lar). Prisma'nın sürücü adaptörüyle `meta` biçimi değişebildiği için (`target`
  * ya da `driverAdapterError.cause.constraint.fields`) alan adı metin içinde aranır.
  */
@@ -135,8 +153,12 @@ export const completeOnboardingForIdentity = async (
       if (error.code === 'P2002' && uniqueTarget(error).includes('username')) {
         return fail(ErrorCode.USERNAME_TAKEN);
       }
-      // P2002 (firebaseUserId/email): çift gönderim ya da e-postası başka hesapta olan kimlik;
-      // P2025: eski hesap bu arada tamamlanmış
+      // E-posta başka bir Firebase kimliğinin hesabında: kullanıcıya açık mesaj (takılı ekran yok)
+      if (error.code === 'P2002' && uniqueTarget(error).includes('email')) {
+        deps.log.warn('onboarding email belongs to another identity', { code: error.code });
+        return fail(ErrorCode.ACCOUNT_EMAIL_CONFLICT);
+      }
+      // P2002 (firebaseUserId): çift gönderim; P2025: eski hesap bu arada tamamlanmış
       if (error.code === 'P2002' || error.code === 'P2025') {
         deps.log.warn('onboarding conflict', { code: error.code, target: uniqueTarget(error) });
         return fail(ErrorCode.CONFLICT);

@@ -47,7 +47,9 @@
       "privacy": "KVKK Aydınlatma Metni",
       "terms": "Kullanım Koşulları",
       "copyright": "© Borsalıyorum"
-    }
+    },
+    "completeSignup": "Kaydı tamamla",
+    "completeSignupPrompt": "Hesabın neredeyse hazır:"
   },
   "theme": {
     "menuLabel": "Tema",
@@ -78,7 +80,8 @@
     "ACCOUNT_SUSPENDED": "Bu hesap askıya alınmış.",
     "REAUTH_REQUIRED": "Güvenliğin için yeniden giriş yapman gerekiyor.",
     "USERNAME_TAKEN": "Bu kullanıcı adı alınmış.",
-    "USERNAME_RESERVED": "Bu kullanıcı adı kullanılamaz."
+    "USERNAME_RESERVED": "Bu kullanıcı adı kullanılamaz.",
+    "ACCOUNT_EMAIL_CONFLICT": "Bu e-posta adresi başka bir giriş yöntemiyle açılmış bir hesaba bağlı."
   },
   "auth": {
     "accountMenu": {
@@ -136,7 +139,8 @@
       "otherProvider": "Bu e-posta başka bir giriş yöntemiyle kayıtlı. O yöntemle giriş yap.",
       "reauth": "Güvenliğin için yeniden giriş yapman gerekiyor.",
       "suspended": "Bu hesap askıya alınmış. Destek ekibiyle iletişime geç.",
-      "generic": "Giriş yapılamadı. Lütfen tekrar dene."
+      "generic": "Giriş yapılamadı. Lütfen tekrar dene.",
+      "signupGeneric": "Hesap oluşturulamadı. Lütfen tekrar dene."
     },
     "onboarding": {
       "metaTitle": "Hesabını tamamla",
@@ -179,7 +183,12 @@
       },
       "submit": "Devam et",
       "submitting": "Kaydediliyor…",
-      "failed": "Bilgilerin kaydedilemedi. Lütfen tekrar dene."
+      "failed": "Bilgilerin kaydedilemedi. Lütfen tekrar dene.",
+      "emailConflict": {
+        "title": "Bu e-posta başka bir hesapta kayıtlı",
+        "body": "{email} adresiyle daha önce farklı bir giriş yöntemi (ör. şifre ya da Google) kullanılarak bir hesap açılmış. O yöntemle giriş yapabilir ya da hesaplarının birleştirilmesi için destek ekibine yazabilirsin.",
+        "contact": "Destek: <link>{supportEmail}</link>"
+      }
     },
     "verify": {
       "title": "E-posta adresini doğrula",
@@ -191,7 +200,16 @@
       "check": "Doğruladım",
       "checking": "Kontrol ediliyor…",
       "stillUnverified": "E-posta adresin henüz doğrulanmamış görünüyor. Bağlantıya tıkladıktan sonra tekrar dene.",
-      "verified": "E-posta adresin doğrulandı."
+      "verified": "E-posta adresin doğrulandı.",
+      "resendRateLimited": "Kısa sürede çok fazla bağlantı istedin. Biraz bekleyip tekrar dene."
+    },
+    "sessionExpired": "Oturumun sona erdi. Devam etmek için tekrar giriş yap; yazdıkların kaybolmaz.",
+    "reverify": {
+      "metaTitle": "Doğrulama bağlantısı",
+      "title": "Doğrulama bağlantısını gönder",
+      "lead": "Güvenliğin için tekrar giriş yap; doğrulama bağlantısını hemen e-posta adresine gönderelim.",
+      "submit": "Giriş yap ve gönder",
+      "submitting": "Gönderiliyor…"
     }
   },
   "feedPlaceholder": {

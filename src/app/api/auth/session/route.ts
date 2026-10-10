@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { CSRF_COOKIE, CSRF_HEADER, SESSION_COOKIE, sessionCookieOptions } from '@/lib/auth/cookies';
 import { isSameOriginRequest, verifyCsrfToken } from '@/lib/auth/csrf';
-import { authRateLimiter } from '@/lib/auth/rate-limit';
+import { consumeAuthRateLimit } from '@/lib/auth/rate-limit';
 import { createSession, destroySession } from '@/lib/auth/session';
 import { ErrorCode } from '@/lib/errors';
 import { logger } from '@/lib/logger';
@@ -51,7 +51,8 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   if (rejected) return rejected;
 
   const meta = readRequestMeta(request.headers);
-  const limit = await authRateLimiter(`auth.session:ip:${meta.ip ?? 'unknown'}`);
+  // IP başına (hash'li, ≤24 saat); hesap başına sınır token doğrulandıktan sonra createSession'da
+  const limit = await consumeAuthRateLimit('session.ip', meta.ip);
   if (!limit.ok) return errorResponse(ErrorCode.RATE_LIMITED, limit.retryAfterSeconds);
 
   let body: unknown;
@@ -65,7 +66,10 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
 
   try {
     const result = await createSession(parsed.data.idToken, meta);
-    if (!result.ok) return errorResponse(result.error);
+    if (!result.ok) {
+      const retryAfter = result.meta?.retryAfter;
+      return errorResponse(result.error, typeof retryAfter === 'number' ? retryAfter : undefined);
+    }
     const response = NextResponse.json(
       { ok: true, session: result.data.session },
       { headers: NO_STORE }

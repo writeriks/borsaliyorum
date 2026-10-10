@@ -3,11 +3,9 @@ import createMiddleware from 'next-intl/middleware';
 
 import { routing } from '@/i18n/routing';
 import { SESSION_COOKIE } from '@/lib/auth/cookies';
+import { PATHNAME_HEADER } from '@/lib/auth/headers';
 
 const handleI18nRouting = createMiddleware(routing);
-
-/** `requireUser` bu başlıktan `?next=` üretir (lib/auth/session.ts `PATHNAME_HEADER`). */
-const PATHNAME_HEADER = 'x-borsaliyorum-path';
 
 /** Oturum gerektiren rotalar (`(app)` grubu + onboarding), yerel önek olmadan. */
 const PROTECTED_PREFIXES = ['/akis', '/hos-geldin', '/bildirimler', '/ayarlar', '/paylas'];

@@ -12,15 +12,20 @@ import { createUser } from '../../../../tests/factories';
 import { MARKETING_CONSENT_TEXT_VERSION, PRIVACY_NOTICE_VERSION } from '../legal-versions';
 import type { OnboardingData } from '../schemas';
 
-import { checkUsername, completeOnboardingForIdentity } from './onboarding';
+import {
+  checkUsername,
+  completeOnboardingForIdentity,
+  emailBelongsToOtherIdentity,
+} from './onboarding';
 
 const IP_KEY = new Uint8Array(randomBytes(32));
 
 // --- Server Action sınırları (ADR-0003: next/headers, next/cache ve oturum mock'lanır) ---
 const requireActionOnboardingIdentity = vi.fn();
+const getSession = vi.fn();
 vi.mock('@/lib/auth/session', () => ({
   requireActionOnboardingIdentity: () => requireActionOnboardingIdentity(),
-  getSession: vi.fn(),
+  getSession: () => getSession(),
 }));
 vi.mock('next/headers', () => ({
   headers: async () => new Headers({ 'x-forwarded-for': '198.51.100.20' }),
@@ -38,9 +43,16 @@ vi.mock('@/i18n/navigation', () => ({
     throw new RedirectSignal(target);
   },
 }));
+// Ham yol yönlendirmesi (`next`): yerel öneki zaten içerir, ikinci kez eklenmez
+vi.mock('next/navigation', () => ({
+  redirect: (target: unknown) => {
+    throw new RedirectSignal({ raw: target });
+  },
+}));
 vi.mock('@/lib/crypto/key', () => ({ getIpEncryptionKey: () => IP_KEY }));
 
-const { completeOnboarding } = await import('./actions');
+const { authorizeVerificationEmail, checkUsernameAvailability, completeOnboarding } =
+  await import('./actions');
 
 const log: Logger = {
   debug: vi.fn(),
@@ -234,7 +246,7 @@ describe('completeOnboarding Server Action', () => {
     requireActionOnboardingIdentity.mockResolvedValue(ok(identity));
     const error = await completeOnboarding(formInput()).catch((thrown: unknown) => thrown);
     expect(error).toBeInstanceOf(RedirectSignal);
-    expect((error as RedirectSignal).target).toEqual({ href: '/gonderi/12', locale: 'tr' });
+    expect((error as RedirectSignal).target).toEqual({ raw: '/gonderi/12' });
     expect(revalidatePath).toHaveBeenCalledWith('/', 'layout');
     const user = await getDb().user.findUniqueOrThrow({
       where: { firebaseUserId: identity.firebaseUid },
@@ -243,11 +255,106 @@ describe('completeOnboarding Server Action', () => {
     expect(decryptIp(event?.ipEncrypted ?? new Uint8Array(), IP_KEY)).toBe('198.51.100.20');
   });
 
+  it("/en akışı: next '/en/akis' olduğu gibi kullanılır (çift önek /en/en/akis yok)", async () => {
+    requireActionOnboardingIdentity.mockResolvedValue(ok(newIdentity()));
+    const error = await completeOnboarding(formInput({ next: '/en/akis?sekme=son' })).catch(
+      (thrown: unknown) => thrown
+    );
+    expect((error as RedirectSignal).target).toEqual({ raw: '/en/akis?sekme=son' });
+  });
+
+  it('hesap başına rate limit: sınır aşılınca RATE_LIMITED + retryAfter', async () => {
+    const taken = uniqueName();
+    await createUser({ username: taken });
+    requireActionOnboardingIdentity.mockResolvedValue(ok(newIdentity()));
+    const results = [];
+    for (let i = 0; i < 11; i += 1) {
+      results.push(await completeOnboarding(formInput({ username: taken })));
+    }
+    expect(results.slice(0, 10).every(r => !r.ok && r.error === 'USERNAME_TAKEN')).toBe(true);
+    expect(results[10]).toMatchObject({ ok: false, error: 'RATE_LIMITED' });
+    expect(results[10]?.ok === false && typeof results[10].meta?.retryAfter).toBe('number');
+  });
+
+  it('aynı e-posta başka bir Firebase kimliğinde kayıtlı → ACCOUNT_EMAIL_CONFLICT (takılı ekran yok)', async () => {
+    const existing = await createUser();
+    requireActionOnboardingIdentity.mockResolvedValue(ok(newIdentity({ email: existing.email })));
+    expect(await completeOnboarding(formInput())).toEqual(fail('ACCOUNT_EMAIL_CONFLICT'));
+  });
+
   it('açık yönlendirme denemesi next yok sayılır → akış', async () => {
     requireActionOnboardingIdentity.mockResolvedValue(ok(newIdentity()));
     const error = await completeOnboarding(formInput({ next: '//evil.example' })).catch(
       (thrown: unknown) => thrown
     );
     expect((error as RedirectSignal).target).toEqual({ href: '/akis', locale: 'tr' });
+  });
+});
+
+describe('checkUsernameAvailability Server Action', () => {
+  it('hesap başına rate limit (kullanıcı adı numaralandırması) → RATE_LIMITED', async () => {
+    requireActionOnboardingIdentity.mockResolvedValue(ok(newIdentity()));
+    const results = [];
+    for (let i = 0; i < 61; i += 1) {
+      results.push(await checkUsernameAvailability({ username: `aday_${i}` }));
+    }
+    expect(results.slice(0, 60).every(r => r.ok)).toBe(true);
+    expect(results[60]).toMatchObject({ ok: false, error: 'RATE_LIMITED' });
+  });
+});
+
+describe('authorizeVerificationEmail Server Action (özel token yok)', () => {
+  const session = (emailVerified: boolean, firebaseUid = `uid-${randomUUID()}`) => ({
+    status: 'authenticated',
+    firebaseUid,
+    authTime: 1,
+    user: {
+      userId: 1,
+      username: 'u',
+      displayName: 'U',
+      avatarUrl: null,
+      email: 'u@example.test',
+      emailVerified,
+      roles: [],
+    },
+  });
+
+  it('anonim → UNAUTHENTICATED; zaten doğrulanmış → CONFLICT', async () => {
+    getSession.mockResolvedValue({ status: 'anonymous' });
+    expect(await authorizeVerificationEmail()).toEqual(fail('UNAUTHENTICATED'));
+    getSession.mockResolvedValue(session(true));
+    expect(await authorizeVerificationEmail()).toEqual(fail('CONFLICT'));
+  });
+
+  it('izin verir ama hiçbir token/kimlik bilgisi döndürmez; hesap başına saatte 5', async () => {
+    getSession.mockResolvedValue(session(false));
+    const results = [];
+    for (let i = 0; i < 6; i += 1) results.push(await authorizeVerificationEmail());
+    expect(results.slice(0, 5)).toEqual(Array.from({ length: 5 }, () => ok(null)));
+    expect(results[5]).toMatchObject({ ok: false, error: 'RATE_LIMITED' });
+  });
+});
+
+describe('emailBelongsToOtherIdentity (onboarding sayfası formu göstermeden sorar)', () => {
+  it('aynı e-posta başka Firebase kimliğinde → true (büyük/küçük harf duyarsız); kendi satırı → false', async () => {
+    const existing = await createUser();
+    expect(
+      await emailBelongsToOtherIdentity(getDb(), {
+        email: existing.email.toUpperCase(),
+        firebaseUid: 'baska-uid',
+      })
+    ).toBe(true);
+    expect(
+      await emailBelongsToOtherIdentity(getDb(), {
+        email: existing.email,
+        firebaseUid: existing.firebaseUserId,
+      })
+    ).toBe(false);
+    expect(
+      await emailBelongsToOtherIdentity(getDb(), {
+        email: 'yok@example.test',
+        firebaseUid: 'x',
+      })
+    ).toBe(false);
   });
 });

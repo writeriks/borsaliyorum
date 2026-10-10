@@ -20,11 +20,16 @@ export const TopBarAccount = ({
   const viewer = useShellViewer(serverViewer);
   if (viewer.status === 'unknown') {
     return (
-      <span aria-hidden='true' className='flex size-hit items-center justify-center'>
+      <span
+        aria-hidden='true'
+        data-testid='top-bar-account-skeleton'
+        className='flex size-hit items-center justify-center'
+      >
         <Skeleton className='size-8 rounded-full' />
       </span>
     );
   }
-  if (viewer.status === 'anonymous') return null;
+  // Anonim / onboarding eksik: giriş ya da "Kaydı tamamla" alt bantta
+  if (viewer.status !== 'authenticated') return null;
   return <AccountMenu user={viewer.user} variant='compact' />;
 };

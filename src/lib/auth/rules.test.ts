@@ -85,10 +85,40 @@ describe('safeNextPath (açık yönlendirme koruması)', () => {
     '/en/giris?next=/akis',
     '/kayit',
     '/hos-geldin',
+    '/gir%69s',
+    '/en/%6Bayit',
     '',
     `/${'a'.repeat(600)}`,
   ])('reddeder: %s', input => {
     expect(safeNextPath(input)).toBeNull();
+  });
+
+  // Normalizasyon (`.`/`..`/`%2e` segmentleri) sonrası `//host` kalan girdiler: tarayıcı
+  // `Location: //evil.com`'u protokol-göreli URL olarak başka siteye götürür.
+  it.each([
+    '/.//evil.com',
+    '/a/..//evil.com',
+    '/%2e//evil.com',
+    '/%2E//evil.com',
+    '/a/%2e%2e//evil.com',
+    '/./\\evil',
+    '//evil.com',
+    '/\\evil',
+    'https://evil.com',
+    '/%2F%2Fevil.com',
+    '/%2f/evil.com',
+    '/%5Cevil.com',
+    '/%5cevil.com',
+    '/a/%2e%2e/%2F%2Fevil.com',
+    '/%252F%252Fevil.com',
+    '/%09/evil.com',
+  ])('normalize edilmiş açık yönlendirmeyi reddeder: %s', input => {
+    expect(safeNextPath(input)).toBeNull();
+  });
+
+  it('normalize edilmiş güvenli yolu döner', () => {
+    expect(safeNextPath('/a/../akis')).toBe('/akis');
+    expect(safeNextPath('/./akis?x=1')).toBe('/akis?x=1');
   });
 
   it('null/undefined → null', () => {

@@ -1,16 +1,19 @@
 'use client';
 
 import { MailWarning } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { type ReactElement, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useAuth } from '@/components/auth/auth-provider';
 import { Button } from '@/components/ui/button';
+import { getPathname } from '@/i18n/navigation';
+import { ErrorCode } from '@/lib/errors';
 
-import { resendVerificationEmail } from '../client/auth-flows';
-import { createVerificationToken, refreshEmailVerification } from '../server/actions';
+import { sendVerificationFromOpenSession } from '../client/auth-flows';
+import { REVERIFY_PARAM } from '../constants';
+import { authorizeVerificationEmail, refreshEmailVerification } from '../server/actions';
 
 type Busy = 'resend' | 'check' | null;
 
@@ -22,18 +25,44 @@ export const EmailVerificationNotice = (): ReactElement | null => {
   const t = useTranslations('auth.verify');
   const locale = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
+  const search = useSearchParams().toString();
   const { session } = useAuth();
   const [busy, setBusy] = useState<Busy>(null);
 
   if (session.status !== 'authenticated' || session.user.emailVerified) return null;
 
+  /**
+   * Mail altyapısı gelene kadar e-postayı Firebase istemci SDK'sı gönderir. İstemci oturumu
+   * açıksa onunla; değilse (normal durum) kullanıcı yeniden giriş yapar ve bağlantı o anda
+   * gönderilir. Sunucudan özel token alınmaz.
+   */
   const resend = async (): Promise<void> => {
     setBusy('resend');
     try {
-      const token = await createVerificationToken();
-      const sent = token.ok ? await resendVerificationEmail(locale, token.data.token) : null;
-      if (sent?.ok) toast.success(t('resent'));
-      else toast.error(t('resendFailed'));
+      const allowed = await authorizeVerificationEmail();
+      if (!allowed.ok) {
+        toast.error(
+          allowed.error === ErrorCode.RATE_LIMITED ? t('resendRateLimited') : t('resendFailed')
+        );
+        return;
+      }
+      const sent = await sendVerificationFromOpenSession(locale);
+      if (sent.ok) {
+        toast.success(t('resent'));
+        return;
+      }
+      if (sent.reason === 'failed') {
+        toast.error(t('resendFailed'));
+        return;
+      }
+      const here = search ? `${pathname}?${search}` : pathname;
+      router.push(
+        getPathname({
+          href: { pathname: '/giris', query: { [REVERIFY_PARAM]: '1', next: here } },
+          locale,
+        })
+      );
     } finally {
       setBusy(null);
     }

@@ -11,6 +11,7 @@ export const NAV_HREF = {
   search: '/ara',
   login: '/giris',
   signup: '/kayit',
+  onboarding: '/hos-geldin',
 } as const;
 
 export const profileHref = (username: string): string => `/u/${encodeURIComponent(username)}`;

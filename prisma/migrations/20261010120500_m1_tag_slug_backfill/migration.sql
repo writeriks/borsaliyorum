@@ -18,6 +18,7 @@
 
 -- BEGIN GENERATED hashtag-sql (scripts/hashtag-sql.ts)
 -- Elle düzenlenmez. Karakter sınıfları Node'un Unicode tablolarından kod noktası aralıklarıdır.
+-- Unicode 16.0
 
 -- TS foldTag (fold.ts) karşılığı: Default_Ignorable silme → NFKC → İ I ı → i → lowercase (ICU)
 -- → ş ğ ü ö ç â î û katlama → NFKC; sonuç değişmeyene kadar tekrar.

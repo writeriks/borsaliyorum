@@ -8,7 +8,7 @@ import type { ClientSession } from '@/lib/auth/types';
 
 import { MESSAGES, renderWithIntl } from '../../../tests/utils/render';
 
-import { AuthProvider, useAuth } from './auth-provider';
+import { AuthProvider, SIGNED_OUT_EVENT, useAuth } from './auth-provider';
 
 const deleteSession = vi.fn();
 vi.mock('@/lib/auth/session-api', () => ({
@@ -87,6 +87,42 @@ describe('AuthProvider', () => {
     await clickSignOut();
     expect(screen.queryByTestId('viewer-avatar')).not.toBeInTheDocument();
     expect(screen.getAllByTestId('login-cta').length).toBeGreaterThan(0);
+  });
+
+  it('başarılı çıkışta SIGNED_OUT_EVENT yayınlanır (S8 taslakları temizler), sonra tam sayfa geçiş', async () => {
+    const order: string[] = [];
+    const replace = vi.fn(() => order.push('navigate'));
+    vi.stubGlobal('location', { ...window.location, replace });
+    const listener = vi.fn(() => order.push('signed-out'));
+    window.addEventListener(SIGNED_OUT_EVENT, listener);
+    deleteSession.mockResolvedValue({ ok: true, data: null });
+    try {
+      renderWithSession(authenticated);
+      await clickSignOut();
+      await act(async () => {
+        await signOutDone;
+      });
+      expect(SIGNED_OUT_EVENT).toBe('borsaliyorum:signed-out');
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(order).toEqual(['signed-out', 'navigate']);
+      expect(replace).toHaveBeenCalledWith('/');
+    } finally {
+      window.removeEventListener(SIGNED_OUT_EVENT, listener);
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('çıkış başarısızsa SIGNED_OUT_EVENT yayınlanmaz (taslaklar korunur)', async () => {
+    const listener = vi.fn();
+    window.addEventListener(SIGNED_OUT_EVENT, listener);
+    deleteSession.mockResolvedValue({ ok: false, error: 'NETWORK' });
+    renderWithSession(authenticated);
+    await clickSignOut();
+    await act(async () => {
+      await signOutDone;
+    });
+    expect(listener).not.toHaveBeenCalled();
+    window.removeEventListener(SIGNED_OUT_EVENT, listener);
   });
 
   it("çıkış başarısızsa oturum geri gelir ve hata toast'ı gösterilir", async () => {

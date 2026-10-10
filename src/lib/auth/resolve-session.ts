@@ -1,7 +1,11 @@
 import type { Logger } from '@/lib/logger';
 
-import { isSessionInvalidated } from './rules';
+import { ErrorCode, fail, ok, type Result } from '@/lib/errors';
+
+import { isAuthTimeFresh, isSessionInvalidated, MAX_AUTH_AGE_MS } from './rules';
 import { ANONYMOUS_SESSION, type SessionState } from './types';
+
+export type AuthenticatedSession = Extract<SessionState, { status: 'authenticated' }>;
 import { type SessionUserRecord, toSessionUser } from './user-record';
 
 /** `verifySessionCookie` dönüşünün kullandığımız kısmı. */
@@ -19,45 +23,24 @@ export type ResolveSessionDeps = {
   readonly log: Logger;
 };
 
-/**
- * Kesin geçersizlik bildiren Firebase hata kodları → anonim. Bunların dışındaki hatalar
- * (ağ, Firebase kesintisi) kullanıcıyı çıkış yapmış saymaz: imza + süre yerelde doğrulanır ve
- * `sessionsValidAfter` kontrolü yine uygulanır (bkz. `resolveSession`).
- */
-const INVALID_SESSION_CODES = new Set([
-  'auth/session-cookie-revoked',
-  'auth/session-cookie-expired',
-  'auth/argument-error',
-  'auth/invalid-argument',
-  'auth/user-disabled',
-  'auth/user-not-found',
-  'auth/invalid-session-cookie-duration',
-]);
-
 const errorCode = (error: unknown): string | null => {
   const code = (error as { code?: unknown } | null)?.code;
   return typeof code === 'string' ? code : null;
 };
 
-const isDefinitelyInvalid = (error: unknown): boolean => {
-  const code = errorCode(error);
-  return code !== null && INVALID_SESSION_CODES.has(code);
-};
+/** Çerez geçersizliği beklenen bir durumdur (süresi dolmuş, iptal); yalnızca diğerleri loglanır. */
+const EXPECTED_INVALID_PREFIX = 'auth/';
 
+/**
+ * Her istekteki doğrulama (ADR-0001 Karar 5): `checkRevoked=false` → yerel imza + süre
+ * kontrolü, Firebase'e ağ çağrısı yok. İptal (çıkış/ban) DB'deki `sessionsValidAfter` ve
+ * `status` ile anında uygulanır. Hata → anonim; ikinci, daha gevşek bir deneme yapılmaz.
+ */
 const verify = async (cookie: string, deps: ResolveSessionDeps): Promise<SessionClaims | null> => {
-  try {
-    // checkRevoked: Firebase konsolundan iptal, şifre değişimi, devre dışı hesap da anında etkili
-    return await deps.verifySessionCookie(cookie, true);
-  } catch (error) {
-    if (isDefinitelyInvalid(error)) return null;
-    deps.log.warn('session revocation check unavailable; falling back to local verify', {
-      code: errorCode(error),
-    });
-  }
   try {
     return await deps.verifySessionCookie(cookie, false);
   } catch (error) {
-    if (!isDefinitelyInvalid(error)) {
+    if (!errorCode(error)?.startsWith(EXPECTED_INVALID_PREFIX)) {
       deps.log.error('session cookie verification failed', { code: errorCode(error) });
     }
     return null;
@@ -76,7 +59,13 @@ export const resolveSession = async (
 ): Promise<SessionState> => {
   const claims = await verify(cookie, deps);
   if (!claims) return ANONYMOUS_SESSION;
+  return sessionFromClaims(claims, deps);
+};
 
+const sessionFromClaims = async (
+  claims: SessionClaims,
+  deps: ResolveSessionDeps
+): Promise<SessionState> => {
   const record = await deps.findUserByFirebaseUid(claims.uid);
   if (record) {
     if (record.status !== 'active') return ANONYMOUS_SESSION;
@@ -108,4 +97,34 @@ export const resolveSession = async (
       existingUserId: record?.userId ?? null,
     },
   };
+};
+
+/**
+ * Hassas işlemler (şifre/e-posta değiştirme, hesap silme) için sıkı doğrulama (ADR-0001
+ * Karar 5): `checkRevoked=true` (Firebase'e ağ çağrısı; konsoldan iptal, şifre değişimi,
+ * devre dışı hesap anında etkili) + taze giriş (`auth_time` ≤ 5 dk) + DB kontrolleri.
+ * Firebase'e ulaşılamazsa yerel doğrulamaya **düşülmez**: `REAUTH_REQUIRED` (fail-closed).
+ */
+export const verifySensitiveSession = async (
+  cookie: string,
+  deps: ResolveSessionDeps,
+  now: Date,
+  maxAuthAgeMs: number = MAX_AUTH_AGE_MS
+): Promise<Result<AuthenticatedSession>> => {
+  let claims: SessionClaims;
+  try {
+    claims = await deps.verifySessionCookie(cookie, true);
+  } catch (error) {
+    if (!errorCode(error)?.startsWith(EXPECTED_INVALID_PREFIX)) {
+      deps.log.warn('sensitive session check unavailable', { code: errorCode(error) });
+    }
+    return fail(ErrorCode.REAUTH_REQUIRED);
+  }
+  const session = await sessionFromClaims(claims, deps);
+  if (session.status === 'anonymous') return fail(ErrorCode.UNAUTHENTICATED);
+  if (session.status === 'needs-onboarding') return fail(ErrorCode.ONBOARDING_REQUIRED);
+  if (!isAuthTimeFresh(claims.auth_time, now, maxAuthAgeMs)) {
+    return fail(ErrorCode.REAUTH_REQUIRED);
+  }
+  return ok(session);
 };

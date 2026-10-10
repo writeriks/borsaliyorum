@@ -5,10 +5,14 @@ import { fail, ok } from '@/lib/errors';
 
 const createSession = vi.fn();
 const destroySession = vi.fn();
+const consumeAuthRateLimit = vi.fn();
 
 vi.mock('@/lib/auth/session', () => ({
   createSession: (...args: unknown[]) => createSession(...args),
   destroySession: () => destroySession(),
+}));
+vi.mock('@/lib/auth/rate-limit', () => ({
+  consumeAuthRateLimit: (...args: unknown[]) => consumeAuthRateLimit(...args),
 }));
 
 const { DELETE, POST } = await import('./route');
@@ -46,6 +50,8 @@ const request = ({
 beforeEach(() => {
   createSession.mockReset();
   destroySession.mockReset();
+  consumeAuthRateLimit.mockReset();
+  consumeAuthRateLimit.mockResolvedValue({ ok: true });
 });
 
 describe('POST /api/auth/session', () => {
@@ -99,6 +105,24 @@ describe('POST /api/auth/session', () => {
     const response = await POST(request());
     expect(response.status).toBe(status);
     expect(await response.json()).toEqual({ ok: false, error: code });
+    expect(response.headers.get('set-cookie')).toBeNull();
+  });
+
+  it('IP rate limit aşımı → 429 + Retry-After; token doğrulanmaz', async () => {
+    consumeAuthRateLimit.mockResolvedValue({ ok: false, retryAfterSeconds: 42 });
+    const response = await POST(request());
+    expect(response.status).toBe(429);
+    expect(response.headers.get('retry-after')).toBe('42');
+    expect(await response.json()).toEqual({ ok: false, error: 'RATE_LIMITED' });
+    expect(consumeAuthRateLimit).toHaveBeenCalledWith('session.ip', '203.0.113.7');
+    expect(createSession).not.toHaveBeenCalled();
+  });
+
+  it('hesap (uid) rate limit aşımı createSession sonucundan → 429 + Retry-After', async () => {
+    createSession.mockResolvedValue(fail('RATE_LIMITED', { retryAfter: 30 }));
+    const response = await POST(request());
+    expect(response.status).toBe(429);
+    expect(response.headers.get('retry-after')).toBe('30');
     expect(response.headers.get('set-cookie')).toBeNull();
   });
 

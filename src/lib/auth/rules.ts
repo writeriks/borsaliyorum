@@ -39,10 +39,57 @@ export const isSessionInvalidated = (
   return authTimeSeconds * 1000 < truncateToSecond(sessionsValidAfter).getTime();
 };
 
+const NEXT_BASE = 'https://borsaliyorum.invalid';
+/** `%252F` gibi çok katmanlı kodlamayı da açmak için üst sınır (sonsuz döngü olmasın). */
+const MAX_DECODE_ROUNDS = 3;
+
+/**
+ * Yüzde kodlamasını sabitlenene kadar açar. Bozuk kodlama (`%zz`) → null: güvenli yol
+ * üretmez, reddedilir.
+ */
+const fullyDecode = (value: string): string | null => {
+  let current = value;
+  for (let round = 0; round < MAX_DECODE_ROUNDS; round += 1) {
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(current);
+    } catch {
+      return null;
+    }
+    if (decoded === current) return current;
+    current = decoded;
+  }
+  return current;
+};
+
+/**
+ * Normalize edilmiş yol başka bir host'a götürebilir mi? `//host` tarayıcıda protokol-göreli
+ * URL'dir; `\` bazı tarayıcılarda `/` sayılır; sekme/satır sonu URL ayrıştırıcısınca silinir
+ * (`/\t/evil.com` → `//evil.com`). Kodlanmış biçimleri (`%2F`, `%5C`, `%09`) de açıp bakılır:
+ * bir sonraki katman (proxy, CDN, tarayıcı) yolu çözebilir.
+ */
+const isUnsafePathname = (pathname: string): boolean => {
+  const decoded = fullyDecode(pathname);
+  if (decoded === null) return true;
+  return (
+    pathname.startsWith('//') ||
+    pathname.includes('\\') ||
+    decoded.startsWith('//') ||
+    decoded.includes('\\') ||
+    hasControlCharacter(decoded)
+  );
+};
+
 /**
  * Girişten sonra dönülecek yol (`?next=`). Açık yönlendirmeyi önlemek için yalnızca aynı
  * sitedeki mutlak yol kabul edilir: `//evil.com`, `/\evil.com`, şemalı URL ve kontrol
- * karakterleri reddedilir. Auth sayfalarının kendisine dönülmez (döngü olmasın).
+ * karakterleri reddedilir. Kontrol **normalize edilmiş** sonuç üzerinde de yapılır:
+ * `/.//evil.com`, `/a/..//evil.com`, `/%2e//evil.com` ham haliyle `/` ile başlar ama URL
+ * ayrıştırıcısından `//evil.com` olarak çıkar. Auth sayfalarının kendisine dönülmez (döngü olmasın).
+ *
+ * Dönüş, tarayıcının gideceği **ham yol**dur (yerel öneki dahil, ör. `/en/akis`). Sunucuda
+ * buna yönlendirirken `next/navigation`'ın `redirect`'i kullanılır; next-intl'inki öneki
+ * ikinci kez ekler (`/en/en/akis`).
  */
 export const safeNextPath = (raw: string | null | undefined): string | null => {
   if (typeof raw !== 'string' || raw.length === 0 || raw.length > 512) return null;
@@ -50,15 +97,20 @@ export const safeNextPath = (raw: string | null | undefined): string | null => {
   if (raw.includes('\\') || hasControlCharacter(raw)) return null;
   let url: URL;
   try {
-    url = new URL(raw, 'https://borsaliyorum.invalid');
+    url = new URL(raw, NEXT_BASE);
   } catch {
     return null;
   }
-  if (url.origin !== 'https://borsaliyorum.invalid') return null;
-  const path = url.pathname.replace(/^\/en(?=\/|$)/, '') || '/';
+  if (url.origin !== NEXT_BASE) return null;
+  if (isUnsafePathname(url.pathname)) return null;
+  const path = stripLocalePrefix(fullyDecode(url.pathname) ?? url.pathname);
   if (AUTH_PAGE_PATHS.some(page => path === page || path.startsWith(`${page}/`))) return null;
   return `${url.pathname}${url.search}`;
 };
+
+/** `/en/akis` → `/akis`; varsayılan dil (tr) önek almaz. */
+export const stripLocalePrefix = (pathname: string): string =>
+  pathname.replace(/^\/en(?=\/|$)/, '') || '/';
 
 const hasControlCharacter = (value: string): boolean => {
   for (let index = 0; index < value.length; index += 1) {

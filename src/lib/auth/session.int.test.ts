@@ -54,7 +54,8 @@ describe('getSession / destroySession (gerçek DB)', () => {
 
     const before = await getSession();
     expect(before.status).toBe('authenticated');
-    expect(admin.verifySessionCookie).toHaveBeenCalledWith('valid-cookie', true);
+    // Her istekte ağ çağrısı yok (ADR-0001): iptal DB'deki sessionsValidAfter ile
+    expect(admin.verifySessionCookie).toHaveBeenCalledWith('valid-cookie', false);
 
     await destroySession();
 

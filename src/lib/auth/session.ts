@@ -14,7 +14,15 @@ import type { RequestMeta } from '@/lib/request-meta';
 import { clearedSessionCookieOptions, SESSION_COOKIE } from './cookies';
 import { createSessionFromIdToken, type CreatedSession } from './create-session';
 import { getAdminAuth } from './firebase-admin';
-import { resolveSession } from './resolve-session';
+import { PATHNAME_HEADER } from './headers';
+import { redirectToNext } from './redirect-next';
+import { consumeAuthRateLimit } from './rate-limit';
+import {
+  type AuthenticatedSession,
+  resolveSession,
+  type ResolveSessionDeps,
+  verifySensitiveSession,
+} from './resolve-session';
 import { invalidationMark, safeNextPath } from './rules';
 import {
   ANONYMOUS_SESSION,
@@ -23,26 +31,27 @@ import {
   type SessionUser,
 } from './types';
 import { sessionUserSelect } from './user-record';
+import { resolveWriter } from './writer';
 
 const log = logger.child({ module: 'auth.session' });
 
-/** proxy.ts'in her sayfa isteğine yazdığı yol; `requireUser` `?next=` için okur. */
-export const PATHNAME_HEADER = 'x-borsaliyorum-path';
+const sessionDeps = (): ResolveSessionDeps => ({
+  verifySessionCookie: (cookie, checkRevoked) =>
+    getAdminAuth().verifySessionCookie(cookie, checkRevoked),
+  findUserByFirebaseUid: uid =>
+    getDb().user.findUnique({ where: { firebaseUserId: uid }, select: sessionUserSelect }),
+  log,
+});
 
 /**
  * Oturum durumu: istek başına bir kez çözülür (React `cache`). Sunucu tek doğruluk kaynağıdır;
  * layout bunu `AuthProvider`'a verir, istemci auth durumunu "keşfetmez" (auth-session).
+ * Firebase'e ağ çağrısı yapılmaz (`checkRevoked=false`); iptal DB'den (ADR-0001 Karar 5).
  */
 export const getSession = cache(async (): Promise<SessionState> => {
   const value = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!value) return ANONYMOUS_SESSION;
-  return resolveSession(value, {
-    verifySessionCookie: (cookie, checkRevoked) =>
-      getAdminAuth().verifySessionCookie(cookie, checkRevoked),
-    findUserByFirebaseUid: uid =>
-      getDb().user.findUnique({ where: { firebaseUserId: uid }, select: sessionUserSelect }),
-    log,
-  });
+  return resolveSession(value, sessionDeps());
 });
 
 /** Girişli ve onboarding'i tamamlamış kullanıcı; değilse null. */
@@ -90,11 +99,17 @@ export const requireOnboardingIdentity = async (
 export const redirectIfSignedIn = async (next: string | null): Promise<void> => {
   const session = await getSession();
   if (session.status === 'anonymous') return;
-  const locale = await getLocale();
-  if (session.status === 'needs-onboarding') {
-    redirect({ href: next ? { pathname: '/hos-geldin', query: { next } } : '/hos-geldin', locale });
-  }
-  redirect({ href: next ?? '/akis', locale });
+  if (session.status === 'needs-onboarding') return redirectTo('/hos-geldin', next);
+  return redirectToNext(next);
+};
+
+/**
+ * Giriş sayfasının "tekrar giriş yap ve doğrulama bağlantısını gönder" modu yalnızca girişli
+ * ve e-postası doğrulanmamış kullanıcıya açılır; diğerleri normal giriş guard'ına düşer.
+ */
+export const canReverifyEmail = async (): Promise<boolean> => {
+  const session = await getSession();
+  return session.status === 'authenticated' && !session.user.emailVerified;
 };
 
 /** Server Action'lar için: yönlendirmez, `UNAUTHENTICATED` / `ONBOARDING_REQUIRED` döner. */
@@ -116,11 +131,30 @@ export const requireActionOnboardingIdentity = async (): Promise<Result<Onboardi
 };
 
 /**
- * Yazma yetkisi (gönderi/yorum): e-postası doğrulanmamış kullanıcı okuyabilir, yazamaz
- * (spam ve 5651 sorumluluğu). Askıdaki hesap zaten oturum açamaz (`resolveSession`).
+ * Her yazma Server Action'ının (gönderi, yorum, beğeni …) kapısı: `requireActionUser` +
+ * e-posta doğrulaması (gerekirse Firebase'den bir kez tazelenir) → `EMAIL_NOT_VERIFIED`.
+ * İstek başına bir kez çalışır (React `cache`). Ayrıntı: `writer.ts`.
  */
-export const canWrite = (user: SessionUser): Result<SessionUser> =>
-  user.emailVerified ? ok(user) : fail(ErrorCode.EMAIL_NOT_VERIFIED);
+export const requireWriter = cache(async (): Promise<Result<SessionUser>> =>
+  resolveWriter(await getSession(), {
+    fetchEmailVerified: async uid => (await getAdminAuth().getUser(uid)).emailVerified,
+    markEmailVerified: async userId => {
+      await getDb().user.update({ where: { userId }, data: { isEmailVerified: true } });
+    },
+    log,
+  })
+);
+
+/**
+ * Hassas işlemler (şifre/e-posta değiştirme, hesap silme): Firebase'den iptal kontrolü
+ * (`checkRevoked=true`) + son 5 dakikada giriş. Değilse `REAUTH_REQUIRED` (istemci yeniden
+ * giriş ister). Normal istekler bunu kullanmaz: her istekte ağ çağrısı olurdu.
+ */
+export const requireSensitiveSession = async (): Promise<Result<AuthenticatedSession>> => {
+  const value = (await cookies()).get(SESSION_COOKIE)?.value;
+  if (!value) return fail(ErrorCode.UNAUTHENTICATED);
+  return verifySensitiveSession(value, sessionDeps(), new Date());
+};
 
 /** POST /api/auth/session: ID token'dan oturum. */
 export const createSession = async (
@@ -135,6 +169,7 @@ export const createSession = async (
     ipKey: getIpEncryptionKey,
     now: () => new Date(),
     log,
+    rateLimitUid: uid => consumeAuthRateLimit('session.uid', uid),
   });
 };
 

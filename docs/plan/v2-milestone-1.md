@@ -181,7 +181,10 @@ başlanabilir.
   üç `Suggestion` (tetikleme `findActiveTrigger` ile), popup (`@floating-ui/dom`, ARIA
   combobox/listbox), grafem sayacı, sentiment seçici (yalnızca tanınmış cashtag varken),
   sponsorluk anahtarı (cashtag ile birlikte paylaşımı engeller), kısa yatırım uyarısı,
-  boş sorgu varsayılan önerileri, düz metin yapıştırma, `localStorage` taslak (çıkışta silinir),
+  boş sorgu varsayılan önerileri, düz metin yapıştırma, `localStorage` taslak (çıkışta silinir:
+  `AuthProvider` başarılı çıkışta `window`'a `SIGNED_OUT_EVENT` = `'borsaliyorum:signed-out'`
+  yayınlar (`components/auth/auth-provider.tsx`, unit testli); composer bunu dinleyip taslağı
+  siler. Oturum süresi dolması çıkış değildir: o durumda olay yayınlanmaz, taslak korunur),
   `clientRequestId` ile tek gönderim, link önizleme alanı (S9 uç sözleşmesiyle), `mode: 'post' | 'comment'`,
   `onSubmit` dışarıdan (S10 action'ları bağlanır). Hisse indeksi istemcide TanStack Query.
 - **Bağımlılık:** S4, S2. S7 ve S9 için sözleşme + MSW mock'u yeterli; gerçek bağlantı
@@ -228,8 +231,12 @@ başlanabilir.
   engellemiş kullanıcıya bildirim gitmez; `entities` ile `_PostStocks`/`_PostTags` tutarlı;
   her başarılı yazmada tek `ContentEvent` (IP dahil); başkasının gönderisini silme `FORBIDDEN`,
   moderator silebilir; silme soft (`deletedAt`) ve `ContentEvent('post.delete')`; beğeni
-  idempotent (iki kez `liked:true` tek satır). **security-reviewer + legal-advisor (5651
-  kaydı) zorunlu.**
+  idempotent (iki kez `liked:true` tek satır); **her yazma action'ı `requireWriter()`
+  (`lib/auth/session.ts`) kullanır** — `requireActionUser` + gerekirse Firebase'den bir kez
+  e-posta doğrulama tazelemesi → `EMAIL_NOT_VERIFIED` (kendi kontrolünü yazan action yok);
+  istemci sonuçları ortak `useActionResult` (`lib/client/action-result.ts`) ile işler
+  (`UNAUTHENTICATED` → "Oturumun sona erdi" + `/giris?next=`, taslak korunur).
+  **security-reviewer + legal-advisor (5651 kaydı) zorunlu.**
 
 ### S11 — Akış sayfası
 - `/akis` (girişli: "Takip" ve "Son" sekmeleri), landing'de (`/`) anonim için "Son" akışı +

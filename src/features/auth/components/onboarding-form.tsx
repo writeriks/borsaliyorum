@@ -16,6 +16,7 @@ import { PRIVACY_NOTICE_HREF } from '../legal-versions';
 import { onboardingSchema } from '../schemas';
 import { checkUsernameAvailability, completeOnboarding } from '../server/actions';
 
+import { EmailConflictNotice } from './email-conflict-notice';
 import { CheckboxField, FieldError, FormAlert, TextField } from './form-parts';
 
 type FormInput = z.input<typeof onboardingSchema>;
@@ -26,6 +27,8 @@ type Checked = { readonly username: string; readonly availability: Availability 
 const CHECK_DELAY_MS = 400;
 
 type OnboardingFormProps = {
+  /** Oturumdaki kimliğin e-postası (yalnızca sahibine; çakışma mesajında gösterilir). */
+  email: string;
   suggestedDisplayName: string | null;
   next: string | null;
 };
@@ -35,6 +38,7 @@ type OnboardingFormProps = {
  * aydınlatma metninin okunduğu (rıza değil) ve ayrı, işaretsiz pazarlama izni.
  */
 export const OnboardingForm = ({
+  email,
   suggestedDisplayName,
   next,
 }: OnboardingFormProps): ReactElement => {
@@ -42,6 +46,7 @@ export const OnboardingForm = ({
   const tRoot = useTranslations();
   const [serverError, setServerError] = useState<string | null>(null);
   const [checked, setChecked] = useState<Checked | null>(null);
+  const [emailConflict, setEmailConflict] = useState(false);
   const [submitting, startSubmit] = useTransition();
 
   const form = useForm<FormInput, unknown, FormOutput>({
@@ -93,6 +98,10 @@ export const OnboardingForm = ({
         form.setError('username', { message: 'taken' }, { shouldFocus: true });
         return;
       }
+      if (result.error === ErrorCode.ACCOUNT_EMAIL_CONFLICT) {
+        setEmailConflict(true);
+        return;
+      }
       if (result.error === ErrorCode.USERNAME_RESERVED) {
         form.setError('username', { message: 'reserved' }, { shouldFocus: true });
         return;
@@ -135,6 +144,8 @@ export const OnboardingForm = ({
     </Link>
   );
 
+  if (emailConflict) return <EmailConflictNotice email={email} />;
+
   return (
     <form noValidate onSubmit={event => void onSubmit(event)} className='flex flex-col gap-5'>
       {serverError ? <FormAlert>{serverError}</FormAlert> : null}
@@ -172,7 +183,8 @@ export const OnboardingForm = ({
         {...form.register('displayName')}
       />
 
-      <fieldset className='flex flex-col gap-1'>
+      {/* Gönderim sürerken onaylar değiştirilemez (gönderilen değerle ekrandaki aynı kalsın) */}
+      <fieldset disabled={busy} className='flex flex-col gap-1'>
         <CheckboxField
           id='onboarding-age'
           label={t('age.label')}

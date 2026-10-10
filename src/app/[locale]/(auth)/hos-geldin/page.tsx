@@ -4,11 +4,14 @@ import type { ReactElement } from 'react';
 
 import { Wordmark } from '@/components/shell/wordmark';
 import { AuthPageFrame, firstParam } from '@/features/auth/components/auth-page-frame';
+import { EmailConflictNotice } from '@/features/auth/components/email-conflict-notice';
 import { OnboardingForm } from '@/features/auth/components/onboarding-form';
 import { SignOutButton } from '@/features/auth/components/sign-out-button';
+import { emailBelongsToOtherIdentity } from '@/features/auth/server/onboarding';
 import { type AuthPageProps, resolveLocale } from '@/i18n/page-params';
 import { safeNextPath } from '@/lib/auth/rules';
 import { requireOnboardingIdentity } from '@/lib/auth/session';
+import { getDb } from '@/lib/db';
 
 export const generateMetadata = async ({ params }: AuthPageProps): Promise<Metadata> => {
   const locale = resolveLocale((await params).locale);
@@ -25,6 +28,9 @@ const OnboardingPage = async ({ params, searchParams }: AuthPageProps): Promise<
   setRequestLocale(locale);
   const next = safeNextPath(firstParam((await searchParams).next));
   const identity = await requireOnboardingIdentity(next);
+  // E-posta başka bir kimliğin hesabındaysa form gösterilmez: gönderimde hata alıp takılmasın
+  const emailConflict =
+    identity.existingUserId === null && (await emailBelongsToOtherIdentity(getDb(), identity));
   const t = await getTranslations({ locale, namespace: 'auth' });
 
   return (
@@ -45,7 +51,15 @@ const OnboardingPage = async ({ params, searchParams }: AuthPageProps): Promise<
           </>
         }
       >
-        <OnboardingForm suggestedDisplayName={identity.suggestedDisplayName} next={next} />
+        {emailConflict ? (
+          <EmailConflictNotice email={identity.email} />
+        ) : (
+          <OnboardingForm
+            email={identity.email}
+            suggestedDisplayName={identity.suggestedDisplayName}
+            next={next}
+          />
+        )}
       </AuthPageFrame>
     </main>
   );
