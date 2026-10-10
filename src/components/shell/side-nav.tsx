@@ -1,3 +1,5 @@
+'use client';
+
 import { Bell, CircleUser, Compass, House, Settings, SquarePen } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { ReactElement } from 'react';
@@ -12,6 +14,7 @@ import { NavLink } from './nav-link';
 import { NAV_HREF, profileHref } from './nav-routes';
 import { ThemeToggle } from './theme-toggle';
 import type { ShellViewer } from './types';
+import { useShellViewer } from './use-shell-viewer';
 import { Wordmark } from './wordmark';
 
 const NavSkeleton = (): ReactElement => (
@@ -27,8 +30,9 @@ const NavSkeleton = (): ReactElement => (
 type SideNavProps = { viewer: ShellViewer; className?: string };
 
 /** md–lg: 72px ikon rayı; xl: 248px etiketli menü (tasarım §7.2–7.3). */
-export const SideNav = ({ viewer, className }: SideNavProps): ReactElement => {
+export const SideNav = ({ viewer: serverViewer, className }: SideNavProps): ReactElement => {
   const t = useTranslations();
+  const viewer = useShellViewer(serverViewer);
 
   return (
     <div
@@ -108,7 +112,7 @@ export const SideNav = ({ viewer, className }: SideNavProps): ReactElement => {
 
       <div className='mt-auto flex flex-col gap-2 pt-4'>
         <ThemeToggle withLabel align='start' className='self-center xl:w-full xl:self-stretch' />
-        <AuthSlot viewer={viewer} />
+        <AuthSlot viewer={serverViewer} />
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   assertBuildEnv,
+  assertNoAuthEmulatorInProduction,
   clientEnvSchema,
   EnvValidationError,
   isEnvValidationSkipped,
@@ -212,5 +213,43 @@ describe('erişimciler', () => {
     vi.stubEnv('NEXT_PUBLIC_MEASUREMENT_ID', 'G-TEST');
     const { getClientEnv } = await import('./env.client');
     expect(getClientEnv()).toEqual({ ...validClient, NEXT_PUBLIC_MEASUREMENT_ID: 'G-TEST' });
+  });
+});
+
+describe('emulator production koruması (ADR-0001 Karar 5)', () => {
+  it.each(['FIREBASE_AUTH_EMULATOR_HOST', 'NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST'])(
+    "%s production'da set ise başlangıç hatası",
+    name => {
+      const source = { VERCEL_ENV: 'production', [name]: '127.0.0.1:9099' };
+      const error = captureError(() => assertNoAuthEmulatorInProduction(source));
+      expect(error.issues.join('\n')).toContain(name);
+      // Sunucu env'i ve build de aynı kontrolü yapar (build'de SKIP_ENV_VALIDATION atlatamaz)
+      expect(() => parseServerEnv({ ...validServer, ...source })).toThrow(EnvValidationError);
+      expect(() =>
+        assertBuildEnv({ ...validServer, ...validClient, ...source, SKIP_ENV_VALIDATION: '1' })
+      ).toThrow(EnvValidationError);
+    }
+  );
+
+  it('preview/yerel/E2E ortamında emulator serbest', () => {
+    for (const VERCEL_ENV of ['preview', 'development', undefined]) {
+      expect(() =>
+        assertNoAuthEmulatorInProduction({
+          VERCEL_ENV,
+          FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
+        })
+      ).not.toThrow();
+    }
+    const env = parseServerEnv({ ...validServer, FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099' });
+    expect(env.FIREBASE_AUTH_EMULATOR_HOST).toBe('127.0.0.1:9099');
+  });
+
+  it("production'da boş değer set sayılmaz", () => {
+    expect(() =>
+      assertNoAuthEmulatorInProduction({
+        VERCEL_ENV: 'production',
+        FIREBASE_AUTH_EMULATOR_HOST: '',
+      })
+    ).not.toThrow();
   });
 });

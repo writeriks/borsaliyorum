@@ -8,10 +8,14 @@ import { cn } from '@/lib/utils';
 
 import { NAV_HREF } from './nav-routes';
 import { ThemeToggle } from './theme-toggle';
+import { TopBarAccount } from './top-bar-account';
+import { type ShellViewer, UNKNOWN_VIEWER } from './types';
 import { Wordmark } from './wordmark';
 
-/** Mobil üst bar (56px, sticky): wordmark, arama, tema. md+ gizlenir. */
-export const TopBar = ({ className }: { className?: string }): ReactElement => {
+type TopBarProps = { className?: string; viewer?: ShellViewer };
+
+/** Mobil üst bar (56px, sticky): wordmark, arama, tema, hesap menüsü. md+ gizlenir. */
+export const TopBar = ({ className, viewer = UNKNOWN_VIEWER }: TopBarProps): ReactElement => {
   const t = useTranslations('shell');
 
   return (
@@ -30,6 +34,7 @@ export const TopBar = ({ className }: { className?: string }): ReactElement => {
           </Link>
         </Button>
         <ThemeToggle />
+        <TopBarAccount viewer={viewer} />
       </div>
     </header>
   );

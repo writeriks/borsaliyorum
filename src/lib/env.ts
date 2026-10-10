@@ -56,6 +56,13 @@ export const serverEnvSchema = z.object({
     .transform(key => key.replace(/\\n/g, '\n')),
   FIREBASE_STORAGE_BUCKET: required,
   IP_ENCRYPTION_KEY: ipEncryptionKey,
+  /**
+   * Yalnızca test/E2E: Firebase Auth emulator adresi (`127.0.0.1:9099`). Emulator token'ları
+   * imzasızdır; production'da set ise uygulama başlamaz (`assertNoAuthEmulatorInProduction`).
+   */
+  FIREBASE_AUTH_EMULATOR_HOST: optional,
+  /** Vercel'in verdiği ortam adı: production | preview | development. */
+  VERCEL_ENV: optional,
 });
 
 export const clientEnvSchema = z.object({
@@ -66,6 +73,8 @@ export const clientEnvSchema = z.object({
   NEXT_PUBLIC_APP_ID: required,
   // v2'de analitik yok; tanımlı olmasa da build kırılmaz
   NEXT_PUBLIC_MEASUREMENT_ID: optional,
+  /** Yalnızca E2E build'i: istemci SDK'sı emulator'e bağlanır (`connectAuthEmulator`). */
+  NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: optional,
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -106,7 +115,30 @@ export const isProductionRuntime = (source: EnvSource): boolean =>
 /** Yalnızca production runtime'da zorunlu olan sunucu değişkenleri. */
 const PRODUCTION_RUNTIME_REQUIRED = ['IP_ENCRYPTION_KEY'] as const;
 
+/** Emulator'e bağlanmayı sağlayan değişkenler; production'da hiçbiri set olamaz. */
+const AUTH_EMULATOR_VARS = [
+  'FIREBASE_AUTH_EMULATOR_HOST',
+  'NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST',
+] as const;
+
+/**
+ * Emulator token'ları imzasızdır: production'da emulator değişkeni set ise herkes istediği
+ * kullanıcı olarak oturum açabilirdi. Bu yüzden build, sunucu başlangıcı (instrumentation) ve
+ * Admin SDK kurulumu bu kontrolü yapar (ADR-0001 Karar 5, ADR-0003 Karar 4).
+ */
+export const assertNoAuthEmulatorInProduction = (source: EnvSource): void => {
+  if (source.VERCEL_ENV !== 'production') return;
+  const present = AUTH_EMULATOR_VARS.filter(name => (source[name] ?? '').trim() !== '');
+  if (present.length > 0) {
+    throw new EnvValidationError(
+      'server',
+      present.map(name => `${name}: production'da tanımlı olamaz (emulator token'ları imzasız)`)
+    );
+  }
+};
+
 export const parseServerEnv = (source: EnvSource): ServerEnv => {
+  assertNoAuthEmulatorInProduction(source);
   const env = parseWith(serverEnvSchema, 'server', source);
   if (isProductionRuntime(source)) {
     const missing = PRODUCTION_RUNTIME_REQUIRED.filter(name => env[name] === undefined);
@@ -132,6 +164,8 @@ export const isEnvValidationSkipped = (source: EnvSource): boolean =>
 
 /** Build anında sunucu ve istemci env'ini birlikte doğrular; hataları tek listede verir. */
 export const assertBuildEnv = (source: EnvSource): { skipped: boolean } => {
+  // Atlanamaz: E2E build'i (emulator'lü) asla production'a çıkmamalı
+  assertNoAuthEmulatorInProduction(source);
   if (isEnvValidationSkipped(source)) return { skipped: true };
 
   const issues: string[] = [];

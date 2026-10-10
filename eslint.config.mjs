@@ -82,6 +82,10 @@ export default defineConfig([
       'src/lib/db/*.int.test.ts',
       // Yalnız DATABASE_URL'yi şemayla doğrular; getServerEnv() Firebase env'i de ister
       'src/lib/db/index.ts',
+      // Başlangıçta yalnızca emulator koruması; tam env doğrulaması istek anında
+      'src/instrumentation.ts',
+      // E2E altyapısı (emulator, test DB) test env'ini okur
+      'tests/e2e/**',
     ],
     rules: { 'no-restricted-properties': 'off' },
   },

@@ -91,7 +91,10 @@ describe('AppShell', () => {
     const profileLinks = screen.getAllByRole('link', { name: tr.shell.nav.profile });
     for (const link of profileLinks) expect(link).toHaveAttribute('href', '/u/aysek');
     expect(screen.getAllByRole('link', { name: tr.shell.nav.notifications }).length).toBe(2);
-    expect(screen.getByRole('link', { name: 'Ayşe Kaya @aysek' })).toHaveTextContent('AK');
+    // Hesap menüsü: sol menü (md+) ve mobil üst bar; ikisi de avatar baş harfleriyle
+    const accountMenus = screen.getAllByRole('button', { name: 'Hesap menüsü: Ayşe Kaya' });
+    expect(accountMenus).toHaveLength(2);
+    for (const trigger of accountMenus) expect(trigger).toHaveTextContent('AK');
     expect(screen.queryByText(tr.common.login)).not.toBeInTheDocument();
   });
 

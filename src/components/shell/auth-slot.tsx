@@ -1,21 +1,25 @@
+'use client';
+
 import { LogIn } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { ReactElement } from 'react';
 
-import { Avatar, AvatarFallback, AvatarImage, initialsOf } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from '@/i18n/navigation';
 
-import { NAV_HREF, profileHref } from './nav-routes';
+import { AccountMenu } from './account-menu';
+import { NAV_HREF } from './nav-routes';
 import type { ShellViewer } from './types';
+import { useShellViewer } from './use-shell-viewer';
 
 /**
  * Sol menünün altındaki kullanıcı alanı. `unknown` → aynı ölçüde skeleton; "Giriş yap"
  * yalnızca sunucu `anonymous` dediğinde (auth-session UX kuralı 1).
  */
-export const AuthSlot = ({ viewer }: { viewer: ShellViewer }): ReactElement => {
+export const AuthSlot = ({ viewer: serverViewer }: { viewer: ShellViewer }): ReactElement => {
   const t = useTranslations();
+  const viewer = useShellViewer(serverViewer);
 
   if (viewer.status === 'unknown') {
     return (
@@ -41,10 +45,12 @@ export const AuthSlot = ({ viewer }: { viewer: ShellViewer }): ReactElement => {
           <Link href={NAV_HREF.signup}>{t('common.signup')}</Link>
         </Button>
         <Button asChild variant='outline' size='lg' className='hidden xl:inline-flex'>
-          <Link href={NAV_HREF.login}>{t('common.login')}</Link>
+          <Link href={NAV_HREF.login} data-testid='login-cta'>
+            {t('common.login')}
+          </Link>
         </Button>
         <Button asChild variant='ghost' size='icon' className='xl:hidden'>
-          <Link href={NAV_HREF.login} aria-label={t('common.login')}>
+          <Link href={NAV_HREF.login} aria-label={t('common.login')} data-testid='login-cta'>
             <LogIn aria-hidden='true' />
           </Link>
         </Button>
@@ -52,21 +58,5 @@ export const AuthSlot = ({ viewer }: { viewer: ShellViewer }): ReactElement => {
     );
   }
 
-  const { user } = viewer;
-  return (
-    <Link
-      href={profileHref(user.username)}
-      aria-label={`${user.displayName} @${user.username}`}
-      className='flex min-h-hit items-center justify-center gap-3 rounded-full p-1 hover:bg-bg-muted xl:justify-start xl:px-3'
-    >
-      <Avatar className='size-10'>
-        {user.avatarUrl ? <AvatarImage src={user.avatarUrl} alt='' /> : null}
-        <AvatarFallback>{initialsOf(user.displayName)}</AvatarFallback>
-      </Avatar>
-      <span aria-hidden='true' className='hidden min-w-0 flex-col xl:flex'>
-        <span className='truncate text-sm font-semibold text-fg'>{user.displayName}</span>
-        <span className='truncate text-xs text-fg-subtle'>{`@${user.username}`}</span>
-      </span>
-    </Link>
-  );
+  return <AccountMenu user={viewer.user} variant='full' />;
 };

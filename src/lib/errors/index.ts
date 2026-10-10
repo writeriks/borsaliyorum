@@ -13,6 +13,16 @@ export const ErrorCode = {
   CONFLICT: 'CONFLICT',
   RATE_LIMITED: 'RATE_LIMITED',
   INTERNAL: 'INTERNAL',
+  // --- Auth (S5) ---
+  /** Kimlik doğrulandı ama hesap henüz kullanıcı adı seçmedi (onboarding). */
+  ONBOARDING_REQUIRED: 'ONBOARDING_REQUIRED',
+  /** E-posta doğrulanmamış kullanıcı yazamaz (spam ve 5651 sorumluluğu). */
+  EMAIL_NOT_VERIFIED: 'EMAIL_NOT_VERIFIED',
+  ACCOUNT_SUSPENDED: 'ACCOUNT_SUSPENDED',
+  /** Giriş 5 dakikadan eski: oturum açmak/hassas işlem için yeniden giriş gerekir. */
+  REAUTH_REQUIRED: 'REAUTH_REQUIRED',
+  USERNAME_TAKEN: 'USERNAME_TAKEN',
+  USERNAME_RESERVED: 'USERNAME_RESERVED',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
