@@ -16,6 +16,18 @@ export const baseConfig: NextConfig = {
   poweredByHeader: false,
 };
 
+/**
+ * Production dışındaki her ortam (Vercel preview/development, yerel) arama motorlarına
+ * kapalı: preview URL'leri herkese açık ve prod içeriğini kopyalıyor (yinelenen içerik,
+ * yayınlanmamış özellikler).
+ */
+export const noindexHeaders =
+  (vercelEnv: string | undefined): NextConfig['headers'] =>
+  async () =>
+    vercelEnv === 'production'
+      ? []
+      : [{ source: '/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex' }] }];
+
 const config = (phase: string): NextConfig => {
   if (phase === PHASE_PRODUCTION_BUILD) {
     const { skipped } = assertBuildEnv(process.env);
@@ -23,7 +35,7 @@ const config = (phase: string): NextConfig => {
       console.warn('[env] SKIP_ENV_VALIDATION=1: ortam değişkeni doğrulaması atlandı.');
     }
   }
-  return withNextIntl(baseConfig);
+  return withNextIntl({ ...baseConfig, headers: noindexHeaders(process.env.VERCEL_ENV) });
 };
 
 export default config;

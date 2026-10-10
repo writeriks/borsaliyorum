@@ -1,4 +1,4 @@
-import { classifyKey, maskEmails, maskIp, REDACTED } from './mask';
+import { classifyKey, maskIp, maskText, REDACTED } from './mask';
 
 /**
  * Küçük yapılandırılmış logger: her kayıt tek satır JSON (Vercel log'larında aranabilir).
@@ -24,36 +24,49 @@ export type LogSink = (level: LogLevel, line: string) => void;
 
 const MAX_DEPTH = 6;
 
-const sanitizeValue = (value: unknown, depth: number, seen: WeakSet<object>): unknown => {
-  if (typeof value === 'string') return maskEmails(value);
+/**
+ * `ancestors` yalnızca o anki yolun üzerindeki nesneleri tutar: aynı nesne döngüsüz olarak
+ * iki kez geçerse (ör. `{ a: x, b: x }`) ikisi de yazılır; yalnızca gerçek döngü `[Circular]`.
+ */
+const sanitizeValue = (value: unknown, depth: number, ancestors: WeakSet<object>): unknown => {
+  if (typeof value === 'string') return maskText(value);
   if (typeof value === 'bigint') return value.toString();
   if (value === null || typeof value !== 'object') {
     return typeof value === 'function' || typeof value === 'symbol' ? String(value) : value;
   }
-  if (seen.has(value)) return '[Circular]';
+  if (ancestors.has(value)) return '[Circular]';
   if (depth >= MAX_DEPTH) return '[Truncated]';
-  seen.add(value);
+  if (value instanceof Date) return value.toISOString();
 
+  ancestors.add(value);
+  try {
+    return sanitizeComposite(value, depth, ancestors);
+  } finally {
+    ancestors.delete(value);
+  }
+};
+
+const sanitizeComposite = (value: object, depth: number, ancestors: WeakSet<object>): unknown => {
   if (value instanceof Error) {
     const code = (value as { code?: unknown }).code;
     return {
       name: value.name,
-      message: maskEmails(value.message),
-      ...(code === undefined ? {} : { code: sanitizeValue(code, depth + 1, seen) }),
-      ...(value.stack ? { stack: maskEmails(value.stack) } : {}),
-      ...(value.cause === undefined ? {} : { cause: sanitizeValue(value.cause, depth + 1, seen) }),
+      message: maskText(value.message),
+      ...(code === undefined ? {} : { code: sanitizeValue(code, depth + 1, ancestors) }),
+      ...(value.stack ? { stack: maskText(value.stack) } : {}),
+      ...(value.cause === undefined
+        ? {}
+        : { cause: sanitizeValue(value.cause, depth + 1, ancestors) }),
     };
   }
-  if (value instanceof Date) return value.toISOString();
-  if (Array.isArray(value)) return value.map(item => sanitizeValue(item, depth + 1, seen));
-
-  return sanitizeObject(value as Record<string, unknown>, depth + 1, seen);
+  if (Array.isArray(value)) return value.map(item => sanitizeValue(item, depth + 1, ancestors));
+  return sanitizeObject(value as Record<string, unknown>, depth + 1, ancestors);
 };
 
 const sanitizeObject = (
   object: Readonly<Record<string, unknown>>,
   depth: number,
-  seen: WeakSet<object>
+  ancestors: WeakSet<object>
 ): Record<string, unknown> => {
   const out: Record<string, unknown> = {};
   for (const [key, raw] of Object.entries(object)) {
@@ -65,10 +78,10 @@ const sanitizeObject = (
         out[key] = typeof raw === 'string' ? maskIp(raw) : REDACTED;
         break;
       case 'email':
-        out[key] = typeof raw === 'string' ? maskEmails(raw) : sanitizeValue(raw, depth, seen);
+        out[key] = typeof raw === 'string' ? maskText(raw) : sanitizeValue(raw, depth, ancestors);
         break;
       default:
-        out[key] = sanitizeValue(raw, depth, seen);
+        out[key] = sanitizeValue(raw, depth, ancestors);
     }
   }
   return out;
@@ -109,7 +122,7 @@ export const createLogger = (options: LoggerOptions = {}): Logger => {
         ...sanitizeContext({ ...bindings, ...context }),
         level,
         time: now().toISOString(),
-        msg: maskEmails(msg),
+        msg: maskText(msg),
       };
       sink(level, JSON.stringify(record));
     };

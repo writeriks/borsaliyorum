@@ -24,4 +24,22 @@ describe('next.config', () => {
     vi.stubEnv('DATABASE_URL', '');
     expect(() => config(PHASE_DEVELOPMENT_SERVER)).not.toThrow();
   });
+
+  it('Vercel production dışında tüm yollara X-Robots-Tag: noindex ekler (S1 review #5)', async () => {
+    vi.stubEnv('SKIP_ENV_VALIDATION', '1');
+    for (const vercelEnv of ['preview', 'development', '']) {
+      vi.stubEnv('VERCEL_ENV', vercelEnv);
+      const headers = await config(PHASE_PRODUCTION_BUILD).headers?.();
+      expect(headers).toEqual([
+        { source: '/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex' }] },
+      ]);
+    }
+  });
+
+  it('Vercel production’da noindex eklemez', async () => {
+    vi.stubEnv('SKIP_ENV_VALIDATION', '1');
+    vi.stubEnv('VERCEL_ENV', 'production');
+    const headers = await config(PHASE_PRODUCTION_BUILD).headers?.();
+    expect(headers ?? []).toEqual([]);
+  });
 });

@@ -11,6 +11,8 @@ import featureBoundaries from './tools/eslint/feature-boundaries.mjs';
 export default defineConfig([
   globalIgnores([
     'legacy/**',
+    // Paralel agent worktree'leri (kendi dallarında lint'lenir)
+    '.claude/**',
     '.next/**',
     'coverage/**',
     'playwright-report/**',
@@ -52,6 +54,30 @@ export default defineConfig([
       '@eslint-community/eslint-comments/require-description': 'error',
       '@eslint-community/eslint-comments/no-unlimited-disable': 'error',
     },
+  },
+  {
+    // Env yalnızca doğrulanmış erişimcilerden okunur (lib/env*.ts); ham erişim tip/doğrulama
+    // dışı kalır ve sunucu değerinin istemci bundle'ına sızmasına yol açabilir.
+    rules: {
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'process',
+          property: 'env',
+          message: 'process.env yerine getServerEnv()/getClientEnv() (src/lib/env*.ts) kullan.',
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      'src/lib/env*.ts',
+      'src/lib/logger/**',
+      'next.config.ts',
+      '**/*.config.*',
+      'scripts/**',
+    ],
+    rules: { 'no-restricted-properties': 'off' },
   },
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.mts'],

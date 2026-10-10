@@ -1,15 +1,21 @@
 name: CI
 
+# Çift koşuyu önlemek için: main ve agent dalları (claude/**) push'ta koşar; diğer dallar
+# PR açılınca. claude/** dalından açılan PR'da push koşusu zaten aynı commit'i test ettiği
+# için pull_request koşusundaki job'lar atlanır (aşağıdaki `if`).
 on:
   push:
+    branches: [main, 'claude/**']
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
+  # main'de her commit sonuna kadar test edilir; dallarda yeni push eskisini iptal eder
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
 
 env:
   NEXT_TELEMETRY_DISABLED: 1
@@ -20,6 +26,7 @@ defaults:
 
 jobs:
   type-check:
+    if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'claude/')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -32,6 +39,7 @@ jobs:
       - run: npm run type-check
 
   lint:
+    if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'claude/')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -45,6 +53,7 @@ jobs:
       - run: npm run format:check
 
   unit:
+    if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'claude/')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -57,6 +66,7 @@ jobs:
       - run: npm run test:unit
 
   build:
+    if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'claude/')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -77,6 +87,7 @@ jobs:
       - run: npm run build
 
   e2e:
+    if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'claude/')
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:

@@ -85,6 +85,10 @@ başlanabilir.
   temiz; `/` ve `/en` i18n'li boş sayfa render eder; bir Playwright smoke testi hem yerelde
   (`PW_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium`) hem CI'da geçer; Vercel v2 projesinde
   preview deploy çalışır ve `X-Robots-Tag: noindex` döner; `root-guard` job'u yeşil.
+- **Uygulama notu (2026-10-10):** K1 (v2 ayrı dizin değil, repo kökünde; aktif kullanıcı yok)
+  nedeniyle S0 ve `root-guard` job'u düştü; `web/` yerine kök, `v2-ci.yml` yerine `ci.yml`.
+  `pg-local.sh` ve `docker-compose.test.yml` test DB altyapısıyla birlikte S3'e taşındı.
+  `X-Robots-Tag: noindex` `next.config.ts`'te `VERCEL_ENV !== 'production'` için verilir.
 
 ### S2 — Tasarım token'ları + uygulama kabuğu + durum bileşenleri
 - ui-ux-designer'ın token'ları Tailwind 4 `@theme` + CSS değişkenleri (koyu varsayılan, açık
