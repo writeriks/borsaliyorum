@@ -1,9 +1,8 @@
-name: Sync stocks e2e test (temporary)
+name: Sync stocks e2e test
 
 on:
-  push:
-    branches: [claude/rebuild-agents-skills]
-    paths: [scripts/**, .github/workflows/sync-stocks*.yml]
+  pull_request:
+    paths: [scripts/*stocks*.mjs, .github/workflows/sync-stocks*.yml, prisma/schema.prisma]
 
 permissions:
   contents: read
