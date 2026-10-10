@@ -1,0 +1,49 @@
+name: Sync stocks e2e test (temporary)
+
+on:
+  push:
+    branches: [claude/rebuild-agents-skills]
+    paths: [scripts/**, .github/workflows/sync-stocks*.yml]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:test@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx prisma generate && npx prisma db push --skip-generate
+      - name: Seed existing stocks (incl. a delisted one)
+        run: |
+          psql "$DATABASE_URL" -c "INSERT INTO \"Stock\" (ticker, \"companyName\", \"stockType\") VALUES ('THYAO','TURK HAVA YOLLARI','stock'),('KOZAL','KOZA ALTIN','stock'),('BTC','BITCOIN','crypto');"
+      - run: node scripts/fetch-kap-stocks.mjs > kap-stocks.csv
+      - name: Dry-run must not write
+        run: |
+          node scripts/sync-stocks.mjs kap-stocks.csv | tail -4
+          test "$(psql "$DATABASE_URL" -tAc 'SELECT count(*) FROM "Stock"')" = "3"
+      - name: Apply
+        run: |
+          node scripts/sync-stocks.mjs kap-stocks.csv --apply | tail -2
+          psql "$DATABASE_URL" -tAc "SELECT count(*), count(*) FILTER (WHERE \"stockType\"='stock') FROM \"Stock\""
+          psql "$DATABASE_URL" -tAc "SELECT \"companyName\" FROM \"Stock\" WHERE ticker IN ('THYAO','KOZAL','TRALT','GARAN') ORDER BY ticker"
+          test "$(psql "$DATABASE_URL" -tAc "SELECT count(*) FROM \"Stock\" WHERE ticker IN ('BNPPI','GSIPD','DRPHN','KOCFN')")" = "0"
+      - name: Second apply is a no-op
+        run: node scripts/sync-stocks.mjs kap-stocks.csv --apply | grep -E "^Eklenecek \(0\)"
+      - name: tickers.ts still type-checks
+        run: |
+          git diff --stat src/tickers.ts
+          grep -c "'id':" src/tickers.ts
+          npx tsc --noEmit -p .

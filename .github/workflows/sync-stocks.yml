@@ -1,0 +1,56 @@
+name: Sync BIST stocks
+
+# KAP'tan güncel hisse listesini alır, DB'de olmayanları ekler ve
+# src/tickers.ts güncellemesi için PR açar. Mevcut hisseler silinmez.
+on:
+  schedule:
+    - cron: '17 5 * * 1' # Pazartesi 08:17 (TR)
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "DB'ye yaz ve PR aç (kapalıysa sadece rapor)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-stocks
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      APPLY: ${{ github.event_name == 'schedule' || inputs.apply }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx prisma generate
+
+      - name: Fetch stock list from KAP
+        run: node scripts/fetch-kap-stocks.mjs > kap-stocks.csv
+
+      - name: Sync to database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          node scripts/sync-stocks.mjs kap-stocks.csv $([ "$APPLY" = "true" ] && echo --apply) | tee sync-report.txt
+          { echo '```'; cat sync-report.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open PR for tickers.ts
+        if: env.APPLY == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/sync-stocks
+          add-paths: src/tickers.ts
+          commit-message: 'chore: sync BIST stock list from KAP'
+          title: 'chore: BIST hisse listesini güncelle'
+          body-path: sync-report.txt

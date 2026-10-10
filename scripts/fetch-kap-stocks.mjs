@@ -1,6 +1,6 @@
 /**
- * KAP'tan pay piyasasında (Yıldız, Ana, Alt, Yakın İzleme…) işlem gören şirketleri çeker ve
- * "KOD;ŞİRKET ADI" CSV'si olarak stdout'a yazar. Bono ihraççıları ve fonlar alınmaz.
+ * KAP'tan Yıldız, Ana, Alt ve Yakın İzleme pazarlarında işlem gören şirketleri çeker ve
+ * "KOD;ŞİRKET ADI" CSV'si olarak stdout'a yazar. Bono/varant ihraççıları ve fonlar alınmaz.
  * Sadece kamuya açık kod ve unvan alınır; fiyat verisi alınmaz.
  *
  *   node scripts/fetch-kap-stocks.mjs > hisseler.csv
@@ -11,6 +11,8 @@ import { readFileSync } from 'node:fs';
 // Pazarlar sayfası seçilen pazardan bağımsız olarak tüm pazarların listesini gömülü taşır
 const KAP_URL = `https://www.kap.org.tr/tr/Pazarlar?market=${Buffer.from('YILDIZ PAZAR').toString('base64')}`;
 const EQUITY_GROUP = 'PAY PİYASASI';
+// Pay piyasasındaki diğer pazarlar (POİP, varant, emtia, girişim sermayesi fonları) hisse değil
+const EQUITY_MARKETS = new Set(['YILDIZ PAZAR', 'ANA PAZAR', 'ALT PAZAR', 'YAKIN İZLEME PAZARI']);
 const TICKER_RE = /^[A-Z0-9]{3,6}$/;
 
 // Next.js sayfası veriyi self.__next_f.push([1,"..."]) içindeki JS string'lerinde taşır
@@ -49,9 +51,9 @@ export const parseKapMarkets = html => {
   groups
     .filter(group => group.title === EQUITY_GROUP)
     .flatMap(group => group.contents)
+    .filter(market => EQUITY_MARKETS.has(market.marketName))
     .forEach(market =>
       market.marketDetailContentList
-        // fundOid dolu olanlar fon (ör. Girişim Sermayesi Pazarı), şirket değil
         .filter(item => item.mkkMemberOid && !item.fundOid)
         .forEach(item =>
           item.stockCode
