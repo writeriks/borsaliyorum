@@ -12,7 +12,7 @@ import {
   textOffsetToPos,
 } from './doc-text';
 import { buildEntityDecorations } from './entity-decorations';
-import { normalizePastedText, textToSlice } from './plain-text';
+import { MAX_PASTE_CHARS, normalizePastedText, textToSlice } from './plain-text';
 import { textToDoc } from './use-composer-editor';
 
 const schema = getSchema([Document, Paragraph, Text]);
@@ -94,6 +94,13 @@ describe('düz metin yapıştırma [CMP-08]', () => {
   it('kontrol ve bidi karakterleri temizlenir, kenar boşlukları korunur', () => {
     expect(normalizePastedText(' $TH​YAO‮ ')).toBe(' $THYAO ');
     expect(normalizePastedText('a\r\nb')).toBe('a\nb');
+  });
+
+  it('tek yapıştırma 20.000 karakterde kırpılır, vekil çift bölünmez', () => {
+    expect(MAX_PASTE_CHARS).toBe(20_000);
+    expect(normalizePastedText('a'.repeat(25_000))).toHaveLength(20_000);
+    const emojiAtEdge = `${'a'.repeat(19_999)}😀b`;
+    expect(normalizePastedText(emojiAtEdge)).toBe('a'.repeat(19_999));
   });
 
   it('her satır bir paragraf olur', () => {

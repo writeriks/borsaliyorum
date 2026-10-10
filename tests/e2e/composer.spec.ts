@@ -1,6 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 
 import {
+  dropInEditor,
   editor,
   editorText,
   openComposer,
@@ -129,6 +130,30 @@ test.describe('composer: varyantlar ve klavye', () => {
     );
     expect(await editorText(page)).toBe('Kalın metin\nikinci satır');
     await expect(editor(page).locator('b, i, script, [style]')).toHaveCount(0);
+  });
+
+  test('[CMP-08b] bırakılan (drop) HTML düz metin olarak, normalize edilerek eklenir', async ({
+    page,
+  }) => {
+    await openComposer(page);
+    // Yalnızca text/html: ProseMirror'ın HTML ayrıştırıcısı normalize etmeden ekliyordu
+    await dropInEditor(page, {
+      html: '<p><b style="color:red">$TH\u200bYAO</b> <i>hedef\u202e</i></p><p>ikinci</p>',
+    });
+    await expect.poll(() => editorText(page)).toBe('$THYAO hedef\nikinci');
+    await expect(editor(page).locator('b, i, [style]')).toHaveCount(0);
+  });
+
+  test('[CMP-08c] bırakılan düz metin de normalize edilir', async ({ page }) => {
+    await openComposer(page);
+    await dropInEditor(page, { text: 'a\u200bb\r\nc' });
+    await expect.poll(() => editorText(page)).toBe('ab\nc');
+  });
+
+  test('[CMP-08d] 25.000 karakter yapıştırma 20.000’de kırpılır', async ({ page }) => {
+    await openComposer(page);
+    await pasteInEditor(page, 'x'.repeat(25_000));
+    await expect.poll(async () => (await editorText(page)).length).toBe(20_000);
   });
 
   test(

@@ -147,6 +147,33 @@ export const pasteInEditor = async (
   );
 };
 
+/** Editöre dışarıdan (başka sekme/uygulama) sürükle-bırak: `DataTransfer` ile `drop` olayı. */
+export const dropInEditor = async (
+  page: Page,
+  data: { text?: string; html?: string },
+  mode: 'post' | 'comment' = 'post'
+): Promise<void> => {
+  const box = editor(page, mode);
+  await box.click();
+  await box.evaluate((node, payload) => {
+    const transfer = new DataTransfer();
+    if (payload.text !== undefined) transfer.setData('text/plain', payload.text);
+    if (payload.html !== undefined) transfer.setData('text/html', payload.html);
+    const target = node.querySelector('p') ?? node;
+    const rect = target.getBoundingClientRect();
+    const init = {
+      dataTransfer: transfer,
+      bubbles: true,
+      cancelable: true,
+      clientX: rect.right - 1,
+      clientY: rect.top + rect.height / 2,
+    };
+    node.dispatchEvent(new DragEvent('dragenter', init));
+    node.dispatchEvent(new DragEvent('dragover', init));
+    node.dispatchEvent(new DragEvent('drop', init));
+  }, data);
+};
+
 export const editorText = (page: Page, mode: 'post' | 'comment' = 'post'): Promise<string> =>
   editor(page, mode).evaluate(node =>
     [...node.querySelectorAll('p')].map(p => p.textContent ?? '').join('\n')
