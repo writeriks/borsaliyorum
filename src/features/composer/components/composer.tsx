@@ -48,7 +48,7 @@ import {
 import { clearDraft, type Draft, draftKey, loadDraft, saveDraft } from '../lib/draft-storage';
 import { computeSelectionReplacement, computeTriggerInsertion } from '../lib/insertion';
 import { CHAR_LIMITS } from '../lib/limits';
-import { mapSubmitError, newClientRequestId } from '../lib/submit';
+import { type ClientRequest, mapSubmitError, resolveClientRequest } from '../lib/submit';
 import { findExactStock } from '../lib/stock-search';
 import type {
   CommentSubmitHandler,
@@ -162,8 +162,9 @@ export const Composer = (props: ComposerProps): ReactElement => {
     [text, mode, index, pendingCashtagStart]
   );
   const sentimentAvailable = isSentimentAvailable(mode, analysis);
-  // Cashtag silinip seçici gizlenince seçim Nötr'e döner (tasarım §1.5)
-  if (!sentimentAvailable && sentiment !== 'neutral') setSentiment('neutral');
+  // Cashtag silinip seçici gizlenince seçim Nötr'e döner (tasarım §1.5). İndeks yüklenmeden
+  // hiçbir cashtag tanınmış görünmez: o ana kadar sıfırlanırsa geri yüklenen taslağın görüşü kaybolur
+  if (index !== null && !sentimentAvailable && sentiment !== 'neutral') setSentiment('neutral');
 
   const blocker: SubmitBlocker | null = getSubmitBlocker({
     analysis,
@@ -419,7 +420,7 @@ export const Composer = (props: ComposerProps): ReactElement => {
 
   // --- Gönderme ---
   const inFlight = useRef(false);
-  const requestRef = useRef<{ id: string; text: string } | null>(null);
+  const requestRef = useRef<ClientRequest | null>(null);
 
   useEffect(() => {
     if (submitState !== 'submitting') return;
@@ -448,13 +449,16 @@ export const Composer = (props: ComposerProps): ReactElement => {
     setSubmitState('submitting');
     setSubmitError(null);
     editor.setEditable(false, false);
-    // Aynı içerikle tekrar deneme aynı kimliği taşır (sunucu çift kayıt açmaz); içerik değiştiyse yeni
-    if (requestRef.current?.text !== currentText) {
-      requestRef.current = { id: newClientRequestId(), text: currentText };
-    }
-    const clientRequestId = requestRef.current.id;
     const currentSentiment = isSentimentAvailable(mode, current) ? sentiment : 'neutral';
     const currentPreviewUrl = previewDismissed ? null : current.firstUrl;
+    const currentSponsored = mode === 'post' && isSponsored;
+    requestRef.current = resolveClientRequest(requestRef.current, {
+      text: currentText,
+      sentiment: currentSentiment,
+      isSponsored: currentSponsored,
+      previewUrl: mode === 'post' ? currentPreviewUrl : null,
+    });
+    const clientRequestId = requestRef.current.id;
 
     let result: SubmitResult | null = null;
     try {
@@ -463,7 +467,7 @@ export const Composer = (props: ComposerProps): ReactElement => {
           ? await props.onSubmit({
               text: currentText,
               sentiment: currentSentiment,
-              isSponsored,
+              isSponsored: currentSponsored,
               previewUrl: currentPreviewUrl,
               clientRequestId,
             })

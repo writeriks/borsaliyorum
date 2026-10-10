@@ -38,14 +38,14 @@ const setText = async (handle: { current: ComposerHandle | null }, text: string)
   });
 };
 
-const renderPost = (onSubmit: PostSubmitHandler) => {
+const renderPost = (onSubmit: PostSubmitHandler, composerServices = services) => {
   const handle: { current: ComposerHandle | null } = { current: null };
   renderWithIntl(
     withQuery(
       <Composer
         mode='post'
         draftOwnerId={7}
-        services={services}
+        services={composerServices}
         onSubmit={onSubmit}
         handleRef={instance => {
           handle.current = instance;
@@ -105,6 +105,26 @@ describe('Composer (jsdom)', () => {
     );
   });
 
+  it('hata sonrası sponsorluk açılıp yeniden denenirse yeni clientRequestId gider', async () => {
+    // Anahtar yalnızca metne bağlıysa sunucu ilk (sponsorsuz) isteğin kaydını döndürür ve
+    // "Reklam / İşbirliği" etiketi sessizce düşer.
+    const onSubmit = vi
+      .fn<PostSubmitHandler>()
+      .mockResolvedValueOnce(fail(ErrorCode.INTERNAL))
+      .mockResolvedValueOnce(ok({ id: 4 }));
+    const handle = renderPost(onSubmit);
+    await setText(handle, 'Marka ile işbirliği');
+    await userEvent.click(screen.getByTestId('composer-submit'));
+    const retry = await screen.findByRole('button', { name: tr.common.retry });
+    await userEvent.click(screen.getByRole('switch', { name: tr.composer.sponsored.label }));
+    await userEvent.click(retry);
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(2));
+    const [first, second] = onSubmit.mock.calls.map(call => call[0]);
+    expect(first?.isSponsored).toBe(false);
+    expect(second?.isSponsored).toBe(true);
+    expect(second?.clientRequestId).not.toBe(first?.clientRequestId);
+  });
+
   it('401 → taslak hemen kaydedilir ve giriş bağlantısı görünür [SND-06]', async () => {
     const handle = renderPost(async () => fail(ErrorCode.UNAUTHENTICATED));
     await setText(handle, 'Saklanacak');
@@ -135,6 +155,24 @@ describe('Composer (jsdom)', () => {
         'Geri gel'
       )
     );
+  });
+
+  it('geri yüklenen taslağın görüşü hisse indeksi yüklenene kadar korunur', async () => {
+    window.localStorage.setItem(
+      'bz:draft:7:post',
+      JSON.stringify({
+        v: 1,
+        savedAt: Date.now(),
+        text: '$THYAO yükselir',
+        sentiment: 'bullish',
+        isSponsored: false,
+        previewDismissed: false,
+      })
+    );
+    // İndeks gecikmeli: ilk render'larda tanınmış cashtag yok gibi görünür
+    renderPost(async () => ok({ id: 1 }), createMockComposerServices(200));
+    const bullish = await screen.findByRole('radio', { name: tr.composer.sentiment.bullish });
+    expect(bullish).toBeChecked();
   });
 });
 

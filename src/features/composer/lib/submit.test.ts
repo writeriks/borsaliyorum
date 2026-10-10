@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { ErrorCode, fail, ok } from '@/lib/errors';
 
-import { mapSubmitError, newClientRequestId } from './submit';
+import { mapSubmitError, newClientRequestId, resolveClientRequest } from './submit';
 
 describe('mapSubmitError (tasarım §1.7)', () => {
   it('istek sonuçlanmadıysa ya da sunucu hatasıysa genel hata + tekrar dene [SND-04]', () => {
@@ -54,5 +54,32 @@ describe('newClientRequestId', () => {
     const b = newClientRequestId();
     expect(a).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
     expect(a).not.toBe(b);
+  });
+});
+
+describe('resolveClientRequest (idempotency anahtarı yüke bağlı)', () => {
+  const base = {
+    text: 'Merhaba $THYAO',
+    sentiment: 'bullish',
+    isSponsored: false,
+    previewUrl: null,
+  } as const;
+  let counter = 0;
+  const createId = (): string => `id-${(counter += 1)}`;
+
+  it('aynı yük → aynı kimlik', () => {
+    const first = resolveClientRequest(null, base, createId);
+    expect(resolveClientRequest(first, { ...base }, createId)).toBe(first);
+  });
+
+  it.each([
+    ['metin', { text: 'Merhaba $ASELS' }],
+    ['görüş', { sentiment: 'neutral' }],
+    ['sponsorluk', { isSponsored: true }],
+    ['önizleme', { previewUrl: 'https://ornek.com/a' }],
+  ] as const)('%s değişince yeni kimlik', (_label, change) => {
+    const first = resolveClientRequest(null, base, createId);
+    const next = resolveClientRequest(first, { ...base, ...change }, createId);
+    expect(next.id).not.toBe(first.id);
   });
 });
