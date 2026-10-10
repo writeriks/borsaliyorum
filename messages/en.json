@@ -197,5 +197,48 @@
   "feedPlaceholder": {
     "title": "Feed",
     "body": "Posts from the people and stocks you follow will appear here soon."
+  },
+  "linkPreview": {
+    "cardLabel": "{title}, {host} (opens in a new tab)",
+    "loading": "Loading link preview"
+  },
+  "entity": {
+    "newTab": "(opens in a new tab)",
+    "cashtagName": "{text}, {company}",
+    "mentionName": "{text}, {name}"
+  },
+  "hovercard": {
+    "stockPage": "Stock page",
+    "kap": "KAP",
+    "tradingview": "TradingView",
+    "mentions24h": "{count, plural, one {# post} other {# posts}} in the last 24h",
+    "statsLoading": "Loading post count",
+    "follow": "Follow",
+    "followLoading": "Loading follow status",
+    "market": {
+      "stock": "BIST · Equity",
+      "crypto": "Crypto",
+      "other": "Other"
+    }
+  },
+  "post": {
+    "cardLabel": "Post",
+    "sponsoredLabel": "Ad / Collaboration (Reklam)",
+    "sentiment": {
+      "bullish": "Bullish",
+      "bearish": "Bearish"
+    },
+    "readMore": "Show more",
+    "readLess": "Show less",
+    "mediaAlt": "Post image",
+    "stats": {
+      "label": "Engagement",
+      "comments": "{count, plural, one {# comment} other {# comments}}",
+      "reposts": "{count, plural, one {# repost} other {# reposts}}",
+      "likes": "{count, plural, one {# like} other {# likes}}"
+    },
+    "loading": "Loading post",
+    "error": "Couldn't load the post.",
+    "unavailable": "This post was removed or can no longer be viewed."
   }
 }
