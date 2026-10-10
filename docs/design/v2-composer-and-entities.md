@@ -351,8 +351,10 @@ URL içinde tetiklenmez.
 - Liste şu durumlarda kapanır: token'ı bitiren karakter (boşluk, noktalama, satır sonu),
   `Esc`, imlecin token dışına çıkması, editörün odağı kaybetmesi. `Esc` ile kapatılan
   liste, aynı token'a yeni karakter yazılana kadar yeniden açılmaz.
-- **IME / kompozisyon** (`compositionstart`–`compositionend`) sırasında tuşlar yakalanmaz.
-  Android Gboard `keydown` kodu göndermediği için tespit `input` olayları üzerinden yapılır.
+- **IME / kompozisyon** (`compositionstart`–`compositionend`) sırasında tuşlar yakalanmaz,
+  ama liste **açık kalır ve sorguyla güncellenir**: Android Gboard her kelimeyi kompozisyon
+  olarak yazar, liste gizlenirse mobilde hiç görünmez (`[AC-24]`). Gboard `keydown` kodu
+  göndermediği için tespit `input` olayları üzerinden yapılır.
 
 ### 2.2 Veri, eşleşme ve sıralama
 
@@ -441,13 +443,16 @@ Mention
      aria-label="Gönderi yaz"
      aria-autocomplete="list"
      aria-haspopup="listbox"
-     aria-expanded="true|false"
-     aria-controls="ac-listbox"
+     aria-controls="ac-listbox"             ← yalnızca liste açıkken
      aria-activedescendant="ac-opt-THYAO"   ← yalnızca liste açıkken
      aria-describedby="composer-counter composer-disclaimer">
 <div id="ac-listbox" role="listbox" aria-label="Hisse önerileri">
   <div role="option" id="ac-opt-THYAO" aria-selected="true">…</div>
 ```
+- `aria-expanded` **yok**: ARIA 1.2'de `textbox` rolünde izinli değil (axe `aria-allowed-attr`,
+  `[AC-23]`); `combobox` rolü ise çok satırlı olamaz. Listenin açık olduğu `aria-controls`'un
+  varlığı (ve test için `data-ac-open="true"`) ile bildirilir; kapalıyken `aria-controls` ve
+  `aria-activedescendant` kaldırılır.
 - Odak **her zaman editörde** kalır. Aktif öğe `aria-activedescendant` ile bildirilir.
 - Listbox etiketi türe göre "Hisse önerileri" / "Etiket önerileri" / "Kişi önerileri".
 - Option'ın erişilebilir adı tüm satırdır: "THYAO, Türk Hava Yolları A.O., BIST",
@@ -489,8 +494,8 @@ Yazma hiçbir durumda engellenmez. Autocomplete yalnızca yardımcı bir araç.
 
 ### 2.8 Kabul kriterleri (autocomplete)
 
-- `[AC-01]` Boş editöre `$` yazılınca `listbox` "Hisse önerileri" açılır, editörde
-  `aria-expanded="true"` olur ve takip edilen hisseler listelenir.
+- `[AC-01]` Boş editöre `$` yazılınca `listbox` "Hisse önerileri" açılır, editörün
+  `aria-controls` değeri bu listbox'ın id'sidir ve takip edilen hisseler listelenir.
 - `[AC-02]` `$th` yazılınca ilk öğe THYAO'dur ve `aria-selected="true"` taşır. Editörün
   `aria-activedescendant` değeri bu öğenin id'sidir.
 - `[AC-03]` `$türk` yazılınca THYAO ve TTKOM listelenir, THYAO önce gelir (bahis sayısı).
@@ -501,8 +506,8 @@ Yazma hiçbir durumda engellenmez. Autocomplete yalnızca yardımcı bir araç.
 - `[AC-07]` `$5` yazılınca liste açılmaz. `mail@ornek.com` yazılınca liste açılmaz.
   `site.com/#a` yazılınca liste açılmaz.
 - `[AC-08]` `↓` iki kez, `↑` bir kez basılınca ikinci öğe aktiftir. Son öğede `↓` ilk öğeye döner.
-- `[AC-09]` `Esc` listeyi kapatır, editör metni değişmez, `aria-expanded="false"` olur. Aynı
-  token'a bir karakter daha yazılınca liste yeniden açılır.
+- `[AC-09]` `Esc` listeyi kapatır, editör metni değişmez; editörde `aria-controls` ve
+  `aria-activedescendant` kalmaz. Aynı token'a bir karakter daha yazılınca liste yeniden açılır.
 - `[AC-10]` Liste açıkken `Enter` satır sonu eklemez. Boş liste durumunda `Enter` satır sonu ekler.
 - `[AC-11]` `#bi` yazılınca `#bist100` ilk sıradadır ve satırda "12.345 gönderi" metni vardır.
 - `[AC-12]` `@ay` yazılınca `aysek` (takip edilen) `aysegul`'den önce gelir. Satırda
@@ -526,6 +531,8 @@ Yazma hiçbir durumda engellenmez. Autocomplete yalnızca yardımcı bir araç.
 - `[AC-22]` Ekleme sonrası çift boşluk oluşmaz: `$th| dedi` metninde THYAO seçilince
   sonuç `$THYAO dedi` olur.
 - `[AC-23]` axe-core taramasında açık listbox ile `aria-*` ihlali yoktur.
+- `[AC-24]` IME kompozisyonu sürerken (`$t` → `$th`, Android Gboard) liste görünür kalır ve
+  sorguyla güncellenir; kompozisyon commit edilince metin değişmez.
 
 ---
 

@@ -111,8 +111,8 @@ aynı sol sınırı kullanır ama sorgu karakterleri daha geniştir — cashtag 
 noktalama ile kapanışta sorgu bir koda tam eşleşiyorsa büyük harfe çevrilir (`$thyao ` →
 `$THYAO `).
 
-Ek sınırlar (sunucu, Zod şemasında): boş olmayan metin; `countChars ≤ 1000` gönderi, yorum için
-de 1000 (tasarım 500 öneriyor, açık soru); ≤ 10 cashtag, ≤ 10 hashtag, ≤ 10 mention (spam;
+Ek sınırlar (sunucu, Zod şemasında): boş olmayan metin; `countChars ≤ 1000` gönderi, `≤ 500`
+yorum (K11; sabit `src/lib/content-limits.ts` → `CONTENT_MAX_CHARS`); ≤ 10 cashtag, ≤ 10 hashtag, ≤ 10 mention (spam;
 mention bildirimleri tekil ilk 10 kişiye). `countChars` **grafem** sayar
 (`Intl.Segmenter('tr', { granularity: 'grapheme' })`, Node 22 ve hedef tarayıcılarda var):
 `👨‍👩‍👧` = 1, `ğüşıöç` = 6 (tasarım `[CNT-04]`; prototipte doğrulandı). Sunucu ve istemci aynı
@@ -211,8 +211,12 @@ UndoRedo) — hepsi 3.31.4, `@floating-ui/dom` 1.8.0 (popup konumu).
   kararları ui-ux-designer'da.
 - Mention/cashtag/hashtag seçimi **düz metin** ekler (`$THYAO `, sonda boşluk); atom node yok →
   kullanıcı serbestçe düzenleyebilir, saklama formatıyla birebir.
-- Karakter sayacı `countChars` (sunucuyla aynı); 1000'i aşınca gönder pasif, aşan kısım
-  dekorasyonla işaretlenir (metin kesilmez).
+- Karakter sayacı `countChars` (sunucuyla aynı); sınırı (gönderi 1000, yorum 500 — **K11**)
+  aşınca gönder pasif, aşan kısım dekorasyonla işaretlenir (metin kesilmez). Sınırlar tek
+  kaynaktan: `src/lib/content-limits.ts` (`CONTENT_MAX_CHARS`); composer ve S10 sunucu
+  şemaları bu sabiti import eder, sayıyı tekrar yazmaz.
+- Yapıştırma ve sürükle-bırak aynı düz metin yolundan geçer (`normalizePastedText`); tek
+  seferde en fazla 20.000 karakter eklenir, fazlası kırpılır (taslak şemasının üst sınırı).
 - SSR: `useEditor({ immediatelyRender: false })`; composer `next/dynamic` ile lazy, yüklenene
   kadar aynı yükseklikte skeleton (CLS yok). Composer chunk bütçesi ≤ 120 KB gz (S8'de ölçülür).
 - Taslak koruma (auth-session kural 5): `UNAUTHENTICATED` dönüşünde editör içeriği korunur.
@@ -223,22 +227,26 @@ UndoRedo) — hepsi 3.31.4, `@floating-ui/dom` 1.8.0 (popup konumu).
   Taslak cihazdan çıkmaz.
 - Erişilebilirlik: editör `role="textbox" aria-multiline="true"` + etiket; popup açıkken
   `aria-autocomplete="list"`, `aria-controls`, `aria-activedescendant`; liste `role="listbox"`,
-  öğeler `role="option"`. Sonuç sayısı `aria-live="polite"` ile duyurulur.
+  öğeler `role="option"`. Sonuç sayısı `aria-live="polite"` ile duyurulur. `aria-expanded`
+  **kullanılmaz**: ARIA 1.2'de `textbox` rolünde geçersiz (axe `aria-allowed-attr`); açık liste
+  `aria-controls` (+ `data-ac-open`) ile bildirilir.
+- IME kompozisyonu sürerken liste **açık kalır** (Android Gboard her kelimeyi kompozisyon
+  olarak yazar); kompozisyon sırasında tuşlar (`↑/↓/Enter/Tab`) yakalanmaz (`event.isComposing`).
 
 ## Karar 4 — Autocomplete veri kaynakları ve API
 
 | Tetikleyici | Kaynak | Sıralama | Gecikme |
 |-------------|--------|----------|---------|
-| `$` | `GET /api/autocomplete/stocks` → **tüm hisse indeksi** (`{t, n, type}[]`, ~600 kayıt, ~15 KB gz), `'use cache'` + `cacheTag('stocks')` (stock sync sonrası invalidation), `Cache-Control: public, s-maxage=86400`. İstemcide TanStack Query `staleTime: 1 saat`, filtreleme yerel | 1) kod tam eşleşme 2) kod önek 3) şirket adında kelime başı eşleşme (`foldTag` ile ı/i, ş/s katlamalı) 4) içerir; eşitlikte kod alfabetik (`localeCompare('tr')`). En fazla 8 | 0 ms (ağ yok), debounce yok |
+| `$` | `GET /api/autocomplete/stocks` → **tüm hisse indeksi** (`{t, n, type, m?}[]`, ~600 kayıt, ~15 KB gz; `m` = son 7 günde anıldığı gönderi sayısı, sıralamada eşitlik bozucu, yoksa 0), `'use cache'` + `cacheTag('stocks')` (stock sync sonrası invalidation), `Cache-Control: public, s-maxage=86400`. İstemcide TanStack Query `staleTime: 1 saat`, filtreleme yerel | 1) kod tam eşleşme 2) kod önek 3) şirket adında kelime başı eşleşme (`foldTag` ile ı/i, ş/s katlamalı) 4) içerir; eşitlikte kod alfabetik (`localeCompare('tr')`). En fazla 8 | 0 ms (ağ yok), debounce yok |
 | `@` | `GET /api/autocomplete/users?q=` (girişli kullanıcı) | 1) kullanıcı adı tam eşleşme 2) takip ettiklerim önek 3) diğerleri kullanıcı adı önek 4) görünen ad kelime başı. Engelleyen/engellenen (iki yön) ve `status != active` hariç. En fazla 8 | debounce 150 ms. `q` boşsa (yalnızca `@`) varsayılan: takip ettiklerim, son takip edilen önce |
 | `#` | `GET /api/autocomplete/tags?q=` | `slug` önek, `updatedAt` (son kullanım) azalan. En fazla 8. Yazılan etiket listede yoksa "yeni etiket: #..." son satır. `q` boşsa son 24 saatte en çok kullanılanlar (`_PostTags` ⋈ `Post.createdAt`, 10 dk cache) | debounce 150 ms |
-| `$` (boş sorgu) | `GET /api/autocomplete/stocks/default` (girişli): takip ettiğim hisseler, yoksa son 24 saatte en çok anılanlar (gönderi sayısı, nötr ölçüt) | — | tek istek, composer açılınca |
+| `$` (boş sorgu) | `GET /api/autocomplete/stocks/default` (girişli) → `{ source: 'following' \| 'mostMentioned', tickers: string[] }` (en fazla 50 kod): takip ettiğim hisseler, yoksa son 24 saatte en çok anılanlar (gönderi sayısı, nötr ölçüt). Başlık `source`'a göre seçilir | — | tek istek, composer açılınca |
 
 - İstemci: `useQuery({ queryKey: ['ac', kind, q], signal })` → eski istekler `AbortSignal` ile
   iptal, `placeholderData: keepPreviousData` ile liste titremez. Yarış durumu, `findActiveTrigger`
   sonucunun güncel sorguyla eşleşmesi kontrol edilerek önlenir.
 - Klavye: `↑/↓` gezinir (döngüsel), `Enter`/`Tab` seçer, `Esc` kapatır (metin kalır), boşluk
-  veya sınır karakteri popup'ı kapatır. IME composition sürerken tetiklenmez. Mobilde dokunma
+  veya sınır karakteri popup'ı kapatır. IME composition sürerken liste açık kalır, tuşlar yakalanmaz. Mobilde dokunma
   hedefi ≥ 44px.
 - Durumlar: yükleniyor (ilk 150 ms boş, sonra 3 satır skeleton), boş ("Eşleşen hisse yok"),
   hata (tek satır, liste kapanmaz, yazım engellenmez).
@@ -249,7 +257,13 @@ UndoRedo) — hepsi 3.31.4, `@floating-ui/dom` 1.8.0 (popup konumu).
 - Rate limit: kullanıcı başına 60 istek/dk (Postgres bucket yerine bellek içi, instance başına
   best-effort + Vercel Firewall kuralı; autocomplete'te her tuşta DB'ye sayaç yazmak sorgunun
   kendisinden pahalı).
-- DTO: `{ username, displayName, avatarUrl }` — e-posta/firebaseUid asla.
+- DTO: `{ username, displayName, avatarUrl, following }` — e-posta/firebaseUid asla.
+  `following: boolean` görüntüleyenin bu kişiyi takip edip etmediği ("Takip ediyorsun" satırı,
+  sıralamada 2. ölçüt). `avatarUrl` yalnızca `https`, port/kullanıcı bilgisi yok ve medya
+  allowlist'indeki host (`src/lib/media` → `toSafeMediaSrc`); uymayan değer istemcide `null`'a
+  düşer (baş harfler gösterilir), sunucu da aynı kuralla süzer.
+- Sözleşme kaynağı: `src/features/composer/types.ts` + `schemas.ts` (istemci Zod şemaları);
+  S7 bu biçimi döndürür.
 
 ## Karar 5 — Render ve XSS güvenliği
 
@@ -282,6 +296,17 @@ UndoRedo) — hepsi 3.31.4, `@floating-ui/dom` 1.8.0 (popup konumu).
    bekletmez — `after()` ile arka planda çeker ve `Post.linkPreviewId`'yi bağlar.
 4. Akış/detay, önizlemeyi gönderiyle aynı sorguda (`include`) okur. **Gönderi başına istemci
    isteği yok** (eski hatanın tersine).
+
+**Yanıt biçimi** (`GET /api/link-preview?url=`, istemci şeması `linkPreviewResponseSchema`):
+
+```ts
+| { status: 'ok'; url: string; host: string; siteName: string | null;
+    title: string;               // ≤ 120 (şema üst sınırı 300)
+    description: string | null } // ≤ 200 (şema üst sınırı 500)
+| { status: 'none' }             // önizleme yok / çekilemedi / engellendi — istemci kart göstermez
+```
+Hata ayrıntısı (blocked, timeout vb.) istemciye sızdırılmaz; hepsi `none`. 4xx/5xx yalnızca
+kimlik/oran sınırı/doğrulama içindir (`UNAUTHENTICATED`, `RATE_LIMITED`, `VALIDATION`).
 
 **`lib/safe-fetch` kuralları:**
 - Yalnızca `http:`/`https:`, port 80/443, kullanıcı bilgisi yok, host IP literal ise de aynı
@@ -327,12 +352,26 @@ deletePost(input: { postId: number }): Promise<Result<null>>          // sahibi 
 setPostLike(input: { postId: number; liked: boolean }): Promise<Result<{ liked: boolean }>> // idempotent
 
 // features/comments/server/actions.ts
-createComment(input: { postId: number; text: string }): Promise<Result<{ commentId: number }>>
+createComment(input: {
+  postId: number;
+  text: string;                    // ≤ 500 grafem (K11, CONTENT_MAX_CHARS.comment)
+  clientRequestId: string;         // uuid; Comment.clientRequestId UNIQUE (migration S10'da)
+}): Promise<Result<{ commentId: number }>>
 deleteComment(input: { commentId: number }): Promise<Result<null>>
 setCommentLike(input: { commentId: number; liked: boolean }): Promise<Result<{ liked: boolean }>>
 
 type Result<T> = { ok: true; data: T } | { ok: false; error: ErrorCode; meta?: ErrorMeta };
 ```
+
+**`clientRequestId` kuralı (istemci):** kimlik gönderilen yükün tamamına bağlıdır — gönderide
+`text + sentiment + isSponsored + previewUrl`, yorumda `text`. Aynı yükle yeniden deneme aynı
+kimliği taşır; herhangi bir alan değişirse yeni kimlik üretilir (aksi halde sunucu eski kaydı
+döndürür ve ör. sonradan açılan sponsorluk etiketi düşer). Sunucu aynı kimlikle gelen ikinci
+isteğe ilk kaydı döndürür; yükü karşılaştırmaz.
+
+**S10 notu:** `Comment` tablosunda `clientRequestId` yok — S10 migration'ı
+`Comment.clientRequestId String? @unique` (Post ile aynı biçim) ekler; `createComment` aynı
+idempotency adımını uygular. Metin sınırları `src/lib/content-limits.ts`'ten import edilir.
 
 `createPost` sırası: Zod parse → `requireUser()` (Server Action'da redirect değil
 `UNAUTHENTICATED` döner) → `status`/`emailVerified`/onboarding kontrolü → rate limit

@@ -1,11 +1,12 @@
+import { CONTENT_MAX_CHARS } from '@/lib/content-limits';
+
 import type { ComposerMode } from '../types';
 
 /**
- * Karakter sınırları (grafem, `countChars`). Gönderi 1000 (ADR-0002). Yorum için tasarım
- * 500 diyor ([CNT-06]); ADR sunucuda 1000'i açık soru olarak bırakıyor. İstemci daha sıkı
- * sınırı uygular: sunucu kabul etse de kullanıcıya 500 gösterilir.
+ * Karakter sınırları (grafem, `countChars`): gönderi 1000, yorum 500 (K11). Sunucu şeması
+ * (S10) aynı sabiti kullanır; burada yalnızca composer kipine eşlenir.
  */
-export const CHAR_LIMITS: Readonly<Record<ComposerMode, number>> = { post: 1000, comment: 500 };
+export const CHAR_LIMITS: Readonly<Record<ComposerMode, number>> = CONTENT_MAX_CHARS;
 
 export type CounterTone = 'hidden' | 'subtle' | 'warn' | 'danger';
 

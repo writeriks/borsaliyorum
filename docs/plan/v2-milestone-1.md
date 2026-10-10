@@ -189,9 +189,9 @@ başlanabilir.
 - **Kabul:** tasarım spec'indeki composer kabul kriterleri (`CNT-*`, `SEN-*`, `LEG-*`, `SND-*`,
   autocomplete bölümü; medya `MED-*` K10'a bağlı) `browser` projesinde ya da E2E'de test
   olarak; ek olarak: her tetikleyici için öneri + klavye ile seçim + Esc; IME
-  composition sırasında popup açılmaz; HTML yapıştırma düz metin olur; 1000 sınırı ve
+  composition sırasında popup açık kalır ama tuşlar yakalanmaz (`[AC-24]`, Gboard); HTML yapıştırma düz metin olur; 1000 sınırı ve
   aşım işareti; bilinmeyen cashtag işareti; ekran okuyucu öznitelikleri (`aria-activedescendant`
-  vb.) doğru; composer chunk'ı ≤ 120 KB gz (`@next/bundle-analyzer` çıktısı PR'da); mobil
+  vb.) doğru; composer chunk'ı ≤ 100 KB gz (`npm run size:check`, CI build job'unda); mobil
   (Pixel 7 emülasyonu) dokunma ile seçim. **ui-ux-designer hızlı review.**
 - **Uygulama notu (2026-10-10):** Sözleşme `src/features/composer/types.ts` + `schemas.ts`'te;
   S7/S9 buna uymalı ya da S8 istemcisi (`services/http.ts`) güncellenmeli. ADR-0002'ye ekler:
@@ -238,7 +238,10 @@ başlanabilir.
   engellemiş kullanıcıya bildirim gitmez; `entities` ile `_PostStocks`/`_PostTags` tutarlı;
   her başarılı yazmada tek `ContentEvent` (IP dahil); başkasının gönderisini silme `FORBIDDEN`,
   moderator silebilir; silme soft (`deletedAt`) ve `ContentEvent('post.delete')`; beğeni
-  idempotent (iki kez `liked:true` tek satır). **security-reviewer + legal-advisor (5651
+  idempotent (iki kez `liked:true` tek satır); metin sınırı `CONTENT_MAX_CHARS`'tan
+  (`src/lib/content-limits.ts`: gönderi 1000, yorum 500 — K11; şema sayıyı tekrar yazmaz,
+  1001/501 grafem → `CONTENT_TOO_LONG`); `Comment.clientRequestId` migration'ı + aynı kimlikle
+  ikinci `createComment` ilk `commentId`'yi döner (ADR-0002 Karar 7). **security-reviewer + legal-advisor (5651
   kaydı) zorunlu.**
 
 ### S11 — Akış sayfası

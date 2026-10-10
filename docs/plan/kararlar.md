@@ -14,4 +14,5 @@ Bu dosya ADR'lerdeki "karar gerekli" maddelerinin sonucudur ve çelişki halinde
 | K8 | Çıkış = tüm cihazlardan çıkış. |
 | K9 | **Ayrı Firebase projesi yok.** Testler Firebase Auth emulator kullanır; preview/prod aynı Firebase projesi. |
 | K10 | Görsel/GIF yükleme M1'de yok. GIF sağlayıcısı (KVKK) M2'de. |
+| K11 | **Yorum sınırı 500 grafem** (gönderi 1000). İstemci ve sunucu aynı sabiti kullanır: `src/lib/content-limits.ts` → `CONTENT_MAX_CHARS`. ADR-0002 Karar 3'teki "yorumda 1000, açık soru" bununla kapanır. |
 | — | Prod'daki `api/image-proxy` ve `api/content/get-preview` SSRF açıkları yeni sürümde SSRF korumalı servisle değiştirilir; eski route'lar S1'de kaldırılır. |
