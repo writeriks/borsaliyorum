@@ -8,7 +8,8 @@ import {
   recreateDatabase,
   withClient,
 } from '@tests/db/admin';
-import { databaseUrl, workerDatabaseName } from '@tests/db/config';
+import { databaseUrl } from '@tests/db/config';
+import { workerDatabaseName } from '@tests/db/worker';
 
 /**
  * M1 veri migration'ları (Tag.slug backfill + birleştirme, User.onboardedAt backfill) gerçek

@@ -27,7 +27,7 @@ import {
   runPrisma,
   withClient,
 } from '../tests/db/admin';
-import { databaseUrl } from '../tests/db/config';
+import { createRunId, databaseUrl, runPrefix } from '../tests/db/config';
 import { checkLegacyCompatibility } from '../tests/db/legacy-compat';
 import {
   countStatements,
@@ -37,8 +37,10 @@ import {
   stripComments,
 } from '../tests/db/migration-rules';
 
-const CHECK_DB = 'bt_migcheck';
-const SHADOW_DB = 'bt_migcheck_shadow';
+// Koşuya özel adlar: aynı Postgres'te paralel koşan kontroller/testler birbirini bozmasın
+const RUN_PREFIX = runPrefix(createRunId());
+const CHECK_DB = `${RUN_PREFIX}migcheck`;
+const SHADOW_DB = `${RUN_PREFIX}migcheck_shadow`;
 
 /** Prisma'nın şemada ifade edemediği, migration SQL'inin oluşturduğu nesneler. */
 const EXTRA_FUNCTIONS = ['fold_tag', 'content_event_guard', 'content_event_purge'];

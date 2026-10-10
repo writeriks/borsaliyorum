@@ -1,29 +1,58 @@
-import { createMigratedDatabase, dropDatabase, listDatabases } from './admin';
-import { getAdminUrl, TEMPLATE_DB, WORKER_DB_PREFIX } from './config';
+import type { TestProject } from 'vitest/node';
 
-const dropWorkerDatabases = async (): Promise<void> => {
-  for (const name of await listDatabases(WORKER_DB_PREFIX)) await dropDatabase(name);
+import { createMigratedDatabase, dropDatabase, listDatabases } from './admin';
+import {
+  createRunId,
+  getAdminUrl,
+  isStaleRun,
+  runPrefix,
+  TEST_DB_PREFIX,
+  templateDatabaseName,
+} from './config';
+
+declare module 'vitest' {
+  export interface ProvidedContext {
+    /** Bu koşunun kimliği; worker'lar DB adlarını bununla türetir (tests/db/worker.ts). */
+    testDbRunId: string;
+  }
+}
+
+const dropRunDatabases = async (runId: string): Promise<void> => {
+  for (const name of await listDatabases(runPrefix(runId))) await dropDatabase(name);
+};
+
+/** Sahibi çalışmayan (çökmüş/öldürülmüş) koşulardan kalan DB'ler. Yaşayan koşulara dokunmaz. */
+const dropStaleDatabases = async (): Promise<void> => {
+  for (const name of await listDatabases(TEST_DB_PREFIX)) {
+    if (isStaleRun(name)) await dropDatabase(name);
+  }
 };
 
 /**
  * Integration projesi globalSetup'ı (ADR-0003 Karar 3):
- * 1. `bt_template` sıfırdan kurulur ve **gerçek migration'lar** `prisma migrate deploy` ile
- *    uygulanır (db push değil).
- * 2. Önceki koşulardan kalan worker DB'leri silinir; her worker kendi DB'sini şablondan
- *    `tests/db/setup-worker.ts`'te kopyalar.
+ * 1. Koşuya özel kimlik üretilir (`r<pid>_<hex>`) ve worker'lara `provide` ile verilir. Aynı
+ *    Postgres'i paylaşan paralel koşular (worktree'ler, CI matrisi) birbirinin DB'sini görmez.
+ * 2. `bt_<runId>_tpl` sıfırdan kurulur ve **gerçek migration'lar** `prisma migrate deploy` ile
+ *    uygulanır (db push değil). Her worker kendi DB'sini şablondan `setup-worker.ts`'te kopyalar.
+ * 3. Teardown yalnızca bu koşunun DB'lerini düşürür.
  */
-const setup = async (): Promise<() => Promise<void>> => {
+const setup = async (project: TestProject): Promise<() => Promise<void>> => {
   const adminUrl = getAdminUrl();
+  const runId = createRunId();
   try {
-    await dropWorkerDatabases();
-    await createMigratedDatabase(TEMPLATE_DB);
+    await dropStaleDatabases();
+    await createMigratedDatabase(templateDatabaseName(runId));
   } catch (error) {
+    await dropRunDatabases(runId).catch((cleanupError: unknown) => {
+      console.error(`Yarım kalan test DB'leri silinemedi (${runId}):`, cleanupError);
+    });
     throw new Error(
       `Test DB kurulamadı (${new URL(adminUrl).host}). Yerelde önce \`npm run db:test:up\`.`,
       { cause: error }
     );
   }
-  return dropWorkerDatabases;
+  project.provide('testDbRunId', runId);
+  return () => dropRunDatabases(runId);
 };
 
 export default setup;

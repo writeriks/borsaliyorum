@@ -92,10 +92,16 @@ describe('assertLocalDatabaseUrl', () => {
   });
 
   it.each([
-    'postgresql://u:p@ep-cool-name-123.eu-central-1.aws.neon.tech/neondb?sslmode=require',
+    'postgresql://u:p@ep-cool-name-123.eu-central-1.aws.neon.tech/neondb?sslmode=verify-full',
     'postgresql://u:p@10.0.0.5:5432/db',
     'mysql://u:p@localhost/db',
     'not a url',
+    // Regresyon: URL'de localhost görünür ama pg `?host=` ile uzak sunucuya bağlanır
+    'postgresql://u:p@localhost:54329/postgres?host=ep-x.neon.tech',
+    'postgresql://u:p@localhost:54329/postgres?hostaddr=203.0.113.10',
+    'postgresql://u:p@localhost:54329/postgres?host=localhost',
+    'postgresql://u:p@localhost,ep-x.neon.tech:54329/postgres',
+    'postgresql://u:p@%2Ftmp/postgres',
   ])('rejects %s', url => {
     expect(() => assertLocalDatabaseUrl(url)).toThrow();
   });

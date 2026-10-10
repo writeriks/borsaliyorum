@@ -2,6 +2,8 @@ import { existsSync } from 'node:fs';
 
 import { defineConfig } from 'prisma/config';
 
+import { resolveDirectDatabaseUrl } from './src/lib/db/connection-url';
+
 // Prisma 7 .env'i kendisi yüklemez. Yerelde .env (gitignore'da) varsa okunur; CI/Vercel'de
 // değişkenler ortamdan gelir.
 if (existsSync('.env')) process.loadEnvFile('.env');
@@ -11,7 +13,7 @@ if (existsSync('.env')) process.loadEnvFile('.env');
  *
  * - Migration'lar **doğrudan** (pooler olmayan) URL ile çalışır: Neon/PgBouncer transaction
  *   modunda advisory lock ve `CREATE INDEX CONCURRENTLY` güvenilir değildir. Vercel–Neon
- *   entegrasyonu bu URL'i `DATABASE_URL_UNPOOLED` adıyla verir; yoksa `DATABASE_URL`.
+ *   entegrasyonu bu URL'i `DATABASE_URL_UNPOOLED` adıyla verir; tanımsız ya da boşsa `DATABASE_URL`.
  * - `env()` yerine `process.env`: `prisma generate` URL'siz (CI) de çalışabilmeli.
  * - Testler bu dosyayı kullanırken `DATABASE_URL`'i yerel test DB'sine çevirir (tests/db).
  */
@@ -22,7 +24,7 @@ export default defineConfig({
     seed: 'tsx prisma/seed.ts',
   },
   datasource: {
-    url: process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL,
+    url: resolveDirectDatabaseUrl(process.env),
     shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL,
   },
 });
