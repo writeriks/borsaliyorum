@@ -13,3 +13,6 @@ docs/
 .claude/
 *.md
 prisma/migrations/
+prisma/rollback/
+src/generated/
+.tmp/
