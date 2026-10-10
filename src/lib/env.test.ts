@@ -5,6 +5,7 @@ import {
   clientEnvSchema,
   EnvValidationError,
   isEnvValidationSkipped,
+  isProductionRuntime,
   parseClientEnv,
   parseServerEnv,
   serverEnvSchema,
@@ -74,6 +75,53 @@ describe('parseServerEnv', () => {
     );
     expect(error.issues.some(issue => issue.startsWith('FIREBASE_PRIVATE_KEY'))).toBe(true);
     expect(error.message).not.toContain(PRIVATE_KEY_SECRET);
+  });
+});
+
+describe('IP_ENCRYPTION_KEY', () => {
+  const ipKey = Buffer.alloc(32, 7).toString('base64');
+
+  it('is optional outside production runtime (tests, dev)', () => {
+    expect(parseServerEnv(validServer).IP_ENCRYPTION_KEY).toBeUndefined();
+    expect(parseServerEnv({ ...validServer, IP_ENCRYPTION_KEY: '' }).IP_ENCRYPTION_KEY).toBe(
+      undefined
+    );
+  });
+
+  it('decodes a base64 32-byte key', () => {
+    const env = parseServerEnv({ ...validServer, IP_ENCRYPTION_KEY: ipKey });
+    expect(Buffer.from(env.IP_ENCRYPTION_KEY ?? []).equals(Buffer.alloc(32, 7))).toBe(true);
+  });
+
+  it('rejects a malformed key without echoing it', () => {
+    const bad = Buffer.alloc(16, 9).toString('base64');
+    const error = captureError(() => parseServerEnv({ ...validServer, IP_ENCRYPTION_KEY: bad }));
+    expect(error.issues).toEqual([
+      expect.stringMatching(/^IP_ENCRYPTION_KEY: base64 kodlu 32 bayt/),
+    ]);
+    expect(error.message).not.toContain(bad);
+  });
+
+  it('is required at production runtime', () => {
+    const error = captureError(() => parseServerEnv({ ...validServer, NODE_ENV: 'production' }));
+    expect(error.issues).toEqual([expect.stringMatching(/^IP_ENCRYPTION_KEY: production runtime/)]);
+    expect(() =>
+      parseServerEnv({ ...validServer, NODE_ENV: 'production', IP_ENCRYPTION_KEY: ipKey })
+    ).not.toThrow();
+  });
+
+  it('does not break next build (production build phase) or the build-time check', () => {
+    expect(() =>
+      parseServerEnv({
+        ...validServer,
+        NODE_ENV: 'production',
+        NEXT_PHASE: 'phase-production-build',
+      })
+    ).not.toThrow();
+    expect(assertBuildEnv({ ...validServer, ...validClient, NODE_ENV: 'production' })).toEqual({
+      skipped: false,
+    });
+    expect(isProductionRuntime({ NODE_ENV: 'development' })).toBe(false);
   });
 });
 

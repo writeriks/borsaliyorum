@@ -17,6 +17,7 @@ import { workerDatabaseName } from '@tests/db/worker';
  */
 const TAG_BACKFILL = '20261010120500_m1_tag_slug_backfill';
 const ONBOARDED_BACKFILL = '20261010120600_m1_user_onboarded_backfill';
+const BIRTHDAY_ERASE = '20261010120610_m1_user_birthday_erase';
 
 const dbName = `${workerDatabaseName()}_backfill`;
 const url = databaseUrl(dbName);
@@ -32,9 +33,10 @@ const insertTag = async (client: Client, tagName: string, createdAt: string): Pr
 };
 
 const insertUser = async (client: Client, username: string, createdAt: string): Promise<number> => {
+  // Eski uygulama doğum tarihi topluyordu; imha migration'ı bunu NULL'lamalı
   const { rows } = await client.query<{ userId: number }>(
-    `INSERT INTO "User" ("firebaseUserId", "username", "displayName", "email", "createdAt", "isEmailVerified")
-     VALUES ($1, $1, $1, $1 || '@example.test', $2, true) RETURNING "userId"`,
+    `INSERT INTO "User" ("firebaseUserId", "username", "displayName", "email", "createdAt", "isEmailVerified", "birthday")
+     VALUES ($1, $1, $1, $1 || '@example.test', $2, true, '1990-05-17') RETURNING "userId"`,
     [username, createdAt]
   );
   const userId = rows[0]?.userId;
@@ -111,7 +113,7 @@ beforeAll(async () => {
     return { tags, posts, users };
   });
 
-  await applyMigrationFiles(url, [TAG_BACKFILL, ONBOARDED_BACKFILL]);
+  await applyMigrationFiles(url, [TAG_BACKFILL, ONBOARDED_BACKFILL, BIRTHDAY_ERASE]);
 });
 
 afterAll(async () => {
@@ -203,12 +205,24 @@ describe('User.onboardedAt backfill', () => {
   });
 });
 
+describe('User.birthday erase', () => {
+  it('nulls every stored birthday (legal L3) but keeps the column for the rollback window', async () => {
+    const rows = await query<{ remaining: number }>(
+      `SELECT count(*)::int AS remaining FROM "User" WHERE "birthday" IS NOT NULL`
+    );
+    const users = await query<{ total: number }>(`SELECT count(*)::int AS total FROM "User"`);
+
+    expect(users[0]?.total).toBeGreaterThan(0);
+    expect(rows).toEqual([{ remaining: 0 }]);
+  });
+});
+
 describe('remaining M1 migrations after backfill', () => {
   it('creates the unique slug index over the merged data', async () => {
     const all = await listMigrationNames();
     await applyMigrationFiles(
       url,
-      all.filter(name => name > ONBOARDED_BACKFILL)
+      all.filter(name => name > BIRTHDAY_ERASE)
     );
 
     const rows = await query<{ indexname: string }>(

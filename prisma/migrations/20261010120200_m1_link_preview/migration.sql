@@ -1,4 +1,6 @@
 -- M1 expand: link önizleme önbelleği (ADR-0002 §6). Görsel yok (K6).
+-- url, normalize edilmiş biçimdir (src/lib/link-preview/normalize-url.ts: izleme parametreleri
+-- ve fragment atılır); urlHash = sha256(url).
 
 -- CreateEnum
 CREATE TYPE "LinkPreviewStatus" AS ENUM ('ok', 'failed', 'blocked');
@@ -21,6 +23,9 @@ CREATE TABLE "LinkPreview" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "LinkPreview_urlHash_key" ON "LinkPreview"("urlHash");
+
+-- CreateIndex (TTL temizliği: scripts/purge-retention.ts)
+CREATE INDEX "LinkPreview_expiresAt_idx" ON "LinkPreview"("expiresAt");
 
 -- AddForeignKey
 -- Post.linkPreviewId yeni ve tamamen NULL; doğrulama taraması kısa sürer.

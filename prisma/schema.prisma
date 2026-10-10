@@ -5,8 +5,10 @@
 // (expand). Her migration'ın geri alma betiği `prisma/rollback/<migration>.down.sql`'dedir.
 //
 // Prisma'nın ifade edemediği DB nesneleri (migration SQL'inde, `db:migrations:check` kapsamında):
-//   - `fold_tag(text)` fonksiyonu (Tag.slug katlaması, ADR-0002)
-//   - `ContentEvent` append-only trigger'ı + `content_event_purge()`
+//   - `fold_tag`/`hashtag_slug`/`legacy_tag_slug` (Tag.slug backfill, ADR-0002; scripts/hashtag-sql.ts)
+//   - `ContentEvent`/`ConsentEvent` append-only trigger'ları + `content_event_purge()`
+//   - CHECK kısıtları (ContentEvent IP zorunluluğu/port aralığı, ConsentEvent metin sürümü,
+//     LegalIdentityRetention purgeAt > deletedAt)
 //   - `User_username_lower_pattern_idx` (lower(username) text_pattern_ops, autocomplete öneki)
 
 // Prisma 7 istemcisi TS olarak src/generated'a üretilir (gitignore'da; postinstall üretir).
@@ -33,7 +35,7 @@ model User {
   username         String    @unique
   displayName      String
   email            String    @unique
-  /// v2 toplamaz (legal L3); mevcut veri okunmaz.
+  /// v2 toplamaz ve okumaz (legal L3). M1'de NULL'lanır (imha); kolon contract fazında kalkar.
   birthday         DateTime?
   profilePhoto     String?
   coverPhoto       String?
@@ -49,16 +51,16 @@ model User {
 
   // --- M1 (ADR-0001) ---
   /// null → onboarding zorunlu (kullanıcı adı kurala uymayan eski hesaplar dahil).
-  onboardedAt        DateTime?
+  onboardedAt          DateTime?
   /// Çıkış/ban: auth_time bu andan eski oturumlar geçersiz.
-  sessionsValidAfter DateTime?
-  status             UserStatus @default(active)
-  /// Kabul edilen aydınlatma metni sürümü [legal L3].
-  noticeVersion      String?    @db.VarChar(20)
+  sessionsValidAfter   DateTime?
+  status               UserStatus @default(active)
+  /// Okunduğu onaylanan aydınlatma metni sürümü ve zamanı [legal L3]. Rıza değildir.
+  noticeVersion        String?    @db.VarChar(20)
+  noticeAcknowledgedAt DateTime?
   /// 18+ beyanı [legal L3].
-  ageConfirmedAt     DateTime?
-  /// Ayrı, işaretsiz pazarlama onayı [legal L3].
-  marketingOptInAt   DateTime?
+  ageConfirmedAt       DateTime?
+  // Pazarlama izni burada tutulmaz: ConsentEvent'te (userId, kind) için en son satır.
 
   roles             SecurityRole[]
   following         UserFollow[]   @relation("Following")
@@ -377,8 +379,9 @@ enum NotificationType {
 /// ADR-0002 §6. Görsel yok (K6); başlık/açıklama legal saklama sınırına göre kısaltılır.
 model LinkPreview {
   id          Int               @id @default(autoincrement())
-  /// sha256(normalize(url)), hex.
+  /// sha256(normalizePreviewUrl(url)), hex (src/lib/link-preview/normalize-url.ts).
   urlHash     String            @unique @db.Char(64)
+  /// Normalize edilmiş URL: izleme parametreleri (utm_*, fbclid, gclid…) ve fragment yok.
   url         String
   finalUrl    String?
   status      LinkPreviewStatus
@@ -386,10 +389,12 @@ model LinkPreview {
   title       String?           @db.VarChar(120)
   description String?           @db.VarChar(200)
   fetchedAt   DateTime          @default(now())
+  /// Süresi dolan ve hiçbir gönderinin bağlı olmadığı kayıtlar purge script'iyle silinir.
   expiresAt   DateTime
 
   posts Post[]
 
+  @@index([expiresAt])
   @@map("LinkPreview")
 }
 
@@ -399,24 +404,90 @@ enum LinkPreviewStatus {
   blocked
 }
 
-/// 5651 / moderasyon izi. Append-only: UPDATE/DELETE trigger ile reddedilir; saklama süresi
-/// dolanlar yalnızca content_event_purge() ile silinir. Kullanıcı silinse de kayıt kalır (FK yok).
+/// 5651 / moderasyon / erişim izi. Append-only: UPDATE/DELETE trigger ile reddedilir; saklama
+/// süresi (1–2 yıl) dolanlar yalnızca content_event_purge() ile silinir. Kullanıcı silinse de
+/// kayıt kalır (FK yok). IP uygulama katmanında AES-256-GCM ile şifrelenir (src/lib/crypto/ip.ts);
+/// system.* dışındaki her işlemde zorunludur (CHECK). User-Agent toplanmaz.
 model ContentEvent {
-  id          BigInt   @id @default(autoincrement())
-  at          DateTime @default(now())
+  id          BigInt             @id @default(autoincrement())
+  at          DateTime           @default(now())
   actorUserId Int
-  /// 'post.create' | 'post.delete' | 'comment.create' | ...
-  action      String   @db.VarChar(40)
-  entityType  String   @db.VarChar(20)
+  action      ContentEventAction
+  entityType  ContentEntityType
   entityId    Int
-  /// [legal L2]
-  ip          String?  @db.Inet
-  userAgent   String?  @db.VarChar(300)
-  requestId   String?  @db.VarChar(64)
+  /// encryptIp() çıktısı (sürüm + IV + GCM etiketi + şifreli metin) [legal L2].
+  ipEncrypted Bytes?
+  /// Kaynak port; alınabildiğinde (1–65535) [legal L2].
+  port        Int?
+  requestId   String?            @db.VarChar(64)
 
   @@index([actorUserId, at])
   @@index([entityType, entityId])
+  @@index([at])
   @@map("ContentEvent")
+}
+
+enum ContentEventAction {
+  post_create       @map("post.create")
+  post_update       @map("post.update")
+  post_delete       @map("post.delete")
+  comment_create    @map("comment.create")
+  comment_delete    @map("comment.delete")
+  auth_login        @map("auth.login")
+  session_start     @map("session.start")
+  moderation_remove @map("moderation.remove")
+  /// Otomatik işlem (ör. hesap silmede içerik kaldırma); IP'siz olabilen tek eylem.
+  system_remove     @map("system.remove")
+}
+
+enum ContentEntityType {
+  post
+  comment
+  user
+}
+
+/// İzin olayları (KVKK açık rıza, 6563 ticari ileti). Append-only; güncel durum (userId, kind)
+/// için en son satır. İzin verilirken textVersion zorunlu (CHECK). FK yok: ispat hesap
+/// silindikten sonra da gerekir.
+model ConsentEvent {
+  id          BigInt        @id @default(autoincrement())
+  userId      Int
+  kind        ConsentKind
+  granted     Boolean
+  textVersion String?       @db.VarChar(20)
+  source      ConsentSource
+  at          DateTime      @default(now())
+
+  @@index([userId, kind, at])
+  @@map("ConsentEvent")
+}
+
+enum ConsentKind {
+  marketing_email
+  marketing_sms
+  marketing_call
+  marketing_push
+}
+
+enum ConsentSource {
+  signup
+  settings
+  unsubscribe_link
+  iys
+  support
+}
+
+/// Silinen hesabın yasal saklama kimliği (5651 / adli talep): ContentEvent.actorUserId'yi
+/// purgeAt'e kadar tanımlayabilmek için. Hesap silme akışı (S5+) yazar, purge script'i siler.
+model LegalIdentityRetention {
+  userId      Int      @id
+  firebaseUid String   @db.VarChar(128)
+  email       String   @db.VarChar(320)
+  deletedAt   DateTime @default(now())
+  purgeAt     DateTime
+
+  @@index([purgeAt])
+  @@map("LegalIdentityRetention")
 }
 
 /// Sabit pencereli kullanıcı bazlı rate limit sayacı (Redis yerine Postgres, ADR-0001).
@@ -427,5 +498,7 @@ model RateLimitBucket {
   count       Int      @default(0)
 
   @@id([key, windowStart])
+  /// TTL temizliği: pencere + 24 saat (scripts/purge-retention.ts).
+  @@index([windowStart])
   @@map("RateLimitBucket")
 }

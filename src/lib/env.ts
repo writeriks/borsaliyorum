@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { decodeBase64Key } from '@/lib/crypto/base64-key';
+
 /**
  * Ortam değişkeni şemaları. Adlar v1 ile aynıdır (Vercel'de zaten tanımlı).
  *
@@ -24,6 +26,25 @@ const required = z
 // Vercel panelinde boş bırakılmış değer "tanımsız" sayılır
 const optional = z.preprocess(value => (value === '' ? undefined : value), required.optional());
 
+/**
+ * ContentEvent IP şifreleme anahtarı (AES-256-GCM, base64 32 bayt). Şemada opsiyoneldir:
+ * secrets'sız build ve testler kırılmasın. Production runtime'da zorunluluğu
+ * `parseServerEnv` uygular (bkz. `isProductionRuntime`).
+ */
+const ipEncryptionKey = z.preprocess(
+  value => (value === '' ? undefined : value),
+  z
+    .string({ error: message('metin olmalı') })
+    .trim()
+    .transform((value, ctx) => {
+      const key = decodeBase64Key(value, 32);
+      if (key) return key;
+      ctx.addIssue({ code: 'custom', message: 'base64 kodlu 32 bayt olmalı' });
+      return z.NEVER;
+    })
+    .optional()
+);
+
 export const serverEnvSchema = z.object({
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/, error: message('postgresql:// URL olmalı') }),
   FIREBASE_PROJECT_ID: required,
@@ -33,6 +54,7 @@ export const serverEnvSchema = z.object({
     // Vercel/.env satır sonlarını "\n" kaçışı olarak saklar
     .transform(key => key.replace(/\\n/g, '\n')),
   FIREBASE_STORAGE_BUCKET: required,
+  IP_ENCRYPTION_KEY: ipEncryptionKey,
 });
 
 export const clientEnvSchema = z.object({
@@ -72,8 +94,30 @@ const parseWith = <T extends z.ZodType>(
   return result.data;
 };
 
-export const parseServerEnv = (source: EnvSource): ServerEnv =>
-  parseWith(serverEnvSchema, 'server', source);
+/**
+ * Çalışan production sunucusu mu (Vercel production/preview, `next start`)? `next build`
+ * sırasında da NODE_ENV=production'dır; build aşaması (NEXT_PHASE) hariç tutulur ki secrets'sız
+ * build kırılmasın.
+ */
+export const isProductionRuntime = (source: EnvSource): boolean =>
+  source.NODE_ENV === 'production' && source.NEXT_PHASE !== 'phase-production-build';
+
+/** Yalnızca production runtime'da zorunlu olan sunucu değişkenleri. */
+const PRODUCTION_RUNTIME_REQUIRED = ['IP_ENCRYPTION_KEY'] as const;
+
+export const parseServerEnv = (source: EnvSource): ServerEnv => {
+  const env = parseWith(serverEnvSchema, 'server', source);
+  if (isProductionRuntime(source)) {
+    const missing = PRODUCTION_RUNTIME_REQUIRED.filter(name => env[name] === undefined);
+    if (missing.length > 0) {
+      throw new EnvValidationError(
+        'server',
+        missing.map(name => `${name}: production runtime'da zorunlu`)
+      );
+    }
+  }
+  return env;
+};
 
 export const parseClientEnv = (source: EnvSource): ClientEnv =>
   parseWith(clientEnvSchema, 'client', source);

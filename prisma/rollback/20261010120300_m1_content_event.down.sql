@@ -18,8 +18,11 @@ END;
 $$;
 
 DROP TABLE IF EXISTS "ContentEvent";
+DROP TYPE IF EXISTS "ContentEventAction";
+DROP TYPE IF EXISTS "ContentEntityType";
 DROP FUNCTION IF EXISTS content_event_purge(INTERVAL);
-DROP FUNCTION IF EXISTS content_event_guard();
+-- ConsentEvent'in down'u (ters sırada önce çalışır) kendi trigger'larını kaldırmış olur
+DROP FUNCTION IF EXISTS append_only_guard();
 
 DELETE FROM "_prisma_migrations" WHERE "migration_name" = '20261010120300_m1_content_event';
 

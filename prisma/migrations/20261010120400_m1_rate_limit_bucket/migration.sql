@@ -8,3 +8,6 @@ CREATE TABLE "RateLimitBucket" (
 
     CONSTRAINT "RateLimitBucket_pkey" PRIMARY KEY ("key","windowStart")
 );
+
+-- CreateIndex (TTL temizliği: scripts/purge-retention.ts, pencere + 24 saat)
+CREATE INDEX "RateLimitBucket_windowStart_idx" ON "RateLimitBucket"("windowStart");

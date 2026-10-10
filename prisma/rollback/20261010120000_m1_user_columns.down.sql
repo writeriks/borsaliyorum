@@ -7,7 +7,7 @@
 BEGIN;
 
 ALTER TABLE "User" DROP COLUMN IF EXISTS "ageConfirmedAt",
-  DROP COLUMN IF EXISTS "marketingOptInAt",
+  DROP COLUMN IF EXISTS "noticeAcknowledgedAt",
   DROP COLUMN IF EXISTS "noticeVersion",
   DROP COLUMN IF EXISTS "onboardedAt",
   DROP COLUMN IF EXISTS "sessionsValidAfter",

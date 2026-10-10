@@ -47,10 +47,22 @@ const EXTRA_FUNCTIONS = [
   'fold_tag',
   'hashtag_slug',
   'legacy_tag_slug',
-  'content_event_guard',
+  'append_only_guard',
   'content_event_purge',
 ];
-const EXTRA_TRIGGERS = ['content_event_append_only', 'content_event_no_truncate'];
+const EXTRA_TRIGGERS = [
+  'content_event_append_only',
+  'content_event_no_truncate',
+  'consent_event_append_only',
+  'consent_event_no_truncate',
+];
+const EXTRA_CONSTRAINTS = [
+  'ContentEvent_ip_required',
+  'ContentEvent_ip_format',
+  'ContentEvent_port_range',
+  'ConsentEvent_text_version_required',
+  'LegalIdentityRetention_purge_after_delete',
+];
 const EXTRA_INDEXES = ['User_username_lower_pattern_idx'];
 
 const failures: string[] = [];
@@ -121,13 +133,19 @@ const checkExtraObjects = async (expectPresent: boolean, label: string): Promise
        WHERE i.indisvalid AND c.relname = ANY($1)`,
       [EXTRA_INDEXES]
     );
-    return [...functions.rows, ...triggers.rows, ...indexes.rows].map(row => row.name);
+    const constraints = await client.query<{ name: string }>(
+      `SELECT conname AS name FROM pg_constraint WHERE contype = 'c' AND conname = ANY($1)`,
+      [EXTRA_CONSTRAINTS]
+    );
+    return [...functions.rows, ...triggers.rows, ...indexes.rows, ...constraints.rows].map(
+      row => row.name
+    );
   });
-  const expected = [...EXTRA_FUNCTIONS, ...EXTRA_TRIGGERS, ...EXTRA_INDEXES];
+  const expected = [...EXTRA_FUNCTIONS, ...EXTRA_TRIGGERS, ...EXTRA_INDEXES, ...EXTRA_CONSTRAINTS];
   if (expectPresent) {
     const missing = expected.filter(name => !present.includes(name));
     if (missing.length > 0) fail(`${label}: eksik nesneler: ${missing.join(', ')}`);
-    else pass(`${label}: fonksiyon/trigger/ifade index'i mevcut`);
+    else pass(`${label}: fonksiyon/trigger/ifade index'i/CHECK kısıtları mevcut`);
   } else if (present.length > 0) {
     fail(`${label}: geri almadan sonra kalan nesneler: ${present.join(', ')}`);
   } else {
