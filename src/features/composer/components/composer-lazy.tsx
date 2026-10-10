@@ -2,12 +2,15 @@
 
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
-import type { ReactElement } from 'react';
+import { Fragment, type ReactElement, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from '@/i18n/navigation';
+import { SIGNED_OUT_EVENT } from '@/lib/auth-events';
 import { cn } from '@/lib/utils';
+
+import { clearAllDrafts } from '../lib/draft-storage';
 
 import type { ComposerProps } from './composer';
 
@@ -65,8 +68,17 @@ export const ComposerGate = ({
   children,
 }: ComposerGateProps): ReactElement => {
   const t = useTranslations();
+  // [DRF-04] Paylaşılan cihazda sonraki kullanıcı taslakları görmesin: S5 çıkışta olayı yayınlar
+  useEffect(() => {
+    const onSignedOut = (): void => clearAllDrafts();
+    window.addEventListener(SIGNED_OUT_EVENT, onSignedOut);
+    return () => window.removeEventListener(SIGNED_OUT_EVENT, onSignedOut);
+  }, []);
   if (viewer.status === 'unknown') return <ComposerSkeleton />;
-  if (viewer.status === 'authenticated') return children(viewer.userId);
+  if (viewer.status === 'authenticated') {
+    // Kullanıcı değişirse composer sıfırdan kurulur: önceki kullanıcının metni/taslak anahtarı taşınmaz
+    return <Fragment key={viewer.userId}>{children(viewer.userId)}</Fragment>;
+  }
   return (
     <div className='flex flex-wrap items-center gap-3 rounded-lg border border-border bg-bg-subtle p-3'>
       <p className='flex-1 text-sm text-fg-muted'>

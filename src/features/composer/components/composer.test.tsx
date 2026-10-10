@@ -1,11 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ReactElement, ReactNode } from 'react';
+import { type ReactElement, type ReactNode, useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { renderWithIntl } from '@tests/utils/render';
 
+import { SIGNED_OUT_EVENT } from '@/lib/auth-events';
 import { ErrorCode, fail, ok } from '@/lib/errors';
 
 import tr from '../../../../messages/tr.json';
@@ -174,6 +175,23 @@ describe('Composer (jsdom)', () => {
     const bullish = await screen.findByRole('radio', { name: tr.composer.sentiment.bullish });
     expect(bullish).toBeChecked();
   });
+
+  it('çıkış olayından sonra taslak yeniden yazılmaz (gecikmeli kayıt, sekme gizlenmesi)', async () => {
+    const handle = renderPost(async () => ok({ id: 1 }));
+    await setText(handle, 'Çıkıştan önce');
+    act(() => {
+      window.dispatchEvent(new Event(SIGNED_OUT_EVENT));
+    });
+    window.localStorage.removeItem('bz:draft:7:post');
+    act(() => {
+      handle.current?.saveDraft();
+      Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    await new Promise(resolve => setTimeout(resolve, 600));
+    expect(window.localStorage.getItem('bz:draft:7:post')).toBeNull();
+    Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+  });
 });
 
 describe('CharCounter', () => {
@@ -206,6 +224,42 @@ describe('ComposerGate (tasarım §1.9)', () => {
     expect(screen.getByText(tr.composer.anon.comment)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: tr.common.login })).toBeInTheDocument();
     expect(screen.queryByText('composer')).toBeNull();
+  });
+
+  it('çıkış olayında bu cihazdaki tüm taslaklar silinir [DRF-04]', () => {
+    window.localStorage.setItem('bz:draft:5:post', '{}');
+    window.localStorage.setItem('bz:draft:5:comment:9', '{}');
+    window.localStorage.setItem('baska-anahtar', 'kalsin');
+    renderWithIntl(
+      <ComposerGate viewer={{ status: 'authenticated', userId: 5 }} mode='post'>
+        {() => <div>composer</div>}
+      </ComposerGate>
+    );
+    act(() => {
+      window.dispatchEvent(new Event(SIGNED_OUT_EVENT));
+    });
+    expect(window.localStorage.getItem('bz:draft:5:post')).toBeNull();
+    expect(window.localStorage.getItem('bz:draft:5:comment:9')).toBeNull();
+    expect(window.localStorage.getItem('baska-anahtar')).toBe('kalsin');
+  });
+
+  it('kullanıcı değişince composer yeniden kurulur (önceki kullanıcının durumu taşınmaz)', async () => {
+    const Child = (): ReactElement => {
+      const [value] = useState(() => Math.random());
+      return <div data-testid='child'>{value}</div>;
+    };
+    const { rerender } = renderWithIntl(
+      <ComposerGate viewer={{ status: 'authenticated', userId: 5 }} mode='post'>
+        {() => <Child />}
+      </ComposerGate>
+    );
+    const before = screen.getByTestId('child').textContent;
+    rerender(
+      <ComposerGate viewer={{ status: 'authenticated', userId: 6 }} mode='post'>
+        {() => <Child />}
+      </ComposerGate>
+    );
+    expect(screen.getByTestId('child').textContent).not.toBe(before);
   });
 
   it('authenticated: kullanıcı kimliğiyle composer', () => {

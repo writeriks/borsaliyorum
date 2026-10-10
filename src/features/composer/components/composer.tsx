@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Link, useRouter } from '@/i18n/navigation';
 import type { TriggerKind } from '@/lib/entities';
+import { SIGNED_OUT_EVENT } from '@/lib/auth-events';
 import { logger } from '@/lib/logger';
 import { cn } from '@/lib/utils';
 
@@ -393,20 +394,36 @@ export const Composer = (props: ComposerProps): ReactElement => {
   useLayoutEffect(() => {
     draftRef.current = { text, sentiment, isSponsored, previewDismissed };
   });
+  // Çıkıştan sonra hiçbir yol (gecikmeli kayıt, sekme gizlenince kayıt) taslağı geri yazmaz:
+  // S5 çıkışta sayfadan ayrılır ve `visibilitychange` temizlenmiş taslağı yeniden yazardı
+  const signedOut = useRef(false);
+  useEffect(() => {
+    const onSignedOut = (): void => {
+      signedOut.current = true;
+    };
+    window.addEventListener(SIGNED_OUT_EVENT, onSignedOut);
+    return () => window.removeEventListener(SIGNED_OUT_EVENT, onSignedOut);
+  }, []);
+  const persistDraft = useCallback(
+    (draft: Draft): void => {
+      if (!signedOut.current) saveDraft(storageKey, draft);
+    },
+    [storageKey]
+  );
   useEffect(() => {
     const timer = setTimeout(
-      () => saveDraft(storageKey, { text, sentiment, isSponsored, previewDismissed }),
+      () => persistDraft({ text, sentiment, isSponsored, previewDismissed }),
       DRAFT_SAVE_DELAY_MS
     );
     return () => clearTimeout(timer);
-  }, [storageKey, text, sentiment, isSponsored, previewDismissed]);
+  }, [persistDraft, text, sentiment, isSponsored, previewDismissed]);
   useEffect(() => {
     const onVisibility = (): void => {
-      if (document.visibilityState === 'hidden') saveDraft(storageKey, draftRef.current);
+      if (document.visibilityState === 'hidden') persistDraft(draftRef.current);
     };
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, [storageKey]);
+  }, [persistDraft]);
 
   const resetComposer = useCallback((): void => {
     editor?.commands.setContent(textToDoc(''));
@@ -497,7 +514,7 @@ export const Composer = (props: ComposerProps): ReactElement => {
     }
 
     const mapped = mapSubmitError(result);
-    if (mapped.kind === 'session') saveDraft(storageKey, draftRef.current);
+    if (mapped.kind === 'session') persistDraft(draftRef.current);
     if (mapped.kind === 'restricted') setRestricted(true);
     setSubmitError(mapped);
   };
@@ -513,11 +530,11 @@ export const Composer = (props: ComposerProps): ReactElement => {
         if (editor && session) exitSuggestion(editor.view, autocompletePluginKeys[session.kind]);
       },
       hasContent: () => !analysis.isBlank,
-      saveDraft: () => saveDraft(storageKey, draftRef.current),
+      saveDraft: () => persistDraft(draftRef.current),
       discardDraft: resetComposer,
       focus: () => editor?.commands.focus(),
     }),
-    [popupOpen, session, analysis.isBlank, storageKey, resetComposer, editor]
+    [popupOpen, session, analysis.isBlank, persistDraft, resetComposer, editor]
   );
 
   const insertTrigger = (kind: TriggerKind): void => {

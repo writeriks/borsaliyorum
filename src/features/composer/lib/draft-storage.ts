@@ -100,7 +100,7 @@ export const clearDraft = (key: string, storage: Storage | null = getStorage()):
 };
 
 /**
- * Çıkışta çağrılır (S5 `signOut` akışı, [DRF-04]): paylaşılan cihazda başka bir kullanıcı
+ * Çıkışta çağrılır (`ComposerGate` → `SIGNED_OUT_EVENT`, [DRF-04]): paylaşılan cihazda başka bir kullanıcı
  * taslakları görmesin. Kullanıcıdan bağımsız olarak `bz:draft:` önekli her anahtar silinir.
  */
 export const clearAllDrafts = (storage: Storage | null = getStorage()): void => {

@@ -1,4 +1,5 @@
-// Composer'ın dışa açık yüzeyi (S11 akış, S12 detay, S5 çıkış akışı buradan import eder).
+// Composer'ın dışa açık yüzeyi (S11 akış, S12 detay). Çıkışta taslak temizliği `ComposerGate`
+// içinde `SIGNED_OUT_EVENT` (src/lib/auth-events.ts) dinlenerek yapılır; `clearAllDrafts` yedek yol.
 export {
   ComposerGate,
   ComposerLazy,
