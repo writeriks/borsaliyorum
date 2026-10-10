@@ -1,7 +1,7 @@
 name: Sync BIST stocks
 
 # KAP'tan güncel hisse listesini alır, DB'de olmayanları ekler ve
-# src/tickers.ts güncellemesi için PR açar. Mevcut hisseler silinmez.
+# src/tickers.ts güncellemesini chore/sync-stocks branch'ine push'lar. Mevcut hisseler silinmez.
 on:
   schedule:
     - cron: '17 5 * * 1' # Pazartesi 08:17 (TR)
@@ -18,7 +18,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 defaults:
   run:
@@ -59,12 +58,15 @@ jobs:
         if: env.APPLY == 'true'
         run: npx tsc --noEmit -p .
 
-      - name: Open PR for tickers.ts
+      # PR açma izni gerektirmesin diye sadece branch push'lanır; PR'ı elle açılır
+      - name: Push tickers.ts to a branch
         if: env.APPLY == 'true'
-        uses: peter-evans/create-pull-request@v7
-        with:
-          branch: chore/sync-stocks
-          add-paths: src/tickers.ts
-          commit-message: 'chore: sync BIST stock list from KAP'
-          title: 'chore: BIST hisse listesini güncelle'
-          body-path: sync-report.txt
+        run: |
+          git diff --quiet src/tickers.ts && { echo "tickers.ts değişmedi."; exit 0; }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout -b chore/sync-stocks
+          git commit -m 'chore: sync BIST stock list from KAP' src/tickers.ts
+          git push --force origin chore/sync-stocks
+          url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/main...chore/sync-stocks?expand=1"
+          echo "PR açmak için: $url" | tee -a "$GITHUB_STEP_SUMMARY"
