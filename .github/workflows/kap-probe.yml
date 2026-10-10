@@ -3,24 +3,23 @@ name: KAP probe (temporary)
 on:
   push:
     branches: [claude/rebuild-agents-skills]
-    paths: [.github/workflows/kap-probe.yml]
+    paths: [.github/workflows/kap-probe.yml, scripts/fetch-kap-stocks.mjs]
 
 jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch KAP BIST company list page
-        run: |
-          set -x
-          UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/126 Safari/537.36'
-          curl -sSL -A "$UA" -o page.html -w '%{http_code} %{content_type} %{size_download}\n' https://www.kap.org.tr/tr/bist-sirketler || true
-          head -c 1500 page.html; echo
-          grep -o '__NEXT_DATA__' page.html | head -1 || true
-          grep -oE '/tr/api/[A-Za-z0-9_/.-]+' page.html | sort -u | head -40 || true
-          grep -oE '"(stockCode|memberCode|kapMemberTitle|title|code)"' page.html | sort | uniq -c | head -20 || true
-          grep -oE '[A-Z0-9]{4,6}' page.html | grep -E '^(THYAO|ASELS|ACSEL|GARAN)$' | sort | uniq -c || true
-          grep -o 'THYAO.\{0,300\}' page.html | head -3 || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          name: kap-page
-          path: page.html
+          node-version: 22
+      - name: Parse KAP list and compare with tickers.ts
+        run: |
+          node scripts/fetch-kap-stocks.mjs > kap.csv
+          wc -l kap.csv
+          head -5 kap.csv
+          echo "--- multi-code companies"; cut -d';' -f2 kap.csv | sort | uniq -d | head -10
+          grep -oE "'id': '[A-Z0-9]+'" src/tickers.ts | cut -d"'" -f4 | sort > old.txt
+          cut -d';' -f1 kap.csv | sort > new.txt
+          echo "--- NEW (in KAP, not in tickers.ts): $(comm -13 old.txt new.txt | wc -l)"; comm -13 old.txt new.txt | while read c; do grep "^$c;" kap.csv; done
+          echo "--- GONE (in tickers.ts, not in KAP): $(comm -23 old.txt new.txt | wc -l)"; comm -23 old.txt new.txt | tr '\n' ' '; echo
