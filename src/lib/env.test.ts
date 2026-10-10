@@ -7,6 +7,7 @@ import {
   isEnvValidationSkipped,
   isProductionRuntime,
   parseClientEnv,
+  parseSafeFetchTestAllow,
   parseServerEnv,
   serverEnvSchema,
 } from './env';
@@ -212,5 +213,46 @@ describe('erişimciler', () => {
     vi.stubEnv('NEXT_PUBLIC_MEASUREMENT_ID', 'G-TEST');
     const { getClientEnv } = await import('./env.client');
     expect(getClientEnv()).toEqual({ ...validClient, NEXT_PUBLIC_MEASUREMENT_ID: 'G-TEST' });
+  });
+});
+
+describe('SAFE_FETCH_TEST_ALLOW', () => {
+  it('tanımsızsa boş liste (üretim varsayılanı)', () => {
+    expect(parseSafeFetchTestAllow({})).toEqual([]);
+    expect(parseSafeFetchTestAllow({ SAFE_FETCH_TEST_ALLOW: '  ' })).toEqual([]);
+  });
+
+  it('testte virgülle ayrılmış IP listesini okur', () => {
+    expect(
+      parseSafeFetchTestAllow({ SAFE_FETCH_TEST_ALLOW: '127.0.0.1, ::1', NODE_ENV: 'test' })
+    ).toEqual(['127.0.0.1', '::1']);
+  });
+
+  it('IP olmayan değer (host adı, CIDR, joker) hata verir', () => {
+    for (const value of ['localhost', '10.0.0.0/8', '*']) {
+      expect(() => parseSafeFetchTestAllow({ SAFE_FETCH_TEST_ALLOW: value })).toThrow(
+        EnvValidationError
+      );
+    }
+  });
+
+  it('NODE_ENV=production iken tanımlıysa başlangıç hatası', () => {
+    expect(() =>
+      parseSafeFetchTestAllow({ SAFE_FETCH_TEST_ALLOW: '127.0.0.1', NODE_ENV: 'production' })
+    ).toThrow(/üretimde tanımlı olamaz/);
+  });
+
+  it('build sırasında tanımlıysa SKIP_ENV_VALIDATION olsa bile build kırılır', () => {
+    expect(() =>
+      assertBuildEnv({ SKIP_ENV_VALIDATION: '1', SAFE_FETCH_TEST_ALLOW: '127.0.0.1' })
+    ).toThrow(/SAFE_FETCH_TEST_ALLOW/);
+  });
+
+  it('getSafeFetchTestAllow process.env’i her çağrıda okur', async () => {
+    const { getSafeFetchTestAllow } = await import('./env.server');
+    vi.stubEnv('SAFE_FETCH_TEST_ALLOW', '127.0.0.1');
+    expect(getSafeFetchTestAllow()).toEqual(['127.0.0.1']);
+    vi.stubEnv('NODE_ENV', 'production');
+    expect(() => getSafeFetchTestAllow()).toThrow(/üretimde/);
   });
 });

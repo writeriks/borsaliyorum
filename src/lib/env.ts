@@ -130,8 +130,38 @@ export const parseClientEnv = (source: EnvSource): ClientEnv =>
 export const isEnvValidationSkipped = (source: EnvSource): boolean =>
   source.SKIP_ENV_VALIDATION === '1' && source.VERCEL !== '1';
 
+const ipLiteral = z.union([z.ipv4(), z.ipv6()]);
+
+/**
+ * `SAFE_FETCH_TEST_ALLOW`: yalnızca testlerde, safeFetch'in politika dışı tutacağı IP'ler
+ * (virgülle ayrılmış; ör. yerel test HTTP sunucusu için `127.0.0.1`). Üretim build'inde ya da
+ * `NODE_ENV=production` çalışırken tanımlıysa başlangıç hatasıdır: SSRF korumasını kapatır.
+ */
+export const parseSafeFetchTestAllow = (source: EnvSource): readonly string[] => {
+  const raw = source.SAFE_FETCH_TEST_ALLOW?.trim();
+  if (!raw) return [];
+  if (source.NODE_ENV === 'production') {
+    throw new EnvValidationError('server', ['SAFE_FETCH_TEST_ALLOW: üretimde tanımlı olamaz']);
+  }
+  const entries = raw
+    .split(',')
+    .map(entry => entry.trim())
+    .filter(entry => entry !== '');
+  const invalid = entries.filter(entry => !ipLiteral.safeParse(entry).success);
+  if (invalid.length > 0) {
+    throw new EnvValidationError('server', ['SAFE_FETCH_TEST_ALLOW: yalnızca IP adresleri']);
+  }
+  return entries;
+};
+
 /** Build anında sunucu ve istemci env'ini birlikte doğrular; hataları tek listede verir. */
 export const assertBuildEnv = (source: EnvSource): { skipped: boolean } => {
+  // SKIP_ENV_VALIDATION'dan önce: test allowlist'i hiçbir build'e girmemeli.
+  if (source.SAFE_FETCH_TEST_ALLOW?.trim()) {
+    throw new EnvValidationError('build', [
+      'SAFE_FETCH_TEST_ALLOW: build sırasında tanımlı olamaz',
+    ]);
+  }
   if (isEnvValidationSkipped(source)) return { skipped: true };
 
   const issues: string[] = [];

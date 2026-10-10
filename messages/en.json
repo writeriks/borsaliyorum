@@ -65,6 +65,10 @@
       "full": "The investment information, comments and recommendations here are not investment advisory services. Investment advisory services are provided under an investment advisory agreement signed between the client and brokerage firms, portfolio management companies or non-deposit-taking banks. The comments and recommendations here are based on the personal views of those who make them. These views may not suit your financial situation or your risk and return preferences. Therefore, making an investment decision based solely on the information here may not lead to results that meet your expectations."
     }
   },
+  "linkPreview": {
+    "cardLabel": "{title}, {host} (opens in a new tab)",
+    "loading": "Loading link preview"
+  },
   "errors": {
     "UNAUTHENTICATED": "You need to sign in to do this.",
     "FORBIDDEN": "You don't have permission to do this.",

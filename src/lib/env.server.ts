@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { parseServerEnv, type ServerEnv } from '@/lib/env';
+import { parseSafeFetchTestAllow, parseServerEnv, type ServerEnv } from '@/lib/env';
 
 let cached: ServerEnv | undefined;
 
@@ -9,3 +9,9 @@ export const getServerEnv = (): ServerEnv => {
   cached ??= parseServerEnv(process.env);
   return cached;
 };
+
+/**
+ * safeFetch test allowlist'i. Önbelleğe alınmaz (testler env'i dosya bazında değiştirir);
+ * üretimde tanımlıysa her çağrıda hata fırlatır, böylece önizleme hiç çalışmaz (fail-closed).
+ */
+export const getSafeFetchTestAllow = (): readonly string[] => parseSafeFetchTestAllow(process.env);
