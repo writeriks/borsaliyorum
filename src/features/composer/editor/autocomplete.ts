@@ -84,8 +84,9 @@ export const Autocomplete = Extension.create<{ bridge: AutocompleteBridge | null
             text: textBefore.slice(trigger.start),
           };
         },
-        // IME kompozisyonu sürerken liste açılmaz (tasarım §2.1)
-        shouldShow: () => !editor.view.composing,
+        // `shouldShow` bilinçli olarak yok: Android Gboard her kelimeyi IME kompozisyonu olarak
+        // yazar; kompozisyonda liste gizlenirse mobilde hiç açılmaz. Tasarım §2.1'in "tuşlar
+        // yakalanmaz" kuralını composer'ın tuş işleyicisindeki `event.isComposing` korur.
         // `Esc` ile kapatılan liste aynı token'a yeni karakter yazılınca yeniden açılır ([AC-09])
         shouldResetDismissed: ({ transaction }) => transaction.docChanged,
         render: () => {

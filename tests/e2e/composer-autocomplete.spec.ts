@@ -86,6 +86,23 @@ test.describe('composer autocomplete', () => {
     }
   });
 
+  test('[AC-24] IME kompozisyonu sürerken liste açık kalır (Android Gboard)', async ({ page }) => {
+    // Gboard kelimeyi `compositionstart`–`compositionend` arasında yazar ve keydown kodu
+    // göndermez: kompozisyon boyunca liste gizlenirse mobilde autocomplete hiç görünmez.
+    await openComposer(page);
+    await editor(page).click();
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.imeSetComposition', { text: '$t', selectionStart: 2, selectionEnd: 2 });
+    await expect(stocksListbox(page)).toBeVisible();
+    await cdp.send('Input.imeSetComposition', { text: '$th', selectionStart: 3, selectionEnd: 3 });
+    await expect(stocksListbox(page)).toBeVisible();
+    await expect(stocksListbox(page).getByRole('option').first()).toHaveAccessibleName(/^THYAO,/);
+    // Kompozisyon sürerken tuşlar yakalanmaz; commit sonrası metin olduğu gibi kalır
+    await cdp.send('Input.insertText', { text: '$th' });
+    expect(await editorText(page)).toBe('$th');
+    await expect(stocksListbox(page)).toBeVisible();
+  });
+
   test('[AC-08] ↓↓↑ ikinci öğe aktif; son öğede ↓ başa döner', async ({ page }) => {
     await openComposer(page);
     await typeInEditor(page, '$türk');
