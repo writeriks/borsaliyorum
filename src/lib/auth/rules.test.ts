@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  invalidationMark,
   isAuthTimeFresh,
   isSessionInvalidated,
   MAX_AUTH_AGE_MS,
@@ -41,10 +42,18 @@ describe('sessionsValidAfter', () => {
     expect(isSessionInvalidated(seconds(now) - 60, now)).toBe(true);
   });
 
-  it('çıkıştan sonra (aynı saniye dahil) açılan oturum geçerli: yeniden giriş döngüye girmez', () => {
+  it('işaretin saniyesinde ya da sonrasında açılan oturum geçerli: yeniden giriş döngüye girmez', () => {
     const logoutAt = new Date('2026-10-10T12:00:00.900Z');
     expect(isSessionInvalidated(seconds(logoutAt), logoutAt)).toBe(false);
     expect(isSessionInvalidated(seconds(logoutAt) + 5, logoutAt)).toBe(false);
+  });
+
+  it('çıkış işareti: çıkışla aynı saniyede açılmış başka cihaz oturumu da geçersiz', () => {
+    const logoutAt = new Date('2026-10-10T12:00:00.400Z');
+    const mark = invalidationMark(logoutAt);
+    expect(mark.toISOString()).toBe('2026-10-10T12:00:01.000Z');
+    expect(isSessionInvalidated(seconds(logoutAt), mark)).toBe(true);
+    expect(isSessionInvalidated(seconds(logoutAt) + 1, mark)).toBe(false);
   });
 
   it('truncateToSecond milisaniyeyi atar', () => {

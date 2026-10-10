@@ -15,7 +15,7 @@ import { clearedSessionCookieOptions, SESSION_COOKIE } from './cookies';
 import { createSessionFromIdToken, type CreatedSession } from './create-session';
 import { getAdminAuth } from './firebase-admin';
 import { resolveSession } from './resolve-session';
-import { safeNextPath, truncateToSecond } from './rules';
+import { invalidationMark, safeNextPath } from './rules';
 import {
   ANONYMOUS_SESSION,
   type OnboardingIdentity,
@@ -152,7 +152,7 @@ export const destroySession = async (): Promise<void> => {
       session.status === 'authenticated' ? session.firebaseUid : session.identity.firebaseUid;
     await getDb().user.updateMany({
       where: { firebaseUserId: firebaseUid },
-      data: { sessionsValidAfter: truncateToSecond(new Date()) },
+      data: { sessionsValidAfter: invalidationMark(new Date()) },
     });
     try {
       await getAdminAuth().revokeRefreshTokens(firebaseUid);

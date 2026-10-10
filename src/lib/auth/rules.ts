@@ -18,13 +18,17 @@ export const isAuthTimeFresh = (
   return age <= maxAgeMs && age >= -CLOCK_SKEW_MS;
 };
 
-/**
- * Çıkış/ban anını saniyeye indirir. `auth_time` saniye hassasiyetinde olduğundan, çıkıştan
- * aynı saniye içinde yapılan yeni giriş geçersiz sayılmasın diye `sessionsValidAfter`
- * saniyenin başına yuvarlanarak yazılır (Firebase `tokensValidAfterTime` ile aynı yaklaşım).
- */
+/** Milisaniyeyi atar: `auth_time` saniye hassasiyetinde, karşılaştırma da saniye üzerinden. */
 export const truncateToSecond = (date: Date): Date =>
   new Date(Math.floor(date.getTime() / 1000) * 1000);
+
+/**
+ * Çıkış/ban anında yazılacak `sessionsValidAfter`: bir sonraki saniyenin başı. Çıkışla aynı
+ * saniyede açılmış (başka cihazdaki) oturum da böylece geçersiz olur; bedeli, çıkıştan sonraki
+ * ilk saniye içinde yapılan yeni girişin `REAUTH_REQUIRED` alıp tekrar denenmesidir (döngü yok).
+ */
+export const invalidationMark = (now: Date): Date =>
+  new Date(truncateToSecond(now).getTime() + 1000);
 
 /** Oturum, kullanıcının "bu andan önceki oturumlar geçersiz" işaretinden önce mi açılmış? */
 export const isSessionInvalidated = (

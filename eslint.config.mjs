@@ -14,6 +14,8 @@ export default defineConfig([
     // Paralel agent worktree'leri (kendi dallarında lint'lenir)
     '.claude/**',
     '.next/**',
+    // Yerel geçici dosyalar (gitignore'da: test Postgres'i, emulator yapılandırması)
+    '.tmp/**',
     'coverage/**',
     'playwright-report/**',
     'test-results/**',
