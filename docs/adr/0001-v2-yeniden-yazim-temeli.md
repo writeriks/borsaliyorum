@@ -171,6 +171,8 @@ model Post {
   contentFormat Int        @default(1) @db.SmallInt     // 1 = eski markup "$(X)", 2 = düz metin (ADR-0002)
   entities      Json?                                    // ADR-0002 Entity[] (+ çözülmüş id'ler)
   deletedAt     DateTime?
+  isSponsored   Boolean   @default(false)               // "Reklam / İşbirliği" beyanı (legal)
+  clientRequestId String? @unique @db.Uuid              // çift gönderim idempotency'si
   linkPreviewId Int?
   linkPreview   LinkPreview? @relation(fields: [linkPreviewId], references: [id], onDelete: SetNull)
   @@index([createdAt(sort: Desc), postId(sort: Desc)])                 // global akış cursor
@@ -196,8 +198,8 @@ model LinkPreview {               // ADR-0002 §6
   finalUrl    String?
   status      LinkPreviewStatus
   siteName    String?   @db.VarChar(100)
-  title       String?   @db.VarChar(200)
-  description String?   @db.VarChar(300)
+  title       String?   @db.VarChar(120)   // legal: saklama üst sınırı
+  description String?   @db.VarChar(200)
   fetchedAt   DateTime  @default(now())
   expiresAt   DateTime
   posts       Post[]

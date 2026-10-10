@@ -2,7 +2,8 @@
 
 - Tarih: 2026-10-10
 - Durum: **Önerildi**
-- İlgili: ADR-0001 (veri modeli: `contentFormat`, `entities`, `LinkPreview`), ADR-0003 (test)
+- İlgili: ADR-0001 (veri modeli: `contentFormat`, `entities`, `LinkPreview`), ADR-0003 (test),
+  `docs/design/v2-composer-and-entities.md` (UX, kabul kriterleri), `docs/legal/composer-metinleri.md`
 
 ## Bağlam
 
@@ -19,8 +20,8 @@ Eski çözüm (`src/components/content-input/`, `src/components/content/`,
 | 6 | Yorumda cashtag doğrulaması hiç çalışmıyor: `"$THYAO"` (önekli) `ticker` ile karşılaştırılıyor → cashtag'li her yorum reddediliyor | `api/comment/create-comment/route.ts` |
 | 7 | Mention'lar kullanıcı adıyla saklanıyor; kullanıcı adı değişince eski gönderideki mention başkasına gidebilir | |
 
-**Öğrenilen iş kuralları (taşınacak):** gönderi ≤ 1000 karakter; gönderide **en az bir geçerli
-cashtag** zorunlu ve geçersiz cashtag gönderiyi reddeder; hashtag'ler `Tag` tablosuna upsert
+**Öğrenilen iş kuralları:** gönderi ≤ 1000 karakter; eski kodda gönderide **en az bir geçerli
+cashtag** zorunluydu (v2'de kaldırılması öneriliyor, K4) ve geçersiz cashtag gönderiyi reddeder; hashtag'ler `Tag` tablosuna upsert
 edilir ve gönderiye bağlanır (`_PostTags`); cashtag'ler `_PostStocks`'a bağlanır; mention edilen
 kullanıcıya (kendisi değilse) `MENTION` bildirimi; `sentiment` (bullish/bearish/neutral) zorunlu.
 
@@ -76,7 +77,7 @@ export const normalizeContent = (raw: string): string;          // NFC, CRLF→L
 export const parseEntities = (text: string): ParsedEntity[];      // çözümsüz (id'siz), sıralı, çakışmasız
 export const findActiveTrigger = (textBeforeCaret: string): ActiveTrigger | null; // autocomplete: {kind, query, start}
 export const fromLegacyMarkup = (legacy: string): string;
-export const countChars = (text: string): number;                 // code point sayısı ([...text].length)
+export const countChars = (text: string): number;                 // grafem sayısı (Intl.Segmenter)
 export const foldTag = (name: string): string;                    // hashtag slug / arama katlaması
 export const toTicker = (raw: string): string;                    // ASCII büyük harf
 export const firstPreviewableUrl = (entities: ParsedEntity[]): string | null;
@@ -88,9 +89,11 @@ export const firstPreviewableUrl = (entities: ParsedEntity[]): string | null;
    (`https://x.com/a#b`, `https://x.com/@ali`) asla entity olmaz.
 2. Sonra soldan sağa tek geçişte `$`, `#`, `@` tetikleyicileri; URL aralığına düşen ya da
    başka entity ile çakışan atlanır.
-3. **Sol sınır** (tüm tetikleyiciler): metnin başı ya da önceki karakter
-   `[\p{L}\p{N}\p{M}_$#@&=]` **değil**. Böylece `US$100`, `abc#def`, `C#`, `ali@gmail.com`,
-   `fiyat=$THYAO` entity değil; `—$THYAO`, `($THYAO)`, `$BTC/$ETH` entity.
+3. **Sol sınır** (tüm tetikleyiciler ve URL): metnin başı, boşluk karakteri (`\s`) ya da
+   `( [ { " ' “ ‘` karakterlerinden biri (beyaz liste; tasarım spec'i
+   `docs/design/v2-composer-and-entities.md` §2.1 ile aynı). Böylece `US$100`, `abc#def`, `C#`,
+   `ali@gmail.com`, `fiyat=$THYAO`, `—$THYAO`, `😀#emoji` entity değil; `($THYAO)` entity.
+   Kara liste yerine beyaz liste: öngörülebilir, editör ve render'da birebir aynı.
 4. **Sağ sınır:** gövdeden sonra harf/rakam/işaret/`_` gelemez. Apostrof ve noktalama sınırdır
    → `$THYAO'nun`, `#bist100'de`, `@ali.` doğru ayrılır.
 
@@ -101,9 +104,22 @@ export const firstPreviewableUrl = (entities: ParsedEntity[]): string | null;
 | mention | `[A-Za-z0-9_]{3,20}` | Sağda `@` ya da `.harf` gelemez (`@a.b`, e-posta parçaları) | lowercase. Türkçe harfli (`@ayşe`) mention değil — kullanıcı adı kuralı ASCII |
 | url | `https?://` ya da `www.` ile başlar, boşluk/`<>"` ile biter | Sondaki `.,:;!?"”` ve dengesiz `)` atılır; **`'` ve `’` URL'yi bitirir** (`www.borsa.com'da`); `new URL()` geçmeli; kullanıcı:şifre içeren, nokta içermeyen host (`localhost`) reddedilir; ≤ 2048 | `href` = `www.` için `https://` eklenmiş biçim. Şemasız alan adları (`kap.org.tr`) link **değil** (yanlış pozitif: `A.Ş.`, `THYAO.IS`) |
 
-Ek sınırlar (sunucu, Zod şemasında): boş olmayan metin; `countChars ≤ 1000` (gönderi ve yorum);
-≤ 10 cashtag, ≤ 10 hashtag, ≤ 10 mention (spam; mention bildirimleri tekil ilk 10 kişiye).
-Gönderide ≥ 1 geçerli cashtag (eski kural, bkz. karar gerekli K4).
+**Autocomplete tetikleyicisi entity grameriyle aynı değildir (bilinçli):** `findActiveTrigger`
+aynı sol sınırı kullanır ama sorgu karakterleri daha geniştir — cashtag sorgusu
+`\p{L}[\p{L}\p{N}.]{0,19}` (`$türk` → THYAO önerisi, şirket adıyla arama), sorgu boş olabilir
+(varsayılan öneriler). Seçim her zaman entity gramerine uyan metni ekler (`$THYAO `). Boşluk/
+noktalama ile kapanışta sorgu bir koda tam eşleşiyorsa büyük harfe çevrilir (`$thyao ` →
+`$THYAO `).
+
+Ek sınırlar (sunucu, Zod şemasında): boş olmayan metin; `countChars ≤ 1000` gönderi, yorum için
+de 1000 (tasarım 500 öneriyor, açık soru); ≤ 10 cashtag, ≤ 10 hashtag, ≤ 10 mention (spam;
+mention bildirimleri tekil ilk 10 kişiye). `countChars` **grafem** sayar
+(`Intl.Segmenter('tr', { granularity: 'grapheme' })`, Node 22 ve hedef tarayıcılarda var):
+`👨‍👩‍👧` = 1, `ğüşıöç` = 6 (tasarım `[CNT-04]`; prototipte doğrulandı). Sunucu ve istemci aynı
+fonksiyonu kullanır.
+Cashtag zorunluluğu: **yok** (bkz. K4 — eski kural kaldırılıyor). Sponsorluk anahtarı açık
+gönderide tanınmış cashtag varsa `SPONSORED_CASHTAG_BLOCKED` (legal, `docs/legal/composer-metinleri.md`
+"Hukuki değerlendirme 2").
 
 `normalizeContent` şunları siler: C0 kontrol karakterleri (`\n`, `\t` hariç), bidi override/
 isolate (`U+202A–202E`, `U+2066–2069`) — `$THYAO` görünüp başka metin okunmasın diye. ZWJ
@@ -114,11 +130,11 @@ isolate (`U+202A–202E`, `U+2066–2069`) — `$THYAO` görünüp başka metin 
 | Girdi | Beklenen |
 |-------|----------|
 | `$THYAO yükselir` | cashtag `THYAO` |
-| `$100 kazandım`, `US$100`, `fiyat=$THYAO`, `$THYAOXYZ1` | — |
+| `$100 kazandım`, `US$100`, `fiyat=$THYAO`, `—$THYAO`, `$THYAOXYZ1` | — |
 | `$thyao'nun bilançosu` | cashtag `THYAO` (metin `$thyao`) |
 | `$THYAO, $ASELS.` | cashtag ×2 |
 | `$ALTINS1` | cashtag `ALTINS1` |
-| `$BTC/$ETH` | cashtag ×2 |
+| `$BTC/$ETH` | yalnızca cashtag `BTC` (`/` sol sınır değil) |
 | `#bist100'de düşüş` | hashtag `bist100` |
 | `#İstanbul #ŞİŞE` | hashtag `istanbul`, `sise` |
 | `#1 hisse`, `C# öğren`, `abc#def` | — |
@@ -127,7 +143,7 @@ isolate (`U+202A–202E`, `U+2066–2069`) — `$THYAO` görünüp başka metin 
 | `www.borsa.com'da` | url `www.borsa.com` → href `https://www.borsa.com` |
 | `ali@gmail.com @veli_1. @ab @a.b` | mention `veli_1` |
 | `@ayşe`, `http://user:pw@evil.com`, `https://localhost/x` | — |
-| `😀#emoji $SISE` | hashtag `emoji`, cashtag `SISE` (offset'ler UTF-16) |
+| `😀#emoji $SISE` | yalnızca cashtag `SISE` (offset'ler UTF-16: start 9) |
 
 Ek olarak `fast-check` (4.10.2) ile özellik testleri: (a) entity'ler sıralı ve çakışmasız,
 (b) `text.slice(start,end)` her zaman tetikleyiciyle başlar, (c) `parseEntities` hiçbir girdide
@@ -169,9 +185,12 @@ UndoRedo) — hepsi 3.31.4, `@floating-ui/dom` 1.8.0 (popup konumu).
   dekorasyonla işaretlenir (metin kesilmez).
 - SSR: `useEditor({ immediatelyRender: false })`; composer `next/dynamic` ile lazy, yüklenene
   kadar aynı yükseklikte skeleton (CLS yok). Composer chunk bütçesi ≤ 120 KB gz (S8'de ölçülür).
-- Taslak koruma (auth-session kural 5): `UNAUTHENTICATED` dönüşünde editör içeriği korunur;
-  ayrıca bağlam başına (`draft:post`, `draft:comment:<postId>`) `sessionStorage` taslağı,
-  başarılı gönderimde silinir. Taslak cihazdan çıkmaz.
+- Taslak koruma (auth-session kural 5): `UNAUTHENTICATED` dönüşünde editör içeriği korunur.
+  Kalıcı taslak tasarım spec'i §1.8'deki gibi `localStorage` (`bz:draft:{userId}:post`,
+  `bz:draft:{userId}:comment:{postId}`, 7 gün, **çıkışta hepsi silinir**). Anahtarda DB'deki
+  sayısal `userId` kullanılır, Firebase uid kullanılmaz; taslakta yalnızca metin, sentiment,
+  sponsorluk ve önizleme-kapatıldı bayrağı — token/e-posta yok (auth-session kuralıyla uyumlu).
+  Taslak cihazdan çıkmaz.
 - Erişilebilirlik: editör `role="textbox" aria-multiline="true"` + etiket; popup açıkken
   `aria-autocomplete="list"`, `aria-controls`, `aria-activedescendant`; liste `role="listbox"`,
   öğeler `role="option"`. Sonuç sayısı `aria-live="polite"` ile duyurulur.
@@ -181,8 +200,9 @@ UndoRedo) — hepsi 3.31.4, `@floating-ui/dom` 1.8.0 (popup konumu).
 | Tetikleyici | Kaynak | Sıralama | Gecikme |
 |-------------|--------|----------|---------|
 | `$` | `GET /api/autocomplete/stocks` → **tüm hisse indeksi** (`{t, n, type}[]`, ~600 kayıt, ~15 KB gz), `'use cache'` + `cacheTag('stocks')` (stock sync sonrası invalidation), `Cache-Control: public, s-maxage=86400`. İstemcide TanStack Query `staleTime: 1 saat`, filtreleme yerel | 1) kod tam eşleşme 2) kod önek 3) şirket adında kelime başı eşleşme (`foldTag` ile ı/i, ş/s katlamalı) 4) içerir; eşitlikte kod alfabetik (`localeCompare('tr')`). En fazla 8 | 0 ms (ağ yok), debounce yok |
-| `@` | `GET /api/autocomplete/users?q=` (girişli kullanıcı) | 1) kullanıcı adı tam eşleşme 2) takip ettiklerim önek 3) diğerleri kullanıcı adı önek 4) görünen ad kelime başı. Engelleyen/engellenen (iki yön) ve `status != active` hariç. En fazla 8 | debounce 150 ms, `q` ≥ 1 karakter |
-| `#` | `GET /api/autocomplete/tags?q=` | `slug` önek, `updatedAt` (son kullanım) azalan. En fazla 8. Yazılan etiket listede yoksa "yeni etiket: #..." son satır | debounce 150 ms |
+| `@` | `GET /api/autocomplete/users?q=` (girişli kullanıcı) | 1) kullanıcı adı tam eşleşme 2) takip ettiklerim önek 3) diğerleri kullanıcı adı önek 4) görünen ad kelime başı. Engelleyen/engellenen (iki yön) ve `status != active` hariç. En fazla 8 | debounce 150 ms. `q` boşsa (yalnızca `@`) varsayılan: takip ettiklerim, son takip edilen önce |
+| `#` | `GET /api/autocomplete/tags?q=` | `slug` önek, `updatedAt` (son kullanım) azalan. En fazla 8. Yazılan etiket listede yoksa "yeni etiket: #..." son satır. `q` boşsa son 24 saatte en çok kullanılanlar (`_PostTags` ⋈ `Post.createdAt`, 10 dk cache) | debounce 150 ms |
+| `$` (boş sorgu) | `GET /api/autocomplete/stocks/default` (girişli): takip ettiğim hisseler, yoksa son 24 saatte en çok anılanlar (gönderi sayısı, nötr ölçüt) | — | tek istek, composer açılınca |
 
 - İstemci: `useQuery({ queryKey: ['ac', kind, q], signal })` → eski istekler `AbortSignal` ile
   iptal, `placeholderData: keepPreviousData` ile liste titremez. Yarış durumu, `findActiveTrigger`
@@ -192,7 +212,7 @@ UndoRedo) — hepsi 3.31.4, `@floating-ui/dom` 1.8.0 (popup konumu).
   hedefi ≥ 44px.
 - Durumlar: yükleniyor (ilk 150 ms boş, sonra 3 satır skeleton), boş ("Eşleşen hisse yok"),
   hata (tek satır, liste kapanmaz, yazım engellenmez).
-- Sunucu: `q` Zod ile (`1–20` karakter, `[A-Za-z0-9_]` kullanıcı/etiket için katlanmış).
+- Sunucu: `q` Zod ile (`0–20` karakter, `[A-Za-z0-9_]` kullanıcı/etiket için katlanmış).
   Sorgu `username` için `lower(username) text_pattern_ops` btree önek index'i (yeni migration),
   `Tag.slug` önek için aynısı. Trigram (`pg_trgm`) M1'de yok; görünen adda "içerir" araması
   gerekirse eklenir.
@@ -246,21 +266,31 @@ UndoRedo) — hepsi 3.31.4, `@floating-ui/dom` 1.8.0 (popup konumu).
   Cookie/Authorization başlığı gönderilmez.
 - Parse `htmlparser2` ile (stream, `</head>` görülünce durur): `og:title`, `og:description`,
   `og:site_name`, `twitter:*`, `<title>`, `meta[name=description]`. Değerler: kontrol/bidi
-  karakterleri temizlenir, HTML entity'leri çözülür, uzunluk kırpılır (başlık 200, açıklama
-  300). Render'da yine düz metin.
+  karakterleri temizlenir, HTML entity'leri çözülür, uzunluk kırpılır (başlık **120**, açıklama **200** — legal "Hukuki değerlendirme 4"). Yalnızca
+  OG/Twitter/`meta` etiketleri okunur, sayfa gövdesinden metin alınmaz; `og:title` ve `<title>`
+  yoksa kart oluşmaz. Kart her zaman host'u gösterir ve orijinal URL'ye link verir. Render'da
+  yine düz metin.
 - **Görsel M1'de yok** (karar gerekli K6): `og:image`'ı doğrudan göstermek (hotlink) her
   izleyicinin IP'sini üçüncü tarafa sızdırır ve keyfi içerik gösterir; proxy'lemek de
   `_next/image`'i açık proxy yapmamak için ayrı bir indir→`sharp` ile yeniden kodla→Storage'a
   yaz hattı gerektirir. Öneri: M1 metin kartı (site, başlık, açıklama, alan adı); M2'de
   görsel hattı.
 - Alan adı engelleme listesi (moderasyon) `safeFetch` öncesi kontrol edilir (M2'de admin'den).
+  M2 görsel hattı legal gereksinimlerine uyar: yalnızca `og:image`/`twitter:image`, ≤ 600 px,
+  yeniden kodlama + metadata silme, hedef sayfa `noarchive`/`noimageindex` taşıyorsa görsel yok,
+  gönderiyi silmeden yalnızca kartı/görseli kaldırabilme.
 
 ## Karar 7 — Sunucu sözleşmeleri (M1)
 
 ```ts
 // features/posts/server/actions.ts  ('use server')
-createPost(input: { text: string; sentiment: Sentiment; previewUrl?: string | null })
-  : Promise<Result<{ postId: number }>>
+createPost(input: {
+  text: string;
+  sentiment: Sentiment;            // cashtag yoksa sunucu 'neutral'e zorlar (tasarım §1.5)
+  isSponsored: boolean;            // legal: Reklam / İşbirliği etiketi
+  previewUrl?: string | null;      // null = kullanıcı önizlemeyi kapattı
+  clientRequestId: string;         // uuid; çift gönderim idempotency'si (Post.clientRequestId UNIQUE)
+}): Promise<Result<{ postId: number }>>
 deletePost(input: { postId: number }): Promise<Result<null>>          // sahibi ya da moderator/admin
 setPostLike(input: { postId: number; liked: boolean }): Promise<Result<{ liked: boolean }>> // idempotent
 
@@ -274,15 +304,16 @@ type Result<T> = { ok: true; data: T } | { ok: false; error: ErrorCode; meta?: E
 
 `createPost` sırası: Zod parse → `requireUser()` (Server Action'da redirect değil
 `UNAUTHENTICATED` döner) → `status`/`emailVerified`/onboarding kontrolü → rate limit
-(10 gönderi/10 dk, 60/gün) → `normalizeContent` → `parseEntities` → sınırlar → hisse çözümü
-(`ticker IN`) → tek transaction: `Tag` upsert (`slug` üzerinden `ON CONFLICT`), `Post`
+(10 gönderi/10 dk, 60/gün) → aynı `clientRequestId` ile kayıt varsa onu döndür → `normalizeContent`
+→ `parseEntities` → sınırlar → hisse çözümü (`ticker IN`) → `isSponsored` ve cashtag varsa
+`SPONSORED_CASHTAG_BLOCKED` → tek transaction: `Tag` upsert (`slug` üzerinden `ON CONFLICT`), `Post`
 (`contentFormat=2`, `entities`), `_PostStocks`, `_PostTags`, mention bildirimleri (engelleme
 kontrolüyle, tek `createMany`), `ContentEvent` → transaction sonrası `revalidatePath` +
 `after()` ile önizleme.
 
 Hata kodları (i18n anahtarı olarak): `UNAUTHENTICATED`, `ONBOARDING_REQUIRED`,
 `EMAIL_NOT_VERIFIED`, `ACCOUNT_SUSPENDED`, `VALIDATION`, `CONTENT_EMPTY`, `CONTENT_TOO_LONG`,
-`CASHTAG_REQUIRED`, `UNKNOWN_CASHTAG` (`meta.tickers`), `TOO_MANY_ENTITIES`, `RATE_LIMITED`
+`UNKNOWN_CASHTAG` (`meta.tickers`), `SPONSORED_CASHTAG_BLOCKED`, `TOO_MANY_ENTITIES`, `RATE_LIMITED`
 (`meta.retryAfter`), `NOT_FOUND`, `FORBIDDEN`, `INTERNAL`.
 
 ## Sonuçlar
@@ -300,13 +331,15 @@ Hata kodları (i18n anahtarı olarak): `UNAUTHENTICATED`, `ONBOARDING_REQUIRED`,
 
 | # | Konu | Öneri |
 |---|------|-------|
-| K4 | Gönderide ≥ 1 geçerli cashtag zorunluluğu (eski kural) sürsün mü? | Gönderide evet (platform odağı), yorumda hayır |
+| K4 | Gönderide ≥ 1 geçerli cashtag zorunluluğu (eski kural) sürsün mü? | **Hayır, kaldırılsın.** Tasarım (duyarlılık seçimi yalnızca cashtag varken) ve hukuk (sponsorlu gönderide cashtag yasak) cashtag'siz gönderiyi varsayıyor; zorunluluk sürerse sponsorlu gönderi imkânsızlaşır |
 | K5 | Bilinmeyen cashtag: gönderiyi reddet mi, düz metin mi say? | Reddet (eski kural) + editörde önceden işaretle, hata mesajında hangi kodlar olduğu |
 | K6 | Link önizlemede görsel | M1'de görsel yok; M2'de proxy + Storage hattı |
 
 ## Hukuki sorular (legal-advisor'a)
 
-- **L5** Link önizleme: üçüncü taraf sayfanın başlık/açıklamasını gösterme (ve M2'de küçük
-  görselini kopyalayıp barındırma) telif/5651 açısından sorun mu? Kaldırma talebinde süreç?
-- **L7** Cashtag hover kartında ve hisse içeren her yüzeyde zorunlu uyarı metni (ifade ve
-  yerleşim) — `turkish-legal-compliance` metniyle birebir mi kullanılmalı?
+- **L5** Link önizleme: `docs/legal/composer-metinleri.md` "Hukuki değerlendirme 4" ile büyük
+  ölçüde yanıtlandı (başlık/açıklama düşük risk; görsel ORTA risk, **avukat onayı gerekli**).
+  Bu ADR o gereksinimlere uyar; M2 görsel hattı avukat onayına bağlı.
+- **L7** Kısa yatırım uyarısı metni ve yerleşimi legal dokümanının "Hukuki değerlendirme 1"
+  bölümünde; uygulama i18n anahtarını (`legal.disclaimer.short`) kullanır, metni kodda tekrar
+  etmez. Avukat onayı bekleniyor.
