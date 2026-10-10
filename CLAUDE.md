@@ -20,7 +20,7 @@ kalıplarını kopyalama. Bilinen sorunlar: `docs/audit/`.
 | İstemci durumu | Redux kaldırılacak; sunucu verisi + cache (Next.js cache, TanStack Query) |
 | Moderasyon | Şikayet sistemi + ayrı admin paneli — öncelikli |
 | Premium | İstenen; kapsam araştırılıyor |
-| Hisse fiyat verisi | Yasal durum araştırılıyor; netleşmeden fiyat gösterilmez |
+| Hisse fiyat verisi | v1: fiyatsız (kod, ad, KAP linki) + TradingView widget (atıf korunur, veri çekilmez). Sonra lisanslı dağıtıcıdan gecikmeli veri. Scraping yasak. |
 
 ## Ekip: agent'lar ve skill'ler
 
