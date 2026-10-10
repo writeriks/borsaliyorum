@@ -2,14 +2,28 @@ import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import type { ReactElement } from 'react';
 
-/** Yalnızca https görseller (karışık içerik ve `javascript:`/`data:` kaynakları dışarıda). */
+/**
+ * Eski uygulamanın görselleri yalnızca Firebase Storage'da tutuluyordu. Başka host'tan görsel
+ * yüklemek okurun IP'sini/okuma zamanını üçüncü tarafa sızdırır (izleme pikseli) ve kirli veriyle
+ * keyfi içerik gösterir; bu yüzden tam host eşleşmeli allowlist (alt alan adı kabul edilmez).
+ */
+export const LEGACY_MEDIA_HOSTS: ReadonlySet<string> = new Set([
+  'firebasestorage.googleapis.com',
+  'storage.googleapis.com',
+]);
+
+/** Yalnızca https ve Firebase Storage host'ları (`javascript:`/`data:`/karışık içerik dışarıda). */
 export const toSafeMediaSrc = (raw: string | null): string | null => {
   if (!raw) return null;
   try {
     const url = new URL(raw);
-    return url.protocol === 'https:' && url.username === '' && url.password === ''
-      ? url.href
-      : null;
+    const safe =
+      url.protocol === 'https:' &&
+      url.username === '' &&
+      url.password === '' &&
+      url.port === '' &&
+      LEGACY_MEDIA_HOSTS.has(url.hostname);
+    return safe ? url.href : null;
   } catch {
     // Eski veride bozuk URL olabilir; görsel gösterilmez.
     return null;
@@ -32,6 +46,8 @@ export const PostMedia = ({ src }: { src: string | null }): ReactElement | null 
         alt={t('mediaAlt')}
         fill
         unoptimized
+        // Gönderi/profil adresi Storage isteğinde Referer olarak gitmesin
+        referrerPolicy='no-referrer'
         sizes='(min-width: 768px) 560px, 100vw'
         className='object-cover'
       />

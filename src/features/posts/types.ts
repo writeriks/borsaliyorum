@@ -8,8 +8,9 @@ export type PostAuthor = { username: string; displayName: string; avatarUrl: str
 
 /**
  * Link önizlemesi (ADR-0002 Karar 6, M1'de görselsiz). `pending`: gönderide önizlenebilir URL var
- * ama sunucu henüz çekmedi (`after()`); kart yerinde aynı ölçüde iskelet durur. `none`: kart yok
- * (URL yok, kullanıcı kapattı, çekme başarısız ya da başlık yok).
+ * ama sunucu henüz çekmedi (`after()`); salt okunur kartta hiçbir şey render edilmez (istemci
+ * yenilemesi olmadan iskelet sonsuza kadar kalırdı). `none`: kart yok (URL yok, kullanıcı kapattı,
+ * çekme başarısız ya da başlık yok). Kart `toLinkPreviewDto` ile link-preview kartına eşlenir.
  */
 export type PostLinkPreview =
   | { status: 'none' }

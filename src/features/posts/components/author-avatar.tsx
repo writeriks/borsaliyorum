@@ -14,7 +14,8 @@ export const AuthorAvatar = ({
   src: string | null;
 }): ReactElement => (
   <Avatar className='size-9 sm:size-10'>
-    {src ? <AvatarImage src={src} alt='' /> : null}
+    {/* `src` toSafeMediaSrc'den geçmiş olmalı (Firebase Storage allowlist); Referer gönderilmez */}
+    {src ? <AvatarImage src={src} alt='' referrerPolicy='no-referrer' /> : null}
     <AvatarFallback>{initialsOf(displayName)}</AvatarFallback>
   </Avatar>
 );

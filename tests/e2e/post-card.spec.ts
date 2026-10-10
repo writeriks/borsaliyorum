@@ -11,6 +11,25 @@ const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const fixture = (page: Page, id: number): Locator => page.getByTestId(`fixture-${id}`);
 const hoverCard = (page: Page): Locator => page.getByTestId('stock-hover-card');
 
+// HoverCard `openDelay` (cashtag-link.tsx)
+const OPEN_DELAY_MS = 400;
+// Zamanlama toleransı, tarayıcı içinde `performance.now()` ile ölçülür (Playwright ↔ tarayıcı
+// gidiş-dönüşü dahil değil): alt sınırda bir kare (16 ms) erken tetiklenme payı, üst sınırda CI
+// yükünde zamanlayıcı gecikmesi + render için 600 ms.
+const OPEN_EARLY_TOLERANCE_MS = 16;
+const OPEN_LATE_TOLERANCE_MS = 600;
+
+/**
+ * Sayfayı açar ve hidrasyonu bekler: hidrasyondan önce yapılan hover'ın olayı kaybolur ve test
+ * rastgele kırılır. `data-hydrated` cashtag linkinde, hidrasyondan sonra konur.
+ */
+const gotoHydrated = async (page: Page, url: string): Promise<Locator> => {
+  await page.goto(url);
+  const cashtag = fixture(page, 1).getByRole('link', { name: CASHTAG_NAME });
+  await expect(cashtag).toHaveAttribute('data-hydrated', 'true');
+  return cashtag;
+};
+
 const seriousViolations = async (page: Page): Promise<{ id: string; targets: string[] }[]> => {
   const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
   return results.violations
@@ -137,12 +156,30 @@ test.describe('cashtag hover kartı', () => {
     'masaüstü: 400ms gecikmeyle açılır; KAP/TradingView, uyarı, fiyat yok ([HC-01/03/04/06])',
     { tag: '@desktop' },
     async ({ page }) => {
-      await page.goto(PREVIEW);
-      const cashtag = fixture(page, 1).getByRole('link', { name: CASHTAG_NAME });
+      const cashtag = await gotoHydrated(page, PREVIEW);
+      // pointerenter → kartın DOM'a girişi arası süre, sayfa içinde ölçülür
+      const openedAfter = page.evaluate(
+        () =>
+          new Promise<number>(resolve => {
+            const trigger = document.querySelector(
+              '[data-testid="fixture-1"] [data-entity="cashtag"]'
+            );
+            let enteredAt = Number.NaN;
+            trigger?.addEventListener('pointerenter', () => (enteredAt = performance.now()), {
+              once: true,
+            });
+            new MutationObserver((_records, observer) => {
+              if (!document.querySelector('[data-testid="stock-hover-card"]')) return;
+              observer.disconnect();
+              resolve(performance.now() - enteredAt);
+            }).observe(document.body, { childList: true, subtree: true });
+          })
+      );
       await cashtag.hover();
-      await page.waitForTimeout(300);
-      await expect(hoverCard(page)).toBeHidden();
-      await expect(hoverCard(page)).toBeVisible({ timeout: 700 });
+      await expect(hoverCard(page)).toBeVisible();
+      const elapsed = await openedAfter;
+      expect(elapsed).toBeGreaterThanOrEqual(OPEN_DELAY_MS - OPEN_EARLY_TOLERANCE_MS);
+      expect(elapsed).toBeLessThanOrEqual(OPEN_DELAY_MS + OPEN_LATE_TOLERANCE_MS);
 
       const card = hoverCard(page);
       await expect(card).toContainText('Türk Hava Yolları A.O.');
@@ -170,8 +207,8 @@ test.describe('cashtag hover kartı', () => {
     'sayaç hatasında kart açılır, sayaç satırı yok ([HC-07])',
     { tag: '@desktop' },
     async ({ page }) => {
-      await page.goto(`${PREVIEW}?stats=error`);
-      await fixture(page, 1).getByRole('link', { name: CASHTAG_NAME }).hover();
+      const cashtag = await gotoHydrated(page, `${PREVIEW}?stats=error`);
+      await cashtag.hover();
       const card = hoverCard(page);
       await expect(card).toBeVisible();
       await expect(card.getByText(tr.hovercard.statsLoading)).toHaveCount(0);
@@ -180,14 +217,17 @@ test.describe('cashtag hover kartı', () => {
     }
   );
 
-  test('anonim: "Takip et" girişe götürür', { tag: '@desktop' }, async ({ page }) => {
-    await page.goto(`${PREVIEW}?viewer=anonymous`);
-    await fixture(page, 1).getByRole('link', { name: CASHTAG_NAME }).hover();
-    await expect(hoverCard(page).getByRole('link', { name: tr.hovercard.follow })).toHaveAttribute(
-      'href',
-      '/giris'
-    );
-  });
+  test(
+    'anonim: "Takip et" girişe, dönüş yolu `next` ile götürür (auth-session kural 3)',
+    { tag: '@desktop' },
+    async ({ page }) => {
+      const cashtag = await gotoHydrated(page, `${PREVIEW}?viewer=anonymous`);
+      await cashtag.hover();
+      await expect(
+        hoverCard(page).getByRole('link', { name: tr.hovercard.follow })
+      ).toHaveAttribute('href', `/giris?next=${encodeURIComponent(PREVIEW)}`);
+    }
+  );
 
   test(
     'mobil: dokunma kart açmadan /hisse/THYAO’ya gider ([HC-02], [ENT-R05])',
@@ -237,19 +277,57 @@ test.describe('PostCard', () => {
     await expect(preview.locator('img')).toHaveCount(0);
   });
 
-  test('bekleyen önizleme: kompakt kart ölçüsünde iskelet; görselde önizleme yok', async ({
+  test('bekleyen önizleme hiçbir şey render etmez; görselde önizleme yok', async ({ page }) => {
+    await gotoHydrated(page, PREVIEW);
+    await expect(fixture(page, 3).locator('[data-slot^="link-preview"]')).toHaveCount(0);
+    await expect(fixture(page, 3).locator('[aria-busy="true"]')).toHaveCount(0);
+    await expect(fixture(page, 5).locator('[data-slot="link-preview-card"]')).toHaveCount(0);
+    const media = fixture(page, 5).getByRole('img', { name: tr.post.mediaAlt });
+    await expect(media).toBeVisible();
+    await expect(media).toHaveAttribute('referrerpolicy', 'no-referrer');
+  });
+
+  test('"Devamını gör" yeri sunucuda ayrılır: hidrasyon kart yüksekliğini değiştirmez (CLS)', async ({
+    browser,
     page,
-  }) => {
-    await page.goto(PREVIEW);
-    const skeleton = fixture(page, 3).getByTestId('link-preview-skeleton');
-    await expect(skeleton).toBeVisible();
-    expect((await skeleton.boundingBox())?.height).toBeGreaterThanOrEqual(88);
-    await expect(fixture(page, 5).getByTestId('link-preview-card')).toHaveCount(0);
-    await expect(fixture(page, 5).getByRole('img', { name: tr.post.mediaAlt })).toBeVisible();
+  }, testInfo) => {
+    const cardHeights = (target: Page): Promise<Record<string, number>> =>
+      target
+        .locator('[data-testid^="fixture-"]')
+        .evaluateAll(sections =>
+          Object.fromEntries(
+            sections.map(section => [
+              section.getAttribute('data-testid') ?? '',
+              section.getBoundingClientRect().height,
+            ])
+          )
+        );
+
+    // Yalnızca sunucu HTML'i: aynı cihaz ayarlarıyla, JS kapalı
+    const ssrContext = await browser.newContext({
+      ...testInfo.project.use,
+      javaScriptEnabled: false,
+    });
+    const ssrPage = await ssrContext.newPage();
+    await ssrPage.goto(PREVIEW);
+    await ssrPage.evaluate(() => document.fonts.ready);
+    const ssr = await cardHeights(ssrPage);
+    await ssrContext.close();
+
+    await gotoHydrated(page, PREVIEW);
+    // İstemci ölçümü bitti: uzun gövdede buton görünür oldu
+    await expect(fixture(page, 6).getByRole('button', { name: tr.post.readMore })).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    const hydrated = await cardHeights(page);
+
+    expect(Object.keys(ssr).length).toBeGreaterThanOrEqual(6);
+    for (const [id, height] of Object.entries(ssr)) {
+      expect(hydrated[id], id).toBeCloseTo(height, 0);
+    }
   });
 
   test('akışta 6 satır kırpma ve "Devamını gör"', async ({ page }) => {
-    await page.goto(PREVIEW);
+    await gotoHydrated(page, PREVIEW);
     const card = fixture(page, 6);
     const more = card.getByRole('button', { name: tr.post.readMore });
     await expect(more).toHaveAttribute('aria-expanded', 'false');

@@ -115,8 +115,6 @@
     },
     "loading": "Gönderi yükleniyor",
     "error": "Gönderi yüklenemedi.",
-    "unavailable": "Bu gönderi kaldırılmış ya da artık görüntülenemiyor.",
-    "linkPreviewLoading": "Bağlantı önizlemesi yükleniyor",
-    "linkPreviewName": "{title}, {host} (yeni sekmede açılır)"
+    "unavailable": "Bu gönderi kaldırılmış ya da artık görüntülenemiyor."
   }
 }

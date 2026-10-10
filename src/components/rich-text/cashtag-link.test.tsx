@@ -93,11 +93,23 @@ describe('CashtagLink hover kartı', () => {
     expect(screen.queryByText('Takip et')).toBeNull();
   });
 
-  it('anonim kullanıcıya "Takip et" girişe götürür', async () => {
+  it('anonim kullanıcıya "Takip et" girişe, mevcut yol `next` ile götürür (auth-session kural 3)', async () => {
     stubPointer(true);
+    globalThis.__testPathname = '/etiket/bist100';
     renderCard({ viewer: 'anonymous' });
     await hoverAndFindCard();
-    expect(screen.getByRole('link', { name: 'Takip et' })).toHaveAttribute('href', '/giris');
+    expect(screen.getByRole('link', { name: 'Takip et' })).toHaveAttribute(
+      'href',
+      '/giris?next=%2Fetiket%2Fbist100'
+    );
+  });
+
+  it('hidrasyondan sonra `data-hydrated` işareti', () => {
+    renderCard();
+    expect(screen.getByRole('link', { name: '$THYAO, Türk Hava Yolları A.O.' })).toHaveAttribute(
+      'data-hydrated',
+      'true'
+    );
   });
 
   it('sayaç hatası kartı bozmaz, sayaç satırı gizlenir ([HC-07])', async () => {

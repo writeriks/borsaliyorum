@@ -1,4 +1,5 @@
-import { foldTag, toTicker } from '@/lib/entities';
+import { toTicker } from '@/lib/entities';
+import { toHashtagSlug } from '@/lib/entities/hashtag';
 
 import type { RichTextEntity, StockLookup, StockSummary } from './types';
 import { canonicalHrefOfText, shortenUrlForDisplay, toSafeExternalHref } from './url-display';
@@ -51,8 +52,10 @@ const classify = (slice: string, entity: RichTextEntity, stocks: StockLookup): C
       if (!slice.startsWith(TRIGGER.hashtag) || slug === '' || SLUG_INVALID_RE.test(slug)) {
         return { reject: 'mismatch' };
       }
-      // Hem parser hem eski markup dönüştürücüsü slug'ı görünen gövdeden aynı katlamayla üretir.
-      if (foldTag(slice.slice(1)) !== slug) return { reject: 'mismatch' };
+      // Savunma derinliği: slug yazma anındaki kuralla (parser ve eski markup dönüştürücüsü de
+      // `toHashtagSlug` kullanır) görünen gövdeden yeniden üretilir; `#..` gibi harfsiz, karışık
+      // alfabeli ya da geçersiz etiket jsonb'ye sızsa bile link olmaz.
+      if (toHashtagSlug(slice.slice(1)) !== slug) return { reject: 'mismatch' };
       return { kind: 'hashtag', text: slice, slug };
     }
     case 'mention': {

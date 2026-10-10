@@ -2,14 +2,15 @@ import { useTranslations } from 'next-intl';
 import type { ReactElement } from 'react';
 
 import { RichText, userHref } from '@/components/rich-text';
+import { LinkPreviewCard } from '@/features/link-preview/components/link-preview-card';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 
+import { toLinkPreviewDto } from '../link-preview';
 import type { PostCardData } from '../types';
 
 import { AuthorAvatar } from './author-avatar';
 import { ClampedBody } from './clamped-body';
-import { LinkPreviewCard } from './link-preview-card';
 import { SentimentTag, SponsoredLabel } from './post-labels';
 import { PostMedia, toSafeMediaSrc } from './post-media';
 import { PostStats } from './post-stats';
@@ -46,7 +47,10 @@ export const PostCard = ({
   };
   const profile = userHref(post.author.username);
   const avatarSrc = toSafeMediaSrc(post.author.avatarUrl);
-  const hasMedia = post.mediaUrl !== null;
+  const mediaSrc = toSafeMediaSrc(post.mediaUrl);
+  const hasMedia = mediaSrc !== null;
+  // Medya varsa önizleme yok (tasarım §6, [LPV-04])
+  const linkPreview = hasMedia ? null : toLinkPreviewDto(post.linkPreview);
   const body = (
     <RichText text={post.body.text} entities={post.body.entities} stocks={post.stocks} />
   );
@@ -89,16 +93,21 @@ export const PostCard = ({
             </div>
             <SentimentTag sentiment={post.sentiment} />
           </header>
-          {variant === 'feed' ? <ClampedBody id={ids.body}>{body}</ClampedBody> : body}
+          {variant === 'feed' ? (
+            <ClampedBody id={ids.body} text={post.body.text}>
+              {body}
+            </ClampedBody>
+          ) : (
+            body
+          )}
           {hasMedia ? (
             <div className='mt-2'>
-              <PostMedia src={post.mediaUrl} />
+              <PostMedia src={mediaSrc} />
             </div>
           ) : null}
-          {/* Medya varsa önizleme yok (tasarım §6, [LPV-04]) */}
-          {!hasMedia && post.linkPreview.status !== 'none' ? (
+          {linkPreview ? (
             <div className='mt-2'>
-              <LinkPreviewCard preview={post.linkPreview} />
+              <LinkPreviewCard preview={linkPreview} />
             </div>
           ) : null}
           <PostStats counts={post.counts} />

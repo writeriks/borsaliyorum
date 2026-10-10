@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
+import { UGC_LINK_REL } from '@/components/rich-text';
 import { renderWithIntl } from '@tests/utils/render';
 
 import type { LinkPreviewDto } from '../types';
@@ -24,8 +25,7 @@ describe('LinkPreviewCard', () => {
     );
     expect(link).toHaveAttribute('href', preview.url);
     expect(link).toHaveAttribute('target', '_blank');
-    expect(link.getAttribute('rel')).toContain('noopener');
-    expect(link.getAttribute('rel')).toContain('noreferrer');
+    expect(link).toHaveAttribute('rel', UGC_LINK_REL);
     expect(screen.getAllByRole('link')).toHaveLength(1);
   });
 

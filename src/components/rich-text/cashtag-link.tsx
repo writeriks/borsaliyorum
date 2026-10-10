@@ -8,7 +8,7 @@ import { InvestmentDisclaimer } from '@/components/legal/investment-disclaimer';
 import { Button } from '@/components/ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Link } from '@/i18n/navigation';
+import { Link, usePathname } from '@/i18n/navigation';
 
 import { externalStockLinks, stockHref, TRUSTED_LINK_REL } from './entity-routes';
 import { ENTITY_CLASS } from './entity-styles';
@@ -29,6 +29,16 @@ const useFinePointer = (): boolean =>
   useSyncExternalStore(
     subscribeFinePointer,
     () => window.matchMedia(FINE_POINTER_QUERY).matches,
+    () => false
+  );
+
+const noopSubscribe = (): (() => void) => () => undefined;
+
+/** Sunucuda ve hidrasyon karesinde `false`, hidrasyondan sonra `true` (olay dinleyicileri bağlı). */
+const useHydrated = (): boolean =>
+  useSyncExternalStore(
+    noopSubscribe,
+    () => true,
     () => false
   );
 
@@ -76,6 +86,9 @@ const StatsLine = ({ ticker }: { ticker: string }): ReactElement | null => {
 const FollowSlot = (): ReactElement | null => {
   const t = useTranslations('hovercard');
   const { viewer } = useStockCard();
+  // Girişten sonra kullanıcı bulunduğu sayfaya döner (auth-session UX kural 3). Locale öneksiz yol;
+  // `next` değerinin kendi sitemize ait olduğu giriş sayfasında ayrıca doğrulanır.
+  const pathname = usePathname();
   // Auth bilinmiyorken "Takip et" asla görünmez; aynı ölçüde skeleton ([HC-05], auth-session).
   if (viewer === 'unknown') {
     return (
@@ -88,7 +101,7 @@ const FollowSlot = (): ReactElement | null => {
   if (viewer === 'anonymous') {
     return (
       <Button asChild variant='outline' size='sm'>
-        <Link href='/giris'>{t('follow')}</Link>
+        <Link href={{ pathname: '/giris', query: { next: pathname } }}>{t('follow')}</Link>
       </Button>
     );
   }
@@ -142,6 +155,7 @@ type CashtagLinkProps = { text: string; stock: StockSummary };
 export const CashtagLink = ({ text, stock }: CashtagLinkProps): ReactElement => {
   const t = useTranslations('entity');
   const finePointer = useFinePointer();
+  const hydrated = useHydrated();
   const [open, setOpen] = useState(false);
 
   return (
@@ -151,6 +165,8 @@ export const CashtagLink = ({ text, stock }: CashtagLinkProps): ReactElement => 
           href={stockHref(stock.ticker)}
           aria-label={t('cashtagName', { text, company: stock.companyName })}
           data-entity='cashtag'
+          // E2E'nin hover'dan önce beklediği işaret: hidrasyondan önce hover olayı kaybolur.
+          data-hydrated={hydrated ? 'true' : undefined}
           className={ENTITY_CLASS.cashtag}
         >
           {text}

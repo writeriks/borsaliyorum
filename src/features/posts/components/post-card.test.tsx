@@ -2,6 +2,8 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
+import { UGC_LINK_REL } from '@/components/rich-text';
+
 import { MESSAGES, renderWithIntl } from '../../../../tests/utils/render';
 import {
   FIXTURE_MEDIA_URL,
@@ -16,6 +18,7 @@ import type { PostCardData } from '../types';
 
 import { PostCard } from './post-card';
 import { PostCardError, PostCardSkeleton, PostCardUnavailable } from './post-card-states';
+import { toSafeMediaSrc } from './post-media';
 
 const renderCard = (post: PostCardData, locale: 'tr' | 'en' = 'tr') =>
   renderWithIntl(<PostCard post={post} now={FIXTURE_NOW} />, locale);
@@ -99,28 +102,33 @@ describe('PostCard', () => {
     });
   });
 
-  describe('link önizleme', () => {
+  describe('link önizleme (tek kart: features/link-preview)', () => {
+    const previewCard = (container: HTMLElement): Element | null =>
+      container.querySelector('[data-slot="link-preview-card"]');
+
     it('hazır kart tek link: başlık + host adı, ugc rel, yeni sekme ([LPV-06])', () => {
-      renderCard(POST_SPONSORED);
-      const card = screen.getByTestId('link-preview-card');
+      const { container } = renderCard(POST_SPONSORED);
+      const card = previewCard(container) as HTMLElement;
       expect(card).toHaveAccessibleName(
         'Borsa eğitim programı başladı, ornek.com (yeni sekmede açılır)'
       );
       expect(card).toHaveAttribute('href', 'https://ornek.com/haber');
       expect(card).toHaveAttribute('target', '_blank');
-      expect(card.getAttribute('rel')).toBe('nofollow ugc noopener noreferrer');
+      expect(card).toHaveAttribute('rel', UGC_LINK_REL);
       expect(within(card).queryAllByRole('link')).toHaveLength(0);
       expect(card.querySelector('img')).toBeNull();
     });
 
-    it('bekleyen önizleme için aynı ölçüde iskelet', () => {
-      renderCard(POST_LEGACY);
-      expect(screen.getByTestId('link-preview-skeleton')).toHaveAttribute('aria-busy', 'true');
+    it('bekleyen önizleme salt okunur kartta hiçbir şey render etmez (sonsuz iskelet yok)', () => {
+      const { container } = renderCard(POST_LEGACY);
+      expect(previewCard(container)).toBeNull();
+      expect(container.querySelector('[data-slot="link-preview-skeleton"]')).toBeNull();
+      expect(container.querySelector('[aria-busy="true"]')).toBeNull();
     });
 
     it('görsel varken önizleme kartı yok ([LPV-04])', () => {
-      renderCard(POST_WITH_MEDIA);
-      expect(screen.queryByTestId('link-preview-card')).toBeNull();
+      const { container } = renderCard(POST_WITH_MEDIA);
+      expect(previewCard(container)).toBeNull();
       expect(screen.getByRole('img', { name: 'Gönderi görseli' })).toHaveAttribute(
         'src',
         FIXTURE_MEDIA_URL
@@ -132,19 +140,59 @@ describe('PostCard', () => {
       ['başlıksız', 'https://ornek.com/x', null],
       ['boş başlık', 'https://ornek.com/x', '   '],
     ])('%s → kart yok', (_label, url, title) => {
-      renderCard({
+      const { container } = renderCard({
         ...POST_ALL_ENTITIES,
         linkPreview: { status: 'ready', url, siteName: null, title, description: null },
       });
-      expect(screen.queryByTestId('link-preview-card')).toBeNull();
+      expect(previewCard(container)).toBeNull();
     });
   });
 
-  it('eski görsel yalnızca https ise gösterilir', () => {
-    renderCard({ ...POST_ALL_ENTITIES, mediaUrl: 'javascript:alert(1)' });
-    expect(screen.queryByRole('img')).toBeNull();
-    renderCard({ ...POST_ALL_ENTITIES, mediaUrl: 'http://ornek.com/a.png' });
-    expect(screen.queryByRole('img')).toBeNull();
+  describe('eski medya ve avatar: yalnızca Firebase Storage', () => {
+    it.each([
+      ['javascript:', 'javascript:alert(1)'],
+      ['http', 'http://firebasestorage.googleapis.com/v0/b/x/o/a.png'],
+      ['üçüncü taraf host', 'https://ornek.com/a.png'],
+      ['allowlist alt alan adı', 'https://evil.firebasestorage.googleapis.com/a.png'],
+      ['allowlist benzeri host', 'https://firebasestorage.googleapis.com.evil.com/a.png'],
+      ['port', 'https://storage.googleapis.com:8443/b/a.png'],
+    ])('%s gösterilmez', (_label, mediaUrl) => {
+      renderCard({ ...POST_ALL_ENTITIES, mediaUrl });
+      expect(screen.queryByRole('img')).toBeNull();
+    });
+
+    it('Firebase Storage görseli Referer göndermeden yüklenir', () => {
+      renderCard(POST_WITH_MEDIA);
+      expect(screen.getByRole('img', { name: 'Gönderi görseli' })).toHaveAttribute(
+        'referrerpolicy',
+        'no-referrer'
+      );
+    });
+
+    it('görsel host engelliyse önizleme kartı gösterilebilir (boş medya kutusu yok)', () => {
+      const { container } = renderCard({ ...POST_WITH_MEDIA, mediaUrl: 'https://ornek.com/a.png' });
+      expect(screen.queryByRole('img')).toBeNull();
+      expect(container.querySelector('[data-slot="link-preview-card"]')).not.toBeNull();
+    });
+  });
+
+  describe('toSafeMediaSrc', () => {
+    it.each([
+      'https://firebasestorage.googleapis.com/v0/b/ornek/o/a.png?alt=media',
+      'https://storage.googleapis.com/ornek-bucket/a.png',
+    ])('%s kabul edilir', src => {
+      expect(toSafeMediaSrc(src)).toBe(src);
+    });
+
+    it.each([
+      'https://lh3.googleusercontent.com/a/x',
+      'https://ornek.com/a.png',
+      'https://user:pw@storage.googleapis.com/a.png',
+      'data:image/png;base64,AAAA',
+      'bozuk url',
+    ])('%s reddedilir', src => {
+      expect(toSafeMediaSrc(src)).toBeNull();
+    });
   });
 
   it('sayaçlar: kısaltılmış görünür, ekran okuyucuya tam ve birimli', () => {

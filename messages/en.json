@@ -115,8 +115,6 @@
     },
     "loading": "Loading post",
     "error": "Couldn't load the post.",
-    "unavailable": "This post was removed or can no longer be viewed.",
-    "linkPreviewLoading": "Loading link preview",
-    "linkPreviewName": "{title}, {host} (opens in a new tab)"
+    "unavailable": "This post was removed or can no longer be viewed."
   }
 }

@@ -261,8 +261,10 @@ UndoRedo) — hepsi 3.31.4, `@floating-ui/dom` 1.8.0 (popup konumu).
   uyarısı; fiyat yok, v1 kapsamı). hashtag → `/etiket/<slug>`. mention → `/u/<güncel ad>`.
 - url → `<a href={href} target="_blank" rel="nofollow ugc noopener noreferrer">`; `href`
   render anında yeniden doğrulanır (yalnızca `http:`/`https:`; aksi halde düz metin). Görünen
-  metin: şema atılmış, 40 karakterde `…` ile kısaltılmış hâl; tam URL `title`'da. Host
-  punycode gösterilir (homograf).
+  metin: şema atılmış, 32 karakterde `…` ile kısaltılmış hâl (tasarım §5, `URL_DISPLAY_MAX`);
+  tam URL `title`'da. Host punycode gösterilir (homograf). Uzun host ortadan kesilir; kayıtlı
+  alan adı (eTLD+1) her zaman görünür (`kap.org.tr.bildi…-12345.evil.com`). Path yüzde kodları
+  çözülerek, bidi/görünmez karakterler atılarak gösterilir.
 - Entity offset'leri metinle uyuşmazsa (bozuk veri) `RichText` o entity'yi atlar, log yazar,
   düz metin render eder — asla throw etmez.
 - Eski `useHighlightUrls` deseni (DOM'a `innerHTML`) yeniden üretilmez.

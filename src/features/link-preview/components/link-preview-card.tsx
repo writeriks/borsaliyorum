@@ -2,6 +2,7 @@ import { Globe } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { ReactElement } from 'react';
 
+import { UGC_LINK_REL } from '@/components/rich-text/entity-routes';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
@@ -26,7 +27,7 @@ export const LinkPreviewCard = ({ preview, className }: LinkPreviewCardProps): R
     <a
       href={preview.url}
       target='_blank'
-      rel='noopener noreferrer nofollow ugc'
+      rel={UGC_LINK_REL}
       aria-label={t('cardLabel', { title: preview.title, host: preview.host })}
       data-slot='link-preview-card'
       className={cn(CARD_CLASS, 'transition-colors hover:bg-bg-muted', className)}

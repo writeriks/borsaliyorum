@@ -5,17 +5,27 @@ import { type ReactElement, type ReactNode, useEffect, useRef, useState } from '
 
 import { cn } from '@/lib/utils';
 
-type ClampedBodyProps = { id: string; children: ReactNode };
+import { readMoreReserveFor } from './clamp-estimate';
+
+type ClampedBodyProps = {
+  id: string;
+  /** Gövdenin düz metni: buton satırının sunucuda ayrılması için uzunluk tahmini. */
+  text: string;
+  children: ReactNode;
+};
 
 /**
- * Akışta gövde 6 satırla sınırlı, taşarsa "Devamını gör" (tasarım §3.2, §7.4). Buton yalnızca
- * gerçekten taşan metinde görünür; ölçüm istemcide, sunucu HTML'i zaten kırpılmış gelir (CLS yok).
+ * Akışta gövde 6 satırla sınırlı, taşarsa "Devamını gör" (tasarım §3.2, §7.4). Buton satırının
+ * yeri sunucuda metin uzunluğundan tahminle ayrılır (CLS yok); istemci yalnızca ölçer ve gerçekten
+ * taşan metinde butonu görünür yapar, taşmayanda yer görünmez kalır. Hidrasyondan önce buton
+ * görünmez: JS'siz çalışmayan bir buton gösterilmez.
  */
-export const ClampedBody = ({ id, children }: ClampedBodyProps): ReactElement => {
+export const ClampedBody = ({ id, text, children }: ClampedBodyProps): ReactElement => {
   const t = useTranslations('post');
   const ref = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [overflowing, setOverflowing] = useState(false);
+  const reserve = readMoreReserveFor(text);
 
   useEffect(() => {
     const element = ref.current;
@@ -34,18 +44,29 @@ export const ClampedBody = ({ id, children }: ClampedBodyProps): ReactElement =>
     return () => observer.disconnect();
   }, [expanded]);
 
+  const visible = overflowing || expanded;
+  // Tahmin taşmayı kaçırdıysa buton yine eklenir (okunamayan metin, kaymadan daha kötü).
+  const rendered = visible || reserve !== 'none';
+
   return (
     <div className='flex flex-col items-start'>
       <div id={id} ref={ref} className={cn('w-full', !expanded && 'line-clamp-6')}>
         {children}
       </div>
-      {overflowing || expanded ? (
+      {rendered ? (
         <button
           type='button'
           aria-expanded={expanded}
           aria-controls={id}
+          aria-hidden={visible ? undefined : true}
+          tabIndex={visible ? undefined : -1}
+          data-reserve={reserve}
           onClick={() => setExpanded(value => !value)}
-          className='inline-flex min-h-hit items-center text-sm font-medium text-accent hover:underline'
+          className={cn(
+            'inline-flex min-h-hit items-center text-sm font-medium text-accent hover:underline',
+            !visible && 'invisible',
+            !visible && reserve === 'narrow' && 'sm:hidden'
+          )}
         >
           {expanded ? t('readLess') : t('readMore')}
         </button>

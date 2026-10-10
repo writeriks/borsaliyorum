@@ -105,6 +105,15 @@ describe('buildSegments', () => {
     ['ticker gramer dışı', '$th/x', { type: 'cashtag', start: 0, end: 5, ticker: 'TH/X' }],
     ['hashtag slug uyuşmuyor', '#bist100', { type: 'hashtag', start: 0, end: 8, slug: 'bist30' }],
     ['hashtag slug yol içeriyor', '#a/b', { type: 'hashtag', start: 0, end: 4, slug: 'a/b' }],
+    // Savunma derinliği: render'da slug toHashtagSlug ile yeniden doğrulanır
+    ['hashtag slug ".."', '#..', { type: 'hashtag', start: 0, end: 3, slug: '..' }],
+    ['hashtag slug "."', '#.', { type: 'hashtag', start: 0, end: 2, slug: '.' }],
+    ['hashtag harfsiz', '#2026', { type: 'hashtag', start: 0, end: 5, slug: '2026' }],
+    [
+      'hashtag Latin+Kiril karışık',
+      '#ВIST100',
+      { type: 'hashtag', start: 0, end: 8, slug: 'вist100' },
+    ],
     [
       'mention tetikleyicisiz',
       'aysek',
