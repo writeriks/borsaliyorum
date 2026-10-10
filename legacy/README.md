@@ -1,3 +1,8 @@
+> **v1 referans kodu.** Bu dizin eski uygulamadır (Next 14, Prisma 5, Redux). Yalnızca iş
+> kuralı ve veri modeli referansı olarak durur; build, lint, type-check ve test kapsamı
+> dışındadır ve çalıştırılmaz. v2 repo kökündedir (bkz. `docs/plan/kararlar.md` K1).
+> Aşağıdaki yönergeler tarihseldir.
+
 ## Getting Started
 
 First, run the development server:
