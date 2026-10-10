@@ -41,8 +41,7 @@ export const ThemeToggle = ({
   const { theme, setTheme } = useTheme();
 
   return (
-    // Modal değil: modal menü kardeşlere aria-hidden koyar ama odaklanabilirlikleri kalır (axe aria-hidden-focus)
-    <DropdownMenu modal={false}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant='ghost'

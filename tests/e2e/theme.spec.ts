@@ -1,6 +1,26 @@
+import { readFileSync } from 'node:fs';
+
 import { expect, type Page, test } from '@playwright/test';
 
 import tr from '../../messages/tr.json' with { type: 'json' };
+import { parseHslTriplet } from '../../src/lib/color/contrast';
+
+/**
+ * Beklenen zemin rengi tokens.css'ten hesaplanır: token değişince test sabit rgb yüzünden
+ * kırılmasın, yalnızca gerçek tema hatasını yakalasın.
+ */
+const tokensCss = readFileSync(new URL('../../src/app/tokens.css', import.meta.url), 'utf8');
+
+const tokenRgb = (selector: ':root' | '.dark', token: string): string => {
+  const escaped = selector.replace('.', '\\.');
+  const block = new RegExp(`(?:^|\\n)${escaped}\\s*\\{([^}]*)\\}`).exec(tokensCss)?.[1];
+  const value = block && new RegExp(`--${token}\\s*:\\s*([^;]+);`).exec(block)?.[1];
+  if (!value) throw new Error(`${selector} --${token} tokens.css'te yok`);
+  const [r, g, b] = parseHslTriplet(value).map(Math.round);
+  return `rgb(${r}, ${g}, ${b})`;
+};
+
+const BG = { dark: tokenRgb('.dark', 'bg'), light: tokenRgb(':root', 'bg') } as const;
 
 type ThemeEvent = { kind: 'class'; old: string | null } | { kind: 'content' };
 
@@ -88,7 +108,7 @@ test.describe('tema', () => {
     await recordThemeTimeline(page);
     await page.goto('/');
     await expectThemeAppliedBeforeContent(page, 'dark');
-    expect(await bodyBackground(page)).toBe('rgb(14, 16, 22)');
+    expect(await bodyBackground(page)).toBe(BG.dark);
   });
 
   test('açık tema seçimi yenilemede flash olmadan korunur ve diğer sayfalara taşınır', async ({
@@ -97,7 +117,7 @@ test.describe('tema', () => {
     await page.goto('/');
     await chooseTheme(page, tr.theme.light);
     await expect(page.locator('html')).toHaveClass(/\blight\b/);
-    expect(await bodyBackground(page)).toBe('rgb(249, 250, 251)');
+    expect(await bodyBackground(page)).toBe(BG.light);
 
     await recordThemeTimeline(page);
     await page.reload();
@@ -105,7 +125,7 @@ test.describe('tema', () => {
 
     await page.goto('/en');
     await expectThemeAppliedBeforeContent(page, 'light');
-    expect(await bodyBackground(page)).toBe('rgb(249, 250, 251)');
+    expect(await bodyBackground(page)).toBe(BG.light);
   });
 
   test('açıktan koyuya dönüş de kalıcı', async ({ page }) => {

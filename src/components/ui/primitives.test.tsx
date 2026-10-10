@@ -80,6 +80,32 @@ describe("UI primitive'leri", () => {
     expect(selected).toEqual(['sil']);
   });
 
+  it.each([
+    { modal: undefined, hidden: false },
+    { modal: true, hidden: true },
+  ])(
+    'DropdownMenu varsayılan modal değil (axe aria-hidden-focus); modal=$modal → aria-hidden=$hidden',
+    async ({ modal, hidden }) => {
+      const user = userEvent.setup();
+      render(
+        <>
+          <a href='#akis'>Akış</a>
+          <DropdownMenu {...(modal === undefined ? {} : { modal })}>
+            <DropdownMenuTrigger>Daha fazla</DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>Sil</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>
+      );
+
+      await user.click(screen.getByRole('button', { name: 'Daha fazla' }));
+      await screen.findByRole('menuitem', { name: 'Sil' });
+      const sibling = document.querySelector('a[href="#akis"]');
+      expect(sibling?.closest('[aria-hidden="true"]') !== null).toBe(hidden);
+    }
+  );
+
   it('Input ve Textarea kontrol sınırını border-strong ile çizer', () => {
     render(
       <>

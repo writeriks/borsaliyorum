@@ -6,7 +6,17 @@ import type { ComponentProps, ReactElement } from 'react';
 
 import { cn } from '@/lib/utils';
 
-export const DropdownMenu = DropdownMenuPrimitive.Root;
+/**
+ * Varsayılan `modal={false}`: modal menü açıkken Radix kardeş ağaca `aria-hidden` koyar ama
+ * oradaki öğeler odaklanabilir kalır → axe `aria-hidden-focus` ihlali. Menü yine Esc / dış
+ * tıklama ile kapanır ve odağı tetikleyiciye döndürür; gerçekten modal gereken yer açıkça verir.
+ */
+export const DropdownMenu = ({
+  modal = false,
+  ...props
+}: ComponentProps<typeof DropdownMenuPrimitive.Root>): ReactElement => (
+  <DropdownMenuPrimitive.Root modal={modal} {...props} />
+);
 export const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 export const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 export const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
@@ -55,11 +65,11 @@ export const DropdownMenuRadioItem = ({
 }: ComponentProps<typeof DropdownMenuPrimitive.RadioItem>): ReactElement => (
   <DropdownMenuPrimitive.RadioItem
     data-slot='dropdown-menu-radio-item'
-    className={cn(itemClasses, 'pr-9', className)}
+    className={cn(itemClasses, 'pr-8', className)}
     {...props}
   >
     {children}
-    <span className='absolute right-3 inline-flex items-center'>
+    <span className='absolute right-2 inline-flex items-center'>
       <DropdownMenuPrimitive.ItemIndicator>
         <Check aria-hidden='true' />
       </DropdownMenuPrimitive.ItemIndicator>

@@ -30,7 +30,7 @@ export const NavLink = ({ href, label, icon, variant, trailing }: NavLinkProps):
         href={href}
         aria-current={active ? 'page' : undefined}
         className={cn(
-          'flex min-h-hit min-w-hit flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-xs',
+          'flex min-h-hit min-w-hit flex-1 flex-col items-center justify-center gap-1 rounded-md px-1 text-xs',
           'text-fg-muted transition-colors duration-(--duration-fast) hover:text-fg',
           'aria-[current=page]:font-semibold aria-[current=page]:text-fg [&_svg]:size-6'
         )}

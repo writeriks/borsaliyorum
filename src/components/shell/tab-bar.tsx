@@ -14,7 +14,7 @@ const TabSkeleton = ({ label }: { label?: string }): ReactElement => (
   <li className='flex min-h-hit flex-1 flex-col items-center justify-center gap-1' aria-busy='true'>
     {label ? <span className='sr-only'>{label}</span> : null}
     <Skeleton className='size-6 rounded-full' />
-    <Skeleton className='h-2.5 w-10' />
+    <Skeleton className='h-3 w-10' />
   </li>
 );
 
