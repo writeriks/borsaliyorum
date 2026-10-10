@@ -1,0 +1,107 @@
+/*
+ * Borsalıyorum v2 tasarım token'ları.
+ * Kaynak: docs/design/tokens.css + docs/design/v2-design-system.md (ui-ux-designer).
+ *
+ * - Renkler "H S% L%" biçiminde; Tailwind'e `@theme inline` ile `hsl(var(--x))` olarak bağlanır
+ *   (globals.css). Bileşende ham hex/HSL yazılmaz.
+ * - Açık tema `:root`, koyu tema `.dark` (next-themes, defaultTheme="dark").
+ * - Kontrast eşikleri `src/app/tokens.test.ts` ile her iki temada otomatik ölçülür;
+ *   buradaki bir değer değişirse test yeniden hesaplar.
+ * - Tipografi, radius, easing ve layout ölçüleri Tailwind teması olduğu için globals.css `@theme`'de.
+ *   Gölgeler `--elevation-*` adını taşır: Tailwind'in `--shadow-*` tema değişkenleriyle çakışmasın.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Yüzeyler */
+  --bg: 220 20% 98%;
+  --bg-subtle: 0 0% 100%;
+  --bg-elevated: 0 0% 100%;
+  --bg-muted: 220 18% 94%;
+  --overlay: 224 30% 6%;
+
+  /* Metin */
+  --fg: 222 32% 11%;
+  --fg-muted: 220 12% 34%;
+  --fg-subtle: 220 9% 42%;
+
+  /* Çizgiler: --border dekoratif, kontrol sınırı --border-strong (≥3:1) */
+  --border: 220 14% 89%;
+  --border-strong: 220 9% 54%;
+
+  /* Marka / aksiyon / link (tek vurgu rengi) */
+  --accent: 228 74% 48%;
+  --accent-fg: 0 0% 100%;
+  --accent-subtle: 228 85% 95%;
+
+  /* Piyasa yönü: asla tek başına renk değil, ▲ ▼ glifi zorunlu */
+  --up: 150 80% 24%;
+  --up-bg: 145 60% 93%;
+  --down: 358 72% 42%;
+  --down-bg: 0 85% 96%;
+
+  /* Sistem durumları */
+  --success: 150 80% 24%;
+  --info: 210 85% 36%;
+  --warn: 32 95% 30%;
+  --warn-bg: 40 95% 92%;
+  --danger: 0 72% 42%;
+  --danger-bg: 0 85% 96%;
+
+  --focus-ring: 228 74% 48%;
+
+  --elevation-sm: 0 1px 2px 0 hsl(222 32% 11% / 0.06);
+  --elevation-md: 0 4px 12px -2px hsl(222 32% 11% / 0.1), 0 2px 4px -2px hsl(222 32% 11% / 0.06);
+  --elevation-lg: 0 12px 32px -8px hsl(222 32% 11% / 0.18), 0 4px 8px -4px hsl(222 32% 11% / 0.08);
+
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --bg: 224 24% 7%;
+  --bg-subtle: 224 20% 10%;
+  --bg-elevated: 224 17% 13%;
+  --bg-muted: 224 15% 16%;
+  --overlay: 224 40% 2%;
+
+  --fg: 220 25% 94%;
+  --fg-muted: 220 12% 70%;
+  --fg-subtle: 220 9% 60%;
+
+  --border: 224 13% 19%;
+  --border-strong: 222 9% 46%;
+
+  --accent: 226 100% 74%;
+  --accent-fg: 226 40% 8%;
+  --accent-subtle: 226 45% 19%;
+
+  --up: 148 62% 50%;
+  --up-bg: 150 45% 13%;
+  --down: 0 88% 68%;
+  --down-bg: 0 45% 15%;
+
+  --success: 148 62% 50%;
+  --info: 210 90% 70%;
+  --warn: 38 92% 62%;
+  --warn-bg: 38 50% 13%;
+  --danger: 0 88% 68%;
+  --danger-bg: 0 45% 15%;
+
+  --focus-ring: 226 100% 74%;
+
+  /* Koyu temada gölge zayıf algılanır; yükselti --bg-elevated + 1px --border ile */
+  --elevation-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.4);
+  --elevation-md: 0 4px 12px -2px hsl(0 0% 0% / 0.5);
+  --elevation-lg: 0 16px 40px -8px hsl(0 0% 0% / 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+  }
+}

@@ -27,9 +27,10 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     launchOptions: { executablePath },
   },
+  // Yalnızca bir cihaza ait testler etiketle ayrılır (`{ tag: '@mobile' }`); etiketsizler ikisinde de koşar
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'mobile', use: { ...devices['Pixel 7'] } },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] }, grepInvert: /@mobile/ },
+    { name: 'mobile', use: { ...devices['Pixel 7'] }, grepInvert: /@desktop/ },
   ],
   webServer: {
     // E2E kendi build'ini alır (ADR-0003); S5'te emulator env'i bu build'e eklenecek

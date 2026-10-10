@@ -14,6 +14,57 @@
     "description": "Aradığın sayfa taşınmış ya da hiç var olmamış olabilir.",
     "backHome": "Ana sayfaya dön"
   },
+  "common": {
+    "retry": "Tekrar dene",
+    "login": "Giriş yap",
+    "signup": "Kayıt ol",
+    "close": "Kapat"
+  },
+  "shell": {
+    "skipToContent": "İçeriğe geç",
+    "brand": "borsalıyorum",
+    "homeLabel": "Borsalıyorum ana sayfa",
+    "mainNav": "Ana menü",
+    "nav": {
+      "feed": "Akış",
+      "explore": "Keşfet",
+      "compose": "Gönderi",
+      "notifications": "Bildirimler",
+      "profile": "Profil",
+      "settings": "Ayarlar",
+      "search": "Ara"
+    },
+    "composeCta": "Gönderi paylaş",
+    "accountLoading": "Hesap bilgisi yükleniyor",
+    "joinPrompt": "Sohbete katıl:",
+    "aside": "Gündem",
+    "trendingTitle": "Son 24 saatte en çok bahsedilenler",
+    "trendingEmpty": "Gündem listesi yakında burada olacak. Şimdilik akışa göz at.",
+    "trendingEmptyAction": "Akışa git",
+    "legalNav": "Yasal",
+    "footer": {
+      "disclaimerLink": "Yatırım uyarısı",
+      "privacy": "KVKK Aydınlatma Metni",
+      "terms": "Kullanım Koşulları",
+      "copyright": "© Borsalıyorum"
+    }
+  },
+  "theme": {
+    "menuLabel": "Tema",
+    "toggle": "Temayı değiştir",
+    "dark": "Koyu",
+    "light": "Açık",
+    "system": "Sistem"
+  },
+  "legal": {
+    "disclaimer": {
+      "short": "Paylaşımlar yazarlarının kişisel görüşüdür, yatırım tavsiyesi değildir.",
+      "comment": "Yorumlar kişisel görüştür, yatırım tavsiyesi değildir.",
+      "more": "Ayrıntılar",
+      "title": "Yatırım tavsiyesi değildir",
+      "full": "Burada yer alan yatırım bilgi, yorum ve tavsiyeleri yatırım danışmanlığı kapsamında değildir. Yatırım danışmanlığı hizmeti, aracı kurumlar, portföy yönetim şirketleri, mevduat kabul etmeyen bankalar ile müşteri arasında imzalanacak yatırım danışmanlığı sözleşmesi çerçevesinde sunulmaktadır. Burada yer alan yorum ve tavsiyeler, yorum ve tavsiyede bulunanların kişisel görüşlerine dayanmaktadır. Bu görüşler mali durumunuz ile risk ve getiri tercihlerinize uygun olmayabilir. Bu nedenle, sadece burada yer alan bilgilere dayanılarak yatırım kararı verilmesi beklentilerinize uygun sonuçlar doğurmayabilir."
+    }
+  },
   "errors": {
     "UNAUTHENTICATED": "Bu işlem için giriş yapmalısın.",
     "FORBIDDEN": "Bu işlem için yetkin yok.",

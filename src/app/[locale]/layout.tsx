@@ -1,12 +1,27 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { ReactElement, ReactNode } from 'react';
 
+import { Providers } from '@/components/providers';
 import { routing } from '@/i18n/routing';
 
 import '../globals.css';
+
+// Türkçe ğ Ğ ş Ş ı İ Latin Extended-A'da: yalnızca `latin` yüklenirse fallback fonttan gelir
+const inter = Inter({
+  subsets: ['latin', 'latin-ext'],
+  display: 'swap',
+  variable: '--font-inter',
+});
+
+export const viewport: Viewport = {
+  // Tarayıcı kontrolleri (kaydırma çubuğu, form) temaya uysun; asıl renkler token'lardan
+  colorScheme: 'dark light',
+  viewportFit: 'cover',
+};
 
 type LocaleParams = { params: Promise<{ locale: string }> };
 
@@ -29,9 +44,12 @@ const LocaleLayout = async ({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale}>
+    // suppressHydrationWarning: next-themes tema sınıfını hidrasyondan önce <html>'e yazar
+    <html lang={locale} className={inter.variable} suppressHydrationWarning>
       <body className='min-h-dvh antialiased'>
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          <Providers>{children}</Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

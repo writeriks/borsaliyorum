@@ -35,6 +35,15 @@ describe('mesaj katalogları', () => {
     }
   });
 
+  it('kısa yatırım uyarısı ≤ 120 karakter (docs/legal/composer-metinleri.md)', () => {
+    for (const [locale, messages] of Object.entries(catalogs)) {
+      for (const key of ['legal.disclaimer.short', 'legal.disclaimer.comment']) {
+        expect(messages[key]?.length ?? 0, `${locale} ${key}`).toBeGreaterThan(0);
+        expect(messages[key]?.length ?? 0, `${locale} ${key}`).toBeLessThanOrEqual(120);
+      }
+    }
+  });
+
   it('her ErrorCode için iki dilde de kullanıcı mesajı var', () => {
     for (const code of ERROR_CODES) {
       expect(catalogs.tr[`errors.${code}`], `tr errors.${code}`).toBeTruthy();
