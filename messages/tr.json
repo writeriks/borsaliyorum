@@ -73,5 +73,46 @@
     "CONFLICT": "Bu işlem şu anda tamamlanamıyor. Sayfayı yenileyip tekrar dene.",
     "RATE_LIMITED": "Çok fazla deneme yaptın. Biraz bekleyip tekrar dene.",
     "INTERNAL": "Bir şeyler ters gitti. Lütfen tekrar dene."
+  },
+  "entity": {
+    "newTab": "(yeni sekmede açılır)",
+    "cashtagName": "{text}, {company}",
+    "mentionName": "{text}, {name}"
+  },
+  "hovercard": {
+    "stockPage": "Hisse sayfası",
+    "kap": "KAP",
+    "tradingview": "TradingView",
+    "mentions24h": "Son 24 saatte {count} gönderi",
+    "statsLoading": "Gönderi sayısı yükleniyor",
+    "follow": "Takip et",
+    "followLoading": "Takip durumu yükleniyor",
+    "market": {
+      "stock": "BIST · Pay",
+      "crypto": "Kripto",
+      "other": "Diğer"
+    }
+  },
+  "post": {
+    "cardLabel": "Gönderi",
+    "sponsoredLabel": "Reklam / İşbirliği",
+    "sentiment": {
+      "bullish": "Yükseliş",
+      "bearish": "Düşüş"
+    },
+    "readMore": "Devamını gör",
+    "readLess": "Daha az göster",
+    "mediaAlt": "Gönderi görseli",
+    "stats": {
+      "label": "Etkileşimler",
+      "comments": "{count, plural, other {# yorum}}",
+      "reposts": "{count, plural, other {# yeniden paylaşım}}",
+      "likes": "{count, plural, other {# beğeni}}"
+    },
+    "loading": "Gönderi yükleniyor",
+    "error": "Gönderi yüklenemedi.",
+    "unavailable": "Bu gönderi kaldırılmış ya da artık görüntülenemiyor.",
+    "linkPreviewLoading": "Bağlantı önizlemesi yükleniyor",
+    "linkPreviewName": "{title}, {host} (yeni sekmede açılır)"
   }
 }
