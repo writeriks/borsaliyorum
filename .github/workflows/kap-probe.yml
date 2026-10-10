@@ -10,27 +10,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Inspect KAP company summary pages
+      - name: Inspect KAP market pages
         shell: python
         run: |
-          import re, urllib.request
+          import re, urllib.request, base64
           def get(u):
               return urllib.request.urlopen(urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0'}), timeout=60).read().decode('utf-8')
-          for slug in ['1107-turk-hava-yollari-a-o', '1500-turk-altin-isletmeleri-a-s']:
-              h = get('https://www.kap.org.tr/tr/sirket-bilgileri/ozet/' + slug)
-              t = re.sub(r'<[^>]+>', ' ', h.replace('\\"', '"'))
-              t = re.sub(r'\s+', ' ', t)
-              print('=====', slug, len(h))
-              for kw in ['Pazar', 'pazar', 'Endeks', 'market', 'Market']:
-                  for m in list(re.finditer(kw, t))[:4]:
-                      print(kw, '>>', t[max(0, m.start() - 150): m.start() + 200])
-          # bond-only issuer: find KOCFN slug from list page
-          lst = get('https://www.kap.org.tr/tr/bist-sirketler')
-          m = re.search(r'/tr/sirket-bilgileri/ozet/([^"]+)"><div>KOCFN<', lst)
-          print('KOCFN slug', m and m.group(1))
-          if m:
-              h = get('https://www.kap.org.tr/tr/sirket-bilgileri/ozet/' + m.group(1))
-              t = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', h.replace('\\"', '"')))
-              for kw in ['Pazar', 'pazar', 'Endeks', 'market', 'Market']:
-                  for mm in list(re.finditer(kw, t))[:4]:
-                      print('KOCFN', kw, '>>', t[max(0, mm.start() - 150): mm.start() + 200])
+          h = get('https://www.kap.org.tr/tr/Pazarlar')
+          t = h.replace('\\"', '"')
+          markets = sorted(set(re.findall(r'market=([A-Za-z0-9+/=_-]+)', t)))
+          print('market params', len(markets))
+          for m in markets:
+              try: print(m, '=>', base64.b64decode(m + '=' * (-len(m) % 4)).decode('utf-8'))
+              except Exception as e: print(m, 'decode err', e)
+          names = sorted(set(re.findall(r'"(?:marketName|name|title)":"([^"]*PAZAR[^"]*)"', t)))
+          print('names', names[:40])
+          code = base64.b64encode('YILDIZ PAZAR'.encode()).decode().rstrip('=')
+          p = get('https://www.kap.org.tr/tr/Pazarlar?market=' + code).replace('\\"', '"')
+          codes = re.findall(r'"stockCode":"([^"]+)"', p)
+          print('YILDIZ stockCode count', len(codes), codes[:15])
+          print('THYAO in yildiz page:', 'THYAO' in p, 'len', len(p))
+          i = p.find('THYAO'); print(p[max(0, i - 600): i + 300])
