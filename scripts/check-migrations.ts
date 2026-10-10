@@ -43,7 +43,13 @@ const CHECK_DB = `${RUN_PREFIX}migcheck`;
 const SHADOW_DB = `${RUN_PREFIX}migcheck_shadow`;
 
 /** Prisma'nın şemada ifade edemediği, migration SQL'inin oluşturduğu nesneler. */
-const EXTRA_FUNCTIONS = ['fold_tag', 'content_event_guard', 'content_event_purge'];
+const EXTRA_FUNCTIONS = [
+  'fold_tag',
+  'hashtag_slug',
+  'legacy_tag_slug',
+  'content_event_guard',
+  'content_event_purge',
+];
 const EXTRA_TRIGGERS = ['content_event_append_only', 'content_event_no_truncate'];
 const EXTRA_INDEXES = ['User_username_lower_pattern_idx'];
 

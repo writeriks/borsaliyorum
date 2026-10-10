@@ -1,8 +1,79 @@
 -- M1 veri: v2 kullanıcı adı kuralına uyan mevcut hesaplar onboarding'i tamamlamış sayılır.
--- Uymayanlar (ör. Google girişinde username = e-posta, audit bulgu H) ilk girişte onboarding'e
--- düşer ve yeni kullanıcı adı seçer. Yalnızca NULL olanlar güncellenir (tekrar çalıştırılabilir).
+-- Uymayanlar (ör. Google girişinde username = e-posta, audit bulgu H) ve REZERVE adlar (admin,
+-- spk, borsaliyorum…; liste: src/lib/users/reserved-usernames.ts ile aynı, unit test doğrular)
+-- ilk girişte onboarding'e düşer ve yeni kullanıcı adı seçer. Yalnızca NULL olanlar güncellenir
+-- (tekrar çalıştırılabilir).
 
 UPDATE "User"
 SET "onboardedAt" = "createdAt"
 WHERE "onboardedAt" IS NULL
-  AND "username" ~ '^[a-z0-9_]{3,20}$';
+  AND "username" ~ '^[a-z0-9_]{3,20}$'
+  AND "username" <> ALL (ARRAY[
+    'admin',
+    'administrator',
+    'root',
+    'system',
+    'sistem',
+    'moderator',
+    'mod',
+    'staff',
+    'ekip',
+    'team',
+    'support',
+    'destek',
+    'help',
+    'yardim',
+    'official',
+    'resmi',
+    'security',
+    'guvenlik',
+    'legal',
+    'hukuk',
+    'kvkk',
+    'iletisim',
+    'contact',
+    'info',
+    'bilgi',
+    'noreply',
+    'no_reply',
+    'borsaliyorum',
+    'borsaliyorumcom',
+    'borsaliyorum_tr',
+    'spk',
+    'kap',
+    'bist',
+    'borsaistanbul',
+    'borsa_istanbul',
+    'tcmb',
+    'merkezbankasi',
+    'masak',
+    'btk',
+    'bddk',
+    'mkk',
+    'takasbank',
+    'api',
+    'www',
+    'mail',
+    'akis',
+    'kesfet',
+    'bildirimler',
+    'profil',
+    'ayarlar',
+    'settings',
+    'giris',
+    'kayit',
+    'cikis',
+    'login',
+    'logout',
+    'signup',
+    'register',
+    'gonderi',
+    'hisse',
+    'etiket',
+    'arama',
+    'search',
+    'null',
+    'undefined',
+    'anonymous',
+    'anonim'
+  ]::text[]);

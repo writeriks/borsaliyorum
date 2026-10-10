@@ -56,9 +56,21 @@ const insertPost = async (client: Client, userId: number, tagIds: number[]): Pro
 };
 
 type Fixture = {
-  tags: Record<'upper' | 'lower' | 'dotted' | 'dotless' | 'seker' | 'Seker' | 'long', number>;
+  tags: Record<
+    | 'upper'
+    | 'lower'
+    | 'dotted'
+    | 'dotless'
+    | 'seker'
+    | 'Seker'
+    | 'long'
+    | 'kar'
+    | 'kAr'
+    | 'homograph',
+    number
+  >;
   posts: Record<'p1' | 'p2' | 'p3' | 'p4', number>;
-  users: Record<'valid' | 'email' | 'upper', number>;
+  users: Record<'valid' | 'email' | 'upper' | 'reserved', number>;
 };
 
 let fixture: Fixture;
@@ -74,6 +86,8 @@ beforeAll(async () => {
       valid: await insertUser(client, 'ali_veli', '2025-01-01T10:00:00Z'),
       email: await insertUser(client, 'ayse@gmail.com', '2025-01-02T10:00:00Z'),
       upper: await insertUser(client, 'Mehmet', '2025-01-03T10:00:00Z'),
+      // Kurala uyar ama rezerve: yeniden ad seçmeye zorlanmalı
+      reserved: await insertUser(client, 'spk', '2025-01-04T10:00:00Z'),
     };
     const tags = {
       upper: await insertTag(client, '#BIST100', '2025-02-01T00:00:00Z'),
@@ -83,6 +97,9 @@ beforeAll(async () => {
       seker: await insertTag(client, '#şeker', '2025-02-01T00:00:00Z'),
       Seker: await insertTag(client, '#Şeker', '2025-01-15T00:00:00Z'),
       long: await insertTag(client, `#${'a'.repeat(70)}`, '2025-01-01T00:00:00Z'),
+      kar: await insertTag(client, '#kar', '2025-06-01T00:00:00Z'),
+      kAr: await insertTag(client, '#KÂR', '2025-05-01T00:00:00Z'),
+      homograph: await insertTag(client, '#ВIST100', '2025-01-01T00:00:00Z'),
     };
     const posts = {
       p1: await insertPost(client, users.valid, [tags.upper]),
@@ -148,10 +165,16 @@ describe('Tag.slug backfill', () => {
   });
 
   it('leaves tags that cannot be v2 hashtags without a slug', async () => {
-    const rows = await query<{ slug: string | null }>(`SELECT slug FROM "Tag" WHERE "tagId" = $1`, [
-      fixture.tags.long,
-    ]);
-    expect(rows).toEqual([{ slug: null }]);
+    const rows = await query<{ slug: string | null }>(
+      `SELECT slug FROM "Tag" WHERE "tagId" = ANY($1)`,
+      [[fixture.tags.long, fixture.tags.homograph]]
+    );
+    expect(rows).toEqual([{ slug: null }, { slug: null }]);
+  });
+
+  it('folds circumflex letters like the TS foldTag (#KÂR = #kar, oldest wins)', async () => {
+    const rows = await query<{ tagId: number }>(`SELECT "tagId" FROM "Tag" WHERE slug = 'kar'`);
+    expect(rows).toEqual([{ tagId: fixture.tags.kAr }]);
   });
 
   it('fold_tag matches ADR-0002 foldTag examples', async () => {
@@ -163,7 +186,7 @@ describe('Tag.slug backfill', () => {
 });
 
 describe('User.onboardedAt backfill', () => {
-  it('marks only usernames matching the v2 rule as onboarded', async () => {
+  it('marks only non-reserved usernames matching the v2 rule as onboarded', async () => {
     const rows = await query<{ userId: number; onboarded: boolean }>(
       `SELECT "userId", "onboardedAt" = "createdAt" AS onboarded FROM "User" ORDER BY "userId"`
     );
@@ -172,7 +195,11 @@ describe('User.onboardedAt backfill', () => {
     );
 
     expect(rows.find(r => r.userId === fixture.users.valid)?.onboarded).toBe(true);
-    expect(nulls.map(r => r.userId)).toEqual([fixture.users.email, fixture.users.upper]);
+    expect(nulls.map(r => r.userId)).toEqual([
+      fixture.users.email,
+      fixture.users.upper,
+      fixture.users.reserved,
+    ]);
   });
 });
 
