@@ -10,21 +10,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Inspect KAP JSON objects
+      - name: Inspect KAP company summary pages
         shell: python
         run: |
-          import re, urllib.request, collections
-          req = urllib.request.Request('https://www.kap.org.tr/tr/bist-sirketler', headers={'User-Agent': 'Mozilla/5.0'})
-          html = urllib.request.urlopen(req, timeout=60).read().decode('utf-8')
-          t = html.replace('\\"', '"')
-          objs = re.findall(r'\{[^{}]{0,2000}?"kapMemberType":"[A-Z]+"[^{}]{0,500}\}', t)
-          print('objects', len(objs))
-          print('types', collections.Counter(re.findall(r'"kapMemberType":"([A-Z]+)"', t)))
-          keys = collections.Counter(k for o in objs for k in re.findall(r'"([A-Za-z]+)":', o))
-          print('keys', keys.most_common(30))
-          for c in ['THYAO', 'GARAN', 'ISFAK', 'A1CAP', 'KOCFN']:
-              hit = [o for o in objs if re.search(r'"' + c + r'[",]| ' + c + r'[",]', o)]
-              print('===', c, len(hit))
-              for o in hit[:2]: print(o[:900])
-          i = html.find('>THYAO<')
-          print('=== row html'); print(html[max(0, i - 900): i + 900])
+          import re, urllib.request
+          def get(u):
+              return urllib.request.urlopen(urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0'}), timeout=60).read().decode('utf-8')
+          for slug in ['1107-turk-hava-yollari-a-o', '1500-turk-altin-isletmeleri-a-s']:
+              h = get('https://www.kap.org.tr/tr/sirket-bilgileri/ozet/' + slug)
+              t = re.sub(r'<[^>]+>', ' ', h.replace('\\"', '"'))
+              t = re.sub(r'\s+', ' ', t)
+              print('=====', slug, len(h))
+              for kw in ['Pazar', 'pazar', 'Endeks', 'market', 'Market']:
+                  for m in list(re.finditer(kw, t))[:4]:
+                      print(kw, '>>', t[max(0, m.start() - 150): m.start() + 200])
+          # bond-only issuer: find KOCFN slug from list page
+          lst = get('https://www.kap.org.tr/tr/bist-sirketler')
+          m = re.search(r'/tr/sirket-bilgileri/ozet/([^"]+)"><div>KOCFN<', lst)
+          print('KOCFN slug', m and m.group(1))
+          if m:
+              h = get('https://www.kap.org.tr/tr/sirket-bilgileri/ozet/' + m.group(1))
+              t = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', h.replace('\\"', '"')))
+              for kw in ['Pazar', 'pazar', 'Endeks', 'market', 'Market']:
+                  for mm in list(re.finditer(kw, t))[:4]:
+                      print('KOCFN', kw, '>>', t[max(0, mm.start() - 150): mm.start() + 200])
