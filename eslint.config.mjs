@@ -76,10 +76,10 @@ export default defineConfig([
       'next.config.ts',
       '**/*.config.*',
       'scripts/**',
-      // Test altyapısı ve seed, test DB URL'sini env'den okur; uygulama koduna girmez
+      // Test DB altyapısı ve seed, test DB URL'sini env'den okur; uygulama koduna girmez
       'prisma/**',
-      'tests/**',
-      '**/*.test.ts',
+      'tests/db/**',
+      'src/lib/db/*.int.test.ts',
       // Yalnız DATABASE_URL'yi şemayla doğrular; getServerEnv() Firebase env'i de ister
       'src/lib/db/index.ts',
     ],
