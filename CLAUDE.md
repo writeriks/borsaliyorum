@@ -10,6 +10,18 @@ Mevcut kod (Next.js 14 + Prisma/Postgres + Firebase Auth + Redux + TanStack Quer
 olarak duruyor; yeni sürüm baştan yazılacak. Eski koddan iş kuralı ve veri modelini öğren,
 kalıplarını kopyalama. Bilinen sorunlar: `docs/audit/`.
 
+## Altyapı ve kararlar
+
+| Konu | Durum |
+|------|-------|
+| Hosting | Vercel |
+| Veritabanı | PostgreSQL (Prisma) — NeonDB olduğu düşünülüyor, doğrulanacak |
+| Auth + dosya depolama | Firebase Auth + Firebase Storage |
+| İstemci durumu | Redux kaldırılacak; sunucu verisi + cache (Next.js cache, TanStack Query) |
+| Moderasyon | Şikayet sistemi + ayrı admin paneli — öncelikli |
+| Premium | İstenen; kapsam araştırılıyor |
+| Hisse fiyat verisi | Yasal durum araştırılıyor; netleşmeden fiyat gösterilmez |
+
 ## Ekip: agent'lar ve skill'ler
 
 Her iş doğru uzmana gider. Ana oturum orkestra şefidir: işi böler, ilgili agent'a verir,
@@ -24,6 +36,7 @@ sonuçları birleştirir.
 | `code-reviewer` | PR/merge öncesi kod review (doğruluk, standartlar, sadeleştirme) |
 | `test-engineer` | PR/merge öncesi test: eksik testleri yazar, akışları gerçekten çalıştırır |
 | `security-reviewer` | Auth, yetkilendirme, kullanıcı içeriği, dosya yükleme içeren her değişiklik |
+| `business-strategist` | Premium/abonelik, fiyatlandırma, gelir modeli, rakip analizi |
 
 | Skill | İçerik |
 |-------|--------|
