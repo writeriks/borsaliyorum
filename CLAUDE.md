@@ -6,9 +6,10 @@ ikincil İngilizce.
 
 ## Durum: Sıfırdan yeniden yazım
 
-Mevcut kod (Next.js 14 + Prisma/Postgres + Firebase Auth + Redux + TanStack Query) **referans**
-olarak duruyor; yeni sürüm baştan yazılacak. Eski koddan iş kuralı ve veri modelini öğren,
-kalıplarını kopyalama. Bilinen sorunlar: `docs/audit/`.
+Yeni sürüm (v2) repo kökünde, eski uygulamanın yerine yazılıyor; eski kod referans için
+`legacy/` altında (build dışı). Eski koddan iş kuralı ve veri modelini öğren, kalıplarını
+kopyalama. Bilinen sorunlar: `docs/audit/`. Kararlar: `docs/plan/kararlar.md`, mimari:
+`docs/adr/`, tasarım: `docs/design/`, plan: `docs/plan/v2-milestone-1.md`.
 
 ## Altyapı ve kararlar
 
@@ -19,7 +20,7 @@ kalıplarını kopyalama. Bilinen sorunlar: `docs/audit/`.
 | Auth + dosya depolama | Firebase Auth + Firebase Storage |
 | İstemci durumu | Redux kaldırılacak; sunucu verisi + cache (Next.js cache, TanStack Query) |
 | Moderasyon | Şikayet sistemi + ayrı admin paneli — öncelikli |
-| Premium | İstenen; kapsam araştırılıyor |
+| Premium | İstenen; v1 premium özellik önerisi hazır, sonraki milestone |
 | Hisse fiyat verisi | v1: fiyatsız (kod, ad, KAP ve TradingView linkleri). TradingView ücretsiz widget'ı BIST verisi göstermiyor. Fiyat için lisanslı dağıtıcı gerekli. Scraping yasak. |
 
 ## Ekip: agent'lar ve skill'ler
