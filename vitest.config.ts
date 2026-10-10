@@ -51,6 +51,8 @@ export default defineConfig({
           include: ['src/**/*.test.tsx'],
           exclude: ['**/*.browser.test.tsx'],
           setupFiles: ['tests/setup/dom.ts'],
+          // next-intl'in ESM'i `next/navigation`'ı uzantısız import eder; Node çözemez → Vite işlesin
+          server: { deps: { inline: ['next-intl'] } },
         },
       },
       {
