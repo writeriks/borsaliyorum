@@ -14,6 +14,57 @@
     "description": "The page you are looking for may have moved or never existed.",
     "backHome": "Back to home"
   },
+  "common": {
+    "retry": "Try again",
+    "login": "Log in",
+    "signup": "Sign up",
+    "close": "Close"
+  },
+  "shell": {
+    "skipToContent": "Skip to content",
+    "brand": "borsalıyorum",
+    "homeLabel": "Borsalıyorum home",
+    "mainNav": "Main menu",
+    "nav": {
+      "feed": "Feed",
+      "explore": "Explore",
+      "compose": "Post",
+      "notifications": "Notifications",
+      "profile": "Profile",
+      "settings": "Settings",
+      "search": "Search"
+    },
+    "composeCta": "Share a post",
+    "accountLoading": "Loading account",
+    "joinPrompt": "Join the conversation:",
+    "aside": "Trending",
+    "trendingTitle": "Most mentioned in the last 24 hours",
+    "trendingEmpty": "The trending list will be here soon. Take a look at the feed for now.",
+    "trendingEmptyAction": "Go to feed",
+    "legalNav": "Legal",
+    "footer": {
+      "disclaimerLink": "Investment disclaimer",
+      "privacy": "Privacy notice (KVKK)",
+      "terms": "Terms of use",
+      "copyright": "© Borsalıyorum"
+    }
+  },
+  "theme": {
+    "menuLabel": "Theme",
+    "toggle": "Change theme",
+    "dark": "Dark",
+    "light": "Light",
+    "system": "System"
+  },
+  "legal": {
+    "disclaimer": {
+      "short": "Posts reflect their authors' personal views and are not investment advice.",
+      "comment": "Replies are personal views, not investment advice.",
+      "more": "Details",
+      "title": "Not investment advice",
+      "full": "The investment information, comments and recommendations here are not investment advisory services. Investment advisory services are provided under an investment advisory agreement signed between the client and brokerage firms, portfolio management companies or non-deposit-taking banks. The comments and recommendations here are based on the personal views of those who make them. These views may not suit your financial situation or your risk and return preferences. Therefore, making an investment decision based solely on the information here may not lead to results that meet your expectations."
+    }
+  },
   "errors": {
     "UNAUTHENTICATED": "You need to sign in to do this.",
     "FORBIDDEN": "You don't have permission to do this.",

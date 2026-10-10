@@ -7,8 +7,8 @@ export const LandingIntro = (): ReactElement => {
 
   return (
     <header className='flex flex-col gap-3'>
-      <h1 className='text-3xl font-semibold'>{t('title')}</h1>
-      <p className='text-base leading-normal'>{t('lead')}</p>
+      <h1 className='text-2xl font-bold tracking-tight'>{t('title')}</h1>
+      <p className='text-md text-fg-muted'>{t('lead')}</p>
     </header>
   );
 };
