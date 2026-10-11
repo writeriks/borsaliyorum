@@ -22,6 +22,9 @@ export const E2E_IP_ENCRYPTION_KEY = Buffer.from('borsaliyorum-e2e-ip-key-000000
   'base64'
 );
 
+/** Yalnızca test: `POST /api/revalidate/stocks` paylaşılan secret'ı (gizli değil). */
+export const E2E_STOCKS_REVALIDATE_SECRET = 'e2e-stocks-revalidate-secret-0000000000';
+
 /** `next build` + `next start` süreçlerine verilen env (build'e gömülen NEXT_PUBLIC_* dahil). */
 export const e2eServerEnv = (): Record<string, string> => ({
   FIREBASE_AUTH_EMULATOR_HOST: AUTH_EMULATOR_HOST,
@@ -39,6 +42,7 @@ export const e2eServerEnv = (): Record<string, string> => ({
   NEXT_PUBLIC_APP_ID: '1:000000000000:web:e2e',
   DATABASE_URL: e2eDatabaseUrl(),
   IP_ENCRYPTION_KEY: E2E_IP_ENCRYPTION_KEY,
+  STOCKS_REVALIDATE_SECRET: E2E_STOCKS_REVALIDATE_SECRET,
   E2E_PORT: String(E2E_PORT),
   NEXT_TELEMETRY_DISABLED: '1',
 });

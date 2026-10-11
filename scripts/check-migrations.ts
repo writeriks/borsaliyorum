@@ -63,7 +63,7 @@ const EXTRA_CONSTRAINTS = [
   'ConsentEvent_text_version_required',
   'LegalIdentityRetention_purge_after_delete',
 ];
-const EXTRA_INDEXES = ['User_username_lower_pattern_idx'];
+const EXTRA_INDEXES = ['User_username_lower_pattern_idx', 'Tag_slug_pattern_idx'];
 
 const failures: string[] = [];
 const step = (message: string): void => console.log(`\n== ${message}`);

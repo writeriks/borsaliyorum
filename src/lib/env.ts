@@ -63,6 +63,18 @@ export const serverEnvSchema = z.object({
   FIREBASE_AUTH_EMULATOR_HOST: optional,
   /** Vercel'in verdiği ortam adı: production | preview | development. */
   VERCEL_ENV: optional,
+  /**
+   * `POST /api/revalidate/stocks` paylaşılan secret'ı (stock sync workflow'u çağırır).
+   * Tanımsızsa uç kapalıdır (404); hisse indeksi yine 24 saatte bir kendiliğinden tazelenir.
+   */
+  STOCKS_REVALIDATE_SECRET: z.preprocess(
+    value => (value === '' ? undefined : value),
+    z
+      .string({ error: message('metin olmalı') })
+      .trim()
+      .min(32, 'en az 32 karakter olmalı')
+      .optional()
+  ),
 });
 
 export const clientEnvSchema = z.object({

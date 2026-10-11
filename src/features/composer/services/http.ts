@@ -47,8 +47,10 @@ const withQuery = (path: string, params: Record<string, string>): string =>
   `${path}?${new URLSearchParams(params).toString()}`;
 
 /**
- * S7 (autocomplete) ve S9 (link önizleme) uçlarının istemcisi. Sözleşme ADR-0002 Karar 4/6 +
- * `types.ts`'teki ekler (`StockIndexItem.m`, `UserSuggestion.following`, önizleme gövdesi).
+ * S7 (autocomplete, `src/app/api/autocomplete/*`) ve S9 (link önizleme) uçlarının istemcisi;
+ * production'da composer bununla çalışır (sahte servis yalnızca `/dev/composer`'da). Sözleşme
+ * ADR-0002 Karar 4/6 + `types.ts`'teki ekler (`StockIndexItem.m`, `UserSuggestion.following`);
+ * önizleme gövdesi S9'un `Result<{ preview }>` zarfıdır.
  */
 export const createHttpComposerServices = (fetchImpl: typeof fetch = fetch): ComposerServices => ({
   stockIndex: signal => getJson(fetchImpl, AUTOCOMPLETE_PATHS.stocks, stockIndexSchema, signal),
@@ -65,8 +67,6 @@ export const createHttpComposerServices = (fetchImpl: typeof fetch = fetch): Com
       linkPreviewResponseSchema,
       signal
     );
-    if (body.status !== 'ok') return null;
-    const { status: _status, ...preview } = body;
-    return preview;
+    return body.data.preview;
   },
 });
