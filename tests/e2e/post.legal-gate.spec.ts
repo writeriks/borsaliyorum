@@ -44,6 +44,6 @@ test('[LGL-GATE] eski yasal sürüm → gönderi denemesi → yeni sürüm ekran
   await expect(editor(page)).toContainText(text);
   await submitButton(page).click();
   await expect(page.getByText(tr.composer.success.post)).toBeVisible();
-  await expect(page.getByTestId('my-posts').getByTestId('post-card').first()).toContainText(text);
+  await expect(page.getByTestId('feed-list').getByTestId('post-card').first()).toContainText(text);
   expect(await postCountOf(account.username)).toBe(1);
 });

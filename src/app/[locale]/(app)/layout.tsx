@@ -1,6 +1,7 @@
 import type { ReactElement, ReactNode } from 'react';
 
 import { AppShell } from '@/components/shell/app-shell';
+import { FeedAside } from '@/features/feed/components/feed-aside';
 import { requireUser } from '@/lib/auth/session';
 
 /**
@@ -17,6 +18,7 @@ const AppLayout = async ({ children }: { children: ReactNode }): Promise<ReactEl
         status: 'authenticated',
         user: { username: user.username, displayName: user.displayName, avatarUrl: user.avatarUrl },
       }}
+      aside={<FeedAside />}
     >
       {children}
     </AppShell>

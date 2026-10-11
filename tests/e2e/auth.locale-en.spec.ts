@@ -31,9 +31,7 @@ test.describe('/en: next yönlendirmesi tek önekli', () => {
 
     await page.waitForURL(url => url.pathname === '/en/akis');
     expect(new URL(page.url()).pathname).not.toContain('/en/en/');
-    await expect(
-      page.getByRole('heading', { level: 1, name: en.feedPlaceholder.title })
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: en.feed.title })).toBeVisible();
     await expect(accountMenu(page)).toBeVisible();
   });
 
@@ -46,8 +44,6 @@ test.describe('/en: next yönlendirmesi tek önekli', () => {
     expect(response?.status()).toBe(200);
     expect(new URL(page.url()).pathname).toBe('/en/akis');
     expect(new URL(page.url()).search).toBe('?sekme=son');
-    await expect(
-      page.getByRole('heading', { level: 1, name: en.feedPlaceholder.title })
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: en.feed.title })).toBeVisible();
   });
 });

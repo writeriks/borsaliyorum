@@ -7,18 +7,18 @@ import { type ReactElement, useTransition } from 'react';
 import { ErrorState } from '@/components/states/error-state';
 
 /**
- * Liste yükleme hatası (satır içi). Tekrar dene sunucu bileşenlerini yeniden ister
- * (`router.refresh`); composer'daki taslak istemci durumu olduğu için korunur.
+ * İlk sayfa yüklenemedi (satır içi; sayfanın geri kalanı ve composer çalışır). Tekrar dene
+ * sunucu bileşenlerini yeniden ister; composer taslağı istemci durumu olduğu için korunur.
  */
-export const RecentPostsError = (): ReactElement => {
-  const t = useTranslations('feedPlaceholder');
+export const FeedLoadError = (): ReactElement => {
+  const t = useTranslations('feed');
   const router = useRouter();
-  const [, startTransition] = useTransition();
+  const [pending, startTransition] = useTransition();
   return (
     <ErrorState
-      variant='inline'
       message={t('loadError')}
       onRetry={() => startTransition(() => router.refresh())}
+      className={pending ? 'opacity-60' : undefined}
     />
   );
 };

@@ -35,9 +35,7 @@ test.describe('çıkış ve geçersiz oturum', () => {
   }) => {
     await loggedIn(page);
     await page.goto('/akis');
-    await expect(
-      page.getByRole('heading', { level: 1, name: tr.feedPlaceholder.title })
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: tr.feed.title })).toBeVisible();
 
     await signOutViaUi(page);
     // Sunucu yanıtı beklenmeden giriş çağrısı görünür
@@ -48,7 +46,7 @@ test.describe('çıkış ve geçersiz oturum', () => {
     await page.goBack();
     await page.waitForLoadState('load');
     await expect(page).not.toHaveURL(/\/akis$/);
-    await expect(page.getByRole('heading', { name: tr.feedPlaceholder.title })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: tr.feed.title })).toHaveCount(0);
     await expect(page.getByTestId('viewer-avatar')).toHaveCount(0);
   });
 
