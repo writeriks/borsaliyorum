@@ -4,12 +4,16 @@ import { Prisma, type PrismaClient } from '@/generated/prisma/client';
 import { recordContentEvent } from '@/lib/audit/content-event';
 import type { OnboardingIdentity } from '@/lib/auth/types';
 import { ErrorCode, fail, ok, type Result } from '@/lib/errors';
+import {
+  MARKETING_CONSENT_TEXT_VERSION,
+  PRIVACY_NOTICE_VERSION,
+  TERMS_VERSION,
+} from '@/lib/legal/versions';
 import type { Logger } from '@/lib/logger';
 import type { RequestMeta } from '@/lib/request-meta';
 import { isReservedUsername } from '@/lib/users/reserved-usernames';
 import { USERNAME_PATTERN } from '@/lib/users/username';
 
-import { MARKETING_CONSENT_TEXT_VERSION, PRIVACY_NOTICE_VERSION } from '../legal-versions';
 import type { OnboardingData } from '../schemas';
 
 export type OnboardingDeps = {
@@ -17,6 +21,8 @@ export type OnboardingDeps = {
   readonly ipKey: () => Uint8Array;
   readonly now: () => Date;
   readonly log: Logger;
+  /** Pazarlama izni kutusu açık mı (`MARKETING_CONSENT_ENABLED`)? Kapalıyken izin yazılmaz. */
+  readonly marketingConsentEnabled: boolean;
 };
 
 export type UsernameAvailability = 'available' | 'taken' | 'reserved' | 'invalid';
@@ -70,8 +76,10 @@ const uniqueTarget = (error: Prisma.PrismaClientKnownRequestError): string =>
 /**
  * Onboarding'i tamamlar (ADR-0001 Karar 5): kullanıcı satırı ilk kez burada oluşturulur
  * (yeni kayıt) ya da kurala uymayan eski hesap güncellenir. Tek transaction'da:
- * - User: kullanıcı adı, görünen ad, `onboardedAt`, aydınlatma sürümü/anı, 18+ beyanı
- * - ConsentEvent: yalnızca pazarlama izni verildiyse (işaretsiz varsayılan = izin yok)
+ * - User: kullanıcı adı, görünen ad, `onboardedAt`, aydınlatma sürümü/anı, Kullanım Koşulları
+ *   sürümü/anı, 18+ beyanı
+ * - ConsentEvent: yalnızca pazarlama izni verildiyse ve kutu açıksa (işaretsiz varsayılan =
+ *   izin yok); iznin verildiği e-posta adresiyle
  * - ContentEvent `session.start`: hesabın ilk oturumu (IP şifreli). Mevcut hesapların sonraki
  *   girişleri `auth.login` olarak `/api/auth/session`'da yazılır.
  */
@@ -93,8 +101,12 @@ export const completeOnboardingForIdentity = async (
     onboardedAt: now,
     noticeVersion: PRIVACY_NOTICE_VERSION,
     noticeAcknowledgedAt: now,
+    termsVersion: TERMS_VERSION,
+    termsAcceptedAt: now,
     ageConfirmedAt: now,
   };
+  // Kutu gösterilmediyse (flag kapalı) istemciden gelen değer izin sayılmaz
+  const marketingGranted = deps.marketingConsentEnabled && data.marketingOptIn;
 
   try {
     const result = await deps.db.$transaction(async tx => {
@@ -116,7 +128,7 @@ export const completeOnboardingForIdentity = async (
               select: { userId: true, username: true },
             });
 
-      if (data.marketingOptIn) {
+      if (marketingGranted) {
         await tx.consentEvent.create({
           data: {
             userId: user.userId,
@@ -124,6 +136,7 @@ export const completeOnboardingForIdentity = async (
             granted: true,
             textVersion: MARKETING_CONSENT_TEXT_VERSION,
             source: 'signup',
+            address: identity.email,
             at: now,
           },
         });

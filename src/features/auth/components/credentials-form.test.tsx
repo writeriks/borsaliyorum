@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type * as NextNavigation from 'next/navigation';
 import type { ReactElement } from 'react';
@@ -212,5 +212,26 @@ describe('CredentialsForm', () => {
     await userEvent.click(screen.getByTestId('auth-submit'));
     await waitFor(() => expect(toastError).toHaveBeenCalledWith(tr.auth.verify.resendRateLimited));
     expect(sendVerificationEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe('aydınlatma notu (KVKK md.10: veri elde edilirken)', () => {
+  it.each(['login', 'signup'] as const)(
+    '%s: not Google butonunun hemen altında; /yasal/kvkk yeni sekmede',
+    mode => {
+      renderForm(mode);
+      const note = screen.getByTestId('auth-privacy-note');
+      // Google ile ilk girişte de hesap oluştuğu için giriş formunda da görünür
+      expect(screen.getByTestId('auth-google').nextElementSibling).toBe(note);
+      expect(note.textContent).toMatch(/e-posta adresini/);
+      const link = within(note).getByRole('link', { name: 'Aydınlatma Metni' });
+      expect(link).toHaveAttribute('href', '/yasal/kvkk');
+      expect(link).toHaveAttribute('target', '_blank');
+    }
+  );
+
+  it('reverify (zaten hesabı olan) modunda not gösterilmez', () => {
+    renderForm('reverify');
+    expect(screen.queryByTestId('auth-privacy-note')).not.toBeInTheDocument();
   });
 });

@@ -6,6 +6,7 @@ import {
   parseServerEnv,
   type ServerEnv,
 } from '@/lib/env';
+import { isMarketingConsentEnabled } from '@/lib/feature-flags';
 
 let cached: ServerEnv | undefined;
 
@@ -20,6 +21,12 @@ export const getServerEnv = (): ServerEnv => {
  * üretimde tanımlıysa her çağrıda hata fırlatır, böylece önizleme hiç çalışmaz (fail-closed).
  */
 export const getSafeFetchTestAllow = (): readonly string[] => parseSafeFetchTestAllow(process.env);
+
+/**
+ * Pazarlama izni kutusu açık mı (`MARKETING_CONSENT_ENABLED`, varsayılan kapalı)? Kutu
+ * gösterilmediyse sunucu da izin yazmaz. Önbelleğe alınmaz (testler env'i değiştirir).
+ */
+export const getMarketingConsentEnabled = (): boolean => isMarketingConsentEnabled(process.env);
 
 /**
  * Sitenin kök URL'si (`NEXT_PUBLIC_SITE_URL`, opsiyonel). Sunucu tarafında iç link tespiti için;

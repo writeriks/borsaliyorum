@@ -9,6 +9,7 @@ import { getSession, requireActionOnboardingIdentity, requireWriter } from '@/li
 import { getIpEncryptionKey } from '@/lib/crypto/key';
 import { getDb } from '@/lib/db';
 import { ErrorCode, fail, ok, type Result, toFailure } from '@/lib/errors';
+import { getMarketingConsentEnabled } from '@/lib/env.server';
 import { logger } from '@/lib/logger';
 import { readRequestMeta } from '@/lib/request-meta';
 import { normalizeUsernameInput, usernameIssue } from '@/lib/users/username';
@@ -52,7 +53,13 @@ export const completeOnboarding = async (input: unknown): Promise<Result<never>>
       identity.data,
       parsed.data,
       readRequestMeta(await headers()),
-      { db: getDb(), ipKey: getIpEncryptionKey, now: () => new Date(), log }
+      {
+        db: getDb(),
+        ipKey: getIpEncryptionKey,
+        now: () => new Date(),
+        log,
+        marketingConsentEnabled: getMarketingConsentEnabled(),
+      }
     );
   } catch (error) {
     return toFailure(error, log);

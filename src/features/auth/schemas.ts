@@ -55,9 +55,14 @@ export const onboardingSchema = z.object({
   displayName: displayNameSchema,
   /** 18+ beyanı (legal L3); veli onayı akışı yok → zorunlu. */
   ageConfirmed: z.boolean().refine(value => value, 'required'),
-  /** Aydınlatma metninin okunduğu (rıza değil) [legal L3]. */
+  /** Kullanım Koşulları kabulü: aydınlatmadan ayrı, zorunlu kutu (TBK genel işlem koşulları). */
+  termsAccepted: z.boolean().refine(value => value, 'required'),
+  /** Aydınlatma metninin okunup anlaşıldığı (rıza değil) [legal L3, KVK Kurulu 2026/347]. */
   noticeAcknowledged: z.boolean().refine(value => value, 'required'),
-  /** Ayrı, varsayılanı işaretsiz pazarlama izni (6563 / KVKK açık rıza). */
+  /**
+   * Ayrı, varsayılanı işaretsiz pazarlama izni (6563 / KVKK açık rıza). Kutu
+   * `MARKETING_CONSENT_ENABLED` kapalıyken gösterilmez; sunucu da o durumda değeri yok sayar.
+   */
   marketingOptIn: z.boolean(),
   next: z.string().max(512).nullable(),
 });

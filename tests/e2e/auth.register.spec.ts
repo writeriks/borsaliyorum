@@ -1,11 +1,12 @@
 import { expect, test } from './support/test';
 
 import tr from '../../messages/tr.json' with { type: 'json' };
+import { PRIVACY_NOTICE_VERSION, TERMS_VERSION } from '../../src/lib/legal/versions';
 
 import { accountMenu, uniqueSuffix, withDb } from './support/auth';
 
 test.describe('kayıt → onboarding → akış', () => {
-  test('e-posta ile kayıt, kurallı kullanıcı adı, KVKK/18+ ve işaretsiz pazarlama izni', async ({
+  test('e-posta ile kayıt, kurallı kullanıcı adı, 18+ / Kullanım Koşulları / aydınlatma kutuları', async ({
     page,
   }) => {
     const suffix = uniqueSuffix();
@@ -13,9 +14,13 @@ test.describe('kayıt → onboarding → akış', () => {
 
     await page.goto('/kayit');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(tr.auth.signup.title);
-    await expect(
-      page.getByRole('link', { name: 'Aydınlatma Metni' }).filter({ visible: true }).first()
-    ).toHaveAttribute('href', '/yasal/kvkk');
+    // Aydınlatma notu butonların hemen altında (footer'a gömülü değil), ilk ekranda
+    const privacyNote = page.getByTestId('auth-privacy-note');
+    await expect(privacyNote).toBeInViewport();
+    await expect(privacyNote.getByRole('link', { name: 'Aydınlatma Metni' })).toHaveAttribute(
+      'href',
+      '/yasal/kvkk'
+    );
 
     await page.getByLabel(tr.auth.fields.email).fill(email);
     await page.getByLabel(tr.auth.fields.password).fill(`Sifre-${suffix}!`);
@@ -36,14 +41,24 @@ test.describe('kayıt → onboarding → akış', () => {
     ).toBe(0);
 
     const username = page.getByLabel(tr.auth.onboarding.username.label);
-    const marketing = page.getByLabel(tr.auth.onboarding.marketing.label);
-    await expect(marketing).not.toBeChecked();
+    // MARKETING_CONSENT_ENABLED varsayılan kapalı (İYS entegrasyonu yok) → kutu hiç yok
+    await expect(page.getByLabel(tr.auth.onboarding.marketing.label)).toHaveCount(0);
+    const terms = page.getByLabel(/Kullanım Koşulları/);
+    await expect(terms).not.toBeChecked();
+    await expect(page.getByRole('checkbox')).toHaveCount(3);
 
     // Rezerve ad
     await username.fill('admin');
     await page.getByLabel(tr.auth.onboarding.displayName.label).fill('Kayıt Testi');
     await page.getByLabel(tr.auth.onboarding.age.label).check();
     await page.getByLabel(/Aydınlatma Metni/).check();
+
+    // Kullanım Koşulları işaretlenmeden gönderilemez (istemci; sunucu da reddeder)
+    await page.getByTestId('onboarding-submit').click();
+    await expect(page.getByText(tr.auth.onboarding.terms.required)).toBeVisible();
+    await expect(page).toHaveURL(/\/hos-geldin$/);
+    await terms.check();
+
     await page.getByTestId('onboarding-submit').click();
     await expect(page.getByText(tr.auth.onboarding.username.errors.reserved)).toBeVisible();
 
@@ -70,8 +85,11 @@ test.describe('kayıt → onboarding → akış', () => {
         isEmailVerified: boolean;
         noticeAcknowledgedAt: Date | null;
         ageConfirmedAt: Date | null;
+        noticeVersion: string | null;
+        termsVersion: string | null;
+        termsAcceptedAt: Date | null;
       }>(
-        'SELECT "userId", username, "isEmailVerified", "noticeAcknowledgedAt", "ageConfirmedAt" FROM "User" WHERE email = $1',
+        'SELECT "userId", username, "isEmailVerified", "noticeAcknowledgedAt", "ageConfirmedAt", "noticeVersion", "termsVersion", "termsAcceptedAt" FROM "User" WHERE email = $1',
         [email]
       );
       const userId = user.rows[0]?.userId ?? -1;
@@ -84,7 +102,13 @@ test.describe('kayıt → onboarding → akış', () => {
       );
       return { user: user.rows[0], consents: consents.rowCount, events: events.rows };
     });
-    expect(row.user).toMatchObject({ username: chosen, isEmailVerified: false });
+    expect(row.user).toMatchObject({
+      username: chosen,
+      isEmailVerified: false,
+      noticeVersion: PRIVACY_NOTICE_VERSION,
+      termsVersion: TERMS_VERSION,
+    });
+    expect(row.user?.termsAcceptedAt).not.toBeNull();
     expect(row.user?.noticeAcknowledgedAt).not.toBeNull();
     expect(row.user?.ageConfirmedAt).not.toBeNull();
     expect(row.consents).toBe(0);

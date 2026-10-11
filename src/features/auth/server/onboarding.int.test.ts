@@ -8,8 +8,13 @@ import { getDb } from '@/lib/db';
 import { fail, ok } from '@/lib/errors';
 import type { Logger } from '@/lib/logger';
 
+import {
+  MARKETING_CONSENT_TEXT_VERSION,
+  PRIVACY_NOTICE_VERSION,
+  TERMS_VERSION,
+} from '@/lib/legal/versions';
+
 import { createUser } from '../../../../tests/factories';
-import { MARKETING_CONSENT_TEXT_VERSION, PRIVACY_NOTICE_VERSION } from '../legal-versions';
 import type { OnboardingData } from '../schemas';
 
 import {
@@ -50,6 +55,12 @@ vi.mock('next/navigation', () => ({
   },
 }));
 vi.mock('@/lib/crypto/key', () => ({ getIpEncryptionKey: () => IP_KEY }));
+// Pazarlama kutusu flag'i (varsayılan kapalı); testler açıp kapatır
+const marketingFlag = vi.fn(() => false);
+vi.mock('@/lib/env.server', async importOriginal => ({
+  ...(await importOriginal<object>()),
+  getMarketingConsentEnabled: () => marketingFlag(),
+}));
 
 const { authorizeVerificationEmail, checkUsernameAvailability, completeOnboarding } =
   await import('./actions');
@@ -62,7 +73,13 @@ const log: Logger = {
   child: () => log,
 };
 
-const deps = () => ({ db: getDb(), ipKey: () => IP_KEY, now: () => new Date(), log });
+const deps = (marketingConsentEnabled = true) => ({
+  db: getDb(),
+  ipKey: () => IP_KEY,
+  now: () => new Date(),
+  log,
+  marketingConsentEnabled,
+});
 const meta = { ip: '203.0.113.7', port: null, requestId: 'req-1' };
 
 const newIdentity = (overrides: Partial<OnboardingIdentity> = {}): OnboardingIdentity => {
@@ -87,6 +104,7 @@ const data = (overrides: Partial<OnboardingData> = {}): OnboardingData => ({
   username: uniqueName(),
   displayName: 'Ayşe Kaya',
   ageConfirmed: true,
+  termsAccepted: true,
   noticeAcknowledged: true,
   marketingOptIn: false,
   next: null,
@@ -96,10 +114,11 @@ const data = (overrides: Partial<OnboardingData> = {}): OnboardingData => ({
 beforeEach(() => {
   requireActionOnboardingIdentity.mockReset();
   revalidatePath.mockReset();
+  marketingFlag.mockReturnValue(false);
 });
 
 describe('completeOnboardingForIdentity (gerçek DB)', () => {
-  it('yeni kayıt: kullanıcı satırı burada oluşur; aydınlatma/18+ zamanı yazılır; session.start olayı', async () => {
+  it('yeni kayıt: kullanıcı satırı burada oluşur; aydınlatma/koşullar/18+ zamanı yazılır; session.start olayı', async () => {
     const identity = newIdentity();
     const input = data();
     const result = await completeOnboardingForIdentity(identity, input, meta, deps());
@@ -114,11 +133,13 @@ describe('completeOnboardingForIdentity (gerçek DB)', () => {
       email: identity.email,
       isEmailVerified: false,
       noticeVersion: PRIVACY_NOTICE_VERSION,
+      termsVersion: TERMS_VERSION,
       status: 'active',
       birthday: null,
     });
     expect(user.onboardedAt).toBeInstanceOf(Date);
     expect(user.noticeAcknowledgedAt).toBeInstanceOf(Date);
+    expect(user.termsAcceptedAt).toBeInstanceOf(Date);
     expect(user.ageConfirmedAt).toBeInstanceOf(Date);
 
     const events = await getDb().contentEvent.findMany({ where: { actorUserId: user.userId } });
@@ -134,7 +155,7 @@ describe('completeOnboardingForIdentity (gerçek DB)', () => {
     expect(await getDb().consentEvent.count({ where: { userId: user.userId } })).toBe(0);
   });
 
-  it('pazarlama izni verildiyse metin sürümüyle ConsentEvent yazılır', async () => {
+  it('pazarlama izni verildiyse metin sürümü ve onay verilen adresle ConsentEvent yazılır', async () => {
     const identity = newIdentity();
     const result = await completeOnboardingForIdentity(
       identity,
@@ -150,8 +171,21 @@ describe('completeOnboardingForIdentity (gerçek DB)', () => {
         granted: true,
         textVersion: MARKETING_CONSENT_TEXT_VERSION,
         source: 'signup',
+        address: identity.email,
       }),
     ]);
+  });
+
+  it('pazarlama kutusu flag ile kapalıyken istemciden gelen true izin sayılmaz', async () => {
+    const result = await completeOnboardingForIdentity(
+      newIdentity(),
+      data({ marketingOptIn: true }),
+      meta,
+      deps(false)
+    );
+    expect(result.ok).toBe(true);
+    const userId = result.ok ? result.data.userId : -1;
+    expect(await getDb().consentEvent.count({ where: { userId } })).toBe(0);
   });
 
   it('rezerve ad → USERNAME_RESERVED, satır oluşmaz', async () => {
@@ -217,6 +251,7 @@ describe('completeOnboarding Server Action', () => {
     username: uniqueName(),
     displayName: 'Mehmet',
     ageConfirmed: true,
+    termsAccepted: true,
     noticeAcknowledged: true,
     marketingOptIn: false,
     next: '/gonderi/12',
@@ -233,6 +268,42 @@ describe('completeOnboarding Server Action', () => {
       await completeOnboarding(formInput({ ageConfirmed: false, noticeAcknowledged: false }))
     ).toMatchObject({ ok: false, error: 'VALIDATION' });
     expect(requireActionOnboardingIdentity).not.toHaveBeenCalled();
+  });
+
+  it('Kullanım Koşulları işaretlenmeden → VALIDATION (fields: termsAccepted)', async () => {
+    expect(await completeOnboarding(formInput({ termsAccepted: false }))).toEqual(
+      fail('VALIDATION', { fields: ['termsAccepted'] })
+    );
+    expect(await completeOnboarding(formInput({ termsAccepted: undefined }))).toMatchObject({
+      ok: false,
+      error: 'VALIDATION',
+    });
+    expect(requireActionOnboardingIdentity).not.toHaveBeenCalled();
+  });
+
+  it('başarıda kabul edilen Koşullar sürümü yazılır; flag kapalıyken pazarlama izni yazılmaz', async () => {
+    const identity = newIdentity();
+    requireActionOnboardingIdentity.mockResolvedValue(ok(identity));
+    await completeOnboarding(formInput({ marketingOptIn: true })).catch(() => undefined);
+    const user = await getDb().user.findUniqueOrThrow({
+      where: { firebaseUserId: identity.firebaseUid },
+    });
+    expect(user.termsVersion).toBe(TERMS_VERSION);
+    expect(user.termsAcceptedAt).toBeInstanceOf(Date);
+    expect(await getDb().consentEvent.count({ where: { userId: user.userId } })).toBe(0);
+  });
+
+  it('flag açıkken pazarlama izni adresle yazılır', async () => {
+    marketingFlag.mockReturnValue(true);
+    const identity = newIdentity();
+    requireActionOnboardingIdentity.mockResolvedValue(ok(identity));
+    await completeOnboarding(formInput({ marketingOptIn: true })).catch(() => undefined);
+    const user = await getDb().user.findUniqueOrThrow({
+      where: { firebaseUserId: identity.firebaseUid },
+    });
+    expect(await getDb().consentEvent.findMany({ where: { userId: user.userId } })).toEqual([
+      expect.objectContaining({ granted: true, address: identity.email }),
+    ]);
   });
 
   it('rezerve ad şemada yakalanır → USERNAME_RESERVED', async () => {

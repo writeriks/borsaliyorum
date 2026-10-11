@@ -60,6 +60,9 @@ model User {
   noticeAcknowledgedAt DateTime?
   /// 18+ beyanı [legal L3].
   ageConfirmedAt       DateTime?
+  /// Kabul edilen Kullanım Koşulları sürümü ve zamanı (TBK genel işlem koşulları; legal S5).
+  termsVersion         String?    @db.VarChar(20)
+  termsAcceptedAt      DateTime?
   // Pazarlama izni burada tutulmaz: ConsentEvent'te (userId, kind) için en son satır.
 
   roles             SecurityRole[]
@@ -457,6 +460,9 @@ model ConsentEvent {
   textVersion String?       @db.VarChar(20)
   source      ConsentSource
   at          DateTime      @default(now())
+  /// İznin verildiği/geri alındığı iletişim adresi (e-posta). İYS adres bazlı çalışır; kullanıcı
+  /// adresini değiştirse de eski iznin hangi adrese verildiği ispatlanabilsin (legal S5).
+  address     String?       @db.VarChar(320)
 
   @@index([userId, kind, at])
   @@map("ConsentEvent")

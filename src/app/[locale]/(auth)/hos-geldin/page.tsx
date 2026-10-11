@@ -12,6 +12,7 @@ import { type AuthPageProps, resolveLocale } from '@/i18n/page-params';
 import { safeNextPath } from '@/lib/auth/rules';
 import { requireOnboardingIdentity } from '@/lib/auth/session';
 import { getDb } from '@/lib/db';
+import { getMarketingConsentEnabled } from '@/lib/env.server';
 
 export const generateMetadata = async ({ params }: AuthPageProps): Promise<Metadata> => {
   const locale = resolveLocale((await params).locale);
@@ -58,6 +59,7 @@ const OnboardingPage = async ({ params, searchParams }: AuthPageProps): Promise<
             email={identity.email}
             suggestedDisplayName={identity.suggestedDisplayName}
             next={next}
+            marketingEnabled={getMarketingConsentEnabled()}
           />
         )}
       </AuthPageFrame>

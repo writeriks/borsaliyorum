@@ -39,6 +39,8 @@ export const e2eServerEnv = (): Record<string, string> => ({
   NEXT_PUBLIC_APP_ID: '1:000000000000:web:e2e',
   DATABASE_URL: e2eDatabaseUrl(),
   IP_ENCRYPTION_KEY: E2E_IP_ENCRYPTION_KEY,
+  // Varsayılan (kapalı) davranış test edilir; geliştiricinin kabuğundaki değer sızmasın
+  MARKETING_CONSENT_ENABLED: 'false',
   E2E_PORT: String(E2E_PORT),
   NEXT_TELEMETRY_DISABLED: '1',
 });

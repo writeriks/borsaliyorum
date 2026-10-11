@@ -2,12 +2,19 @@ name: Purge retention
 
 # Günlük saklama süresi / TTL temizliği (scripts/purge-retention.ts): ContentEvent (1–2 yıl,
 # varsayılan 2), RateLimitBucket (pencere + 24 saat), bağlantısız süresi dolmuş LinkPreview,
-# LegalIdentityRetention (purgeAt). DATABASE_URL secret'ı (tercihen doğrudan/pooler olmayan URL;
-# roller ayrılınca app_maintenance rolü) tanımlı değilse iş atlanır.
+# LegalIdentityRetention (purgeAt) ve onboarding'i 30 günde tamamlamayan Firebase hesapları.
+# DATABASE_URL secret'ı (tercihen doğrudan/pooler olmayan URL; roller ayrılınca app_maintenance
+# rolü) tanımlı değilse iş atlanır. FIREBASE_* secret'ları yoksa yalnızca Firebase adımı
+# uyarıyla atlanır. Elle deneme: workflow_dispatch + dry_run (hiçbir şey silinmez).
 on:
   schedule:
     - cron: '23 1 * * *' # her gün 04:23 (TR)
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Yalnızca say, silme'
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -26,6 +33,11 @@ jobs:
     timeout-minutes: 10
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+      # Zamanlanmış koşuda input yok → gerçek silme; elle tetiklemede varsayılan dry-run
+      DRY_RUN_FLAG: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '--dry-run' || '' }}
     steps:
       - name: Skip when DATABASE_URL secret is missing
         if: env.DATABASE_URL == ''
@@ -41,4 +53,4 @@ jobs:
       - if: env.DATABASE_URL != ''
         run: npm ci --ignore-scripts
       - if: env.DATABASE_URL != ''
-        run: npx tsx scripts/purge-retention.ts
+        run: npx tsx scripts/purge-retention.ts $DRY_RUN_FLAG

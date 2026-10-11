@@ -45,7 +45,9 @@
     "footer": {
       "disclaimerLink": "Yatırım uyarısı",
       "privacy": "KVKK Aydınlatma Metni",
+      "cookies": "Çerez Politikası",
       "terms": "Kullanım Koşulları",
+      "community": "Topluluk Kuralları",
       "copyright": "© Borsalıyorum"
     },
     "completeSignup": "Kaydı tamamla",
@@ -304,8 +306,7 @@
       "submit": "Hesap oluştur",
       "submitting": "Hesap oluşturuluyor…",
       "haveAccount": "Zaten hesabın var mı?",
-      "loginLink": "Giriş yap",
-      "privacyNote": "Kişisel verilerinin nasıl işlendiğini <link>Aydınlatma Metni</link> içinde bulabilirsin."
+      "loginLink": "Giriş yap"
     },
     "errors": {
       "invalidCredentials": "E-posta veya şifre hatalı.",
@@ -342,23 +343,27 @@
       },
       "displayName": {
         "label": "Görünen ad",
-        "hint": "Profilinde ve gönderilerinde görünür.",
+        "hint": "Herkese açıktır; profilinde ve gönderilerinde görünür. Gerçek adını yazmak zorunda değilsin.",
         "errors": {
           "required": "Görünen adını gir.",
           "tooLong": "Görünen ad en fazla 50 karakter olabilir."
         }
       },
       "age": {
-        "label": "18 yaşından büyüğüm.",
-        "required": "Devam etmek için 18 yaşından büyük olduğunu belirtmelisin."
+        "label": "18 yaşında ya da daha büyüğüm.",
+        "required": "Borsalıyorum'u kullanmak için 18 yaşında ya da daha büyük olmalısın."
+      },
+      "terms": {
+        "label": "<link>Kullanım Koşulları</link>'nı kabul ediyorum.",
+        "required": "Devam etmek için Kullanım Koşulları'nı kabul etmelisin."
       },
       "notice": {
-        "label": "<link>Aydınlatma Metni</link>'ni okudum.",
+        "label": "<link>Aydınlatma Metni</link>'ni okudum ve anladım.",
         "required": "Devam etmek için Aydınlatma Metni'ni okuduğunu belirtmelisin."
       },
       "marketing": {
-        "label": "Kampanya, bülten ve duyuruları e-posta ile almak istiyorum (isteğe bağlı).",
-        "hint": "Bu izni istediğin zaman geri alabilirsin; vermemen üyeliğini etkilemez."
+        "label": "Borsalıyorum'un yenilik, kampanya ve bültenlerini e-posta ile almak istiyorum. (İsteğe bağlı)",
+        "hint": "İznini istediğin an ayarlardan ya da e-postadaki bağlantıdan geri alabilirsin. İzin vermemen üyeliğini etkilemez."
       },
       "submit": "Devam et",
       "submitting": "Kaydediliyor…",
@@ -389,7 +394,8 @@
       "lead": "Güvenliğin için tekrar giriş yap; doğrulama bağlantısını hemen e-posta adresine gönderelim.",
       "submit": "Giriş yap ve gönder",
       "submitting": "Gönderiliyor…"
-    }
+    },
+    "privacyNote": "Hesabını oluşturmak ve seni tanımak için e-posta adresini ve Google ile girersen Google hesabındaki adını işliyoruz. Ayrıntılar <link>Aydınlatma Metni</link> içinde."
   },
   "feedPlaceholder": {
     "title": "Akış",

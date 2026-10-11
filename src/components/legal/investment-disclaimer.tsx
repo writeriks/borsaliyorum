@@ -2,10 +2,11 @@ import { useTranslations } from 'next-intl';
 import type { ReactElement } from 'react';
 
 import { Link } from '@/i18n/navigation';
+import { LEGAL_HREF } from '@/lib/legal/versions';
 import { cn } from '@/lib/utils';
 
 /** Kalıcı, paylaşılabilir tam metin adresi (docs/legal/composer-metinleri.md, HD-1) */
-export const DISCLAIMER_HREF = '/yasal/yatirim-uyarisi';
+export const DISCLAIMER_HREF = LEGAL_HREF.disclaimer;
 
 type InvestmentDisclaimerProps = {
   /**

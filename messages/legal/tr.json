@@ -1,0 +1,739 @@
+{
+  "chrome": {
+    "toc": "Bu sayfada",
+    "version": "Sürüm: {version}",
+    "effective": "Yürürlük tarihi: {date}",
+    "otherDocuments": "Diğer yasal metinler"
+  },
+  "placeholders": {
+    "company": "Şirket unvanı",
+    "address": "Şirket adresi",
+    "mersis": "MERSİS numarası",
+    "kep": "KEP adresi",
+    "dbRegion": "Veritabanı ülkesi ve bölgesi",
+    "transferSafeguard": "Aktarım dayanağı ve Kurul'a bildirim tarihi",
+    "court": "Yetkili mahkeme yeri"
+  },
+  "documents": {
+    "privacy": {
+      "title": "KVKK Aydınlatma Metni",
+      "description": "Borsalıyorum'un kişisel verilerini hangi amaçlarla ve hangi hukuki sebeplerle işlediği, kimlere aktardığı, ne kadar sakladığı ve KVKK kapsamındaki hakların.",
+      "sections": [
+        {
+          "id": "veri-sorumlusu",
+          "heading": "Veri sorumlusu",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) kapsamında veri sorumlusu [[ph:company]] (“Borsalıyorum”, “biz”) şirketidir. Bu metin, KVKK md. 10 ve Aydınlatma Yükümlülüğünün Yerine Getirilmesinde Uyulacak Usul ve Esaslar Hakkında Tebliğ uyarınca seni bilgilendirmek için hazırlanmıştır."
+            },
+            {
+              "type": "table",
+              "caption": "Veri sorumlusunun iletişim bilgileri",
+              "head": ["Bilgi", "Değer"],
+              "rows": [
+                ["Unvan", "[[ph:company]]"],
+                ["Adres", "[[ph:address]]"],
+                ["MERSİS numarası", "[[ph:mersis]]"],
+                ["KEP adresi", "[[ph:kep]]"],
+                ["Başvuru e-postası", "[[mail:support]]"]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "toplanan-veriler",
+          "heading": "Hangi verileri, nasıl topluyoruz?",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Kayıt olurken e-posta adresini ve şifreni (şifren bizde düz metin olarak tutulmaz) alırız. “Google ile devam et”i seçersen Google'dan adını, e-posta adresini ve Google hesap kimliğini alırız. Ardından seçtiğin kullanıcı adını, görünen adını ve 18 yaşında ya da daha büyük olduğuna dair beyanını kaydederiz. Giriş yaptığında IP adresini ve zamanı güvenlik ve yasal kayıt amacıyla tutarız."
+            },
+            {
+              "type": "ul",
+              "items": [
+                "**Kimlik ve iletişim:** e-posta adresi, kullanıcı adı, görünen ad; Google ile girersen Google hesabındaki ad ve Google hesap kimliği.",
+                "**Hesap güvenliği:** şifre (yalnızca geri döndürülemez biçimde, kimlik doğrulama sağlayıcımızda), e-posta doğrulama durumu, oturum bilgisi.",
+                "**Beyanlar ve kayıtlar:** 18 yaşında ya da daha büyük olduğuna dair beyan; Kullanım Koşulları'nı kabul ettiğin ve bu metni okuduğunu belirttiğin sürüm ve zaman.",
+                "**Kullanıcı içeriği:** gönderiler, yorumlar, beğeniler, takipler, paylaştığın bağlantılar ve görseller.",
+                "**İşlem güvenliği kayıtları:** giriş ve içerik işlemlerinde IP adresi (şifreli saklanır), port, zaman ve işlem türü.",
+                "**Cihazında tutulanlar:** tema tercihi ve yazmakta olduğun taslaklar; sunucumuza gönderilmez (bkz. [[link:cookies|Çerez Politikası]])."
+              ]
+            },
+            {
+              "type": "p",
+              "text": "**Toplama yöntemi:** Veriler; kayıt, giriş ve profil formları, Google ile giriş, gönderi ve yorum ekranları ile sunucu kayıtları aracılığıyla elektronik ortamda, kısmen otomatik yollarla toplanır. Doğum tarihi, kimlik numarası ya da özel nitelikli kişisel veri istemiyoruz. Gönderilerinde sağlık, din, siyasi görüş gibi özel nitelikli verilerini ya da başkalarının kişisel verilerini paylaşmamanı rica ederiz."
+            }
+          ]
+        },
+        {
+          "id": "amaclar-ve-hukuki-sebepler",
+          "heading": "Hangi amaçlarla ve hangi hukuki sebeplerle işliyoruz?",
+          "blocks": [
+            {
+              "type": "table",
+              "caption": "İşleme amaçları ve KVKK md. 5 kapsamındaki hukuki sebepler",
+              "head": ["Amaç", "Veriler", "Hukuki sebep"],
+              "rows": [
+                [
+                  "Üyeliğini oluşturmak ve hesabını yönetmek",
+                  "Kimlik ve iletişim, hesap güvenliği",
+                  "Sözleşmenin kurulması ve ifası (md. 5/2-c)"
+                ],
+                [
+                  "Gönderi, yorum ve takip gibi platform özelliklerini sunmak",
+                  "Kullanıcı içeriği",
+                  "Sözleşmenin ifası (md. 5/2-c); herkese açık paylaştığın içerik için alenileştirme (md. 5/2-d)"
+                ],
+                [
+                  "Hesabını ve platformu güvende tutmak, kötüye kullanımı ve spam'i önlemek",
+                  "Hesap güvenliği, işlem güvenliği kayıtları",
+                  "Meşru menfaat (md. 5/2-f)"
+                ],
+                [
+                  "5651 sayılı Kanun kapsamında trafik bilgisini saklamak ve yetkili makam taleplerini yanıtlamak",
+                  "İşlem güvenliği kayıtları",
+                  "Kanunlarda açıkça öngörülmesi ve hukuki yükümlülük (md. 5/2-a, ç)"
+                ],
+                [
+                  "Şikayet ve moderasyon süreçlerini yürütmek, hukuki haklarımızı korumak",
+                  "Kullanıcı içeriği, işlem güvenliği kayıtları",
+                  "Bir hakkın tesisi, kullanılması veya korunması (md. 5/2-e); meşru menfaat (md. 5/2-f)"
+                ],
+                [
+                  "Yaş şartını ve kabul edilen metinleri ispatlamak",
+                  "Beyanlar ve kayıtlar",
+                  "Sözleşmenin kurulması (md. 5/2-c); bir hakkın tesisi (md. 5/2-e)"
+                ],
+                [
+                  "Pazarlama e-postası göndermek (yalnızca ayrıca izin verirsen)",
+                  "E-posta adresi",
+                  "Açık rıza (md. 5/1) ve 6563 sayılı Kanun kapsamında onay"
+                ]
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Şu an pazarlama e-postası göndermiyoruz ve kayıt sırasında pazarlama izni istemiyoruz. Bu değişirse izin, bu metinden ayrı ve işaretsiz bir kutuyla istenir; iznini istediğin an geri alabilirsin ve izin vermemen üyeliğini etkilemez."
+            }
+          ]
+        },
+        {
+          "id": "aktarim",
+          "heading": "Kimlere aktarıyoruz?",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "**Yetkili kamu kurum ve kuruluşları ile yargı mercileri:** yalnızca kanuni yükümlülük ya da usulüne uygun talep olduğunda (ör. 5651 sayılı Kanun ve 6362 sayılı Sermaye Piyasası Kanunu kapsamındaki talepler).",
+                "**Hizmet sağlayıcılarımız (veri işleyenler):** barındırma, veritabanı ve kimlik doğrulama hizmetleri. Bunlar yurt dışında olduğu için aşağıda ayrıca listelenmiştir."
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Kişisel verilerini satmıyoruz ve reklam amacıyla üçüncü kişilerle paylaşmıyoruz. Herkese açık profilin ve gönderilerin, doğası gereği diğer ziyaretçiler tarafından görülebilir. E-posta adresin herkese açık gösterilmez."
+            }
+          ]
+        },
+        {
+          "id": "yurt-disi-aktarim",
+          "heading": "Yurt dışına aktarım",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Aşağıdaki hizmet sağlayıcılar Türkiye dışında yerleşik olduğu ya da verileri Türkiye dışında işlediği için bu hizmetlerin kullanımı KVKK md. 9 kapsamında yurt dışına aktarım sayılır."
+            },
+            {
+              "type": "table",
+              "caption": "Yurt dışındaki alıcılar",
+              "head": ["Alıcı", "Ülke", "Veriler", "Amaç", "Dayanak"],
+              "rows": [
+                [
+                  "Google LLC (Firebase Authentication)",
+                  "ABD",
+                  "E-posta adresi, şifre (geri döndürülemez biçimde), Google ile girişte ad ve Google hesap kimliği, giriş zamanları",
+                  "Kimlik doğrulama ve doğrulama e-postalarının gönderimi",
+                  "[[ph:transferSafeguard]]"
+                ],
+                [
+                  "Vercel Inc.",
+                  "ABD (şirket); uygulama sunucuları Almanya (Frankfurt)",
+                  "Platformu kullanırken gönderilen istekler, IP adresi ve oturum çerezi",
+                  "Uygulamanın barındırılması ve çalıştırılması",
+                  "[[ph:transferSafeguard]]"
+                ],
+                [
+                  "Neon Inc. (altyapı: Amazon Web Services)",
+                  "[[ph:dbRegion]]",
+                  "Hesap verileri, kullanıcı içeriği, şifreli işlem güvenliği kayıtları",
+                  "Veritabanı barındırma",
+                  "[[ph:transferSafeguard]]"
+                ]
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Google ile giriş yaptığında Google'ın kendi hesabın için yaptığı işlemler Google'ın gizlilik politikasına tabidir."
+            }
+          ]
+        },
+        {
+          "id": "saklama-sureleri",
+          "heading": "Ne kadar saklıyoruz?",
+          "blocks": [
+            {
+              "type": "table",
+              "caption": "Saklama süreleri",
+              "head": ["Veri", "Süre"],
+              "rows": [
+                [
+                  "Hesap ve profil verileri",
+                  "Üyeliğin süresince. Hesabın silindiğinde silinir ya da anonim hale getirilir; yasal talepler için gereken kimlik eşleştirmesi, işlem güvenliği kayıtlarının saklama süresi sonuna kadar ayrı ve erişimi kısıtlı tutulur."
+                ],
+                [
+                  "Kullanıcı içeriği",
+                  "Sen silene ya da hesabın silinene kadar. Hukuka aykırılık nedeniyle kaldırılan içerik, resmî talepler için işlem güvenliği kayıtlarıyla aynı süre boyunca erişimi kısıtlı tutulabilir."
+                ],
+                [
+                  "İşlem güvenliği kayıtları (IP adresi, port, zaman, işlem türü)",
+                  "2 yıl (5651 sayılı Kanun ve ilgili yönetmelik); süre sonunda otomatik silinir."
+                ],
+                [
+                  "Kötüye kullanımı önleme sayaçları",
+                  "En fazla 48 saat; IP adresine bağlı sayaçlar (geri döndürülemez özet olarak) en fazla 24 saat."
+                ],
+                [
+                  "Kaydı tamamlanmamış hesaplar (kimlik doğrulama hesabı oluşmuş ama kullanıcı adı seçilmemiş)",
+                  "Oluşturulmasından itibaren 30 gün; sonra otomatik silinir."
+                ],
+                [
+                  "Kabul, okuma ve izin kayıtları (metin sürümü ve zamanı)",
+                  "Üyeliğin süresince ve sona ermesinden sonra olası uyuşmazlıklar için kanuni zamanaşımı süresi boyunca."
+                ],
+                [
+                  "Cihazındaki tema tercihi ve taslaklar",
+                  "Tema tercihi sen silene kadar; taslaklar en fazla 7 gün."
+                ]
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Saklama süresi dolan veriler günlük otomatik işlerle silinir, yok edilir ya da anonim hale getirilir."
+            }
+          ]
+        },
+        {
+          "id": "haklarin",
+          "heading": "KVKK md. 11 kapsamındaki hakların",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Bize başvurarak kişisel verilerinle ilgili olarak şunları talep edebilirsin:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Kişisel verilerinin işlenip işlenmediğini öğrenme,",
+                "İşlenmişse buna ilişkin bilgi talep etme,",
+                "İşlenme amacını ve bunların amacına uygun kullanılıp kullanılmadığını öğrenme,",
+                "Yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme,",
+                "Eksik veya yanlış işlenmişse düzeltilmesini isteme,",
+                "KVKK md. 7'de öngörülen şartlar çerçevesinde silinmesini veya yok edilmesini isteme,",
+                "Düzeltme, silme ve yok etme işlemlerinin, verilerin aktarıldığı üçüncü kişilere bildirilmesini isteme,",
+                "İşlenen verilerin münhasıran otomatik sistemler vasıtasıyla analiz edilmesi suretiyle aleyhine bir sonucun ortaya çıkmasına itiraz etme,",
+                "Kanuna aykırı olarak işlenmesi sebebiyle zarara uğraman hâlinde zararın giderilmesini talep etme."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "basvuru",
+          "heading": "Nasıl başvurabilirsin?",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Başvurunu, Veri Sorumlusuna Başvuru Usul ve Esasları Hakkında Tebliğ'e uygun olarak **Borsalıyorum hesabına kayıtlı e-posta adresinden** [[mail:support]] adresine, yazılı olarak [[ph:address]] adresine ya da kayıtlı elektronik posta (KEP) ile [[ph:kep]] adresine iletebilirsin. Başvurunda adını ve soyadını, kullanıcı adını, iletişim adresini ve talebini açıkça belirt."
+            },
+            {
+              "type": "p",
+              "text": "Başvurunu talebin niteliğine göre en kısa sürede ve en geç 30 gün içinde ücretsiz sonuçlandırırız. İşlem ayrıca bir maliyet gerektirirse Kişisel Verileri Koruma Kurulu'nun belirlediği tarifedeki ücret alınabilir. Başvurun reddedilir, yanıtı yetersiz bulursun ya da süresinde yanıt verilmezse, yanıtı öğrendiğin tarihten itibaren 30 gün ve her hâlde başvuru tarihinden itibaren 60 gün içinde Kişisel Verileri Koruma Kurulu'na şikâyette bulunabilirsin."
+            }
+          ]
+        },
+        {
+          "id": "cerezler",
+          "heading": "Çerezler",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Yalnızca giriş yapmış kalman ve güvenliğin için zorunlu çerezler kullanıyoruz; analitik ya da reklam çerezi kullanmıyoruz. Ayrıntılar: [[link:cookies|Çerez Politikası]]."
+            }
+          ]
+        },
+        {
+          "id": "degisiklikler",
+          "heading": "Bu metindeki değişiklikler",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Metni güncellediğimizde sürüm numarasını ve yürürlük tarihini değiştiririz. Önemli değişikliklerde seni platform üzerinden bilgilendiririz."
+            }
+          ]
+        }
+      ]
+    },
+    "cookies": {
+      "title": "Çerez Politikası",
+      "description": "Borsalıyorum'un hangi çerezleri ve tarayıcı depolama alanlarını, hangi amaçla ve ne kadar süreyle kullandığı.",
+      "sections": [
+        {
+          "id": "cerez-nedir",
+          "heading": "Çerez nedir?",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Çerezler, ziyaret ettiğin sitenin tarayıcına kaydettiği küçük metin dosyalarıdır. Yerel depolama (localStorage) ve oturum depolaması (sessionStorage) da tarayıcında benzer şekilde veri saklar. Bu politika hepsini kapsar ve [[link:privacy|KVKK Aydınlatma Metni]] ile birlikte okunmalıdır."
+            }
+          ]
+        },
+        {
+          "id": "kullandiklarimiz",
+          "heading": "Şu an ne kullanıyoruz?",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "**Analitik, reklam ya da izleme çerezi kullanmıyoruz.** Yalnızca hizmetin çalışması için gerekli çerezleri ve senin seçtiğin tercihleri hatırlayan cihaz depolamasını kullanıyoruz. Zorunlu çerezler açık rıza gerektirmediği için çerez onay penceresi göstermiyoruz."
+            },
+            {
+              "type": "table",
+              "caption": "Kullanılan çerezler ve tarayıcı depolama alanları",
+              "head": ["Ad", "Sağlayıcı", "Amaç", "Süre", "Tür"],
+              "rows": [
+                [
+                  "__session (çerez)",
+                  "Borsalıyorum",
+                  "Giriş yaptığında oturumunu açık tutar",
+                  "14 gün ya da çıkış yapana kadar",
+                  "Zorunlu"
+                ],
+                [
+                  "__Host-csrf (çerez)",
+                  "Borsalıyorum",
+                  "Giriş ve çıkış isteklerini sahte isteklere karşı korur",
+                  "2 saat",
+                  "Zorunlu"
+                ],
+                [
+                  "theme (yerel depolama)",
+                  "Borsalıyorum",
+                  "Seçtiğin temayı bu cihazda hatırlar; sunucuya gönderilmez",
+                  "Sen silene kadar",
+                  "Tercih"
+                ],
+                [
+                  "bz:draft:… (yerel depolama)",
+                  "Borsalıyorum",
+                  "Yazmakta olduğun gönderi ve yorum taslaklarını bu cihazda saklar; sunucuya gönderilmez",
+                  "Paylaşana ya da silene kadar, en fazla 7 gün",
+                  "İşlevsel"
+                ],
+                [
+                  "borsaliyorum:google-redirect (oturum depolaması)",
+                  "Borsalıyorum",
+                  "“Google ile devam et” yönlendirmesinden dönüşte girişi tamamlar",
+                  "Sekme kapanana kadar",
+                  "Zorunlu"
+                ],
+                [
+                  "Google / Firebase giriş penceresi",
+                  "Google LLC",
+                  "Yalnızca “Google ile devam et”e bastığında girişi tamamlar",
+                  "Google'ın politikasına göre",
+                  "Zorunlu (üçüncü taraf)"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "yonetim",
+          "heading": "Çerezleri nasıl yönetebilirsin?",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Tarayıcının ayarlarından çerezleri ve cihaz depolamasını silebilir ya da engelleyebilirsin. Zorunlu çerezleri engellersen giriş yapamazsın. Tema tercihini sayfadaki tema düğmesiyle değiştirebilirsin."
+            }
+          ]
+        },
+        {
+          "id": "degisiklikler",
+          "heading": "Değişiklikler",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Analitik, reklam ya da üçüncü taraf içerik (ör. grafik bileşeni) eklersek bunları onayın olmadan çalıştırmayacağız; “Kabul et” ve “Reddet” seçeneklerini eşit görünürlükte sunacak ve bu tabloyu güncelleyeceğiz."
+            }
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "title": "Kullanım Koşulları",
+      "description": "Borsalıyorum'u kullanırken uyman gereken kurallar, yasaklı içerikler, içerik lisansı, yaptırımlar ve uyuşmazlıkların çözümü.",
+      "sections": [
+        {
+          "id": "taraflar",
+          "heading": "Taraflar ve kapsam",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Bu Kullanım Koşulları (“Koşullar”), [[ph:company]] (“Borsalıyorum”) tarafından işletilen web sitesi ve uygulamaların (“Platform”) kullanımına ilişkin seninle Borsalıyorum arasındaki sözleşmedir. Kayıt sırasında Koşulları ayrı bir kutuyla kabul edersin; kabul ettiğin sürüm ve zaman kaydedilir."
+            },
+            {
+              "type": "p",
+              "text": "[[link:community|Topluluk Kuralları]] ve [[link:disclaimer|Yatırım Uyarısı]] bu Koşulların ayrılmaz parçasıdır. Kişisel verilerinin nasıl işlendiği [[link:privacy|KVKK Aydınlatma Metni]] içinde anlatılır."
+            }
+          ]
+        },
+        {
+          "id": "hizmet",
+          "heading": "Platform ne yapar, ne yapmaz?",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Borsalıyorum, kullanıcıların hisse senetleri, endeksler ve diğer yatırım araçları hakkında görüş paylaştığı bir sosyal platformdur. İçerik kullanıcılar tarafından oluşturulur; Borsalıyorum bu içerikler bakımından 5651 sayılı Kanun kapsamında yer sağlayıcıdır.",
+                "**Borsalıyorum yatırım danışmanlığı yapmaz ve yatırım tavsiyesi vermez.** Al, sat ya da tut önerisi, hedef fiyat, model portföy ya da sinyal hizmeti sunmaz. Kullanıcı içerikleri yazarlarının kişisel görüşüdür.",
+                "Platformda fiyat verisi gösterilmez; hisse sayfalarında yalnızca kod, ad ve Kamuyu Aydınlatma Platformu (KAP) gibi dış kaynaklara bağlantılar yer alır.",
+                "Yatırım kararların ve sonuçları yalnızca sana aittir. Ayrıntılar: [[link:disclaimer|Yatırım Uyarısı]]."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "uyelik",
+          "heading": "Üyelik",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Üye olmak için 18 yaşında ya da daha büyük olmalısın. 18 yaşından küçük olduğu anlaşılan hesaplar kapatılır ve verileri silinir.",
+                "Kayıtta verdiğin bilgiler doğru olmalıdır. Kullanıcı adın e-posta adresin, başkasının adı ya da yanıltıcı bir ad olamaz; kurum adları gibi ayrılmış adlar kullanılamaz.",
+                "Hesabının güvenliğinden ve şifrenin gizliliğinden sen sorumlusun. Hesabının izinsiz kullanıldığını düşünürsen hemen [[mail:support]] adresine yaz.",
+                "Yalnızca kendi adına hesap açabilirsin. Başkası adına, toplu ya da otomatik yollarla hesap açmak yasaktır.",
+                "E-posta adresini doğrulamadan gönderi ve yorum paylaşamazsın."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "yasakli-icerik",
+          "heading": "Yasaklı içerik ve davranışlar",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Aşağıdakileri paylaşmak ya da yapmak yasaktır:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Kanunlara aykırı her türlü içerik ve suç işlemeye teşvik.",
+                "Hakaret, tehdit, taciz, nefret söylemi, ayrımcılık ve kişilik haklarını ihlal eden içerik.",
+                "Başkalarının kişisel verilerini (ör. telefon, adres, kimlik bilgisi) izinsiz paylaşmak.",
+                "Telif hakkı, marka ya da diğer fikri mülkiyet haklarını ihlal eden içerik.",
+                "Spam, aynı içeriği tekrar tekrar paylaşmak, sahte etkileşim ya da bot kullanmak.",
+                "Başka bir kişi, kurum ya da Borsalıyorum adına hareket ediyormuş gibi görünmek.",
+                "Müstehcen, şiddet içeren ya da çocuklara zarar verebilecek içerik.",
+                "Zararlı yazılım ya da kimlik avı (phishing) bağlantısı paylaşmak; Platformun güvenliğini veya işleyişini bozmaya çalışmak; Platformdan izinsiz otomatik veri toplamak."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "piyasa-butunlugu",
+          "heading": "Piyasa dolandırıcılığı, içsel bilgi ve ücretli tanıtım yasağı",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "6362 sayılı Sermaye Piyasası Kanunu'na aykırı davranışlar suç oluşturabilir. Özellikle şunlar yasaktır:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "**Piyasa dolandırıcılığı (manipülasyon):** Fiyatları, değerleri ya da yatırımcıların kararlarını etkilemek amacıyla yalan, yanlış ya da yanıltıcı bilgi, söylenti, haber veya yorum yaymak; koordineli “pompala ve boşalt” girişimlerine katılmak ya da bunları organize etmek.",
+                "**İçsel bilgi paylaşımı:** Kamuya açıklanmamış ve fiyatı etkileyebilecek bilgiyi paylaşmak ya da bu bilgiye dayanarak başkalarını yönlendirmek.",
+                "**İzinsiz yatırım hizmeti:** Ücret karşılığı ya da düzenli olarak kişiye özel yatırım danışmanlığı, portföy yönetimi, “sinyal” veya “VIP grup” hizmeti sunmak ya da bunların reklamını yapmak; izinsiz kuruluşlara (kripto varlık hizmet sağlayıcıları dahil) yönlendirmek.",
+                "**Menfaat karşılığı hisse ya da kripto tanıtımı:** Belirli bir sermaye piyasası aracını ya da kripto varlığı para, hediye, indirim veya başka bir menfaat karşılığında öne çıkarmak. Bu, “Reklam / İşbirliği” etiketiyle de yapılamaz. Yorumlarda her türlü ücretli tanıtım yasaktır."
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Bu tür içerikleri bize bildirebilirsin. Yetkili makamların (ör. Sermaye Piyasası Kurulu, Cumhuriyet savcılıkları) talepleri hâlinde ilgili kayıtları mevzuata uygun olarak paylaşırız."
+            }
+          ]
+        },
+        {
+          "id": "sponsorlu-icerik",
+          "heading": "Reklam ve işbirliği beyanı",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Bir marka ya da kişiden para, hediye, indirim veya başka bir menfaat karşılığında ürettiğin her gönderide, gönderiyi oluştururken “Bu gönderi reklam veya işbirliği içeriyor” seçeneğini açmak zorundasın. Gönderinin başında “Reklam / İşbirliği” etiketi görünür.",
+                "Etiketi gizlemek ya da menfaat ilişkisini başka yollarla saklamak örtülü reklamdır ve yasaktır (6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Ticari Reklam ve Haksız Ticari Uygulamalar Yönetmeliği).",
+                "Hisse, kripto ya da başka bir yatırım aracından bahseden gönderiler reklam veya işbirliği olarak paylaşılamaz.",
+                "Gerekli gördüğümüzde bir gönderiye “Reklam / İşbirliği” etiketini kendimiz ekleyebiliriz."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "icerik-lisansi",
+          "heading": "İçeriğin ve kullanım izni",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Paylaştığın içeriğin hakları sende kalır. İçeriğinin hukuka uygunluğundan ve üçüncü kişilerin haklarını ihlal etmediğinden sen sorumlusun.",
+                "İçeriğini paylaşarak Borsalıyorum'a, içeriği Platformun işletilmesi amacıyla saklamak, çoğaltmak, görüntülemek, umuma iletmek ve teknik olarak uyarlamak (ör. boyutlandırma, önizleme) için ücretsiz ve münhasır olmayan bir kullanım izni verirsin. Bu izin içeriğini ya da hesabını sildiğinde sona erer; yasal saklama yükümlülükleri saklıdır.",
+                "Paylaştığın bağlantılar için başlık, kısa açıklama ve küçük görsel içeren bir önizleme oluşturabiliriz. Hak sahibi talep ederse önizlemeyi kaldırırız.",
+                "Borsalıyorum adı, logosu ve Platformun yazılımı Borsalıyorum'a aittir; izinsiz kullanılamaz."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "yaptirimlar",
+          "heading": "Moderasyon ve yaptırımlar",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Bu Koşullara, Topluluk Kurallarına ya da hukuka aykırı içerikleri bildirim üzerine ya da kendiliğimizden inceleyebilir, kaldırabilir veya erişimini kısıtlayabiliriz. İçerikleri önceden denetleme yükümlülüğümüz yoktur.",
+                "İhlalin ağırlığına ve tekrarına göre şu yaptırımları uygulayabiliriz: uyarı, içeriğin kaldırılması, “Reklam / İşbirliği” etiketinin eklenmesi, paylaşım özelliklerinin geçici olarak kısıtlanması, hesabın askıya alınması ya da kalıcı olarak kapatılması.",
+                "Ağır ihlallerde (ör. piyasa dolandırıcılığı ya da suç oluşturan içerik) önceden uyarmadan işlem yapabilir ve yetkili makamlara bildirimde bulunabiliriz.",
+                "İçeriğin kaldırıldığında ya da hesabın kısıtlandığında mümkün olduğunca sebebini bildiririz. Karara itiraz etmek için [[mail:support]] adresine yazabilirsin.",
+                "Hukuka aykırı içerik bildirimlerini ve kişilik hakkı ihlali başvurularını da aynı adrese iletebilirsin."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sona-erme",
+          "heading": "Üyeliğin sona ermesi",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Üyeliğini istediğin zaman sona erdirebilirsin. Hesap silme talebini hesabına kayıtlı e-posta adresinden [[mail:support]] adresine iletebilirsin.",
+                "Koşulları ağır ya da tekrar eden şekilde ihlal etmen hâlinde üyeliğini sona erdirebiliriz.",
+                "Üyelik sona erdiğinde verilerin [[link:privacy|KVKK Aydınlatma Metni]] içindeki saklama sürelerine göre silinir ya da anonim hale getirilir."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sorumluluk",
+          "heading": "Sorumluluk",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Platform olduğu gibi sunulur; kesintisiz ya da hatasız çalışacağını garanti etmeyiz. Bakım ve güvenlik nedeniyle hizmete geçici olarak ara verebiliriz.",
+                "Kullanıcı içeriklerinin doğruluğunu garanti etmeyiz. Bu içeriklere dayanarak verdiğin yatırım kararlarından doğan zararlardan sorumlu değiliz.",
+                "Kanunen sınırlandırılamayan sorumluluklarımız (ör. kast ve ağır kusur) saklıdır."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "degisiklikler",
+          "heading": "Koşullardaki değişiklikler",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Koşulları değiştirebiliriz. Değişiklikte sürüm numarasını ve yürürlük tarihini güncelleriz; önemli değişiklikleri yürürlüğe girmeden makul bir süre önce Platformda duyururuz. Önemli bir değişiklikten sonra Platformu kullanmaya devam etmek için yeni sürümü kabul etmen istenebilir."
+            }
+          ]
+        },
+        {
+          "id": "uyusmazliklar",
+          "heading": "Uygulanacak hukuk ve uyuşmazlıklar",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Bu Koşullara Türkiye Cumhuriyeti hukuku uygulanır. Uyuşmazlıklarda [[ph:court]] mahkemeleri ve icra daireleri yetkilidir. Tüketici sıfatıyla hareket ettiğin hâllerde 6502 sayılı Kanun uyarınca tüketici hakem heyetlerine ve tüketici mahkemelerine başvurma hakkın saklıdır."
+            }
+          ]
+        },
+        {
+          "id": "iletisim",
+          "heading": "İletişim",
+          "blocks": [
+            {
+              "type": "table",
+              "caption": "Borsalıyorum iletişim bilgileri",
+              "head": ["Bilgi", "Değer"],
+              "rows": [
+                ["Unvan", "[[ph:company]]"],
+                ["Adres", "[[ph:address]]"],
+                ["MERSİS numarası", "[[ph:mersis]]"],
+                ["KEP adresi", "[[ph:kep]]"],
+                ["E-posta", "[[mail:support]]"]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "disclaimer": {
+      "title": "Yatırım Uyarısı",
+      "description": "Borsalıyorum'daki içerikler yatırım tavsiyesi değildir. Sermaye Piyasası Kurulu düzenlemelerine uygun yasal uyarı metni.",
+      "sections": [
+        {
+          "id": "yasal-uyari",
+          "heading": "Yatırım tavsiyesi değildir",
+          "blocks": [
+            {
+              "type": "disclaimerFull"
+            }
+          ]
+        },
+        {
+          "id": "ne-anlama-geliyor",
+          "heading": "Bu ne anlama geliyor?",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Borsalıyorum'daki gönderi ve yorumlar yazarlarının kişisel görüşüdür. Borsalıyorum bu içerikleri doğrulamaz ve sahiplenmez.",
+                "Borsalıyorum yatırım danışmanlığı izni olan bir kuruluş değildir; al-sat önerisi, hedef fiyat, model portföy ya da sinyal hizmeti sunmaz. Gündem listeleri ölçüte dayalıdır (ör. “son 24 saatte en çok bahsedilenler”) ve bir öneri değildir.",
+                "Platformda fiyat verisi gösterilmez. Şirketlerin resmî açıklamaları için Kamuyu Aydınlatma Platformu'nu (KAP) takip et.",
+                "Kişiye özel yatırım danışmanlığı almak istiyorsan Sermaye Piyasası Kurulu'ndan izinli bir aracı kurum, portföy yönetim şirketi ya da yetkili bir bankayla çalış.",
+                "Sermaye piyasası araçları ve kripto varlıklar değer kaybedebilir; yatırdığın paranın bir kısmını ya da tamamını kaybedebilirsin."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "manipulasyon",
+          "heading": "Yanıltıcı içerik ve manipülasyon",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Fiyatları etkilemek amacıyla yanlış ya da yanıltıcı bilgi yaymak 6362 sayılı Sermaye Piyasası Kanunu kapsamında suç olabilir ve [[link:terms|Kullanım Koşulları]] uyarınca yasaktır. Böyle bir içerik görürsen bize bildir."
+            }
+          ]
+        }
+      ]
+    },
+    "community": {
+      "title": "Topluluk Kuralları",
+      "description": "Borsalıyorum topluluğunda saygılı, dürüst ve güvenli bir tartışma ortamı için uyulması gereken kurallar.",
+      "sections": [
+        {
+          "id": "neden",
+          "heading": "Neden kurallar var?",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Borsalıyorum, yatırımcıların fikir alışverişi yaptığı bir topluluk. Bu kurallar tartışmanın saygılı, dürüst ve güvenli kalması için var. Kurallar [[link:terms|Kullanım Koşulları]]'nın parçasıdır; ihlaller oradaki yaptırımlara tabidir."
+            }
+          ]
+        },
+        {
+          "id": "saygi",
+          "heading": "Saygılı ol",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Fikre itiraz et, kişiye saldırma. Hakaret, aşağılama, tehdit, taciz ve nefret söylemi yok.",
+                "Başkalarının kişisel bilgilerini (telefon, adres, iş yeri, fotoğraf) izinsiz paylaşma.",
+                "Farklı yatırım görüşleri meşrudur; zarar eden kimseyle alay etme."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "durustluk",
+          "heading": "Dürüst ol",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Bilgiyi ve görüşü ayır. Bir iddiayı paylaşırken kaynağını belirt (ör. KAP bildiriminin bağlantısı).",
+                "Doğrulanmamış söylentiyi gerçekmiş gibi yayma; “duydum ki” diye başlayan bir içerik de fiyatı etkileyebilir.",
+                "Bahsettiğin hissede pozisyonun varsa bunu belirtmeni öneririz.",
+                "Kendini olduğundan farklı gösterme; uzman, kurum ya da başka bir kullanıcıymış gibi davranma."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "piyasa",
+          "heading": "Piyasayı etkilemeye çalışma",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "“Hep birlikte alalım”, “yarın tavan” gibi koordineli alım-satım çağrıları yapma.",
+                "Kamuya açıklanmamış şirket bilgisini paylaşma.",
+                "Para, hediye ya da başka bir menfaat karşılığında hisse veya kripto tanıtma. Bu, “Reklam / İşbirliği” etiketiyle de yapılamaz.",
+                "Ücretli sinyal, “VIP grup”, kopya işlem ya da izinsiz yatırım hizmeti reklamı yapma."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "reklam",
+          "heading": "Reklam ve işbirliklerini açıkça belirt",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Bir marka ya da kişiden menfaat aldığın her gönderide “Reklam / İşbirliği” seçeneğini aç. Yorumlarda ücretli tanıtım yapılamaz."
+            }
+          ]
+        },
+        {
+          "id": "spam",
+          "heading": "Spam ve sahte etkileşim yok",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Aynı içeriği tekrar tekrar paylaşma; alakasız etiket ve hisse kodu ekleme.",
+                "Takipçi, beğeni ya da yorum alıp satma; bot ya da birden çok hesap kullanma.",
+                "Kimlik avı, zararlı yazılım ya da yanıltıcı kısaltılmış bağlantı paylaşma."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "guvenlik",
+          "heading": "Güvenli ve yasal içerik",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Yasa dışı, müstehcen, şiddet içeren ya da çocuklara zarar verebilecek içerik paylaşma.",
+                "Hakları sende olmayan görsel ve metinleri izinsiz paylaşma.",
+                "18 yaşından küçük olduğunu düşündüğün bir kullanıcıyı bize bildir."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "bildirim",
+          "heading": "Bildirim ve yaptırımlar",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Kurallara aykırı bir içerik görürsen [[mail:support]] adresine yaz. İhlalin ağırlığına göre uyarı, içerik kaldırma, geçici kısıtlama ya da hesap kapatma uygulanabilir. Kararlara aynı adresten itiraz edebilirsin."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
