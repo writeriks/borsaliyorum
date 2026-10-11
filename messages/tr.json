@@ -440,13 +440,9 @@
     "back": "Geri",
     "metaTitle": "{name}: “{excerpt}”",
     "metaTitleNoText": "Gönderen: {name}",
-    "removed": "Bu gönderi kaldırıldı.",
-    "removedByModeration": "Gönderin moderasyon tarafından kaldırıldı.",
-    "removedMetaTitle": "Gönderi kaldırıldı",
-    "unavailable": "Bu içerik görüntülenemiyor.",
-    "unavailableMetaTitle": "İçerik görüntülenemiyor",
-    "toFeed": "Akışa dön",
-    "toHome": "Ana sayfaya dön"
+    "toHome": "Ana sayfaya dön",
+    "notFound": "Bu gönderi bulunamadı. Silinmiş ya da artık görüntülenemiyor olabilir.",
+    "notFoundMetaTitle": "Gönderi bulunamadı"
   },
   "comments": {
     "heading": "Yorumlar",

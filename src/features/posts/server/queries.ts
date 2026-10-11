@@ -7,6 +7,7 @@ import { getCurrentUser } from '@/lib/auth/session';
 import { collectRenderRefs, loadMentionUsers } from '@/lib/content/render-refs';
 import { getDb } from '@/lib/db';
 
+import { postIdSchema } from '../schemas';
 import type { PostCardData, PostDetail } from '../types';
 
 import { mentionIdsOf, postCardSelect, toPostCardData } from './post-card-select';
@@ -50,9 +51,6 @@ export const getMyRecentPosts = async (): Promise<PostCardData[]> => {
 /** Detayı okuyan: girişli kullanıcı ya da anonim (`null`). Yalnızca iç kimlik gerekir. */
 export type DetailViewer = { readonly userId: number } | null;
 
-/** Gönderi kimliği int4 aralığında pozitif tam sayı; dışı 404. */
-export const MAX_POST_ID = 2_147_483_647;
-
 /**
  * Gönderi detayı (S12, public). Tek sorguda kart alanları + silinme/moderasyon işareti + yazarın
  * durumu ve görüntüleyenle iki yönlü engel; ardından mention'lar için tek batch (sabit 2 sorgu).
@@ -64,7 +62,7 @@ export const findPostDetail = async (
   viewer: DetailViewer,
   postId: number
 ): Promise<PostDetail> => {
-  if (!Number.isInteger(postId) || postId < 1 || postId > MAX_POST_ID) {
+  if (!postIdSchema.safeParse(postId).success) {
     return { status: 'not-found' };
   }
   // 0 hiçbir kullanıcıya karşılık gelmez (autoincrement 1'den başlar): anonimde beğeni/engel boş

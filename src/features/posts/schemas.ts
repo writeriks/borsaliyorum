@@ -12,6 +12,22 @@ import { SENTIMENTS } from './types';
  */
 export const postIdSchema = z.number().int().positive().max(2_147_483_647);
 
+/**
+ * URL segmentindeki gönderi kimliği (`/gonderi/[id]`, `/api/posts/[id]/...`): başında sıfır
+ * olmayan ondalık rakamlar, ardından `postIdSchema` (int4 aralığı). Tek kural: sayfa, API ve
+ * DAL aynı kimlikleri kabul eder; başka her şey 404/400.
+ */
+export const postIdParamSchema = z
+  .string()
+  .regex(/^[1-9]\d{0,9}$/)
+  .transform(Number)
+  .pipe(postIdSchema);
+
+export const parsePostIdParam = (raw: string): number | null => {
+  const parsed = postIdParamSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+};
+
 export const createPostSchema = z.strictObject({
   text: z.string().max(RAW_TEXT_MAX_LENGTH),
   sentiment: z.enum(SENTIMENTS),

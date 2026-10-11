@@ -4,6 +4,7 @@ import { createHmac, randomBytes } from 'node:crypto';
 
 import { z } from 'zod';
 
+import { postIdParamSchema } from '@/features/posts/schemas';
 import { ErrorCode, fail, toFailure, type Failure, type Result } from '@/lib/errors';
 import { logger as defaultLogger, type Logger } from '@/lib/logger';
 import { createMemoryRateLimiter, type MemoryRateLimiter } from '@/lib/rate-limit/memory';
@@ -25,12 +26,6 @@ export const COMMENTS_IP_RATE_LIMIT = { limit: 60, windowMs: 60_000 } as const;
 
 const sharedLimiter = createMemoryRateLimiter(COMMENTS_IP_RATE_LIMIT);
 const IP_KEY = randomBytes(32);
-
-const postIdSchema = z
-  .string()
-  .regex(/^[1-9]\d{0,9}$/)
-  .transform(Number)
-  .pipe(z.number().max(2_147_483_647));
 
 /** Opak imleç; biçim `decodeCursor`'da doğrulanır, burada yalnızca boyut sınırı. */
 const cursorSchema = z.string().min(1).max(128).nullable();
@@ -77,7 +72,7 @@ const run = async (
   if (!decision.allowed) {
     return fail(ErrorCode.RATE_LIMITED, { retryAfter: decision.retryAfterSeconds });
   }
-  const postId = postIdSchema.safeParse(rawPostId);
+  const postId = postIdParamSchema.safeParse(rawPostId);
   const cursor = cursorSchema.safeParse(new URL(request.url).searchParams.get('cursor'));
   if (!postId.success || !cursor.success) return fail(ErrorCode.VALIDATION);
   return (deps.load ?? getCommentsPage)(postId.data, cursor.data);

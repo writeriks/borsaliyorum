@@ -1,22 +1,21 @@
-import { EyeOff, MessageSquareOff } from 'lucide-react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { ReactElement } from 'react';
 
 import { AppShell } from '@/components/shell/app-shell';
-import { EmptyState } from '@/components/states/empty-state';
-import { Button } from '@/components/ui/button';
 import { CommentThread } from '@/features/comments/components/comment-thread';
 import { getCommentsPage } from '@/features/comments/server/queries';
 import type { CommentsPage } from '@/features/comments/types';
-import { BackButton } from '@/features/posts/components/back-button';
 import { PostCard } from '@/features/posts/components/post-card';
+import { PostDetailHeader } from '@/features/posts/components/post-detail-header';
 import { postHref } from '@/features/posts/components/post-href';
-import { buildPostMetadata } from '@/features/posts/metadata';
-import { getPostById, MAX_POST_ID } from '@/features/posts/server/queries';
-import { getPathname, Link } from '@/i18n/navigation';
+import { buildPostMetadata, notFoundPostMetadata } from '@/features/posts/metadata';
+import { parsePostIdParam } from '@/features/posts/schemas';
+import { getPostById } from '@/features/posts/server/queries';
+import { getPathname } from '@/i18n/navigation';
 import { resolveLocale } from '@/i18n/page-params';
+import { routing } from '@/i18n/routing';
 import { getCurrentUser } from '@/lib/auth/session';
 import { getSiteUrl } from '@/lib/env.server';
 import { logger } from '@/lib/logger';
@@ -24,13 +23,6 @@ import { logger } from '@/lib/logger';
 type PostPageProps = { params: Promise<{ locale: string; id: string }> };
 
 const log = logger.child({ module: 'post-detail-page' });
-
-/** URL'deki kimlik: başında sıfır olmayan, int4 aralığında pozitif tam sayı; başka her şey 404. */
-const parsePostId = (raw: string): number | null => {
-  if (!/^[1-9]\d{0,9}$/.test(raw)) return null;
-  const id = Number(raw);
-  return id <= MAX_POST_ID ? id : null;
-};
 
 const siteMetadataBase = (): URL | undefined => {
   const site = getSiteUrl();
@@ -40,21 +32,35 @@ const siteMetadataBase = (): URL | undefined => {
 export const generateMetadata = async ({ params }: PostPageProps): Promise<Metadata> => {
   const { locale: raw, id: rawId } = await params;
   const locale = resolveLocale(raw);
-  const id = parsePostId(rawId);
-  if (id === null) return {};
-  const detail = await getPostById(id);
-  if (detail.status === 'not-found') return {};
   const t = await getTranslations({ locale, namespace: 'postDetail' });
   const tMeta = await getTranslations({ locale, namespace: 'metadata' });
+  const siteName = tMeta('title');
+  const id = parsePostIdParam(rawId);
+  const detail = id === null ? null : await getPostById(id);
+  // Görünmeyen her durum aynı 404 meta'sı (hangi neden olduğu sızmasın)
+  if (id === null || detail?.status !== 'ok') {
+    return notFoundPostMetadata(t('notFoundMetaTitle'), siteName);
+  }
+  const href = postHref(id);
   return {
     metadataBase: siteMetadataBase(),
-    ...buildPostMetadata(detail, getPathname({ href: postHref(id), locale }), {
-      title: values => t('metaTitle', values),
-      titleNoText: values => t('metaTitleNoText', values),
-      removed: t('removedMetaTitle'),
-      unavailable: t('unavailableMetaTitle'),
-      siteName: tMeta('title'),
-    }),
+    ...buildPostMetadata(
+      detail.post,
+      {
+        canonical: getPathname({ href, locale }),
+        languages: {
+          ...Object.fromEntries(
+            routing.locales.map(code => [code, getPathname({ href, locale: code })])
+          ),
+          'x-default': getPathname({ href, locale: routing.defaultLocale }),
+        },
+      },
+      {
+        title: values => t('metaTitle', values),
+        titleNoText: values => t('metaTitleNoText', values),
+        siteName,
+      }
+    ),
   };
 };
 
@@ -78,30 +84,29 @@ const authHref = (pathname: '/giris' | '/kayit', next: string): string =>
 
 /**
  * Gönderi detayı (S12, K7 `/gonderi/:id`, public: anonim de okur). Kart genişletilmiş (gövde
- * kırpılmaz), altında yorum composer'ı ve eskiden yeniye yorumlar. Silinmiş gönderi "kaldırıldı"
- * (sahibine moderasyon metni), engel/etkin olmayan yazar "görüntülenemiyor" durumu; ikisi de
- * `noindex` (generateMetadata). Olmayan gönderi 404.
+ * kırpılmaz), altında yorum composer'ı ve eskiden yeniye yorumlar. Olmayan, silinmiş (moderasyon
+ * dahil), engelli ya da yazarı etkin olmayan gönderi ve geçersiz kimlik aynı 404'tür
+ * (`not-found.tsx`, noindex): neden ayırt edilmez.
  */
 const PostPage = async ({ params }: PostPageProps): Promise<ReactElement> => {
   const { locale: raw, id: rawId } = await params;
   const locale = resolveLocale(raw);
   setRequestLocale(locale);
-  const id = parsePostId(rawId);
+  const id = parsePostIdParam(rawId);
   if (id === null) notFound();
   const detail = await getPostById(id);
-  if (detail.status === 'not-found') notFound();
+  if (detail.status !== 'ok') notFound();
 
   const viewer = await getCurrentUser();
   const t = await getTranslations({ locale, namespace: 'postDetail' });
   const tComments = await getTranslations({ locale, namespace: 'comments' });
-  const fallbackHref = viewer ? '/akis' : '/';
+  const here = getPathname({ href: postHref(id), locale });
+  const initialPage = await loadFirstComments(id);
 
-  let content: ReactElement;
-  if (detail.status === 'ok') {
-    const here = getPathname({ href: postHref(id), locale });
-    const initialPage = await loadFirstComments(id);
-    content = (
-      <>
+  return (
+    <AppShell>
+      <div className='flex flex-col'>
+        <PostDetailHeader title={t('title')} fallbackHref={viewer ? '/akis' : '/'} />
         <PostCard post={detail.post} variant='detail' />
         <section aria-labelledby='comments-heading' data-testid='comments'>
           <h2
@@ -119,38 +124,6 @@ const PostPage = async ({ params }: PostPageProps): Promise<ReactElement> => {
             initialPage={initialPage}
           />
         </section>
-      </>
-    );
-  } else {
-    const message =
-      detail.status === 'unavailable'
-        ? t('unavailable')
-        : detail.byModeration
-          ? t('removedByModeration')
-          : t('removed');
-    content = (
-      <div data-testid='post-detail-state' data-state={detail.status}>
-        <EmptyState
-          icon={detail.status === 'unavailable' ? EyeOff : MessageSquareOff}
-          message={message}
-          action={
-            <Button asChild variant='outline' size='lg'>
-              <Link href={fallbackHref}>{viewer ? t('toFeed') : t('toHome')}</Link>
-            </Button>
-          }
-        />
-      </div>
-    );
-  }
-
-  return (
-    <AppShell>
-      <div className='flex flex-col'>
-        <div className='flex items-center gap-2 border-b border-border px-2 py-1'>
-          <BackButton fallbackHref={fallbackHref} />
-          <h1 className='text-lg font-semibold text-fg'>{t('title')}</h1>
-        </div>
-        {content}
       </div>
     </AppShell>
   );

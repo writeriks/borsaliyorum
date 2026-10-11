@@ -440,13 +440,9 @@
     "back": "Back",
     "metaTitle": "{name}: “{excerpt}”",
     "metaTitleNoText": "Post by {name}",
-    "removed": "This post has been removed.",
-    "removedByModeration": "Your post was removed by moderators.",
-    "removedMetaTitle": "Post removed",
-    "unavailable": "This content isn’t available.",
-    "unavailableMetaTitle": "Content unavailable",
-    "toFeed": "Back to feed",
-    "toHome": "Back to home"
+    "toHome": "Back to home",
+    "notFound": "This post couldn’t be found. It may have been deleted or is no longer available.",
+    "notFoundMetaTitle": "Post not found"
   },
   "comments": {
     "heading": "Comments",
