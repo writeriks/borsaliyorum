@@ -52,3 +52,19 @@ jobs:
         run: |
           node scripts/sync-stocks.mjs kap-stocks.csv --max-new="$MAX_NEW" $([ "$APPLY" = "true" ] && echo --apply) 2>&1 | tee sync-report.txt
           { echo '```'; cat sync-report.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      # Autocomplete hisse indeksi 24 saat önbellekli (S7): yeni hisseler hemen görünsün.
+      # Secret/URL tanımlı değilse adım atlanır; indeks yine en geç 24 saatte tazelenir.
+      - name: Revalidate autocomplete stock index
+        if: env.APPLY == 'true'
+        env:
+          STOCKS_REVALIDATE_SECRET: ${{ secrets.STOCKS_REVALIDATE_SECRET }}
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          if [ -z "$STOCKS_REVALIDATE_SECRET" ] || [ -z "$SITE_URL" ]; then
+            echo "STOCKS_REVALIDATE_SECRET ya da SITE_URL tanımlı değil; atlandı."
+            exit 0
+          fi
+          curl -fsS --max-time 30 -X POST \
+            -H "Authorization: Bearer $STOCKS_REVALIDATE_SECRET" \
+            "$SITE_URL/api/revalidate/stocks"

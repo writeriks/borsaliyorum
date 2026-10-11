@@ -175,6 +175,20 @@ başlanabilir.
   hariç, askıdaki kullanıcı hariç, DTO'da e-posta yok, `q` doğrulaması; anonim kullanıcı
   users/tags'te 401; stocks yanıtı `Cache-Control` taşır; `EXPLAIN` önek index'ini kullanıyor
   (test ya da PR'da plan çıktısı).
+- **Uygulama notu (2026-10-10):** `features/autocomplete` (DAL `server/queries.ts`, çekirdek
+  `server/route-handlers.ts`), uçlar `app/api/autocomplete/*`. Başarılı gövde composer istemci
+  şemasının birebir biçimi (dizi / `{ source, tickers }`), hata gövdesi `{ ok: false, error }`.
+  Önek sorguları `LIKE` yerine bayt aralığı (`~>=~`/`~<~`): parametreli planda da
+  `User_username_lower_pattern_idx` ve yeni `Tag_slug_pattern_idx` (`(slug::text)
+  text_pattern_ops`, ifade index'i) kullanılır. Rate limit bellek içi (`lib/rate-limit/memory`):
+  girişli uçlar kullanıcı başına 60/dk ortak, hisse indeksi IP-HMAC başına 30/dk. Etiket sıralaması:
+  tam eşleşme > 30 günlük kullanım > `updatedAt`; boş sorgu 24 saatin trendi (10 dk önbellek).
+  Kullanıcı önerisinde görüntüleyenin kendisi, onboarding'i bitmemiş ve rezerve adlı hesaplar da
+  hariç; görünen ad kelime başı araması (`fold_tag`, index'siz) yalnızca 2+ karakterde.
+  `POST /api/revalidate/stocks` (`STOCKS_REVALIDATE_SECRET`, tanımsızsa 404) Next önbelleğini ve
+  Vercel CDN tag'ini (`stocks`) geçersiz kılar; sync workflow'u `--apply` sonrası çağırır.
+  Composer istemcisinin link önizleme şeması S9'un gerçek gövdesine (`Result<{ preview }>`)
+  uyarlandı.
 
 ### S8 — Composer (TipTap)
 - `features/composer`: `Composer` (lazy, skeleton), `EntityDecorations` eklentisi,

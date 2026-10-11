@@ -42,14 +42,21 @@ export const tagSuggestionsSchema = z.array(
   })
 );
 
-export const linkPreviewResponseSchema = z.discriminatedUnion('status', [
-  z.object({
-    status: z.literal('ok'),
-    url: z.url({ protocol: /^https?$/ }),
-    host: z.string().min(1).max(253),
-    siteName: z.string().max(200).nullable(),
-    title: z.string().min(1).max(300),
-    description: z.string().max(500).nullable(),
+/**
+ * `GET /api/link-preview?url=` (S9) gövdesi: `Result<{ preview }>` zarfı
+ * (`features/link-preview/types.ts`). Önizleme yoksa (engelli, hata, başlıksız) `preview: null`.
+ */
+export const linkPreviewResponseSchema = z.object({
+  ok: z.literal(true),
+  data: z.object({
+    preview: z
+      .object({
+        url: z.url({ protocol: /^https?$/ }),
+        host: z.string().min(1).max(253),
+        siteName: z.string().max(200).nullable(),
+        title: z.string().min(1).max(300),
+        description: z.string().max(500).nullable(),
+      })
+      .nullable(),
   }),
-  z.object({ status: z.literal('none') }),
-]);
+});

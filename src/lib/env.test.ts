@@ -127,6 +127,28 @@ describe('IP_ENCRYPTION_KEY', () => {
   });
 });
 
+describe('STOCKS_REVALIDATE_SECRET', () => {
+  it('opsiyonel; boş değer tanımsız sayılır', () => {
+    expect(parseServerEnv(validServer).STOCKS_REVALIDATE_SECRET).toBeUndefined();
+    expect(
+      parseServerEnv({ ...validServer, STOCKS_REVALIDATE_SECRET: '' }).STOCKS_REVALIDATE_SECRET
+    ).toBeUndefined();
+  });
+
+  it('en az 32 karakter', () => {
+    const secret = 'x'.repeat(32);
+    expect(
+      parseServerEnv({ ...validServer, STOCKS_REVALIDATE_SECRET: secret }).STOCKS_REVALIDATE_SECRET
+    ).toBe(secret);
+    const error = captureError(() =>
+      parseServerEnv({ ...validServer, STOCKS_REVALIDATE_SECRET: 'kisa' })
+    );
+    expect(error.issues).toEqual([
+      expect.stringMatching(/^STOCKS_REVALIDATE_SECRET: en az 32 karakter/),
+    ]);
+  });
+});
+
 describe('parseClientEnv', () => {
   it('ölçüm kimliği olmadan da geçerlidir; boş string tanımsız sayılır', () => {
     expect(parseClientEnv({ ...validClient, NEXT_PUBLIC_MEASUREMENT_ID: '' })).toEqual(validClient);

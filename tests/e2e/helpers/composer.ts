@@ -36,8 +36,9 @@ const respond = async (
 };
 
 /**
- * S7/S9 uçları henüz yok: sözleşmeye göre (ADR-0002 Karar 4, `features/composer/types.ts`)
- * Playwright route mock'ları. Veri tasarım spec'i §0 fixture'larıdır.
+ * Composer UI testleri için sözleşmeye göre (ADR-0002 Karar 4, `features/composer/types.ts`)
+ * Playwright route mock'ları: veri tasarım spec'i §0 fixture'larıdır ve hata/gecikme durumları
+ * deterministik üretilebilir. Gerçek S7 uçlarıyla uçtan uca akış: `composer-real-apis.spec.ts`.
  */
 export const mockComposerApis = async (
   page: Page,
@@ -73,13 +74,18 @@ export const mockComposerApis = async (
     route => {
       const target = new URL(route.request().url()).searchParams.get('url') ?? '';
       log.linkPreview.push(target);
+      // S9 gövdesi: `Result<{ preview }>` zarfı (features/link-preview/types.ts)
       return respond(route, mocks.linkPreview, {
-        status: 'ok',
-        url: target,
-        host: new URL(target).hostname,
-        siteName: 'Örnek Haber',
-        title: 'THYAO yeni hat açıyor',
-        description: 'Örnek açıklama',
+        ok: true,
+        data: {
+          preview: {
+            url: target,
+            host: new URL(target).hostname,
+            siteName: 'Örnek Haber',
+            title: 'THYAO yeni hat açıyor',
+            description: 'Örnek açıklama',
+          },
+        },
       });
     }
   );

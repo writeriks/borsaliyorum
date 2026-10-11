@@ -10,6 +10,8 @@
 //   - CHECK kısıtları (ContentEvent IP zorunluluğu/port aralığı, ConsentEvent metin sürümü,
 //     LegalIdentityRetention purgeAt > deletedAt)
 //   - `User_username_lower_pattern_idx` (lower(username) text_pattern_ops, autocomplete öneki)
+//   - `Tag_slug_pattern_idx` ((slug::text) text_pattern_ops, etiket autocomplete öneki; Prisma
+//     btree opclass'ını diff'te koruyamadığı için ifade index'i)
 
 // Prisma 7 istemcisi TS olarak src/generated'a üretilir (gitignore'da; postinstall üretir).
 // `.ts` uzantılı import'lar: scripts/sync-stocks.mjs istemciyi düz `node` ile (Node 22 tip

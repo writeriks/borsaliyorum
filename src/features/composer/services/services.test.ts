@@ -70,14 +70,18 @@ describe('createHttpComposerServices (S7/S9 sözleşmesi)', () => {
     expect(user?.avatarUrl).toBe(avatarUrl);
   });
 
-  it('link önizleme: ok → kart, none → null', async () => {
+  it('link önizleme (S9 `Result` zarfı): preview → kart, null → null', async () => {
     const ok = fetchReturning({
-      status: 'ok',
-      url: 'https://kap.org.tr/x',
-      host: 'kap.org.tr',
-      siteName: null,
-      title: 'Başlık',
-      description: null,
+      ok: true,
+      data: {
+        preview: {
+          url: 'https://kap.org.tr/x',
+          host: 'kap.org.tr',
+          siteName: null,
+          title: 'Başlık',
+          description: null,
+        },
+      },
     });
     await expect(
       createHttpComposerServices(ok).linkPreview('https://kap.org.tr/x', signal)
@@ -88,7 +92,7 @@ describe('createHttpComposerServices (S7/S9 sözleşmesi)', () => {
       title: 'Başlık',
       description: null,
     });
-    const none = fetchReturning({ status: 'none' });
+    const none = fetchReturning({ ok: true, data: { preview: null } });
     await expect(
       createHttpComposerServices(none).linkPreview('https://a.com', signal)
     ).resolves.toBeNull();
