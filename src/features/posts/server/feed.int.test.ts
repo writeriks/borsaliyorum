@@ -29,6 +29,7 @@ const {
   loadFeedPage,
   loadFollowSummary,
 } = await import('./feed');
+const { findPostDetail } = await import('./queries');
 
 const at = (minute: number): Date => new Date(Date.UTC(2026, 9, 10, 12, minute, 0));
 
@@ -182,6 +183,33 @@ describe('akış kapsamı ve gizleme', () => {
     const json = JSON.stringify(result.data);
     expect(json).not.toContain(author.email);
     expect(json).not.toContain(author.firebaseUserId);
+  });
+
+  it('eski format gövde: mention kullanıcı adından çözülür, kart gövdesi detaydakiyle aynı', async () => {
+    const viewer = await createUser();
+    const author = await createUser();
+    const mentioned = await createUser({ username: 'Akis_Eski_Uye', displayName: 'Akış Eski Üye' });
+    await followUser(viewer.userId, author.userId);
+    const post = await createPost({
+      userId: author.userId,
+      content: '@(akis_eski_uye) ne der?',
+      contentFormat: 1,
+      createdAt: new Date(Date.UTC(2029, 0, 1)),
+    });
+
+    const result = await loadFeedPage(getDb(), viewer.userId, { tab: 'latest' });
+    if (!result.ok) throw new Error(result.error);
+    const card = result.data.items.find(item => item.id === post.postId);
+    expect(card?.body.entities).toContainEqual(
+      expect.objectContaining({
+        type: 'mention',
+        username: mentioned.username,
+        displayName: 'Akış Eski Üye',
+      })
+    );
+    const detail = await findPostDetail(getDb(), { userId: viewer.userId }, post.postId);
+    if (detail.status !== 'ok') throw new Error(detail.status);
+    expect(card?.body).toEqual(detail.post.body);
   });
 });
 
@@ -490,15 +518,27 @@ describe('performans: sorgu sayısı ve plan', () => {
     const stock = await createStock();
     await followUser(viewer.userId, friend.userId);
     for (let i = 0; i < 12; i += 1) {
-      const post = await createPost({
-        userId: friend.userId,
-        content: '@m',
-        entities: {
-          v: 1,
-          items: [{ type: 'mention', start: 0, end: 2, username: 'm', userId: mentioned.userId }],
-        },
-        stockIds: [stock.stockId],
-      });
+      // v2 kimlikli ve eski format (kullanıcı adlı) mention'lar karışık: yine tek kullanıcı sorgusu
+      const post = await createPost(
+        i % 2 === 0
+          ? {
+              userId: friend.userId,
+              content: '@m',
+              entities: {
+                v: 1,
+                items: [
+                  { type: 'mention', start: 0, end: 2, username: 'm', userId: mentioned.userId },
+                ],
+              },
+              stockIds: [stock.stockId],
+            }
+          : {
+              userId: friend.userId,
+              content: `@(${mentioned.username})`,
+              contentFormat: 1,
+              stockIds: [stock.stockId],
+            }
+      );
       await likePost(viewer.userId, post.postId);
       await createComment({ postId: post.postId });
     }

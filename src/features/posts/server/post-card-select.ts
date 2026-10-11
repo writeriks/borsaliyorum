@@ -33,9 +33,6 @@ export const postCardSelect = (viewerId: number) =>
 
 export type PostCardRow = Prisma.PostGetPayload<{ select: ReturnType<typeof postCardSelect> }>;
 
-/** Kart gövdesindeki mention kimlikleri (görünen adlar tek sorguda çözülür). */
-export { mentionIdsOf } from '@/lib/content/render-refs';
-
 const toLinkPreview = (row: PostCardRow): PostLinkPreview =>
   row.linkPreview?.status === 'ok'
     ? {

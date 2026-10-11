@@ -16,6 +16,7 @@ import {
   type StockType,
 } from '@/generated/prisma/client';
 import { getCurrentUser } from '@/lib/auth/session';
+import { collectRenderRefs, loadMentionUsers } from '@/lib/content/render-refs';
 import {
   type Cursor,
   decodeCursor,
@@ -29,7 +30,7 @@ import { ErrorCode, fail, ok, type Result } from '@/lib/errors';
 
 import type { PostCardData } from '../types';
 
-import { mentionIdsOf, type PostCardRow, toPostCardData } from './post-card-select';
+import { type PostCardRow, toPostCardData } from './post-card-select';
 
 /**
  * Akış DAL'ı (S11; v2-milestone-1 "Teknik notlar: akış ve detay").
@@ -239,15 +240,10 @@ const toCards = async (
   rows: readonly FeedRow[],
   viewerId: number
 ): Promise<PostCardData[]> => {
-  const mentionIds = [...new Set(rows.flatMap(row => mentionIdsOf(row.entities)))];
-  const users =
-    mentionIds.length === 0
-      ? []
-      : await db.user.findMany({
-          where: { userId: { in: mentionIds }, status: 'active' },
-          select: { userId: true, username: true, displayName: true },
-        });
-  return rows.map(row => toPostCardData(toCardRow(row), viewerId, users));
+  const cardRows = rows.map(toCardRow);
+  // Detayla aynı çözüm: v2 kimlikleri + eski format kullanıcı adları, sayfa başına tek sorgu
+  const users = await loadMentionUsers(db, collectRenderRefs(cardRows));
+  return cardRows.map(row => toPostCardData(row, viewerId, users));
 };
 
 export type FeedPageInput = {
