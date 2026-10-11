@@ -77,9 +77,19 @@ test.describe('gönderi detayı (S12)', () => {
   }) => {
     const text = `Detay testi ${uniqueSuffix()}`;
     const postId = await seedPost(author.username, text);
+    // Daha yeni gönderiler hedefi listenin altına iter: akış kaydırılmadan görünmez
+    for (let i = 0; i < 8; i += 1) {
+      await seedPost(author.username, `Dolgu ${i} ${'uzun satır '.repeat(30)}`);
+    }
     await mockComposerApis(page);
     await loginViaUi(page, author);
     await page.waitForURL('**/akis');
+
+    const target = page.getByTestId('my-posts').getByTestId('post-card').filter({ hasText: text });
+    await target.scrollIntoViewIfNeeded();
+    const feedScroll = await page.evaluate(() => window.scrollY);
+    expect(feedScroll).toBeGreaterThan(200);
+    const historyLength = await page.evaluate(() => window.history.length);
 
     await openFromFeed(page, text);
     await page.waitForURL(`**/gonderi/${postId}`);
@@ -87,9 +97,12 @@ test.describe('gönderi detayı (S12)', () => {
     await expect(page.getByTestId('post-card')).toContainText(text);
     await expect(page.getByText(tr.comments.empty)).toBeVisible();
 
-    // Uygulama içinden gelindi: "Geri" geçmişte geri gider (akış önbellekten, konum korunur)
+    // Akıştan gelindi: "Geri" geçmişte geri gider (yeni girdi eklemez), akış kaydırma konumu korunur
     await page.getByTestId('post-detail-back').click();
     await page.waitForURL('**/akis');
+    await expect(target).toBeInViewport();
+    expect(await page.evaluate(() => window.history.length)).toBe(historyLength + 1);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(feedScroll - 100);
     await openFromFeed(page, text);
     await page.waitForURL(`**/gonderi/${postId}`);
 
@@ -108,8 +121,8 @@ test.describe('gönderi detayı (S12)', () => {
     // Gönderi kartındaki yorum sayacı sunucudan tazelenir
     await expect(page.getByTestId('post-card').getByText('1 yorum')).toBeAttached();
 
-    // Composer odaktayken liste kayabilir: önce odağı dışarı al
-    await page.getByRole('heading', { level: 1 }).click();
+    // Yeni yorum odak alır (ekran okuyucu okur, klavye oradan devam eder)
+    await expect(comment).toBeFocused();
     const like = comment.getByTestId('post-like');
     await expect(like).toHaveAttribute('aria-pressed', 'false');
     await like.click();
@@ -179,22 +192,101 @@ test.describe('gönderi detayı (S12)', () => {
     }
   });
 
-  test('silinmiş gönderi "kaldırıldı" (noindex); olmayan ve geçersiz kimlik 404', async ({
+  test('silinmiş, engelli, olmayan ve geçersiz kimlik: aynı gönderi 404’ü (noindex, içerik yok)', async ({
     page,
   }) => {
     const deletedId = await seedPost(author.username, 'silinecek gizli metin', { deleted: true });
-    const response = await page.goto(`/gonderi/${deletedId}`);
-    expect(response?.status()).toBe(200);
-    await expect(page.getByTestId('post-detail-state')).toHaveAttribute('data-state', 'removed');
-    await expect(page.getByText(tr.postDetail.removed)).toBeVisible();
-    await expect(page.getByText('silinecek gizli metin')).toHaveCount(0);
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
-    await expect(page).toHaveTitle(new RegExp(`^${tr.postDetail.removedMetaTitle}`));
+    const blocker = await seedOnboardedUser();
+    const blockedId = await seedPost(blocker.username, 'engelleyenin gizli metni');
+    await withDb(client =>
+      client.query(
+        `INSERT INTO "UserBlocks" ("blockerId", "blockedId")
+         SELECT b."userId", a."userId" FROM "User" b, "User" a
+         WHERE b.username = $1 AND a.username = $2`,
+        [blocker.username, author.username]
+      )
+    );
 
+    const expectPostNotFound = async (path: string, hidden?: string): Promise<void> => {
+      const response = await page.goto(path);
+      expect(response?.status(), path).toBe(404);
+      await expect(page.getByTestId('post-not-found')).toBeVisible();
+      await expect(page.getByText(tr.postDetail.notFound)).toBeVisible();
+      await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
+      await expect(page).toHaveTitle(new RegExp(`^${tr.postDetail.notFoundMetaTitle}`));
+      if (hidden) await expect(page.getByText(hidden)).toHaveCount(0);
+    };
+
+    // Anonim: silinmiş ve olmayan/geçersiz
+    await expectPostNotFound(`/gonderi/${deletedId}`, 'silinecek gizli metin');
     for (const path of ['/gonderi/2000000000', '/gonderi/abc', '/gonderi/0123']) {
-      const notFound = await page.goto(path);
-      expect(notFound?.status(), path).toBe(404);
+      await expectPostNotFound(path);
     }
+    // Engellenen görüntüleyen: silinmişle aynı yanıt (neden ayırt edilmez)
+    await loginViaUi(page, author);
+    await page.waitForURL('**/akis');
+    await expectPostNotFound(`/gonderi/${blockedId}`, 'engelleyenin gizli metni');
+    // Sahibi de silinmiş gönderisini göremez (moderasyon görünümü M2)
+    await expectPostNotFound(`/gonderi/${deletedId}`, 'silinecek gizli metin');
+  });
+
+  test('akış dışı bir sayfadan gelindiyse "Geri" o sayfaya döner; doğrudan açılışta ana sayfaya', async ({
+    page,
+  }) => {
+    const postId = await seedPost(author.username, `Yasal sayfadan gelinen ${uniqueSuffix()}`);
+    await page.goto('/yasal/kvkk');
+    await page.evaluate(() => window.scrollTo(0, 400));
+    const legalScroll = await page.evaluate(() => window.scrollY);
+    expect(legalScroll).toBeGreaterThan(0);
+
+    await page.goto(`/gonderi/${postId}`);
+    const historyLength = await page.evaluate(() => window.history.length);
+    await page.getByTestId('post-detail-back').click();
+    await page.waitForURL('**/yasal/kvkk');
+    // Geçmişte geri gidildi (yeni girdi yok) ve tarayıcı kaydırma konumunu geri yükledi
+    expect(await page.evaluate(() => window.history.length)).toBe(historyLength);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(legalScroll);
+
+    // Yeni sekmede doğrudan açılan detay: geri gidilecek site sayfası yok → sabit hedef
+    const fresh = await page.context().newPage();
+    await fresh.goto(`/gonderi/${postId}`);
+    await expect(fresh.getByTestId('post-detail-back')).toHaveAttribute('href', '/');
+    await fresh.getByTestId('post-detail-back').click();
+    await fresh.waitForURL(url => new URL(url).pathname === '/');
+    await fresh.close();
+  });
+
+  test('25 yorumlu gönderiye yorum: yeni yorum 2. sayfadan yüklenir, görünür ve odaklanır', async ({
+    page,
+  }) => {
+    const postId = await seedPost(author.username, `Kalabalık konuşma ${uniqueSuffix()}`);
+    await withDb(client =>
+      client.query(
+        `INSERT INTO "Comment" ("postId", "userId", content, "contentFormat", "createdAt")
+         SELECT $1, u."userId", 'eski yorum ' || n, 2, now() - (interval '1 minute' * (30 - n))
+         FROM "User" u, generate_series(1, 25) AS n WHERE u.username = $2`,
+        [postId, author.username]
+      )
+    );
+    await mockComposerApis(page);
+    await loginViaUi(page, author);
+    await page.waitForURL('**/akis');
+    await page.goto(`/gonderi/${postId}`);
+    await expect(page.getByTestId('comment')).toHaveCount(20);
+    await expect(page.getByTestId('comments-load-more')).toBeVisible();
+
+    await typeInEditor(page, 'yirmi altıncı yorum ', 'comment');
+    await submitButton(page).click();
+    await expect(page.getByText(tr.composer.success.comment)).toBeVisible();
+
+    const fresh = page.getByTestId('comment').filter({ hasText: 'yirmi altıncı yorum' });
+    await expect(fresh).toBeVisible();
+    await expect(fresh).toBeFocused();
+    await expect(fresh).toBeInViewport();
+    await expect(page.getByTestId('comment')).toHaveCount(26);
+    await expect(page.getByTestId('comment').last()).toContainText('yirmi altıncı yorum');
+    await expect(page.getByTestId('comments-load-more')).toHaveCount(0);
+    await expect(page.getByTestId('post-card').getByText('26 yorum')).toBeAttached();
   });
 
   test('erişilebilirlik (axe): anonim ve girişli detay, koyu ve açık tema', async ({ page }) => {
