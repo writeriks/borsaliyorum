@@ -1,1 +1,1 @@
-export { LEGACY_MEDIA_HOSTS, toSafeMediaSrc } from './safe-src';
+export { LEGACY_MEDIA_HOSTS, toSafeMediaSrc, toSafeStorageMediaSrc } from './safe-src';

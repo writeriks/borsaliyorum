@@ -15,7 +15,8 @@ import {
   type UserSuggestionRow,
 } from './dto';
 
-const AVATAR = 'https://firebasestorage.googleapis.com/v0/b/ornek/o/a.png?alt=media';
+const BUCKET = 'ornek';
+const AVATAR = `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/a.png?alt=media`;
 
 describe('toUserSuggestion (PublicUser DTO)', () => {
   it('yalnızca dört alan; e-posta/firebaseUid satırda olsa da çıktıya geçmez', () => {
@@ -28,7 +29,7 @@ describe('toUserSuggestion (PublicUser DTO)', () => {
       firebaseUserId: 'uid-secret',
       userId: 7,
     } satisfies UserSuggestionRow & Record<string, unknown>;
-    const dto = toUserSuggestion(row);
+    const dto = toUserSuggestion(row, BUCKET);
     expect(dto).toEqual({
       username: 'ali_k',
       displayName: 'Ali Kaya',
@@ -46,20 +47,28 @@ describe('toUserSuggestion (PublicUser DTO)', () => {
     'http://firebasestorage.googleapis.com/a.png',
     'javascript:alert(1)',
     'bozuk',
-  ])('allowlist dışı avatar (%s) → null', profilePhoto => {
+    // Host allowlist'te ama başka bucket
+    'https://firebasestorage.googleapis.com/v0/b/baska-bucket/o/a.png?alt=media',
+    'https://storage.googleapis.com/baska-bucket/a.png',
+  ])('allowlist/bucket dışı avatar (%s) → null', profilePhoto => {
     expect(
-      toUserSuggestion({ username: 'a_1', displayName: 'A', profilePhoto, following: false })
-        .avatarUrl
+      toUserSuggestion(
+        { username: 'a_1', displayName: 'A', profilePhoto, following: false },
+        BUCKET
+      ).avatarUrl
     ).toBeNull();
   });
 
   it('uzun görünen ad istemci şemasına sığacak şekilde kırpılır (vekil çifti bölünmez)', () => {
-    const dto = toUserSuggestion({
-      username: 'uzun',
-      displayName: `${'a'.repeat(DISPLAY_NAME_MAX - 1)}😀😀`,
-      profilePhoto: null,
-      following: false,
-    });
+    const dto = toUserSuggestion(
+      {
+        username: 'uzun',
+        displayName: `${'a'.repeat(DISPLAY_NAME_MAX - 1)}😀😀`,
+        profilePhoto: null,
+        following: false,
+      },
+      BUCKET
+    );
     expect(dto.displayName).toBe('a'.repeat(DISPLAY_NAME_MAX - 1));
     expect(userSuggestionsSchema.safeParse([dto]).success).toBe(true);
   });

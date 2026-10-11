@@ -4,6 +4,7 @@ import { createHmac, randomBytes } from 'node:crypto';
 
 import type { StockIndexItem, TagSuggestion } from '@/features/composer/types';
 import { getDb } from '@/lib/db';
+import { getServerEnv } from '@/lib/env.server';
 import { ErrorCode, fail, ok, toFailure, type Failure, type Result } from '@/lib/errors';
 import { logger as defaultLogger, type Logger } from '@/lib/logger';
 import { createMemoryRateLimiter, type MemoryRateLimiter } from '@/lib/rate-limit/memory';
@@ -11,6 +12,7 @@ import { readRequestMeta } from '@/lib/request-meta';
 
 import { readQueryParam, tagQuerySchema, userQuerySchema } from '../schemas';
 
+import { loadCachedTagUsage } from './cache';
 import {
   queryDefaultStocks,
   queryMostMentionedTickers,
@@ -19,6 +21,7 @@ import {
   suggestTags,
   suggestUsers,
   type AutocompleteDb,
+  type TagUsageEntries,
   type Viewer,
 } from './queries';
 
@@ -38,13 +41,20 @@ export const AUTOCOMPLETE_USER_RATE_LIMIT = { limit: 60, windowMs: 60_000 } as c
 /** Hisse indeksi IP başına; CDN önbelleğinden dönen istekler fonksiyona ulaşmaz. */
 export const AUTOCOMPLETE_IP_RATE_LIMIT = { limit: 30, windowMs: 60_000 } as const;
 
+/**
+ * Kullanıcıya özel uçlar (`/stocks/default`, `/users`, `/tags`) HTTP önbelleğine hiç girmez:
+ * yanıt görüntüleyene göre değişir (takip, engelleme) ve aynı tarayıcıda çıkış/başka hesapla
+ * giriş sonrası eski kullanıcının listesi `max-age` içinde yeniden kullanılabilirdi. Doğrulayıcı
+ * (ETag) olmadığından `no-cache` yine tam istek demektir; diske de yazılmasın diye `no-store`.
+ * İstemci tazeliği TanStack Query `staleTime` ile (oturuma bağlı bellek önbelleği).
+ */
+const PRIVATE_NO_STORE = 'private, no-store';
+
 export const CACHE_CONTROL = {
   /** CDN'de 24 saat, tarayıcıda 1 saat (istemci `staleTime` ile aynı). Invalidation: `stocks` tag'i. */
   stockIndex: 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600',
-  /** Kullanıcıya özgü (takip edilenler) → paylaşılan önbelleğe girmez. */
-  defaultStocks: 'private, max-age=300',
-  /** Girişli uç: paylaşılan önbelleğe girmez; istemci 30 sn taze sayar. */
-  suggestions: 'private, max-age=30',
+  defaultStocks: PRIVATE_NO_STORE,
+  suggestions: PRIVATE_NO_STORE,
   failure: 'no-store',
 } as const;
 
@@ -61,6 +71,10 @@ export type AutocompleteHandlerDeps = {
   readonly loadStockIndex?: () => Promise<StockIndexItem[]>;
   readonly loadMostMentioned?: () => Promise<string[]>;
   readonly loadTrendingTags?: () => Promise<TagSuggestion[]>;
+  /** Etiket sayımları; varsayılan 10 dk paylaşılan önbellek (`loadCachedTagUsage`). */
+  readonly loadTagUsage?: () => Promise<TagUsageEntries>;
+  /** Avatar süzgeci için Storage bucket'ı; varsayılan `FIREBASE_STORAGE_BUCKET`. */
+  readonly mediaBucket?: () => string;
 };
 
 export type PublicHandlerDeps = Omit<AutocompleteHandlerDeps, 'authorize'>;
@@ -125,6 +139,8 @@ const gate = async (deps: AutocompleteHandlerDeps): Promise<Result<Viewer>> => {
   return limited ?? ok({ userId: auth.data.userId });
 };
 
+const defaultMediaBucket = (): string => getServerEnv().FIREBASE_STORAGE_BUCKET;
+
 const dbOf = (deps: PublicHandlerDeps): AutocompleteDb => (deps.db ?? getDb)();
 
 /** `GET /api/autocomplete/stocks`: tüm hisse indeksi, herkese açık, CDN önbellekli. */
@@ -161,7 +177,8 @@ export const handleUserSuggestionsRequest = (
     if (!viewer.ok) return viewer;
     const parsed = userQuerySchema.safeParse(readQueryParam(new URL(request.url)));
     if (!parsed.success) return fail(ErrorCode.VALIDATION);
-    return ok(await suggestUsers(dbOf(deps), viewer.data, parsed.data.q));
+    const mediaBucket = (deps.mediaBucket ?? defaultMediaBucket)();
+    return ok(await suggestUsers(dbOf(deps), viewer.data, parsed.data.q, mediaBucket));
   });
 
 /** `GET /api/autocomplete/tags?q=` (girişli). Boş sorgu: son 24 saatin en çok kullanılanları. */
@@ -180,5 +197,6 @@ export const handleTagSuggestionsRequest = (
       const load = deps.loadTrendingTags ?? (() => queryTrendingTags(db, now));
       return ok(await load());
     }
-    return ok(await suggestTags(db, parsed.data.q, now));
+    const usage = new Map(await (deps.loadTagUsage ?? loadCachedTagUsage)());
+    return ok(await suggestTags(db, parsed.data.q, usage));
   });

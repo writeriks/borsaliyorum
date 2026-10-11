@@ -11,7 +11,10 @@ describe('userQuerySchema', () => {
     ['', ''],
     ['  ali ', 'ali'],
     ['Ali_1', 'ali_1'],
-    // Türkçe büyük harf: İ → i, I → i, ı → i (foldTag)
+    // Türkçe büyük harf: İ → i, I → i, ı → i (foldTag). Kullanıcı adları ASCII
+    // (`^[a-z0-9_]{3,20}$`) olduğu için Türkçe harf asla birebir eşleşmez; katlama, Türkçe
+    // klavyede `@Işık` yazan kişinin `isik` hesabını bulması içindir. `toLowerCase` yetmezdi:
+    // `'İ'.toLowerCase()` → `i̇` (U+0307 ile) olur ve regex'e takılırdı.
     ['İSMA', 'isma'],
     ['ıŞık', 'isik'],
     ['a'.repeat(20), 'a'.repeat(20)],
@@ -42,18 +45,27 @@ describe('tagQuerySchema', () => {
     ['Temettü', 'temettu'],
     ['kâr', 'kar'],
     ['halka_arz', 'halka_arz'],
+    // Sınırda: ham 50 kod noktası kabul (baş/son boşluk sayılmaz)
+    [` ${'a'.repeat(50)} `, 'a'.repeat(50)],
   ])('%j → %j', (input, expected) => {
     const result = parseTag(input);
     expect(result.success).toBe(true);
     expect(result.data?.q).toBe(expected);
   });
 
-  it.each(['bist 100', '#bist', 'a%', 'a'.repeat(51), 'x\u200b'.repeat(60)])(
-    'geçersiz: %j',
-    input => {
-      expect(parseTag(input).success).toBe(false);
-    }
-  );
+  it.each([
+    'bist 100',
+    '#bist',
+    'a%',
+    'a'.repeat(51),
+    'x\u200b'.repeat(60),
+    // Sınır katlamadan önce: görünmez karakter katlamada silinse de ham hâl 51 kod noktası
+    `${'a'.repeat(50)}\u034f`,
+    // NFKC açılımı: ham 30 kod noktası, katlanınca 60 harf (slug sınırını aşar)
+    '\ufb01'.repeat(30),
+  ])('geçersiz: %j', input => {
+    expect(parseTag(input).success).toBe(false);
+  });
 });
 
 describe('readQueryParam', () => {

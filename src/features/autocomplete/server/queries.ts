@@ -136,15 +136,20 @@ const isFollowedBy = (viewer: Viewer): Prisma.Sql => Prisma.sql`EXISTS (
  * 0) kullanıcı adı tam eşleşme 1) takip ettiklerim önek 2) diğer önek 3) görünen ad kelime başı
  * (`fold_tag` ile ı/i, ş/s katlamalı); eşitlikte kullanıcı adı (bayt sırası).
  *
- * Her aday kümesi kendi içinde `SUGGESTION_LIMIT` ile sınırlanır; 1 ve 2 aynı index
- * sıralamasıyla (`USING ~<~`) okunduğu için kısa önekte de tarama sınırlıdır. Görünen ad
- * araması index'sizdir (M1'de pg_trgm yok); yalnızca 2+ karakterde çalışır.
+ * İki aşama: 0–2 önek aralığıyla index'ten okunur (`USING ~<~`, kısa önekte de tarama sınırlı).
+ * Görünen ad araması index'sizdir (M1'de pg_trgm yok, aktif kullanıcıları tarar); bu yüzden
+ * yalnızca önek sonuçları `SUGGESTION_LIMIT`'i doldurmadıysa ve sorgu 2+ karakterse ikinci sorgu
+ * olarak çalışır. pg_trgm/katlanmış kolona geçiş eşiği: ADR-0002 Karar 4.
+ *
+ * `mediaBucket`: avatar URL'si yalnızca bu Storage bucket'ındaysa döner (`toUserSuggestion`).
  */
 export const suggestUsers = async (
   db: AutocompleteDb,
   viewer: Viewer,
-  query: string
+  query: string,
+  mediaBucket: string
 ): Promise<UserSuggestion[]> => {
+  const toDto = (row: UserSuggestionRow): UserSuggestion => toUserSuggestion(row, mediaBucket);
   if (query === '') {
     const rows = await db.$queryRaw<UserSuggestionRow[]>`
       SELECT u."username", u."displayName", u."profilePhoto", true AS "following"
@@ -153,23 +158,13 @@ export const suggestUsers = async (
       WHERE fw."followerId" = ${viewer.userId} AND ${suggestableUser(viewer)}
       ORDER BY fw."followedAt" DESC, fw."id" DESC
       LIMIT ${SUGGESTION_LIMIT}`;
-    return rows.map(toUserSuggestion);
+    return rows.map(toDto);
   }
 
   const { lo, hi } = prefixRange(query);
   const prefix = Prisma.sql`lower(u."username") ~>=~ ${lo} AND lower(u."username") ~<~ ${hi}`;
-  const byDisplayName =
-    [...query].length >= DISPLAY_NAME_MIN_QUERY
-      ? Prisma.sql`
-        UNION ALL
-        (SELECT u."userId", 3 AS "rank" FROM "User" u
-         WHERE strpos(' ' || regexp_replace(fold_tag(u."displayName"), '[[:space:]]+', ' ', 'g'), ${` ${query}`}) > 0
-           AND NOT (${prefix}) AND ${suggestableUser(viewer)}
-         ORDER BY lower(u."username") USING ~<~
-         LIMIT ${SUGGESTION_LIMIT})`
-      : Prisma.empty;
 
-  const rows = await db.$queryRaw<UserSuggestionRow[]>`
+  const byUsername = await db.$queryRaw<UserSuggestionRow[]>`
     WITH candidates AS (
       (SELECT u."userId", 0 AS "rank" FROM "User" u
        WHERE lower(u."username") = ${query} AND ${suggestableUser(viewer)})
@@ -184,7 +179,6 @@ export const suggestUsers = async (
        WHERE ${prefix} AND ${suggestableUser(viewer)}
        ORDER BY lower(u."username") USING ~<~
        LIMIT ${SUGGESTION_LIMIT})
-      ${byDisplayName}
     ),
     best AS (SELECT "userId", MIN("rank") AS "rank" FROM candidates GROUP BY "userId")
     SELECT u."username", u."displayName", u."profilePhoto", ${isFollowedBy(viewer)} AS "following"
@@ -192,47 +186,83 @@ export const suggestUsers = async (
     JOIN "User" u ON u."userId" = best."userId"
     ORDER BY best."rank", lower(u."username") COLLATE "C"
     LIMIT ${SUGGESTION_LIMIT}`;
-  return rows.map(toUserSuggestion);
+
+  const remaining = SUGGESTION_LIMIT - byUsername.length;
+  if (remaining <= 0 || [...query].length < DISPLAY_NAME_MIN_QUERY) {
+    return byUsername.map(toDto);
+  }
+
+  // `NOT (prefix)`: ilk aşamadaki herkes kullanıcı adı önekiyle eşleşir, bu yüzden çakışma yok
+  const byDisplayName = await db.$queryRaw<UserSuggestionRow[]>`
+    SELECT u."username", u."displayName", u."profilePhoto", ${isFollowedBy(viewer)} AS "following"
+    FROM "User" u
+    WHERE strpos(' ' || regexp_replace(fold_tag(u."displayName"), '[[:space:]]+', ' ', 'g'), ${` ${query}`}) > 0
+      AND NOT (${prefix}) AND ${suggestableUser(viewer)}
+    ORDER BY lower(u."username") COLLATE "C"
+    LIMIT ${remaining}`;
+  return [...byUsername, ...byDisplayName].map(toDto);
 };
 
 // --- Etiketler ---
 
+/** `[tagId, son 30 gündeki kullanım]` çiftleri; önbellek JSON'a serileştirebilsin diye dizi. */
+export type TagUsageEntries = ReadonlyArray<readonly [tagId: number, count: number]>;
+
+/**
+ * Son 30 günde kullanılan her etiketin gönderi sayısı (silinmiş gönderiler hariç). Kullanıcıdan
+ * ve sorgudan bağımsız: `_PostTags` taraması istek başına değil, önbellek tazelenirken
+ * (`loadCachedTagUsage`, 10 dk) bir kez yapılır.
+ */
+export const queryTagUsage = async (
+  db: AutocompleteDb,
+  now: Date = new Date()
+): Promise<Array<[number, number]>> => {
+  const rows = await db.$queryRaw<{ tagId: number; count: number }[]>`
+    SELECT pt."B" AS "tagId", COUNT(*)::int AS "count"
+    FROM "_PostTags" pt
+    JOIN "Post" p ON p."postId" = pt."A"
+    WHERE p."createdAt" >= ${since(now, TAG_COUNT_WINDOW_MS)} AND p."deletedAt" IS NULL
+    GROUP BY pt."B"`;
+  return rows.map(row => [row.tagId, row.count]);
+};
+
+type TagCandidateRow = TagSuggestionRow & { readonly tagId: number; readonly updatedAt: Date };
+
+// `COLLATE "C"` ile aynı sıra: UTF-8 bayt sırası (JS `<` UTF-16 birimiyle karşılaştırır)
+const compareBytes = (a: string, b: string): number =>
+  Buffer.compare(Buffer.from(a, 'utf8'), Buffer.from(b, 'utf8'));
+
 /**
  * `#` önerileri (dolu sorgu): slug öneki; tam eşleşme önce, sonra son 30 gündeki kullanım
- * (azalan), son kullanım (`updatedAt`) ve slug. Sayım, önek eşleşen en son kullanılan
- * `TAG_CANDIDATES` etiketle sınırlıdır (tek harflik önekte tüm tabloyu saymamak için).
+ * (azalan), son kullanım (`updatedAt`) ve slug. Aday küme, önek eşleşen en son kullanılan
+ * `TAG_CANDIDATES` etiketle sınırlıdır. Sayımlar `usage`'dan (paylaşılan önbellek) gelir; bu
+ * sorgu `_PostTags`'e dokunmaz.
  */
 export const suggestTags = async (
   db: AutocompleteDb,
   query: string,
-  now: Date = new Date()
+  usage: ReadonlyMap<number, number>
 ): Promise<TagSuggestion[]> => {
   const { lo, hi } = prefixRange(query);
-  const rows = await db.$queryRaw<TagSuggestionRow[]>`
-    WITH candidates AS (
-      (SELECT t."tagId", t."slug", t."tagName", t."updatedAt" FROM "Tag" t
-       WHERE t."slug" = ${query})
-      UNION
-      (SELECT t."tagId", t."slug", t."tagName", t."updatedAt" FROM "Tag" t
-       WHERE t."slug"::text ~>=~ ${lo} AND t."slug"::text ~<~ ${hi}
-       ORDER BY t."updatedAt" DESC
-       LIMIT ${TAG_CANDIDATES})
-    ),
-    usage AS (
-      SELECT pt."B" AS "tagId", COUNT(*)::int AS "count"
-      FROM "_PostTags" pt
-      JOIN "Post" p ON p."postId" = pt."A"
-      WHERE pt."B" IN (SELECT "tagId" FROM candidates)
-        AND p."createdAt" >= ${since(now, TAG_COUNT_WINDOW_MS)} AND p."deletedAt" IS NULL
-      GROUP BY pt."B"
+  const candidates = await db.$queryRaw<Omit<TagCandidateRow, 'count'>[]>`
+    (SELECT t."tagId", t."slug", t."tagName", t."updatedAt" FROM "Tag" t
+     WHERE t."slug" = ${query})
+    UNION
+    (SELECT t."tagId", t."slug", t."tagName", t."updatedAt" FROM "Tag" t
+     WHERE t."slug"::text ~>=~ ${lo} AND t."slug"::text ~<~ ${hi}
+     ORDER BY t."updatedAt" DESC
+     LIMIT ${TAG_CANDIDATES})`;
+  return candidates
+    .map((row): TagCandidateRow => ({ ...row, count: usage.get(row.tagId) ?? 0 }))
+    .sort(
+      (a, b) =>
+        Number(b.slug === query) - Number(a.slug === query) ||
+        b.count - a.count ||
+        b.updatedAt.getTime() - a.updatedAt.getTime() ||
+        compareBytes(a.slug, b.slug)
     )
-    SELECT c."slug", c."tagName", COALESCE(us."count", 0)::int AS "count"
-    FROM candidates c
-    LEFT JOIN usage us ON us."tagId" = c."tagId"
-    ORDER BY (c."slug" = ${query}) DESC, COALESCE(us."count", 0) DESC, c."updatedAt" DESC,
-             c."slug" COLLATE "C"
-    LIMIT ${SUGGESTION_LIMIT}`;
-  return rows.map(toTagSuggestion);
+    .slice(0, SUGGESTION_LIMIT)
+    .map(toTagSuggestion);
 };
 
 /** Boş `#` sorgusu: son 24 saatte en çok kullanılan etiketler. Kullanıcıdan bağımsız. */

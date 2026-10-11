@@ -15,11 +15,15 @@ export const USER_QUERY_MAX = 20;
 /** Ham sorgu sınırı: katlamadan önce de uzun girdiyi işlemeye almayız. */
 const RAW_QUERY_MAX = 100;
 
-const rawQuery = z
+const trimmedQuery = z
   .string()
   .max(RAW_QUERY_MAX)
   .optional()
-  .transform(value => foldTag((value ?? '').trim()));
+  .transform(value => (value ?? '').trim());
+
+const rawQuery = trimmedQuery.transform(foldTag);
+
+const codePoints = (value: string): number => [...value].length;
 
 export const userQuerySchema = z.object({
   q: rawQuery.pipe(z.string().regex(new RegExp(`^[a-z0-9_]{0,${USER_QUERY_MAX}}$`))),
@@ -28,13 +32,21 @@ export const userQuerySchema = z.object({
 // Etiket gövdesi composer tetikleyicisiyle aynı karakter sınıfı (`#[\p{L}\p{N}\p{M}_]`)
 const TAG_QUERY_RE = /^[\p{L}\p{N}\p{M}_]*$/u;
 
+/**
+ * Etiket sınırı katlamadan **önce** de uygulanır: NFKC bazı karakterleri açar (`ﬁ` → `fi`,
+ * U+FDFA → 18 harf), 50 harflik girdi katlanınca çok daha uzun bir aralık sorgusuna dönüşmesin.
+ * Katlanmış hâl de 50'yi aşamaz (slug sınırı, `toHashtagSlug`); aşan sorgu hiçbir etiketle eşleşmez.
+ */
 export const tagQuerySchema = z.object({
-  q: rawQuery.pipe(
-    z
-      .string()
-      .regex(TAG_QUERY_RE)
-      .refine(value => [...value].length <= MAX_HASHTAG_LENGTH)
-  ),
+  q: trimmedQuery
+    .refine(value => codePoints(value) <= MAX_HASHTAG_LENGTH)
+    .transform(foldTag)
+    .pipe(
+      z
+        .string()
+        .regex(TAG_QUERY_RE)
+        .refine(value => codePoints(value) <= MAX_HASHTAG_LENGTH)
+    ),
 });
 
 export type UserQuery = z.infer<typeof userQuerySchema>;

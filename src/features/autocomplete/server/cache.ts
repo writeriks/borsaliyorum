@@ -6,7 +6,13 @@ import { revalidateTag, unstable_cache } from 'next/cache';
 import type { StockIndexItem, TagSuggestion } from '@/features/composer/types';
 import { getDb } from '@/lib/db';
 
-import { queryMostMentionedTickers, queryStockIndex, queryTrendingTags } from './queries';
+import {
+  queryMostMentionedTickers,
+  queryStockIndex,
+  queryTagUsage,
+  queryTrendingTags,
+  type TagUsageEntries,
+} from './queries';
 
 /**
  * Kullanıcıdan bağımsız autocomplete verisinin sunucu önbelleği (Next Data Cache). Hisse
@@ -14,6 +20,11 @@ import { queryMostMentionedTickers, queryStockIndex, queryTrendingTags } from '.
  * önbelleği (`revalidateTag`) hem de Vercel CDN'deki yanıtı (`invalidateByTag`) geçersiz kılar.
  */
 export const STOCKS_CACHE_TAG = 'stocks';
+/**
+ * Etiket önerisi sayımları (son 30 gün, tüm etiketler). Şimdilik yalnızca süreyle tazelenir;
+ * tag, moderasyonla toplu gönderi silme gibi durumlarda elle `revalidateTag` için.
+ */
+export const TAG_USAGE_CACHE_TAG = 'autocomplete:tag-usage';
 
 const DAY_SECONDS = 24 * 60 * 60;
 const TEN_MINUTES = 10 * 60;
@@ -34,6 +45,16 @@ export const loadCachedTrendingTags: () => Promise<TagSuggestion[]> = unstable_c
   () => queryTrendingTags(getDb()),
   ['autocomplete', 'trending-tags', 'v1'],
   { revalidate: TEN_MINUTES }
+);
+
+/**
+ * `suggestTags`'in sayım haritası: kullanıcıdan bağımsız tek sorgu, 10 dk paylaşılan önbellek.
+ * İstek başına `_PostTags` taranmaz; istek yalnızca önek adaylarını okuyup bununla birleştirir.
+ */
+export const loadCachedTagUsage: () => Promise<TagUsageEntries> = unstable_cache(
+  () => queryTagUsage(getDb()),
+  ['autocomplete', 'tag-usage-30d', 'v1'],
+  { revalidate: TEN_MINUTES, tags: [TAG_USAGE_CACHE_TAG] }
 );
 
 /** Hisse indeksi yanıtını Vercel CDN'de `stocks` tag'iyle işaretler (Vercel dışında etkisiz). */

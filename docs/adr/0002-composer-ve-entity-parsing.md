@@ -244,9 +244,9 @@ placeholder/geçmiş `editor/basics.ts`.
 
 | Tetikleyici | Kaynak | Sıralama | Gecikme |
 |-------------|--------|----------|---------|
-| `$` | `GET /api/autocomplete/stocks` → **tüm hisse indeksi** (`{t, n, type, m?}[]`, ~600 kayıt, ~15 KB gz; `m` = son 7 günde anıldığı gönderi sayısı, sıralamada eşitlik bozucu, yoksa 0), `'use cache'` + `cacheTag('stocks')` (stock sync sonrası invalidation), `Cache-Control: public, s-maxage=86400`. İstemcide TanStack Query `staleTime: 1 saat`, filtreleme yerel | 1) kod tam eşleşme 2) kod önek 3) şirket adında kelime başı eşleşme (`foldTag` ile ı/i, ş/s katlamalı) 4) içerir; eşitlikte kod alfabetik (`localeCompare('tr')`). En fazla 8 | 0 ms (ağ yok), debounce yok |
+| `$` | `GET /api/autocomplete/stocks` → **tüm hisse indeksi** (`{t, n, type, m?}[]`, ~600 kayıt, ~15 KB gz; `m` = son 7 günde anıldığı gönderi sayısı, sıralamada eşitlik bozucu, yoksa 0), sunucuda `unstable_cache` + tag `stocks` (24 saat; stock sync sonrası `POST /api/revalidate/stocks` → `revalidateTag` + Vercel `invalidateByTag`), `Cache-Control: public, max-age=3600, s-maxage=86400`. İstemcide TanStack Query `staleTime: 1 saat`, filtreleme yerel | 1) kod tam eşleşme 2) kod önek 3) şirket adında kelime başı eşleşme (`foldTag` ile ı/i, ş/s katlamalı) 4) içerir; eşitlikte kod alfabetik (`localeCompare('tr')`). En fazla 8 | 0 ms (ağ yok), debounce yok |
 | `@` | `GET /api/autocomplete/users?q=` (girişli kullanıcı) | 1) kullanıcı adı tam eşleşme 2) takip ettiklerim önek 3) diğerleri kullanıcı adı önek 4) görünen ad kelime başı. Engelleyen/engellenen (iki yön) ve `status != active` hariç. En fazla 8 | debounce 150 ms. `q` boşsa (yalnızca `@`) varsayılan: takip ettiklerim, son takip edilen önce |
-| `#` | `GET /api/autocomplete/tags?q=` | `slug` önek, `updatedAt` (son kullanım) azalan. En fazla 8. Yazılan etiket listede yoksa "yeni etiket: #..." son satır. `q` boşsa son 24 saatte en çok kullanılanlar (`_PostTags` ⋈ `Post.createdAt`, 10 dk cache) | debounce 150 ms |
+| `#` | `GET /api/autocomplete/tags?q=` | `slug` önek (önek eşleşen en son kullanılan 200 aday); sıralama: 1) slug tam eşleşme 2) son 30 gündeki kullanım (azalan) 3) `updatedAt` (son kullanım) azalan 4) slug bayt sırası. En fazla 8. Yazılan etiket listede yoksa "yeni etiket: #..." son satır. `q` boşsa son 24 saatte en çok kullanılanlar (`_PostTags` ⋈ `Post.createdAt`, 10 dk cache) | debounce 150 ms |
 | `$` (boş sorgu) | `GET /api/autocomplete/stocks/default` (girişli) → `{ source: 'following' \| 'mostMentioned', tickers: string[] }` (en fazla 50 kod): takip ettiğim hisseler, yoksa son 24 saatte en çok anılanlar (gönderi sayısı, nötr ölçüt). Başlık `source`'a göre seçilir | — | tek istek, composer açılınca |
 
 - İstemci: `useQuery({ queryKey: ['ac', kind, q], signal })` → eski istekler `AbortSignal` ile
@@ -257,10 +257,40 @@ placeholder/geçmiş `editor/basics.ts`.
   hedefi ≥ 44px.
 - Durumlar: yükleniyor (ilk 150 ms boş, sonra 3 satır skeleton), boş ("Eşleşen hisse yok"),
   hata (tek satır, liste kapanmaz, yazım engellenmez).
-- Sunucu: `q` Zod ile (`0–20` karakter, `[A-Za-z0-9_]` kullanıcı/etiket için katlanmış).
-  Sorgu `username` için `lower(username) text_pattern_ops` btree önek index'i (yeni migration),
-  `Tag.slug` önek için aynısı. Trigram (`pg_trgm`) M1'de yok; görünen adda "içerir" araması
-  gerekirse eklenir.
+- Sunucu: `q` Zod ile katlanır (`foldTag`). Kullanıcı: katlanmış `[a-z0-9_]{0,20}`. Etiket:
+  50 kod noktası sınırı katlamadan **önce** (NFKC açılımı — `ﬁ` → `fi`, U+FDFA → 18 harf — kısa
+  girdiyi uzun sorguya çevirmesin) ve sonra da uygulanır. Sorgu `username` için
+  `lower(username) text_pattern_ops` btree önek index'i (yeni migration), `Tag.slug` önek için
+  aynısı; aralık operatörleri (`~>=~`/`~<~`) ile generic planda da index kullanılır (EXPLAIN
+  testi).
+- **Görünen ad araması iki aşamalı** (S7 review): önce kullanıcı adı (tam eşleşme + önek,
+  index'li); sonuç 8'den azsa ve sorgu 2+ karakterse ikinci sorgu görünen adda kelime başı
+  araması yapar (`fold_tag(displayName)`, index'siz tarama) ve yalnızca kalan yer kadar satır
+  döner. Trigram (`pg_trgm`) ya da katlanmış görünen ad kolonu + index M1'de yok. **Eşik:**
+  aktif kullanıcı sayısı **20.000**'i geçtiğinde ya da `/api/autocomplete/users` p95 süresi
+  **100 ms**'yi aştığında (hangisi önce olursa) `displayNameFolded` kolonu (yazımda
+  `fold_tag`) + `gin_trgm_ops` index'i eklenir ve ikinci aşama ona taşınır.
+- **Etiket sayımları paylaşılan önbellekte** (S7 review): son 30 günlük kullanım, kullanıcı ve
+  sorgudan bağımsız tek sorguda (`_PostTags ⋈ Post`, `GROUP BY tagId`) toplanır ve
+  `unstable_cache` ile 10 dk önbelleklenir (tag `autocomplete:tag-usage`, elle invalidation
+  için). İstek yalnızca `Tag` önek adaylarını okur ve `tagId → count` haritasıyla bellekte
+  birleştirip sıralar; istek başına `_PostTags` taranmaz (EXPLAIN + SQL kaydı testi). Sayım en
+  fazla 10 dk bayattır; sıralama ölçütü olduğu için kabul edilir. Trend etiketleri (boş `#`)
+  ve "en çok anılan" hisseler de aynı biçimde `unstable_cache` 10 dk.
+- **HTTP önbelleği** (S7 review): kullanıcıya özel uçlar (`/stocks/default`, `/users`,
+  `/tags`) `Cache-Control: private, no-store`. Yanıt görüntüleyene göre değişir (takip,
+  engelleme); `max-age` aynı tarayıcıda çıkış/başka hesapla giriş sonrası önceki kullanıcının
+  listesini sunabilirdi. Doğrulayıcı (ETag) olmadığından `no-cache` da tam istek demektir;
+  diske yazılmaması için `no-store` seçildi. İstemci tazeliği TanStack Query `staleTime` ile
+  (hisse varsayılanı 1 saat, öneriler 30 sn; bellekte, oturumla birlikte temizlenir). Yalnızca
+  herkese açık hisse indeksi CDN'de paylaşılır. Hata yanıtları `no-store`.
+- **Gövde biçimi** (bilinçli ayrım): S7 autocomplete uçları başarıda **çıplak gövde** döner
+  (dizi ya da `{ source, tickers }`; istemci şemaları `composer/schemas.ts`), hata `Result`
+  zarfının `{ ok: false, error }` kolu ve HTTP durum kodu. Gerekçe: her tuşta çağrılan, tek
+  tüketicili okuma uçları; HTTP durumu başarıyı zaten ayırır ve `$` indeksi CDN'de paylaşılan
+  ham veridir. S9 link önizleme ise `Result` zarfı (`{ ok: true, data: { preview } }`) döner
+  çünkü "önizleme yok" (`preview: null`) başarılı bir sonuçtur ve sözleşme Server Action
+  dönüşleriyle aynı tutulur. Yeni okuma uçları bu iki desenden birini açıkça seçer.
 - Rate limit: kullanıcı başına 60 istek/dk (Postgres bucket yerine bellek içi, instance başına
   best-effort + Vercel Firewall kuralı; autocomplete'te her tuşta DB'ye sayaç yazmak sorgunun
   kendisinden pahalı).
@@ -268,7 +298,12 @@ placeholder/geçmiş `editor/basics.ts`.
   `following: boolean` görüntüleyenin bu kişiyi takip edip etmediği ("Takip ediyorsun" satırı,
   sıralamada 2. ölçüt). `avatarUrl` yalnızca `https`, port/kullanıcı bilgisi yok ve medya
   allowlist'indeki host (`src/lib/media` → `toSafeMediaSrc`); uymayan değer istemcide `null`'a
-  düşer (baş harfler gösterilir), sunucu da aynı kuralla süzer.
+  düşer (baş harfler gösterilir). **Asıl süzgeç sunucuda** (S7 review): DTO üretirken
+  `toSafeStorageMediaSrc(url, FIREBASE_STORAGE_BUCKET)` yolu da kontrol eder —
+  `firebasestorage.googleapis.com` için yalnızca `/v0/b/<bucket>/`, `storage.googleapis.com`
+  için yalnızca `/<bucket>/` (iki host da herkesin bucket'ını barındırır; başka bucket izleme
+  pikseli olabilir). Bucket istemciye `NEXT_PUBLIC_` ile taşınmaz; istemci host düzeyinde kalır
+  (savunma derinliği) ve sunucudan zaten süzülmüş URL alır.
 - Sözleşme kaynağı: `src/features/composer/types.ts` + `schemas.ts` (istemci Zod şemaları);
   S7 bu biçimi döndürür.
 
@@ -304,15 +339,18 @@ placeholder/geçmiş `editor/basics.ts`.
 4. Akış/detay, önizlemeyi gönderiyle aynı sorguda (`include`) okur. **Gönderi başına istemci
    isteği yok** (eski hatanın tersine).
 
-**Yanıt biçimi** (`GET /api/link-preview?url=`, istemci şeması `linkPreviewResponseSchema`):
+**Yanıt biçimi** (`GET /api/link-preview?url=`, istemci şeması `linkPreviewResponseSchema`;
+S9 ile güncellendi — ilk taslaktaki `status: 'ok' | 'none'` biçimi kullanılmıyor):
 
 ```ts
-| { status: 'ok'; url: string; host: string; siteName: string | null;
-    title: string;               // ≤ 120 (şema üst sınırı 300)
-    description: string | null } // ≤ 200 (şema üst sınırı 500)
-| { status: 'none' }             // önizleme yok / çekilemedi / engellendi — istemci kart göstermez
+{ ok: true; data: { preview:
+    | { url: string; host: string; siteName: string | null;
+        title: string;               // ≤ 120 (şema üst sınırı 300)
+        description: string | null } // ≤ 200 (şema üst sınırı 500)
+    | null } }                       // önizleme yok / çekilemedi / engellendi — kart gösterilmez
 ```
-Hata ayrıntısı (blocked, timeout vb.) istemciye sızdırılmaz; hepsi `none`. 4xx/5xx yalnızca
+Hata ayrıntısı (blocked, timeout vb.) istemciye sızdırılmaz; hepsi `preview: null`.
+Hata gövdesi `{ ok: false, error }` (Karar 4 "Gövde biçimi": S7 çıplak gövde, S9 `Result` zarfı). 4xx/5xx yalnızca
 kimlik/oran sınırı/doğrulama içindir (`UNAUTHENTICATED`, `RATE_LIMITED`, `VALIDATION`).
 
 **`lib/safe-fetch` kuralları:**

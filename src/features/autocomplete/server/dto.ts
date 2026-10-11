@@ -1,6 +1,6 @@
 import type { StockIndexItem, TagSuggestion, UserSuggestion } from '@/features/composer/types';
 import { foldTag } from '@/lib/entities';
-import { toSafeMediaSrc } from '@/lib/media';
+import { toSafeStorageMediaSrc } from '@/lib/media';
 
 /**
  * DB satırı → istemci DTO'su. Alanlar tek tek seçilir: satıra yanlışlıkla `email` ya da
@@ -31,11 +31,15 @@ export type UserSuggestionRow = {
   readonly following: boolean;
 };
 
-export const toUserSuggestion = (row: UserSuggestionRow): UserSuggestion => ({
+/**
+ * `mediaBucket`: `FIREBASE_STORAGE_BUCKET`. Avatar burada bucket/yol düzeyinde süzülür; istemci
+ * yalnızca host düzeyinde tekrar kontrol eder (bucket'ı bilmez), bu yüzden asıl süzgeç budur.
+ */
+export const toUserSuggestion = (row: UserSuggestionRow, mediaBucket: string): UserSuggestion => ({
   username: row.username,
   displayName: truncateUtf16(row.displayName, DISPLAY_NAME_MAX),
-  // Allowlist dışı/bozuk URL null'a düşer (istemci baş harfleri gösterir)
-  avatarUrl: toSafeMediaSrc(row.profilePhoto),
+  // Allowlist/bucket dışı ya da bozuk URL null'a düşer (istemci baş harfleri gösterir)
+  avatarUrl: toSafeStorageMediaSrc(row.profilePhoto, mediaBucket),
   following: row.following,
 });
 
