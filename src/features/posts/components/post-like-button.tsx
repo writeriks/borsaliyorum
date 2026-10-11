@@ -27,10 +27,11 @@ type PostLikeButtonProps = {
 };
 
 /**
- * Beğeni (design-system: küçük aksiyonlar optimistic). Tıklamada durum hemen değişir; sunucu
- * reddederse önceki duruma döner ve `useActionResult` kullanıcıya bildirir (oturum düştüyse
- * girişe yönlendirir). İstek sürerken yeni tıklama beklemeye alınmaz, yok sayılır: sunucuya
- * yalnızca hedef durum (`liked`) gider, sıra karışmaz.
+ * Beğeni (design-system: küçük aksiyonlar optimistic). Tıklamada görünen durum hemen değişir.
+ * İstek sürerken gelen tıklamalar **kuyruğa alınır**: aynı anda tek istek gider (sıra karışmaz);
+ * yanıt gelince görünen durum (kullanıcının son niyeti) sunucudakinden farklıysa yeni istek
+ * gider, aynıysa (çift tıklama) gitmez. Sunucu reddederse son onaylanan duruma dönülür ve
+ * `useActionResult` kullanıcıya bildirir (oturum düştüyse girişe yönlendirir).
  */
 export const PostLikeButton = ({
   postId,
@@ -43,30 +44,45 @@ export const PostLikeButton = ({
   const handleResult = useActionResult();
   const [state, setState] = useState<LikeState>(initial);
   const [pending, setPending] = useState(false);
+  /** Görünen durum (son niyet); render'dan bağımsız, döngü içinde güncel okunur. */
+  const desired = useRef<LikeState>(initial);
+  /** Sunucunun onayladığı son durum. */
+  const confirmed = useRef<LikeState>(initial);
   const inFlight = useRef(false);
 
-  const onClick = async (): Promise<void> => {
-    if (inFlight.current) return;
+  const show = (next: LikeState): void => {
+    desired.current = next;
+    setState(next);
+  };
+
+  const sync = async (): Promise<void> => {
     inFlight.current = true;
     setPending(true);
-    const previous = state;
-    const next = toggleLike(previous);
-    setState(next);
-    let result: Result<{ liked: boolean }> | null = null;
     try {
-      result = await action({ postId, liked: next.liked });
-    } catch (error) {
-      logger.warn('like action failed', { err: error });
+      while (desired.current.liked !== confirmed.current.liked) {
+        const target = desired.current;
+        let result: Result<{ liked: boolean }> | null = null;
+        try {
+          result = await action({ postId, liked: target.liked });
+        } catch (error) {
+          logger.warn('like action failed', { err: error });
+        }
+        if (result === null || !result.ok) {
+          show(confirmed.current);
+          handleResult(result ?? { ok: false, error: 'INTERNAL' });
+          return;
+        }
+        confirmed.current = target;
+      }
     } finally {
       inFlight.current = false;
       setPending(false);
     }
-    if (result === null) {
-      setState(previous);
-      handleResult({ ok: false, error: 'INTERNAL' });
-      return;
-    }
-    if (handleResult(result) === null) setState(previous);
+  };
+
+  const onClick = (): void => {
+    show(toggleLike(desired.current));
+    if (!inFlight.current) void sync();
   };
 
   return (
@@ -75,7 +91,7 @@ export const PostLikeButton = ({
       aria-pressed={state.liked}
       aria-busy={pending || undefined}
       data-testid='post-like'
-      onClick={() => void onClick()}
+      onClick={onClick}
       className={cn(
         '-mx-2 inline-flex min-h-hit min-w-hit items-center gap-1.5 rounded-md px-2 text-sm tabular-nums',
         'transition-colors duration-(--duration-fast) hover:bg-bg-muted',

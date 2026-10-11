@@ -14,6 +14,9 @@
     "description": "The page you are looking for may have moved or never existed.",
     "backHome": "Back to home"
   },
+  "errorPage": {
+    "message": "This page couldn't load. Try again."
+  },
   "common": {
     "retry": "Try again",
     "login": "Log in",
@@ -405,6 +408,7 @@
   "feedPlaceholder": {
     "title": "Feed",
     "body": "Posts from the people and stocks you follow will appear here soon.",
-    "mine": "Your recent posts"
+    "mine": "Your recent posts",
+    "loadError": "Your posts couldn't load. Try again."
   }
 }

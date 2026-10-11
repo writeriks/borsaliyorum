@@ -1,5 +1,5 @@
 import type { Sentiment } from '@/generated/prisma/client';
-import { CONTENT_MAX_CHARS, type ContentKind } from '@/lib/content-limits';
+import { CONTENT_MAX_CHARS, CONTENT_MAX_CODE_UNITS, type ContentKind } from '@/lib/content-limits';
 import { countChars, normalizeContent, parseEntities, type ParsedEntity } from '@/lib/entities';
 import { ErrorCode, fail, ok, type Result } from '@/lib/errors';
 
@@ -13,8 +13,8 @@ import { ErrorCode, fail, ok, type Result } from '@/lib/errors';
 export const MAX_ENTITIES_PER_TYPE = 10;
 
 /**
- * Taşıma sınırı (UTF-16 code unit): grafem sınırından çok gevşek, yalnızca devasa yükü
- * normalize/parse etmeden reddetmek için. Grafem sınırı normalize edilmiş metinde ayrıca uygulanır.
+ * Zod taşıma sınırı (UTF-16 code unit): yalnızca devasa yükü hiç işlemeden `VALIDATION` ile
+ * reddetmek için. Kullanıcıya dönük ham sınır `CONTENT_MAX_CODE_UNITS` (`CONTENT_TOO_LONG`).
  */
 export const RAW_TEXT_MAX_LENGTH = 50_000;
 
@@ -40,13 +40,15 @@ const uniqueBy = <T>(items: readonly T[], key: (item: T) => string): T[] => {
 };
 
 /**
- * normalize → boş mu → grafem sınırı → parse → tür başına tekil entity sınırı.
- * Sıra hata önceliğidir: `CONTENT_EMPTY` > `CONTENT_TOO_LONG` > `TOO_MANY_ENTITIES`.
+ * ham code unit sınırı → normalize → boş mu → grafem sınırı → parse → tür başına tekil entity
+ * sınırı. Sıra hata önceliğidir: ham `CONTENT_TOO_LONG` > `CONTENT_EMPTY` > `CONTENT_TOO_LONG` >
+ * `TOO_MANY_ENTITIES`. Ham sınır normalize/segment/parse maliyetini sınırlar (ör. zalgo).
  */
 export const analyzeContentForWrite = (raw: string, kind: ContentKind): Result<AnalyzedContent> => {
+  const max = CONTENT_MAX_CHARS[kind];
+  if (raw.length > CONTENT_MAX_CODE_UNITS[kind]) return fail(ErrorCode.CONTENT_TOO_LONG, { max });
   const text = normalizeContent(raw);
   if (text.trim() === '') return fail(ErrorCode.CONTENT_EMPTY);
-  const max = CONTENT_MAX_CHARS[kind];
   if (countChars(text) > max) return fail(ErrorCode.CONTENT_TOO_LONG, { max });
 
   const entities = parseEntities(text);

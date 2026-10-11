@@ -2,7 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { getDb } from '@/lib/db';
 
-import { createPost, createStock, createUser, likePost } from '../../../../tests/factories';
+import {
+  createComment,
+  createPost,
+  createStock,
+  createUser,
+  likePost,
+} from '../../../../tests/factories';
 
 vi.mock('@/lib/auth/session', () => ({ getCurrentUser: async () => null }));
 
@@ -54,6 +60,16 @@ describe('listOwnRecentPosts', () => {
     );
     expect(JSON.stringify(posts)).not.toContain(viewer.email);
     expect(posts[0]?.viewer).toEqual({ liked: false, isOwner: true });
+  });
+
+  it('yorum sayacı silinmiş (soft delete) yorumları saymaz', async () => {
+    const viewer = await createUser();
+    const post = await createPost({ userId: viewer.userId });
+    await createComment({ postId: post.postId });
+    await createComment({ postId: post.postId, deletedAt: new Date() });
+    await createComment({ postId: post.postId, deletedAt: new Date(), removedByModeration: true });
+    const [card] = await listOwnRecentPosts(getDb(), viewer.userId);
+    expect(card?.counts.comments).toBe(1);
   });
 
   it('anonim görüntüleyen için boş liste (DAL)', async () => {

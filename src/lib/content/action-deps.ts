@@ -5,6 +5,7 @@ import { headers } from 'next/headers';
 import type { SessionUser } from '@/lib/auth/types';
 import { getIpEncryptionKey } from '@/lib/crypto/key';
 import { getDb } from '@/lib/db';
+import { isProductionServer } from '@/lib/env.server';
 import type { Logger } from '@/lib/logger';
 import { readRequestMeta } from '@/lib/request-meta';
 
@@ -18,4 +19,5 @@ export const actionWriteDeps = async (user: SessionUser, log: Logger): Promise<W
   ipKey: getIpEncryptionKey,
   now: () => new Date(),
   log,
+  requireClientIp: isProductionServer(),
 });

@@ -1,7 +1,8 @@
 import 'server-only';
 
-import { recordContentEvent } from '@/lib/audit/content-event';
-import { consumeWriteRateLimit } from '@/lib/content/rate-limits';
+import { checkCanInteract } from '@/lib/content/interaction';
+import { canModerate } from '@/lib/content/moderation';
+import { capMentionRecipients, consumeWriteRateLimit } from '@/lib/content/rate-limits';
 import {
   mentionRecipients,
   resolveMentions,
@@ -9,7 +10,12 @@ import {
   toStoredEntities,
 } from '@/lib/content/resolve';
 import { analyzeContentForWrite } from '@/lib/content/rules';
-import { isUniqueViolation, type WriteDeps } from '@/lib/content/write-deps';
+import {
+  ensureAuditable,
+  isUniqueViolation,
+  recordWriteEvent,
+  type WriteDeps,
+} from '@/lib/content/write-deps';
 import { ErrorCode, fail, ok, type Result } from '@/lib/errors';
 
 import type { CreateCommentInput, DeleteCommentInput, SetCommentLikeInput } from '../schemas';
@@ -38,10 +44,11 @@ const findByRequestId = (deps: WriteDeps, clientRequestId: string) =>
   });
 
 /**
- * Yorum oluşturma: gönderiyle aynı hat (rate limit → içerik kuralları → idempotency → hisse
- * çözümü → transaction). Yorumda cashtag geçerlidir (eski hata #6'nın tersine) ama bilinmeyen
- * kod reddedilir (K5); hashtag yorumda etikete bağlanmaz (M1'de yorum–etiket ilişkisi yok),
- * düz metin render edilir. Silinmiş/olmayan gönderiye yorum → `NOT_FOUND`.
+ * Yorum oluşturma: gönderiyle aynı hat (5651 kapısı → rate limit → içerik kuralları →
+ * idempotency → hisse çözümü → transaction). Yorumda cashtag geçerlidir (eski hata #6'nın tersine)
+ * ama bilinmeyen kod reddedilir (K5); hashtag yorumda etikete bağlanmaz (M1'de yorum–etiket
+ * ilişkisi yok), düz metin render edilir. Silinmiş/olmayan gönderiye yorum → `NOT_FOUND`; gönderi
+ * yazarıyla iki yönlü engel ya da yazar etkin değil → `FORBIDDEN` (K-C).
  */
 export const createCommentForUser = async (
   input: CreateCommentInput,
@@ -50,6 +57,8 @@ export const createCommentForUser = async (
   const { db, user } = deps;
   const now = deps.now();
 
+  const auditable = ensureAuditable(deps, 'comment.create');
+  if (!auditable.ok) return auditable;
   const limit = await consumeWriteRateLimit(db, 'comment.create', user.userId, now);
   if (!limit.ok) return limit;
 
@@ -63,9 +72,11 @@ export const createCommentForUser = async (
 
   const post = await db.post.findFirst({
     where: { postId: input.postId, deletedAt: null },
-    select: { postId: true },
+    select: { userId: true },
   });
   if (post === null) return fail(ErrorCode.NOT_FOUND);
+  const allowed = await checkCanInteract(db, user.userId, [post.userId]);
+  if (!allowed.ok) return allowed;
 
   const stocks = await resolveStocks(db, content.tickers);
   if (!stocks.ok) return stocks;
@@ -92,10 +103,11 @@ export const createCommentForUser = async (
         },
         select: { commentId: true },
       });
-      if (recipients.length > 0) {
+      const notified = await capMentionRecipients(tx, user.userId, recipients, now);
+      if (notified.length > 0) {
         // M1: bildirim yalnızca kayıt (teslim yok); metin render'da türden üretilir.
         await tx.notification.createMany({
-          data: recipients.map(recipientId => ({
+          data: notified.map(recipientId => ({
             userId: recipientId,
             fromUserId: user.userId,
             type: 'MENTION' as const,
@@ -107,22 +119,16 @@ export const createCommentForUser = async (
           })),
         });
       }
-      const recorded = await recordContentEvent(
+      await recordWriteEvent(
         tx,
         {
           actorUserId: user.userId,
           action: 'comment_create',
           entityType: 'comment',
           entityId: comment.commentId,
-          meta: deps.meta,
         },
-        deps.ipKey()
+        deps
       );
-      if (!recorded) {
-        deps.log.error('comment.create event skipped: client IP unavailable', {
-          requestId: deps.meta.requestId,
-        });
-      }
       return comment.commentId;
     });
     return ok({ commentId, replayed: false });
@@ -135,57 +141,62 @@ export const createCommentForUser = async (
   }
 };
 
-/** Kendi yorumunu siler: soft delete + `ContentEvent('comment.delete')`. */
+/**
+ * Yorum silme (K-A): sahibi (`comment.delete`) ya da moderatör/admin (rol DB'den;
+ * `moderation.remove` + `removedByModeration`). Soft delete; diğerleri `FORBIDDEN` (silinmişse
+ * `NOT_FOUND`). Dönüş, önbellek geçersizleştirme için yorumun gönderisi.
+ */
 export const deleteCommentForUser = async (
   input: DeleteCommentInput,
   deps: WriteDeps
 ): Promise<Result<{ postId: number }>> => {
   const { db, user } = deps;
   const now = deps.now();
+  const auditable = ensureAuditable(deps, 'comment.delete');
+  if (!auditable.ok) return auditable;
   const limit = await consumeWriteRateLimit(db, 'delete', user.userId, now);
   if (!limit.ok) return limit;
-
-  const deleted = await db.$transaction(async tx => {
-    const updated = await tx.comment.updateMany({
-      where: { commentId: input.commentId, userId: user.userId, deletedAt: null },
-      data: { deletedAt: now },
-    });
-    if (updated.count === 0) return false;
-    const recorded = await recordContentEvent(
-      tx,
-      {
-        actorUserId: user.userId,
-        action: 'comment_delete',
-        entityType: 'comment',
-        entityId: input.commentId,
-        meta: deps.meta,
-      },
-      deps.ipKey()
-    );
-    if (!recorded) {
-      deps.log.error('comment.delete event skipped: client IP unavailable', {
-        requestId: deps.meta.requestId,
-      });
-    }
-    return true;
-  });
 
   const comment = await db.comment.findUnique({
     where: { commentId: input.commentId },
     select: { userId: true, postId: true, deletedAt: true },
   });
   if (comment === null) return fail(ErrorCode.NOT_FOUND);
-  if (!deleted && comment.userId !== user.userId) {
+  const isOwner = comment.userId === user.userId;
+  if (!isOwner && !(await canModerate(db, user.userId))) {
     return fail(comment.deletedAt === null ? ErrorCode.FORBIDDEN : ErrorCode.NOT_FOUND);
   }
+  if (comment.deletedAt !== null) return ok({ postId: comment.postId });
+
+  await db.$transaction(async tx => {
+    const updated = await tx.comment.updateMany({
+      where: { commentId: input.commentId, deletedAt: null },
+      data: { deletedAt: now, removedByModeration: !isOwner },
+    });
+    if (updated.count === 0) return;
+    await recordWriteEvent(
+      tx,
+      {
+        actorUserId: user.userId,
+        action: isOwner ? 'comment_delete' : 'moderation_remove',
+        entityType: 'comment',
+        entityId: input.commentId,
+      },
+      deps
+    );
+  });
   return ok({ postId: comment.postId });
 };
 
-/** Yorum beğenisi (idempotent). Silinmiş yorum ya da silinmiş gönderinin yorumu → `NOT_FOUND`. */
+/**
+ * Yorum beğenisi (idempotent). Silinmiş yorum ya da silinmiş gönderinin yorumu → `NOT_FOUND`.
+ * Beğenmek için yorum ve gönderi yazarlarıyla iki yönlü engel olmamalı, ikisi de etkin olmalı
+ * (K-C, `FORBIDDEN`); geri almak serbest. Dönüşteki `postId` önbellek geçersizleştirme içindir.
+ */
 export const setCommentLikeForUser = async (
   input: SetCommentLikeInput,
   deps: WriteDeps
-): Promise<Result<{ liked: boolean }>> => {
+): Promise<Result<{ liked: boolean; postId: number }>> => {
   const { db, user } = deps;
   const now = deps.now();
   const limit = await consumeWriteRateLimit(db, 'like', user.userId, now);
@@ -193,11 +204,13 @@ export const setCommentLikeForUser = async (
 
   const comment = await db.comment.findFirst({
     where: { commentId: input.commentId, deletedAt: null, post: { deletedAt: null } },
-    select: { commentId: true },
+    select: { userId: true, postId: true, post: { select: { userId: true } } },
   });
   if (comment === null) return fail(ErrorCode.NOT_FOUND);
 
   if (input.liked) {
+    const allowed = await checkCanInteract(db, user.userId, [comment.userId, comment.post.userId]);
+    if (!allowed.ok) return allowed;
     await db.commentLike.createMany({
       data: [{ userId: user.userId, commentId: input.commentId, likedAt: now }],
       skipDuplicates: true,
@@ -205,5 +218,5 @@ export const setCommentLikeForUser = async (
   } else {
     await db.commentLike.deleteMany({ where: { userId: user.userId, commentId: input.commentId } });
   }
-  return ok({ liked: input.liked });
+  return ok({ liked: input.liked, postId: comment.postId });
 };

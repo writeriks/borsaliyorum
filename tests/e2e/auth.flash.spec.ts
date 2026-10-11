@@ -11,8 +11,10 @@ import { accountMenu, loginViaUi, seedOnboardedUser } from './support/auth';
  * - "Giriş yap" bağlantısı (`login-cta`) ya da metni (`common.login`; test kimliği olmayan bir
  *   kopya da yakalansın)
  * - auth skeleton'ları: sol menü (`auth-slot-skeleton`), mobil üst bar
- *   (`top-bar-account-skeleton`) ve `aria-busy="true"` taşıyan her yer tutucu (composer'ın
- *   lazy-chunk iskeleti hariç: içerik yüklemesi, auth değil)
+ *   (`top-bar-account-skeleton`) ve `aria-busy="true"` taşıyan her yer tutucu; yalnızca içerik
+ *   yüklemesi olarak işaretlenenler hariç (`data-skeleton="chunk"`: composer'ın lazy chunk'ı,
+ *   `data-skeleton="content"`: akış listesinin Suspense iskeleti). Composer'ın auth `unknown`
+ *   iskeleti işaretsizdir: görünürse yakalanır.
  */
 const installFlashObserver = async (page: Page): Promise<void> => {
   await page.addInitScript((loginText: string) => {
@@ -27,9 +29,13 @@ const installFlashObserver = async (page: Page): Promise<void> => {
       if (document.querySelector('[data-testid="top-bar-account-skeleton"]')) {
         record('top-bar-skeleton');
       }
-      // Composer'ın lazy chunk iskeleti içerik yüklemesidir, auth durumu değil (S10'da /akis'e
-      // geldi; auth'tan bağımsız olarak her girişli yüklemede kısa süre görünür)
-      if (document.querySelector('[aria-busy="true"]:not([data-testid="composer-skeleton"])')) {
+      // İçerik yüklemesi iskeletleri auth durumu değildir (composer chunk'ı, akış listesi);
+      // test kimliği değil özel işaret: composer'ın auth-unknown iskeleti hâlâ yakalanır
+      if (
+        document.querySelector(
+          '[aria-busy="true"]:not([data-skeleton="chunk"]):not([data-skeleton="content"])'
+        )
+      ) {
         record('aria-busy');
       }
       // Yalnızca görünen metin: <script> içindeki RSC yükünde i18n kataloğu bulunabilir
@@ -40,7 +46,7 @@ const installFlashObserver = async (page: Page): Promise<void> => {
       subtree: true,
       characterData: true,
       attributes: true,
-      attributeFilter: ['aria-busy', 'data-testid'],
+      attributeFilter: ['aria-busy', 'data-testid', 'data-skeleton'],
     });
     document.addEventListener('readystatechange', check);
   }, tr.common.login);

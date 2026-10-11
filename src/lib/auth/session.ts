@@ -32,6 +32,7 @@ import {
 } from './types';
 import { sessionUserSelect } from './user-record';
 import { resolveWriter } from './writer';
+import { WRITER_GATES } from './writer-gates';
 
 const log = logger.child({ module: 'auth.session' });
 
@@ -142,6 +143,7 @@ export const requireWriter = cache(async (): Promise<Result<SessionUser>> =>
       await getDb().user.update({ where: { userId }, data: { isEmailVerified: true } });
     },
     log,
+    gates: WRITER_GATES,
   })
 );
 

@@ -3,12 +3,32 @@ import type { Logger } from '@/lib/logger';
 
 import type { SessionState, SessionUser } from './types';
 
+/**
+ * `requireWriter`'ın ek kapısı (genişleme noktası): e-posta doğrulamasından sonra sırayla çalışır,
+ * ilk `Failure` yazmayı durdurur. Ör. "güncel kullanım koşullarını kabul etmeyen yazamaz"
+ * (`claude/v2-legal` dalı) buraya bir kapı olarak eklenir; action'lar değişmez.
+ */
+export type WriterGate = (user: SessionUser) => Promise<Result<null>>;
+
 export type WriterDeps = {
   /** Firebase'deki güncel `emailVerified` (`admin.getUser(uid)`). */
   readonly fetchEmailVerified: (firebaseUid: string) => Promise<boolean>;
   /** DB'deki `isEmailVerified`'ı true yapar. */
   readonly markEmailVerified: (userId: number) => Promise<void>;
   readonly log: Logger;
+  /** Ek kapılar (bkz. `WriterGate`); varsayılan yok. */
+  readonly gates?: readonly WriterGate[];
+};
+
+const runGates = async (
+  user: SessionUser,
+  gates: readonly WriterGate[]
+): Promise<Result<SessionUser>> => {
+  for (const gate of gates) {
+    const result = await gate(user);
+    if (!result.ok) return result;
+  }
+  return ok(user);
 };
 
 /**
@@ -18,6 +38,7 @@ export type WriterDeps = {
  * - e-posta doğrulanmamışsa Firebase'den **bir kez** tazelenir (bu durumda tek ağ çağrısı);
  *   doğrulanmışsa DB güncellenir ve devam edilir, değilse `EMAIL_NOT_VERIFIED`.
  *   Firebase'e ulaşılamazsa bilinen durum geçerlidir (fail-closed: `EMAIL_NOT_VERIFIED`).
+ * - ardından ek kapılar (`deps.gates`) sırayla.
  */
 export const resolveWriter = async (
   session: SessionState,
@@ -26,7 +47,8 @@ export const resolveWriter = async (
   if (session.status === 'anonymous') return fail(ErrorCode.UNAUTHENTICATED);
   if (session.status === 'needs-onboarding') return fail(ErrorCode.ONBOARDING_REQUIRED);
   const { user, firebaseUid } = session;
-  if (user.emailVerified) return ok(user);
+  const gates = deps.gates ?? [];
+  if (user.emailVerified) return runGates(user, gates);
 
   let verified: boolean;
   try {
@@ -38,5 +60,5 @@ export const resolveWriter = async (
   if (!verified) return fail(ErrorCode.EMAIL_NOT_VERIFIED);
 
   await deps.markEmailVerified(user.userId);
-  return ok({ ...user, emailVerified: true });
+  return runGates({ ...user, emailVerified: true }, gates);
 };

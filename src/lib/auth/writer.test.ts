@@ -106,3 +106,36 @@ describe('resolveWriter (requireWriter çekirdeği)', () => {
     expect(d.log.warn).toHaveBeenCalled();
   });
 });
+
+describe('resolveWriter: ek kapılar (genişleme noktası)', () => {
+  it('kapılar doğrulamadan sonra sırayla çalışır; ilk Failure yazmayı durdurur', async () => {
+    const calls: string[] = [];
+    const pass = vi.fn(async () => {
+      calls.push('pass');
+      return { ok: true as const, data: null };
+    });
+    const block = vi.fn(async () => {
+      calls.push('block');
+      return { ok: false as const, error: 'FORBIDDEN' as const };
+    });
+    const never = vi.fn(async () => ({ ok: true as const, data: null }));
+    expect(await resolveWriter(authenticated(), deps({ gates: [pass, block, never] }))).toEqual({
+      ok: false,
+      error: 'FORBIDDEN',
+    });
+    expect(calls).toEqual(['pass', 'block']);
+    expect(never).not.toHaveBeenCalled();
+    expect(pass).toHaveBeenCalledWith(user());
+  });
+
+  it('e-posta doğrulanmamışsa kapılar çalışmaz; Firebase tazelemesinden sonra çalışır', async () => {
+    const gate = vi.fn(async () => ({ ok: true as const, data: null }));
+    await resolveWriter(authenticated({ emailVerified: false }), deps({ gates: [gate] }));
+    expect(gate).not.toHaveBeenCalled();
+    await resolveWriter(
+      authenticated({ emailVerified: false }),
+      deps({ gates: [gate], fetchEmailVerified: vi.fn(async () => true) })
+    );
+    expect(gate).toHaveBeenCalledWith(user({ emailVerified: true }));
+  });
+});

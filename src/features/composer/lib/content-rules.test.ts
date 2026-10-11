@@ -72,6 +72,13 @@ describe('getSubmitBlocker', () => {
     expect(blocker('a'.repeat(501), { mode: 'comment' })).toBe('overLimit');
   });
 
+  it('grafem sınırı içinde ama ham code unit sınırı (4000/2000) aşılırsa overLimit (sunucuyla aynı)', () => {
+    const family = '👨\u200D👩\u200D👧';
+    expect(blocker(family.repeat(500))).toBeNull();
+    expect(blocker(family.repeat(501))).toBe('overLimit');
+    expect(blocker(family.repeat(251), { mode: 'comment' })).toBe('overLimit');
+  });
+
   it('cashtag zorunlu değil (K4)', () => {
     expect(blocker('Piyasa sakin')).toBeNull();
   });

@@ -1,11 +1,9 @@
 'use server';
 
-import { revalidateTag } from 'next/cache';
-import { after } from 'next/server';
-
 import { requireWriter } from '@/lib/auth/session';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { actionWriteDeps } from '@/lib/content/action-deps';
+import { expireTagsNow } from '@/lib/content/cache';
 import { ErrorCode, fail, ok, type Result, toFailure } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 
@@ -15,15 +13,12 @@ import { createCommentForUser, deleteCommentForUser, setCommentLikeForUser } fro
 
 const log = logger.child({ module: 'comments.actions' });
 
-const revalidateComments = (postId: number): void => {
-  for (const tag of [CACHE_TAGS.comments(postId), CACHE_TAGS.post(postId)]) {
-    try {
-      revalidateTag(tag, 'max');
-    } catch (error) {
-      log.error('revalidateTag failed', { err: error, tag });
-    }
-  }
-};
+/**
+ * Yorum listesi ve gönderi kartı (yorum sayacı) önbelleği; action içinde senkron (yazar kendi
+ * yorumunu/beğenisini hemen görür, `lib/content/cache`).
+ */
+const expireComments = (postId: number): void =>
+  expireTagsNow([CACHE_TAGS.comments(postId), CACHE_TAGS.post(postId)], log);
 
 /** Yorum oluşturur (ADR-0002 Karar 7): Zod → `requireWriter` → servis → cache geçersizleştirme. */
 export const createComment = async (input: unknown): Promise<Result<{ commentId: number }>> => {
@@ -35,14 +30,17 @@ export const createComment = async (input: unknown): Promise<Result<{ commentId:
   try {
     const result = await createCommentForUser(parsed.data, await actionWriteDeps(writer.data, log));
     if (!result.ok) return result;
-    if (!result.data.replayed) after(() => revalidateComments(parsed.data.postId));
+    expireComments(parsed.data.postId);
     return ok({ commentId: result.data.commentId });
   } catch (error) {
     return toFailure(error, log);
   }
 };
 
-/** Kendi yorumunu siler (soft delete + 5651 kaydı). Başkasınınki → `FORBIDDEN`. */
+/**
+ * Yorum siler (soft delete + 5651 kaydı): sahibi ya da moderatör/admin (K-A). Diğerleri
+ * `FORBIDDEN`.
+ */
 export const deleteComment = async (input: unknown): Promise<Result<null>> => {
   const parsed = deleteCommentSchema.safeParse(input);
   if (!parsed.success) return fail(ErrorCode.VALIDATION);
@@ -52,14 +50,14 @@ export const deleteComment = async (input: unknown): Promise<Result<null>> => {
   try {
     const result = await deleteCommentForUser(parsed.data, await actionWriteDeps(writer.data, log));
     if (!result.ok) return result;
-    after(() => revalidateComments(result.data.postId));
+    expireComments(result.data.postId);
     return ok(null);
   } catch (error) {
     return toFailure(error, log);
   }
 };
 
-/** Yorum beğeni durumunu ayarlar (idempotent). */
+/** Yorum beğeni durumunu ayarlar (idempotent); gönderi beğenisiyle aynı geçersizleştirme. */
 export const setCommentLike = async (input: unknown): Promise<Result<{ liked: boolean }>> => {
   const parsed = setCommentLikeSchema.safeParse(input);
   if (!parsed.success) return fail(ErrorCode.VALIDATION);
@@ -67,7 +65,13 @@ export const setCommentLike = async (input: unknown): Promise<Result<{ liked: bo
   if (!writer.ok) return writer;
 
   try {
-    return await setCommentLikeForUser(parsed.data, await actionWriteDeps(writer.data, log));
+    const result = await setCommentLikeForUser(
+      parsed.data,
+      await actionWriteDeps(writer.data, log)
+    );
+    if (!result.ok) return result;
+    expireComments(result.data.postId);
+    return ok({ liked: result.data.liked });
   } catch (error) {
     return toFailure(error, log);
   }

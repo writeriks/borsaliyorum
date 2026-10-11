@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { CONTENT_MAX_CHARS } from '@/lib/content-limits';
+import { CONTENT_MAX_CHARS, CONTENT_MAX_CODE_UNITS } from '@/lib/content-limits';
 
 import {
   acceptedPreviewUrl,
@@ -46,6 +46,38 @@ describe('analyzeContentForWrite', () => {
       error: 'CONTENT_TOO_LONG',
       meta: { max: CONTENT_MAX_CHARS.comment },
     });
+  });
+
+  it('ham code unit sınırı normalize/parse öncesi: grafem sınırı içinde olsa da aşım reddedilir', () => {
+    // 600 aile emojisi = 600 grafem (< 1000) ama 4800 code unit (> 4000)
+    const family = '👨\u200D👩\u200D👧';
+    expect(analyzeContentForWrite(family.repeat(600), 'post')).toEqual({
+      ok: false,
+      error: 'CONTENT_TOO_LONG',
+      meta: { max: CONTENT_MAX_CHARS.post },
+    });
+    expect(
+      analyzeContentForWrite('a'.repeat(CONTENT_MAX_CODE_UNITS.comment + 1), 'comment')
+    ).toEqual({
+      ok: false,
+      error: 'CONTENT_TOO_LONG',
+      meta: { max: CONTENT_MAX_CHARS.comment },
+    });
+    // Zalgo: 1 grafem + binlerce işaret
+    expect(
+      analyzeContentForWrite(`a${'\u0301'.repeat(CONTENT_MAX_CODE_UNITS.post)}`, 'post')
+    ).toEqual({
+      ok: false,
+      error: 'CONTENT_TOO_LONG',
+      meta: { max: CONTENT_MAX_CHARS.post },
+    });
+  });
+
+  it('sınırın altındaki zalgo kabul edilir ama saklanan metinde grafem başına ≤ 4 işaret', () => {
+    const result = analyzeContentForWrite(`$THYAO a${'\u0301\u0316'.repeat(50)}`, 'post');
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.text.match(/\p{M}/gu)?.length).toBe(4);
   });
 
   it('sınır normalize edilmiş metne uygulanır (silinen görünmez karakterler sayılmaz)', () => {

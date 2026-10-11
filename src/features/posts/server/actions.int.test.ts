@@ -2,14 +2,17 @@ import { randomBytes, randomUUID } from 'node:crypto';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { User } from '@/generated/prisma/client';
+import type { Prisma, User } from '@/generated/prisma/client';
 import type { SessionState } from '@/lib/auth/types';
 import { resolveWriter } from '@/lib/auth/writer';
+import { upsertTags } from '@/lib/content/resolve';
+import type { WriteDeps } from '@/lib/content/write-deps';
 import { CONTENT_MAX_CHARS } from '@/lib/content-limits';
 import { decryptIp } from '@/lib/crypto';
 import { getDb } from '@/lib/db';
 import { normalizePreviewUrl } from '@/lib/link-preview/normalize-url';
 import { previewUrlHash } from '@/lib/link-preview/url-hash';
+import type * as LoggerModule from '@/lib/logger';
 import type { Logger } from '@/lib/logger';
 
 import {
@@ -20,13 +23,32 @@ import {
   createUser,
 } from '../../../../tests/factories';
 
+import { createPostSchema } from '../schemas';
+
 import { attachPreviewToPost } from './attach-preview';
+import { createPostForUser } from './write';
 
 const IP_KEY = new Uint8Array(randomBytes(32));
 const CLIENT_IP = '198.51.100.42';
 
 // --- Server Action sınırları (ADR-0003): oturum çerezi, next/headers, next/cache, after mock'lanır.
 // Yazma kapısı gerçek `resolveWriter`: oturum durumu ve Firebase tazelemesi test başına seçilir.
+// Action'ların logger'ı da bu (error log'u doğrulanır: K-B)
+const silentLog = vi.hoisted((): Logger => {
+  const log: Logger = {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    child: () => log,
+  };
+  return log;
+});
+vi.mock('@/lib/logger', async importOriginal => ({
+  ...(await importOriginal<typeof LoggerModule>()),
+  logger: silentLog,
+}));
+
 let session: SessionState = { status: 'anonymous' };
 let firebaseVerified = false;
 vi.mock('@/lib/auth/session', () => ({
@@ -39,24 +61,39 @@ vi.mock('@/lib/auth/session', () => ({
       log: silentLog,
     }),
 }));
-vi.mock('next/headers', () => ({
-  headers: async () => new Headers({ 'x-real-ip': CLIENT_IP, 'x-request-id': 'req-s10' }),
-}));
+const DEFAULT_HEADERS = { 'x-real-ip': CLIENT_IP, 'x-request-id': 'req-s10' };
+let requestHeaders: Record<string, string> = DEFAULT_HEADERS;
+vi.mock('next/headers', () => ({ headers: async () => new Headers(requestHeaders) }));
 const revalidateTag = vi.fn();
-vi.mock('next/cache', () => ({ revalidateTag: (...args: unknown[]) => revalidateTag(...args) }));
+const updateTag = vi.fn();
+vi.mock('next/cache', () => ({
+  revalidateTag: (...args: unknown[]) => revalidateTag(...args),
+  updateTag: (...args: unknown[]) => updateTag(...args),
+}));
 const afterTasks: (() => unknown)[] = [];
 vi.mock('next/server', () => ({ after: (task: () => unknown) => afterTasks.push(task) }));
 vi.mock('@/lib/crypto/key', () => ({ getIpEncryptionKey: () => IP_KEY }));
 
-const silentLog: Logger = {
-  debug: vi.fn(),
-  info: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
-  child: () => silentLog,
-};
-
 const { createPost, deletePost, setPostLike } = await import('./actions');
+
+/** Eşzamanlılık testleri için: action'ın oturum mock'u tek kullanıcılı, servis doğrudan çağrılır. */
+const postDepsFor = async (user: User): Promise<WriteDeps> => ({
+  db: getDb(),
+  user: {
+    userId: user.userId,
+    username: user.username,
+    displayName: user.displayName,
+    avatarUrl: null,
+    email: user.email,
+    emailVerified: true,
+    roles: [],
+  },
+  meta: { ip: CLIENT_IP, port: null, requestId: `req-${user.userId}` },
+  ipKey: () => IP_KEY,
+  now: () => new Date(),
+  log: silentLog,
+  requireClientIp: true,
+});
 
 const signIn = (user: User, overrides: { roles?: ('moderator' | 'admin')[] } = {}): void => {
   session = {
@@ -90,15 +127,15 @@ const input = (text: string, overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-const runAfterTasks = async (): Promise<void> => {
-  for (const task of afterTasks.splice(0)) await task();
-};
-
 beforeEach(() => {
   session = { status: 'anonymous' };
   firebaseVerified = false;
   afterTasks.length = 0;
   revalidateTag.mockReset();
+  updateTag.mockReset();
+  requestHeaders = DEFAULT_HEADERS;
+  vi.mocked(silentLog.error).mockClear();
+  vi.unstubAllEnvs();
 });
 
 describe('createPost: yazma kapısı (requireWriter)', () => {
@@ -163,7 +200,7 @@ describe('createPost: içerik ve entity çözümü', () => {
     const thyao = await createStock({ ticker: 'THYAO' });
     const mentioned = await createUser({ username: 'mehmet_s10' });
     const author = await writer();
-    const text = "$THYAO'da #bist100 kırılımı @mehmet_s10 https://kap.org.tr/tr/Bildirim/1";
+    const text = "$THYAO'da #bist30 kırılımı @mehmet_s10 https://kap.org.tr/tr/Bildirim/1";
     const result = await createPost(input(text, { sentiment: 'bullish' }));
     expect(result.ok).toBe(true);
     const postId = result.ok ? result.data.postId : -1;
@@ -180,7 +217,7 @@ describe('createPost: içerik ve entity çözümü', () => {
       isSponsored: false,
     });
     expect(post.stocks.map(s => s.stockId)).toEqual([thyao.stockId]);
-    expect(post.tags.map(t => t.tag.slug)).toEqual(['bist100']);
+    expect(post.tags.map(t => t.tag.slug)).toEqual(['bist30']);
     const tagId = post.tags[0]?.tagId;
     const at = (token: string) => {
       const start = text.indexOf(token);
@@ -191,7 +228,7 @@ describe('createPost: içerik ve entity çözümü', () => {
       v: 1,
       items: [
         { type: 'cashtag', ...at('$THYAO'), ticker: 'THYAO', stockId: thyao.stockId },
-        { type: 'hashtag', ...at('#bist100'), slug: 'bist100', tagId },
+        { type: 'hashtag', ...at('#bist30'), slug: 'bist30', tagId },
         { type: 'mention', ...at('@mehmet_s10'), username: 'mehmet_s10', userId: mentioned.userId },
         { type: 'url', ...at(url), href: url },
       ],
@@ -254,17 +291,37 @@ describe('createPost: içerik ve entity çözümü', () => {
     }
   });
 
-  it('sınır grafem bazlı: 1000 aile emojisi (8 code unit) kabul, 1001 → CONTENT_TOO_LONG', async () => {
+  it('sınır grafem bazlı: 1000 bayrak (4 code unit) kabul, 1001 → CONTENT_TOO_LONG', async () => {
     await writer();
-    const family = '👨‍👩‍👧';
-    expect(family.length).toBe(8);
-    expect((await createPost(input(family.repeat(CONTENT_MAX_CHARS.post)))).ok).toBe(true);
-    expect(await createPost(input(family.repeat(CONTENT_MAX_CHARS.post + 1)))).toEqual({
+    const flag = '🇹🇷';
+    expect(flag.length).toBe(4);
+    expect((await createPost(input(flag.repeat(CONTENT_MAX_CHARS.post)))).ok).toBe(true);
+    expect(await createPost(input(flag.repeat(CONTENT_MAX_CHARS.post + 1)))).toEqual({
       ok: false,
       error: 'CONTENT_TOO_LONG',
       meta: { max: 1000 },
     });
     expect((await createPost(input('ğ'.repeat(1000)))).ok).toBe(true);
+  });
+
+  it('ham code unit sınırı (4000) parse öncesi: 600 aile emojisi (4800 code unit) → CONTENT_TOO_LONG, satır yok', async () => {
+    const user = await writer();
+    const family = '👨\u200D👩\u200D👧';
+    expect(await createPost(input(family.repeat(600)))).toEqual({
+      ok: false,
+      error: 'CONTENT_TOO_LONG',
+      meta: { max: 1000 },
+    });
+    expect(await getDb().post.count({ where: { userId: user.userId } })).toBe(0);
+  });
+
+  it('zalgo: saklanan metinde grafem başına en fazla 4 birleştirici işaret', async () => {
+    await writer();
+    const result = await createPost(input(`kırmızı a${'\u0301\u0316\u0350'.repeat(30)} alarm`));
+    expect(result.ok).toBe(true);
+    const postId = result.ok ? result.data.postId : -1;
+    const { content } = await getDb().post.findUniqueOrThrow({ where: { postId } });
+    expect(content.match(/\p{M}/gu)?.length).toBe(4);
   });
 
   it('11 tekil mention → TOO_MANY_ENTITIES; aynı kişiyi 11 kez anmak sınırı aşmaz', async () => {
@@ -325,6 +382,111 @@ describe('createPost: içerik ve entity çözümü', () => {
     expect(result.ok).toBe(true);
     const tags = await getDb().tag.findMany({ where: { tagName: '#temettu2026' } });
     expect(tags).toEqual([expect.objectContaining({ tagId: legacy.tagId, slug: 'temettu2026' })]);
+  });
+
+  it("v1'in slug'sız etiketi farklı biçimde yazılsa da (v1 #bist100, v2 #BIST100) tek etiket olur", async () => {
+    const legacy = await createTag({ tagName: '#bist100', slug: null });
+    // Aynı slug'a katlanan ikinci (daha yeni) v1 satırı: en eskisi seçilir, çakışma olmaz
+    const newer = await createTag({
+      tagName: '#Bist100',
+      slug: null,
+      createdAt: new Date(Date.now() + 1000),
+    });
+    await writer();
+    const result = await createPost(input('#BIST100 rekor'));
+    expect(result.ok).toBe(true);
+    const tags = await getDb().tag.findMany({ where: { slug: 'bist100' } });
+    expect(tags).toEqual([expect.objectContaining({ tagId: legacy.tagId, tagName: '#bist100' })]);
+    expect(
+      (await getDb().tag.findUniqueOrThrow({ where: { tagId: newer.tagId } })).slug
+    ).toBeNull();
+    const links = await getDb().postTag.findMany({
+      where: { postId: result.ok ? result.data.postId : -1 },
+    });
+    expect(links.map(l => l.tagId)).toEqual([legacy.tagId]);
+  });
+
+  it('eşzamanlı gönderiler aynı yeni etiketleri ters sırada açınca deadlock olmaz (slug sıralı ekleme)', async () => {
+    const authors = await Promise.all(Array.from({ length: 12 }, () => createUser()));
+    const deps = await Promise.all(authors.map(postDepsFor));
+    for (let round = 0; round < 5; round += 1) {
+      const names = Array.from({ length: 10 }, (_, i) => `yaris${round}x${i}`);
+      const results = await Promise.all(
+        deps.map((d, i) => {
+          const order = i % 2 === 0 ? names : [...names].reverse();
+          return createPostForUser(
+            createPostSchema.parse(input(order.map(n => `#${n}`).join(' '))),
+            d
+          );
+        })
+      );
+      expect(results.map(r => r.ok)).toEqual(deps.map(() => true));
+      expect(await getDb().tag.count({ where: { slug: { in: names } } })).toBe(names.length);
+    }
+  });
+
+  it('upsertTags satırlara slug sırasıyla dokunur (eklemede yazılış sırası değil)', async () => {
+    const inserted: string[][] = [];
+    await getDb().$transaction(async tx => {
+      const spy = new Proxy(tx, {
+        get: (target, prop, receiver) =>
+          prop === 'tag'
+            ? new Proxy(target.tag, {
+                get: (tag, method, r) =>
+                  method === 'createMany'
+                    ? (args: Prisma.TagCreateManyArgs) => {
+                        inserted.push([args.data].flat().map(row => row.slug ?? ''));
+                        return tag.createMany(args);
+                      }
+                    : Reflect.get(tag, method, r),
+              })
+            : Reflect.get(target, prop, receiver),
+      });
+      await upsertTags(
+        spy,
+        [
+          { slug: 'sirac', name: 'sirac' },
+          { slug: 'siraa', name: 'SIRAA' },
+          { slug: 'sirab', name: 'sirab' },
+        ],
+        new Date()
+      );
+    });
+    expect(inserted).toEqual([['siraa', 'sirab', 'sirac']]);
+  });
+
+  it('yeni etiket açma günde 50 (kullanıcı başına); var olanı kullanmak sayılmaz', async () => {
+    await createTag({ tagName: '#varolan', slug: 'varolan' });
+    const user = await writer();
+    for (let post = 0; post < 5; post += 1) {
+      const tags = Array.from({ length: 10 }, (_, i) => `#yeni${post}x${i}`).join(' ');
+      expect((await createPost(input(tags))).ok).toBe(true);
+    }
+    expect((await createPost(input('#varolan yine'))).ok).toBe(true);
+    const limited = await createPost(input('#varolan #ellibirinci'));
+    expect(limited).toMatchObject({ ok: false, error: 'RATE_LIMITED' });
+    expect(await getDb().tag.count({ where: { slug: 'ellibirinci' } })).toBe(0);
+    expect(await getDb().post.count({ where: { userId: user.userId } })).toBe(6);
+  });
+
+  it('mention bildirimi tavanı: aynı yazar → aynı alıcı günde 20; başka alıcı etkilenmez', async () => {
+    const target = await createUser({ username: 'tavan_hedef' });
+    const other = await createUser({ username: 'tavan_diger' });
+    const author = await writer();
+    const day = 24 * 60 * 60 * 1000;
+    await getDb().rateLimitBucket.create({
+      data: {
+        key: `mention:1d:u:${author.userId}:to:${target.userId}`,
+        windowStart: new Date(Math.floor(Date.now() / day) * day),
+        count: 20,
+      },
+    });
+    const result = await createPost(input('@tavan_hedef @tavan_diger bakın'));
+    expect(result.ok).toBe(true);
+    const notifications = await getDb().notification.findMany({
+      where: { postId: result.ok ? result.data.postId : -1 },
+    });
+    expect(notifications.map(n => n.userId)).toEqual([other.userId]);
   });
 
   it('mention bildirimi: kendine ve iki yönlü engellemede yok; askıdaki kullanıcı mention olmaz', async () => {
@@ -427,6 +589,16 @@ describe('createPost: rate limit, 5651 kaydı, önizleme', () => {
     expect(typeof retryAfter === 'number' && retryAfter > 0 && retryAfter <= 600).toBe(true);
   });
 
+  it('akış ve gönderi önbelleği action içinde senkron geçersiz (after() beklenmez)', async () => {
+    await writer();
+    const result = await createPost(input('kendi yazdığımı görürüm'));
+    const postId = result.ok ? result.data.postId : -1;
+    expect(updateTag).toHaveBeenCalledWith('feed');
+    expect(updateTag).toHaveBeenCalledWith(`post:${postId}`);
+    expect(afterTasks).toHaveLength(0);
+    expect(revalidateTag).not.toHaveBeenCalled();
+  });
+
   it('her başarılı yazmada tek ContentEvent (post.create, IP şifreli, requestId)', async () => {
     const user = await writer();
     const result = await createPost(input('5651 kaydı'));
@@ -473,8 +645,9 @@ describe('createPost: rate limit, 5651 kaydı, önizleme', () => {
     });
     expect(dismissedPost.linkPreviewId).toBeNull();
 
-    await runAfterTasks();
-    expect(revalidateTag).toHaveBeenCalledWith('feed', 'max');
+    // Hepsi hazır ya da önizlemesiz: yanıt sonrası iş yok, geçersizleştirme action içinde yapıldı
+    expect(afterTasks).toHaveLength(0);
+    expect(updateTag).toHaveBeenCalledWith('feed');
   });
 
   it('after(): önbellekteki önizleme sonradan gönderiye bağlanır (attachPreviewToPost)', async () => {
@@ -495,6 +668,34 @@ describe('createPost: rate limit, 5651 kaydı, önizleme', () => {
     );
     const post = await getDb().post.findUniqueOrThrow({ where: { postId: postRow.postId } });
     expect(post.linkPreviewId).toBe(preview.id);
+  });
+});
+
+describe("5651: istemci IP'si alınamazsa (K-B)", () => {
+  it('production runtime: yazma reddedilir (INTERNAL), satır yok, error log', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    requestHeaders = { 'x-request-id': 'req-noip' };
+    const user = await writer();
+    expect(await createPost(input('ip yok'))).toEqual({ ok: false, error: 'INTERNAL' });
+    expect(await getDb().post.count({ where: { userId: user.userId } })).toBe(0);
+    expect(silentLog.error).toHaveBeenCalledWith(
+      expect.stringContaining('client IP unavailable'),
+      expect.objectContaining({ requestId: 'req-noip' })
+    );
+
+    const own = await createPostRow({ userId: user.userId });
+    expect(await deletePost({ postId: own.postId })).toEqual({ ok: false, error: 'INTERNAL' });
+    expect(
+      (await getDb().post.findUniqueOrThrow({ where: { postId: own.postId } })).deletedAt
+    ).toBeNull();
+  });
+
+  it('dev/test: yazma sürer, olay atlanır ve loglanır (mevcut davranış)', async () => {
+    requestHeaders = { 'x-request-id': 'req-noip' };
+    const user = await writer();
+    expect((await createPost(input('ip yok ama dev'))).ok).toBe(true);
+    expect(await getDb().contentEvent.count({ where: { actorUserId: user.userId } })).toBe(0);
+    expect(silentLog.error).toHaveBeenCalled();
   });
 });
 
@@ -524,12 +725,62 @@ describe('deletePost', () => {
     expect(await getDb().contentEvent.count({ where: { actorUserId: attacker.userId } })).toBe(0);
   });
 
-  it('moderatör rolü de bu action ile başkasının gönderisini silemez (moderasyon ayrı akış)', async () => {
+  it("moderatör (rol DB'de) başkasının gönderisini kaldırır: moderation.remove + removedByModeration", async () => {
     const owner = await createUser();
     const post = await createPostRow({ userId: owner.userId });
     const moderator = await createUser();
-    signIn(moderator, { roles: ['moderator'] });
+    await getDb().securityRole.create({ data: { userId: moderator.userId, role: 'moderator' } });
+    signIn(moderator);
+    expect(await deletePost({ postId: post.postId })).toEqual({ ok: true, data: null });
+    expect(await deletePost({ postId: post.postId })).toEqual({ ok: true, data: null });
+    const row = await getDb().post.findUniqueOrThrow({ where: { postId: post.postId } });
+    expect(row.deletedAt).toBeInstanceOf(Date);
+    expect(row.removedByModeration).toBe(true);
+    const events = await getDb().contentEvent.findMany({
+      where: { actorUserId: moderator.userId },
+    });
+    expect(events).toEqual([
+      expect.objectContaining({
+        action: 'moderation_remove',
+        entityType: 'post',
+        entityId: post.postId,
+      }),
+    ]);
+    expect(updateTag).toHaveBeenCalledWith(`post:${post.postId}`);
+  });
+
+  it("admin (rol DB'de) de kaldırabilir; sahibinin kendi silmesi removedByModeration=false", async () => {
+    const owner = await writer();
+    const own = await createPostRow({ userId: owner.userId });
+    expect((await deletePost({ postId: own.postId })).ok).toBe(true);
+    expect(
+      (await getDb().post.findUniqueOrThrow({ where: { postId: own.postId } })).removedByModeration
+    ).toBe(false);
+
+    const other = await createPostRow({ userId: owner.userId });
+    const admin = await createUser();
+    await getDb().securityRole.create({ data: { userId: admin.userId, role: 'admin' } });
+    signIn(admin);
+    expect(await deletePost({ postId: other.postId })).toEqual({ ok: true, data: null });
+    expect(
+      await getDb().contentEvent.count({
+        where: { actorUserId: admin.userId, action: 'moderation_remove' },
+      })
+    ).toBe(1);
+  });
+
+  it("rol yalnızca oturumda (DB'de yok) → FORBIDDEN: yetki DB'den okunur", async () => {
+    const owner = await createUser();
+    const post = await createPostRow({ userId: owner.userId });
+    const pretender = await createUser();
+    signIn(pretender, { roles: ['moderator', 'admin'] });
     expect(await deletePost({ postId: post.postId })).toEqual({ ok: false, error: 'FORBIDDEN' });
+    // `default` rolü de yetki vermez
+    await getDb().securityRole.create({ data: { userId: pretender.userId, role: 'default' } });
+    expect(await deletePost({ postId: post.postId })).toEqual({ ok: false, error: 'FORBIDDEN' });
+    expect(
+      (await getDb().post.findUniqueOrThrow({ where: { postId: post.postId } })).deletedAt
+    ).toBeNull();
   });
 
   it('olmayan gönderi → NOT_FOUND; anonim → UNAUTHENTICATED; geçersiz id → VALIDATION', async () => {
@@ -581,6 +832,47 @@ describe('setPostLike', () => {
     expect(
       await getDb().postLike.count({ where: { userId: user.userId, postId: post.postId } })
     ).toBe(1);
+  });
+
+  it('iki yönlü engel ya da yazar etkin değil → FORBIDDEN (K-C); beğeniyi geri almak serbest', async () => {
+    const author = await createUser();
+    const post = await createPostRow({ userId: author.userId });
+    const liker = await writer();
+    expect((await setPostLike({ postId: post.postId, liked: true })).ok).toBe(true);
+
+    await blockUser(author.userId, liker.userId);
+    expect(await setPostLike({ postId: post.postId, liked: true })).toEqual({
+      ok: false,
+      error: 'FORBIDDEN',
+    });
+    expect(await setPostLike({ postId: post.postId, liked: false })).toEqual({
+      ok: true,
+      data: { liked: false },
+    });
+
+    const blockedAuthor = await createUser();
+    const blockedPost = await createPostRow({ userId: blockedAuthor.userId });
+    await blockUser(liker.userId, blockedAuthor.userId);
+    expect(await setPostLike({ postId: blockedPost.postId, liked: true })).toEqual({
+      ok: false,
+      error: 'FORBIDDEN',
+    });
+
+    const suspended = await createUser({ status: 'suspended' });
+    const suspendedPost = await createPostRow({ userId: suspended.userId });
+    expect(await setPostLike({ postId: suspendedPost.postId, liked: true })).toEqual({
+      ok: false,
+      error: 'FORBIDDEN',
+    });
+    expect(await getDb().postLike.count({ where: { userId: liker.userId } })).toBe(0);
+  });
+
+  it('beğeni action içinde gönderi önbelleğini senkron geçersiz kılar (read-your-own-writes)', async () => {
+    const post = await createPostRow();
+    await writer();
+    expect((await setPostLike({ postId: post.postId, liked: true })).ok).toBe(true);
+    expect(updateTag).toHaveBeenCalledWith(`post:${post.postId}`);
+    expect(afterTasks).toHaveLength(0);
   });
 
   it('silinmiş gönderi → NOT_FOUND; doğrulanmamış → EMAIL_NOT_VERIFIED', async () => {

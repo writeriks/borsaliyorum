@@ -73,14 +73,71 @@ describe('PostLikeButton', () => {
     expect(screen.getByTestId('post-like-count')).toHaveTextContent('5');
     expect(action).toHaveBeenCalledWith({ postId: 7, liked: true });
 
-    // İstek sürerken ikinci tıklama yok sayılır (sıra karışmaz)
-    await userEvent.click(button);
-    expect(action).toHaveBeenCalledTimes(1);
-
     pending.resolve(ok({ liked: true }));
     await waitFor(() => expect(button).not.toHaveAttribute('aria-busy'));
     expect(button).toHaveAttribute('aria-pressed', 'true');
+    expect(action).toHaveBeenCalledTimes(1);
     expect(toastError).not.toHaveBeenCalled();
+  });
+
+  it('istek sürerken ikinci tıklama kuyruğa alınır: ilk yanıttan sonra son niyet gönderilir', async () => {
+    const first = deferred<Result<{ liked: boolean }>>();
+    const second = deferred<Result<{ liked: boolean }>>();
+    const action = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    renderWithIntl(
+      <PostLikeButton postId={7} initial={{ liked: false, count: 4 }} action={action} />
+    );
+    const button = screen.getByRole('button', { name: /Beğen/ });
+
+    await userEvent.click(button);
+    await userEvent.click(button);
+    // Görünen durum hemen son niyet; ikinci istek ilki bitmeden gitmez (sıra karışmaz)
+    expect(button).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByTestId('post-like-count')).toHaveTextContent('4');
+    expect(action).toHaveBeenCalledTimes(1);
+
+    first.resolve(ok({ liked: true }));
+    await waitFor(() => expect(action).toHaveBeenCalledTimes(2));
+    expect(action).toHaveBeenLastCalledWith({ postId: 7, liked: false });
+    second.resolve(ok({ liked: false }));
+    await waitFor(() => expect(button).not.toHaveAttribute('aria-busy'));
+    expect(button).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByTestId('post-like-count')).toHaveTextContent('4');
+  });
+
+  it('kuyrukta çift sayıda tıklama sunucudaki duruma dönerse ek istek gönderilmez', async () => {
+    const first = deferred<Result<{ liked: boolean }>>();
+    const action = vi.fn(() => first.promise);
+    renderWithIntl(
+      <PostLikeButton postId={7} initial={{ liked: false, count: 4 }} action={action} />
+    );
+    const button = screen.getByRole('button', { name: /Beğen/ });
+    await userEvent.click(button);
+    await userEvent.click(button);
+    await userEvent.click(button);
+    expect(button).toHaveAttribute('aria-pressed', 'true');
+    first.resolve(ok({ liked: true }));
+    await waitFor(() => expect(button).not.toHaveAttribute('aria-busy'));
+    expect(action).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('post-like-count')).toHaveTextContent('5');
+  });
+
+  it('kuyruktaki istek başarısız olursa son onaylanan duruma döner', async () => {
+    const first = deferred<Result<{ liked: boolean }>>();
+    const action = vi
+      .fn()
+      .mockReturnValueOnce(first.promise)
+      .mockResolvedValueOnce(fail('RATE_LIMITED', { retryAfter: 5 }));
+    renderWithIntl(
+      <PostLikeButton postId={7} initial={{ liked: false, count: 4 }} action={action} />
+    );
+    const button = screen.getByRole('button', { name: /Beğen/ });
+    await userEvent.click(button);
+    await userEvent.click(button);
+    first.resolve(ok({ liked: true }));
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith(tr.errors.RATE_LIMITED));
+    expect(button).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('post-like-count')).toHaveTextContent('5');
   });
 
   it('hata → önceki duruma döner + hata toast’ı (RATE_LIMITED)', async () => {

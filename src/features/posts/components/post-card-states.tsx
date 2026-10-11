@@ -6,12 +6,16 @@ import { EmptyState } from '@/components/states/empty-state';
 import { ErrorState } from '@/components/states/error-state';
 import { Skeleton } from '@/components/ui/skeleton';
 
-/** Kartla aynı ölçüde iskelet (avatar, başlık satırı, 3 satır gövde, sayaç satırı). */
+/**
+ * Kartla aynı ölçüde iskelet (avatar, başlık satırı, 3 satır gövde, sayaç satırı). İçerik
+ * yüklemesidir, auth durumu değil (`data-skeleton='content'`; auth flash testi ayırır).
+ */
 export const PostCardSkeleton = (): ReactElement => {
   const t = useTranslations('post');
   return (
     <div
       data-testid='post-card-skeleton'
+      data-skeleton='content'
       aria-busy='true'
       className='flex gap-3 border-b border-border px-3 py-3 sm:px-4'
     >

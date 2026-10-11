@@ -61,22 +61,50 @@ export const resolveMentions = async (
   return result;
 };
 
+export type UpsertedTags = {
+  /** slug → tagId; çözülemeyen etiket (beklenmez) yer almaz → düz metin. */
+  readonly ids: ReadonlyMap<string, number>;
+  /** Bu çağrının açtığı yeni etiket sayısı (`tag.create` rate limit'i). */
+  readonly created: number;
+};
+
 /**
- * Etiketleri slug üzerinden upsert eder (transaction içinde çağrılır). Yeni etiketin görünen adı
- * ilk kullanılan biçimdir (`#` önekli, eski uygulamayla aynı). Var olanların `updatedAt`'i son
- * kullanım olur (autocomplete sıralaması). Eski uygulamanın slug'sız eklediği aynı adlı satır
- * varsa slug'ı ona verilir. Çözülemeyen etiket (beklenmez) haritada yer almaz → düz metin.
+ * Etiketleri slug üzerinden upsert eder (transaction içinde çağrılır):
+ * 1. Eski uygulamanın (v1) slug'sız eklediği satır aynı slug'a katlanıyorsa (`legacy_tag_slug`,
+ *    ör. v1 `#bist100` ↔ v2 `#BIST100`) slug'ı ona verilir; yeni satır açılmaz. v1 hâlâ yazdığı
+ *    için migration backfill'i yetmez. Aynı slug'a katlanan birden çok v1 satırı varsa en eskisi.
+ * 2. Kalanlar eklenir; görünen ad ilk kullanılan biçimdir (`#` önekli, eski uygulamayla aynı).
+ * 3. Hepsinin `updatedAt`'i son kullanım olur (autocomplete sıralaması).
+ * Her adım satırlara **slug sırasıyla** dokunur: `#a #b` ile `#b #a` yazan eşzamanlı iki gönderi
+ * benzersiz index'te ters sırada bekleşip deadlock'a girmesin.
  */
 export const upsertTags = async (
   tx: Prisma.TransactionClient,
   hashtags: AnalyzedContent['hashtags'],
   now: Date
-): Promise<ReadonlyMap<string, number>> => {
-  if (hashtags.length === 0) return new Map();
-  const slugs = hashtags.map(tag => tag.slug);
-  // Eşzamanlı ilk kullanım ya da eski satırın tagName'i: çakışma hata değil, satır zaten var
-  await tx.tag.createMany({
-    data: hashtags.map(tag => ({
+): Promise<UpsertedTags> => {
+  if (hashtags.length === 0) return { ids: new Map(), created: 0 };
+  const sorted = [...hashtags].sort((a, b) => (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0));
+  const slugs = sorted.map(tag => tag.slug);
+
+  await tx.$executeRaw`
+    UPDATE "Tag" AS t SET "slug" = c.slug, "updatedAt" = ${now}
+    FROM (
+      SELECT DISTINCT ON (l.slug) l."tagId", l.slug
+      FROM (
+        SELECT "tagId", "createdAt", legacy_tag_slug("tagName") AS slug
+        FROM "Tag"
+        WHERE "slug" IS NULL
+      ) AS l
+      WHERE l.slug = ANY(${slugs}::text[])
+        AND NOT EXISTS (SELECT 1 FROM "Tag" AS e WHERE e."slug" = l.slug)
+      ORDER BY l.slug, l."createdAt", l."tagId"
+    ) AS c
+    WHERE t."tagId" = c."tagId"`;
+
+  // Eşzamanlı ilk kullanım ya da aynı tagName'li eski satır: çakışma hata değil, satır zaten var
+  const { count: created } = await tx.tag.createMany({
+    data: sorted.map(tag => ({
       tagName: `#${tag.name}`,
       slug: tag.slug,
       createdAt: now,
@@ -84,25 +112,14 @@ export const upsertTags = async (
     })),
     skipDuplicates: true,
   });
-  await tx.tag.updateMany({ where: { slug: { in: slugs } }, data: { updatedAt: now } });
-  let rows = await tx.tag.findMany({
-    where: { slug: { in: slugs } },
-    select: { tagId: true, slug: true },
-  });
-  const missing = hashtags.filter(tag => !rows.some(row => row.slug === tag.slug));
-  if (missing.length > 0) {
-    for (const tag of missing) {
-      await tx.tag.updateMany({
-        where: { tagName: `#${tag.name}`, slug: null },
-        data: { slug: tag.slug, updatedAt: now },
-      });
-    }
-    rows = await tx.tag.findMany({
-      where: { slug: { in: slugs } },
-      select: { tagId: true, slug: true },
-    });
-  }
-  return new Map(rows.flatMap(row => (row.slug === null ? [] : [[row.slug, row.tagId] as const])));
+
+  const rows = await tx.$queryRaw<{ tagId: number; slug: string }[]>`
+    UPDATE "Tag" SET "updatedAt" = ${now}
+    WHERE "tagId" IN (
+      SELECT "tagId" FROM "Tag" WHERE "slug" = ANY(${slugs}::text[]) ORDER BY "slug" FOR UPDATE
+    )
+    RETURNING "tagId", "slug"`;
+  return { ids: new Map(rows.map(row => [row.slug, row.tagId] as const)), created };
 };
 
 export type ResolvedIds = {

@@ -2,6 +2,7 @@ import 'server-only';
 
 import {
   clientEnvSchema,
+  isProductionRuntime,
   parseSafeFetchTestAllow,
   parseServerEnv,
   type ServerEnv,
@@ -14,6 +15,12 @@ export const getServerEnv = (): ServerEnv => {
   cached ??= parseServerEnv(process.env);
   return cached;
 };
+
+/**
+ * Çalışan production sunucusu mu (`isProductionRuntime`)? Önbelleğe alınmaz: testler NODE_ENV'i
+ * dosya/test bazında değiştirir. Örn. 5651 IP zorunluluğu (K-B) buna bağlıdır.
+ */
+export const isProductionServer = (): boolean => isProductionRuntime(process.env);
 
 /**
  * safeFetch test allowlist'i. Önbelleğe alınmaz (testler env'i dosya bazında değiştirir);

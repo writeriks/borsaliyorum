@@ -1,7 +1,8 @@
 import 'server-only';
 
-import { recordContentEvent } from '@/lib/audit/content-event';
-import { consumeWriteRateLimit } from '@/lib/content/rate-limits';
+import { checkCanInteract } from '@/lib/content/interaction';
+import { canModerate } from '@/lib/content/moderation';
+import { capMentionRecipients, consumeWriteRateLimit } from '@/lib/content/rate-limits';
 import {
   findReadyPreviewId,
   mentionRecipients,
@@ -15,8 +16,13 @@ import {
   analyzeContentForWrite,
   effectiveSentiment,
 } from '@/lib/content/rules';
-import { isUniqueViolation, type WriteDeps } from '@/lib/content/write-deps';
-import { ErrorCode, fail, ok, type Result } from '@/lib/errors';
+import {
+  ensureAuditable,
+  isUniqueViolation,
+  recordWriteEvent,
+  type WriteDeps,
+} from '@/lib/content/write-deps';
+import { AppError, ErrorCode, fail, ok, type Result } from '@/lib/errors';
 
 import type { CreatePostInput, DeletePostInput, SetPostLikeInput } from '../schemas';
 
@@ -57,10 +63,11 @@ const findByRequestId = (deps: WriteDeps, clientRequestId: string) =>
   });
 
 /**
- * Gönderi oluşturma (ADR-0002 Karar 7): rate limit → normalize/parse/sınırlar → idempotency →
- * hisse çözümü (bilinmeyen → `UNKNOWN_CASHTAG`) → sponsorlu + cashtag → tek transaction
- * (Tag upsert, Post + `_PostStocks` + `_PostTags`, mention bildirimleri, ContentEvent).
- * Oturum/e-posta kapısı çağıranda (`requireWriter`).
+ * Gönderi oluşturma (ADR-0002 Karar 7): 5651 kapısı (IP) → rate limit → normalize/parse/sınırlar →
+ * idempotency → hisse çözümü (bilinmeyen → `UNKNOWN_CASHTAG`) → sponsorlu + cashtag → tek
+ * transaction (Tag upsert + yeni etiket rate limit'i, Post + `_PostStocks` + `_PostTags`, mention
+ * bildirimleri (çift başına günlük tavan), ContentEvent). Oturum/e-posta kapısı çağıranda
+ * (`requireWriter`).
  */
 export const createPostForUser = async (
   input: CreatePostInput,
@@ -69,6 +76,8 @@ export const createPostForUser = async (
   const { db, user } = deps;
   const now = deps.now();
 
+  const auditable = ensureAuditable(deps, 'post.create');
+  if (!auditable.ok) return auditable;
   const limit = await consumeWriteRateLimit(db, 'post.create', user.userId, now);
   if (!limit.ok) return limit;
 
@@ -94,7 +103,12 @@ export const createPostForUser = async (
   let postId: number;
   try {
     postId = await db.$transaction(async tx => {
-      const tags = await upsertTags(tx, content.hashtags, now);
+      const { ids: tags, created } = await upsertTags(tx, content.hashtags, now);
+      if (created > 0) {
+        // Aşımda işlem geri alınır: açılan etiketler de sayaç da kalmaz
+        const tagLimit = await consumeWriteRateLimit(tx, 'tag.create', user.userId, now, created);
+        if (!tagLimit.ok) throw new AppError(tagLimit.error, { meta: tagLimit.meta });
+      }
       const entities = toStoredEntities(content.entities, {
         stocks: stocks.data,
         tags,
@@ -116,11 +130,12 @@ export const createPostForUser = async (
         },
         select: { postId: true },
       });
-      if (recipients.length > 0) {
+      const notified = await capMentionRecipients(tx, user.userId, recipients, now);
+      if (notified.length > 0) {
         // M1'de bildirim teslimi (UI/push) yok: yalnızca kayıt. Metin render'da türden üretilir
         // (eski uygulama görünen adı metne gömüyordu; ad değişince bayatlıyordu).
         await tx.notification.createMany({
-          data: recipients.map(recipientId => ({
+          data: notified.map(recipientId => ({
             userId: recipientId,
             fromUserId: user.userId,
             type: 'MENTION' as const,
@@ -131,22 +146,16 @@ export const createPostForUser = async (
           })),
         });
       }
-      const recorded = await recordContentEvent(
+      await recordWriteEvent(
         tx,
         {
           actorUserId: user.userId,
           action: 'post_create',
           entityType: 'post',
           entityId: post.postId,
-          meta: deps.meta,
         },
-        deps.ipKey()
+        deps
       );
-      if (!recorded) {
-        deps.log.error('post.create event skipped: client IP unavailable', {
-          requestId: deps.meta.requestId,
-        });
-      }
       return post.postId;
     });
   } catch (error) {
@@ -166,9 +175,11 @@ export const createPostForUser = async (
 };
 
 /**
- * Soft delete (`deletedAt`) + `ContentEvent('post.delete')` (5651). Yalnızca sahibi siler
- * (moderasyon kaldırması ayrı akış: `moderation.remove`, admin paneli). Zaten silinmiş kendi
- * gönderisi → başarı (çift tıklama), olay ikinci kez yazılmaz.
+ * Soft delete (`deletedAt`) + 5651 kaydı (K-A). Sahibi kendi gönderisini siler (`post.delete`);
+ * moderatör/admin (rol DB'den) başkasınınkini kaldırır (`moderation.remove` +
+ * `removedByModeration`: sahibine "moderasyonla kaldırıldı" gösterilir, UI M2). Diğerleri
+ * `FORBIDDEN` (silinmiş gönderide `NOT_FOUND`: varlık sızmasın). Zaten silinmiş gönderiyi yetkili
+ * tekrar silerse başarı (çift tıklama), olay ikinci kez yazılmaz.
  */
 export const deletePostForUser = async (
   input: DeletePostInput,
@@ -176,49 +187,48 @@ export const deletePostForUser = async (
 ): Promise<Result<null>> => {
   const { db, user } = deps;
   const now = deps.now();
+  const auditable = ensureAuditable(deps, 'post.delete');
+  if (!auditable.ok) return auditable;
   const limit = await consumeWriteRateLimit(db, 'delete', user.userId, now);
   if (!limit.ok) return limit;
-
-  const deleted = await db.$transaction(async tx => {
-    const updated = await tx.post.updateMany({
-      where: { postId: input.postId, userId: user.userId, deletedAt: null },
-      data: { deletedAt: now },
-    });
-    if (updated.count === 0) return false;
-    const recorded = await recordContentEvent(
-      tx,
-      {
-        actorUserId: user.userId,
-        action: 'post_delete',
-        entityType: 'post',
-        entityId: input.postId,
-        meta: deps.meta,
-      },
-      deps.ipKey()
-    );
-    if (!recorded) {
-      deps.log.error('post.delete event skipped: client IP unavailable', {
-        requestId: deps.meta.requestId,
-      });
-    }
-    return true;
-  });
-  if (deleted) return ok(null);
 
   const post = await db.post.findUnique({
     where: { postId: input.postId },
     select: { userId: true, deletedAt: true },
   });
   if (post === null) return fail(ErrorCode.NOT_FOUND);
-  if (post.userId !== user.userId) {
+  const isOwner = post.userId === user.userId;
+  if (!isOwner && !(await canModerate(db, user.userId))) {
     return fail(post.deletedAt === null ? ErrorCode.FORBIDDEN : ErrorCode.NOT_FOUND);
   }
+  if (post.deletedAt !== null) return ok(null);
+
+  await db.$transaction(async tx => {
+    const updated = await tx.post.updateMany({
+      where: { postId: input.postId, deletedAt: null },
+      data: { deletedAt: now, removedByModeration: !isOwner },
+    });
+    // Eşzamanlı ikinci silme kazandı: olay onun
+    if (updated.count === 0) return;
+    await recordWriteEvent(
+      tx,
+      {
+        actorUserId: user.userId,
+        action: isOwner ? 'post_delete' : 'moderation_remove',
+        entityType: 'post',
+        entityId: input.postId,
+      },
+      deps
+    );
+  });
   return ok(null);
 };
 
 /**
  * Beğeni durumu (idempotent): `liked: true` iki kez → tek satır; eşzamanlı istekler
- * `ON CONFLICT DO NOTHING` ile çakışmaz. Silinmiş/olmayan gönderi → `NOT_FOUND`.
+ * `ON CONFLICT DO NOTHING` ile çakışmaz. Silinmiş/olmayan gönderi → `NOT_FOUND`. Beğenmek için
+ * yazarla iki yönlü engel olmamalı ve yazar etkin olmalı (K-C, `FORBIDDEN`); beğeniyi geri almak
+ * her zaman serbest (kullanıcının kendi verisi).
  */
 export const setPostLikeForUser = async (
   input: SetPostLikeInput,
@@ -231,11 +241,13 @@ export const setPostLikeForUser = async (
 
   const post = await db.post.findFirst({
     where: { postId: input.postId, deletedAt: null },
-    select: { postId: true },
+    select: { userId: true },
   });
   if (post === null) return fail(ErrorCode.NOT_FOUND);
 
   if (input.liked) {
+    const allowed = await checkCanInteract(db, user.userId, [post.userId]);
+    if (!allowed.ok) return allowed;
     await db.postLike.createMany({
       data: [{ userId: user.userId, postId: input.postId, likedAt: now }],
       skipDuplicates: true,

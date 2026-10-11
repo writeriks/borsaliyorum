@@ -10,24 +10,59 @@ const STRIP_RE =
 const EXCESS_BLANK_LINES_RE = /\n(?:[ \t]*\n){3,}/g;
 
 /**
+ * Grafem başına en fazla birleştirici işaret (`\p{M}`). "Zalgo" metni (bir harfe yüzlerce işaret)
+ * satır kutusundan taşıp komşu gönderilerin üstüne biner ve grafem sınırını (1 grafem = 1 karakter)
+ * anlamsızlaştırır. Gerçek dillerde (Vietnamca, Devanagari, Arapça harekeler) 4 yeterli.
+ */
+export const MAX_MARKS_PER_GRAPHEME = 4;
+
+const MARK_RE = /\p{M}/u;
+
+let segmenter: Intl.Segmenter | undefined;
+const graphemes = (text: string): Iterable<Intl.SegmentData> => {
+  segmenter ??= new Intl.Segmenter('tr', { granularity: 'grapheme' });
+  return segmenter.segment(text);
+};
+
+const capGrapheme = (grapheme: string): string => {
+  let marks = 0;
+  let result = '';
+  for (const char of grapheme) {
+    if (MARK_RE.test(char)) {
+      marks += 1;
+      if (marks > MAX_MARKS_PER_GRAPHEME) continue;
+    }
+    result += char;
+  }
+  return result;
+};
+
+/**
+ * Fazla işaretleri grafem içinde kırpar (ilk 4 kalır). Ardışık işaret dizisine bakmak yetmez:
+ * ZWJ işaretleri ayırsa da aynı grafemde kalırlar (`a` + (4 işaret + ZWJ) × n). Hızlı yol: hiç
+ * işaret yoksa (NFC sonrası Türkçe metnin çoğu) grafemlere bölünmez.
+ */
+const capMarks = (text: string): string => {
+  if (!MARK_RE.test(text)) return text;
+  let result = '';
+  for (const { segment } of graphemes(text)) result += capGrapheme(segment);
+  // Kırpma kanonik sırayı bozmaz ama birleşmeyi engelleyen işaret kalkmış olabilir
+  return result.normalize('NFC');
+};
+
+/**
  * Saklama öncesi metin normalizasyonu (ADR-0002 Karar 2). İdempotenttir.
  * Sıra önemli: karakter silme NFC'den önce yapılır; silinen bir karakter iki birleşebilir
  * parçayı ayırıyor olabilir.
  */
 export const normalizeContent = (raw: string): string =>
-  raw
-    .replace(/\r\n?/g, '\n')
-    .replace(STRIP_RE, '')
-    .normalize('NFC')
+  capMarks(raw.replace(/\r\n?/g, '\n').replace(STRIP_RE, '').normalize('NFC'))
     .replace(EXCESS_BLANK_LINES_RE, '\n\n\n')
     .trim();
 
-let segmenter: Intl.Segmenter | undefined;
-
 /** Grafem sayısı (`👨\u200D👩\u200D👧` = 1, `ğüşıöç` = 6). Sunucu ve istemci aynı sınırı uygular. */
 export const countChars = (text: string): number => {
-  segmenter ??= new Intl.Segmenter('tr', { granularity: 'grapheme' });
   let count = 0;
-  for (const _segment of segmenter.segment(text)) count += 1;
+  for (const _segment of graphemes(text)) count += 1;
   return count;
 };

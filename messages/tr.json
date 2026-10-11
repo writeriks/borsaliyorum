@@ -14,6 +14,9 @@
     "description": "Aradığın sayfa taşınmış ya da hiç var olmamış olabilir.",
     "backHome": "Ana sayfaya dön"
   },
+  "errorPage": {
+    "message": "Bu sayfa yüklenemedi. Tekrar dene."
+  },
   "common": {
     "retry": "Tekrar dene",
     "login": "Giriş yap",
@@ -405,6 +408,7 @@
   "feedPlaceholder": {
     "title": "Akış",
     "body": "Takip ettiğin kişi ve hisselerin gönderileri yakında burada olacak.",
-    "mine": "Son gönderilerin"
+    "mine": "Son gönderilerin",
+    "loadError": "Gönderilerin yüklenemedi. Tekrar dene."
   }
 }

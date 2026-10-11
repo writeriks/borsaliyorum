@@ -97,13 +97,18 @@ export const PostCard = ({
             <SentimentTag sentiment={post.sentiment} />
             {post.viewer?.isOwner ? <PostOwnerMenu postId={post.id} /> : null}
           </header>
-          {variant === 'feed' ? (
-            <ClampedBody id={ids.body} text={post.body.text}>
-              {body}
-            </ClampedBody>
-          ) : (
-            body
-          )}
+          {/* Taşma kırpılır: v1'den gelen (normalize edilmemiş) zalgo metnin birleştirici
+              işaretleri satır kutusundan taşıp komşu kartların üstüne binmesin. v2 metni
+              normalize'da grafem başına 4 işaretle sınırlı; bu ikinci savunma hattı. */}
+          <div data-slot='post-body' className='min-w-0 overflow-hidden'>
+            {variant === 'feed' ? (
+              <ClampedBody id={ids.body} text={post.body.text}>
+                {body}
+              </ClampedBody>
+            ) : (
+              body
+            )}
+          </div>
           {hasMedia ? (
             <div className='mt-2'>
               <PostMedia src={mediaSrc} />
