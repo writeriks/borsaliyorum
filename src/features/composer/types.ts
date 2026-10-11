@@ -90,6 +90,10 @@ export type SubmitErrorKind =
   | { kind: 'rateLimited' }
   | { kind: 'session' }
   | { kind: 'restricted' }
+  /** E-posta doğrulanmamış: kullanıcı doğrulayıp tekrar paylaşabilir (sunucu Firebase'e yeniden sorar). */
+  | { kind: 'unverified' }
+  /** Aynı `clientRequestId` farklı yükle: otomatik yeniden deneme yok, sonraki gönderim yeni kimlik. */
+  | { kind: 'conflict' }
   | { kind: 'validation'; code: ErrorCode; meta?: ErrorMeta };
 
 export type { TriggerKind };

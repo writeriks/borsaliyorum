@@ -2,12 +2,14 @@ import { countChars, firstPreviewableUrl, parseEntities, type ParsedEntity } fro
 
 import type { ComposerMode } from '../types';
 
-import { CHAR_LIMITS } from './limits';
+import { CHAR_LIMITS, CODE_UNIT_LIMITS } from './limits';
 
 export type ContentAnalysis = {
   /** Grafem sayısı (sunucuyla aynı `countChars`). */
   count: number;
   limit: number;
+  /** Ham code unit sınırı aşıldı (grafem sayısı sınır içinde olsa da; sunucuyla aynı sabit). */
+  overCodeUnitLimit: boolean;
   isBlank: boolean;
   entities: ParsedEntity[];
   /** Metindeki tüm cashtag kodları (tekil, ilk görülme sırası). */
@@ -41,6 +43,7 @@ export const analyzeContent = (
   return {
     count: countChars(text),
     limit: CHAR_LIMITS[mode],
+    overCodeUnitLimit: text.length > CODE_UNIT_LIMITS[mode],
     isBlank: text.trim() === '',
     entities,
     cashtags,
@@ -85,7 +88,7 @@ export const getSubmitBlocker = (input: {
   if (submitting) return 'submitting';
   if (restricted) return 'restricted';
   if (analysis.isBlank) return 'empty';
-  if (analysis.count > analysis.limit) return 'overLimit';
+  if (analysis.count > analysis.limit || analysis.overCodeUnitLimit) return 'overLimit';
   if (mode === 'post' && isSponsoredCashtagBlocked(analysis, isSponsored, indexReady)) {
     return 'sponsoredCashtag';
   }

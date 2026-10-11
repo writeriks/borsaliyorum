@@ -1,4 +1,4 @@
-import { CONTENT_MAX_CHARS } from '@/lib/content-limits';
+import { CONTENT_MAX_CHARS, CONTENT_MAX_CODE_UNITS } from '@/lib/content-limits';
 
 import type { ComposerMode } from '../types';
 
@@ -7,6 +7,9 @@ import type { ComposerMode } from '../types';
  * (S10) aynı sabiti kullanır; burada yalnızca composer kipine eşlenir.
  */
 export const CHAR_LIMITS: Readonly<Record<ComposerMode, number>> = CONTENT_MAX_CHARS;
+
+/** Ham UTF-16 code unit sınırı (sunucu `analyzeContentForWrite` ile aynı sabit). */
+export const CODE_UNIT_LIMITS: Readonly<Record<ComposerMode, number>> = CONTENT_MAX_CODE_UNITS;
 
 export type CounterTone = 'hidden' | 'subtle' | 'warn' | 'danger';
 

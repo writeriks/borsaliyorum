@@ -14,6 +14,9 @@
     "description": "The page you are looking for may have moved or never existed.",
     "backHome": "Back to home"
   },
+  "errorPage": {
+    "message": "This page couldn't load. Try again."
+  },
   "common": {
     "retry": "Try again",
     "login": "Log in",
@@ -132,7 +135,17 @@
     },
     "loading": "Loading post",
     "error": "Couldn't load the post.",
-    "unavailable": "This post was removed or can no longer be viewed."
+    "unavailable": "This post was removed or can no longer be viewed.",
+    "actions": {
+      "like": "Like",
+      "menu": "Post options",
+      "delete": "Delete",
+      "deleting": "Deleting…",
+      "deleteTitle": "Delete this post?",
+      "deleteBody": "The post will be removed from the feed and your profile. This can't be undone.",
+      "cancel": "Cancel",
+      "deleted": "Your post was deleted."
+    }
   },
   "composer": {
     "placeholder": {
@@ -190,7 +203,8 @@
       "generic": "Couldn't share your post. Check your connection and try again.",
       "rateLimit": "You're posting too often. Wait a bit and try again.",
       "session": "Your session expired. Log in again, your draft is saved.",
-      "restricted": "Your account can't post right now. See your notifications for details."
+      "restricted": "Your account can't post right now. See your notifications for details.",
+      "conflict": "Your post couldn't be shared. Check the text and share again."
     },
     "draft": {
       "restored": "Your unsaved draft was restored.",
@@ -400,7 +414,9 @@
   },
   "feedPlaceholder": {
     "title": "Feed",
-    "body": "Posts from the people and stocks you follow will appear here soon."
+    "body": "Posts from the people and stocks you follow will appear here soon.",
+    "mine": "Your recent posts",
+    "loadError": "Your posts couldn't load. Try again."
   },
   "legalUpdate": {
     "metaTitle": "Updated terms",

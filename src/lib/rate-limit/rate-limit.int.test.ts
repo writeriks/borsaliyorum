@@ -47,4 +47,11 @@ describe('consumeRateLimit', () => {
     });
     expect(await getDb().rateLimitBucket.findFirstOrThrow()).toMatchObject({ count: 1 });
   });
+
+  it('cost: tek çağrıda birden çok birim tüketir; aşan çağrı reddedilir', async () => {
+    const rule = { key: 'test:u:cost', limit: 5, windowMs: 60_000 };
+    expect(await consumeRateLimit(getDb(), rule, T0, 3)).toEqual({ allowed: true, remaining: 2 });
+    expect((await consumeRateLimit(getDb(), rule, T0, 3)).allowed).toBe(false);
+    await expect(consumeRateLimit(getDb(), rule, T0, 0)).rejects.toBeInstanceOf(RangeError);
+  });
 });

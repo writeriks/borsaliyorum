@@ -139,7 +139,7 @@ export const runSeed = async (prisma: PrismaClient): Promise<SeedSummary> => {
   for (const post of POSTS) {
     const userId = idOf(users, post.author);
     await prisma.post.upsert({
-      where: { clientRequestId: post.id },
+      where: { userId_clientRequestId: { userId, clientRequestId: post.id } },
       update: {},
       create: {
         clientRequestId: post.id,

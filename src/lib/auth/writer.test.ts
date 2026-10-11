@@ -4,6 +4,7 @@ import type { Logger } from '@/lib/logger';
 
 import type { SessionState, SessionUser } from './types';
 import { resolveWriter, type WriterDeps } from './writer';
+import { legalAcceptanceGate, WRITER_GATES } from './writer-gates';
 
 const log = (): Logger => {
   const value: Logger = {
@@ -117,7 +118,7 @@ describe('resolveWriter (requireWriter çekirdeği)', () => {
   });
 
   it('yasal metin paketi güncel değil → LEGAL_ACCEPTANCE_REQUIRED (yazma kapalı)', async () => {
-    const d = deps();
+    const d = deps({ gates: WRITER_GATES });
     expect(await resolveWriter(authenticated({ legalAcceptanceRequired: true }), d)).toEqual({
       ok: false,
       error: 'LEGAL_ACCEPTANCE_REQUIRED',
@@ -125,10 +126,61 @@ describe('resolveWriter (requireWriter çekirdeği)', () => {
   });
 
   it('kabul eksikliği e-posta doğrulama tazelemesini engellemez (önce doğrulama yazılır)', async () => {
-    const d = deps({ fetchEmailVerified: vi.fn(async () => true) });
+    const d = deps({ fetchEmailVerified: vi.fn(async () => true), gates: WRITER_GATES });
     expect(
       await resolveWriter(authenticated({ emailVerified: false, legalAcceptanceRequired: true }), d)
     ).toEqual({ ok: false, error: 'LEGAL_ACCEPTANCE_REQUIRED' });
     expect(d.markEmailVerified).toHaveBeenCalledWith(7);
+  });
+});
+
+describe('resolveWriter: ek kapılar (genişleme noktası)', () => {
+  it('kapılar doğrulamadan sonra sırayla çalışır; ilk Failure yazmayı durdurur', async () => {
+    const calls: string[] = [];
+    const pass = vi.fn(async () => {
+      calls.push('pass');
+      return { ok: true as const, data: null };
+    });
+    const block = vi.fn(async () => {
+      calls.push('block');
+      return { ok: false as const, error: 'FORBIDDEN' as const };
+    });
+    const never = vi.fn(async () => ({ ok: true as const, data: null }));
+    expect(await resolveWriter(authenticated(), deps({ gates: [pass, block, never] }))).toEqual({
+      ok: false,
+      error: 'FORBIDDEN',
+    });
+    expect(calls).toEqual(['pass', 'block']);
+    expect(never).not.toHaveBeenCalled();
+    expect(pass).toHaveBeenCalledWith(user());
+  });
+
+  it('e-posta doğrulanmamışsa kapılar çalışmaz; Firebase tazelemesinden sonra çalışır', async () => {
+    const gate = vi.fn(async () => ({ ok: true as const, data: null }));
+    await resolveWriter(authenticated({ emailVerified: false }), deps({ gates: [gate] }));
+    expect(gate).not.toHaveBeenCalled();
+    await resolveWriter(
+      authenticated({ emailVerified: false }),
+      deps({ gates: [gate], fetchEmailVerified: vi.fn(async () => true) })
+    );
+    expect(gate).toHaveBeenCalledWith(user({ emailVerified: true }));
+  });
+});
+
+describe('WRITER_GATES (tek kaynak)', () => {
+  it('yasal kabul kapısı listede; çekirdek kapısız çalışınca kabul eksikliğini kontrol etmez (çift kontrol yok)', async () => {
+    expect(WRITER_GATES).toContain(legalAcceptanceGate);
+    expect(await resolveWriter(authenticated({ legalAcceptanceRequired: true }), deps())).toEqual({
+      ok: true,
+      data: user({ legalAcceptanceRequired: true }),
+    });
+  });
+
+  it('legalAcceptanceGate: kabul güncel → ok(null), değil → LEGAL_ACCEPTANCE_REQUIRED', async () => {
+    expect(await legalAcceptanceGate(user())).toEqual({ ok: true, data: null });
+    expect(await legalAcceptanceGate(user({ legalAcceptanceRequired: true }))).toEqual({
+      ok: false,
+      error: 'LEGAL_ACCEPTANCE_REQUIRED',
+    });
   });
 });

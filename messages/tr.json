@@ -14,6 +14,9 @@
     "description": "Aradığın sayfa taşınmış ya da hiç var olmamış olabilir.",
     "backHome": "Ana sayfaya dön"
   },
+  "errorPage": {
+    "message": "Bu sayfa yüklenemedi. Tekrar dene."
+  },
   "common": {
     "retry": "Tekrar dene",
     "login": "Giriş yap",
@@ -132,7 +135,17 @@
     },
     "loading": "Gönderi yükleniyor",
     "error": "Gönderi yüklenemedi.",
-    "unavailable": "Bu gönderi kaldırılmış ya da artık görüntülenemiyor."
+    "unavailable": "Bu gönderi kaldırılmış ya da artık görüntülenemiyor.",
+    "actions": {
+      "like": "Beğen",
+      "menu": "Gönderi seçenekleri",
+      "delete": "Sil",
+      "deleting": "Siliniyor…",
+      "deleteTitle": "Gönderi silinsin mi?",
+      "deleteBody": "Gönderi akıştan ve profilinden kaldırılır. Bu işlem geri alınamaz.",
+      "cancel": "Vazgeç",
+      "deleted": "Gönderin silindi."
+    }
   },
   "composer": {
     "placeholder": {
@@ -190,7 +203,8 @@
       "generic": "Gönderin paylaşılamadı. Bağlantını kontrol edip tekrar dene.",
       "rateLimit": "Çok sık paylaşım yapıyorsun. Biraz bekleyip tekrar dene.",
       "session": "Oturumunun süresi doldu. Tekrar giriş yap, taslağın saklandı.",
-      "restricted": "Hesabın şu anda gönderi paylaşamıyor. Ayrıntılar bildirimlerinde."
+      "restricted": "Hesabın şu anda gönderi paylaşamıyor. Ayrıntılar bildirimlerinde.",
+      "conflict": "Gönderin paylaşılamadı. Metni kontrol edip yeniden paylaş."
     },
     "draft": {
       "restored": "Kaydedilmemiş taslağın geri yüklendi.",
@@ -400,7 +414,9 @@
   },
   "feedPlaceholder": {
     "title": "Akış",
-    "body": "Takip ettiğin kişi ve hisselerin gönderileri yakında burada olacak."
+    "body": "Takip ettiğin kişi ve hisselerin gönderileri yakında burada olacak.",
+    "mine": "Son gönderilerin",
+    "loadError": "Gönderilerin yüklenemedi. Tekrar dene."
   },
   "legalUpdate": {
     "metaTitle": "Güncellenen kullanım koşulları",

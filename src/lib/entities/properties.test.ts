@@ -136,6 +136,23 @@ describe('normalizeContent özellikleri', () => {
     );
   });
 
+  it('çıktıda grafem başına en fazla 4 birleştirici işaret vardır', () => {
+    const segmenter = new Intl.Segmenter('tr', { granularity: 'grapheme' });
+    const zalgo = fc
+      .array(fc.oneof(anyText, fc.constantFrom('\u0301', '\u0316', '\u200D', 'a')), {
+        maxLength: 60,
+      })
+      .map(parts => parts.join(''));
+    fc.assert(
+      fc.property(zalgo, text => {
+        for (const { segment } of segmenter.segment(normalizeContent(text))) {
+          expect(segment.match(/\p{M}/gu)?.length ?? 0).toBeLessThanOrEqual(4);
+        }
+      }),
+      RUNS
+    );
+  });
+
   it('çıktıda CR, bidi, görünmez ayırıcı ve \\n/\\t dışı C0 yoktur', () => {
     fc.assert(
       fc.property(anyText, text => {

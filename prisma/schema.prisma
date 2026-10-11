@@ -161,16 +161,19 @@ model Post {
 
   // --- M1 (ADR-0001/0002) ---
   /// 1 = eski react-mentions markup'ı `$(X)`, 2 = düz metin (ADR-0002).
-  contentFormat   Int          @default(1) @db.SmallInt
+  contentFormat       Int          @default(1) @db.SmallInt
   /// ADR-0002 StoredEntities; yalnızca render için.
-  entities        Json?
-  deletedAt       DateTime?
+  entities            Json?
+  deletedAt           DateTime?
+  /// Moderatör/admin kaldırdı (K-A): `deletedAt` ile birlikte set edilir; sahibine "moderasyonla
+  /// kaldırıldı" durumu gösterilir (UI M2). Sahibinin kendi silmesinde false.
+  removedByModeration Boolean      @default(false)
   /// "Reklam / İşbirliği" beyanı.
-  isSponsored     Boolean      @default(false)
-  /// Çift gönderim idempotency anahtarı.
-  clientRequestId String?      @unique @db.Uuid
-  linkPreviewId   Int?
-  linkPreview     LinkPreview? @relation(fields: [linkPreviewId], references: [id], onDelete: SetNull)
+  isSponsored         Boolean      @default(false)
+  /// Çift gönderim idempotency anahtarı; kullanıcı başına benzersiz (ADR-0002 Karar 7).
+  clientRequestId     String?      @db.Uuid
+  linkPreviewId       Int?
+  linkPreview         LinkPreview? @relation(fields: [linkPreviewId], references: [id], onDelete: SetNull)
 
   user          User           @relation(fields: [userId], references: [userId])
   stocks        PostStock[]
@@ -180,6 +183,7 @@ model Post {
   notifications Notification[]
   reposts       Repost[]
 
+  @@unique([userId, clientRequestId])
   @@index([createdAt])
   @@index([userId])
   @@index([createdAt(sort: Desc), postId(sort: Desc)], map: "Post_feed_cursor_idx")
@@ -220,15 +224,20 @@ model Comment {
   updatedAt DateTime @default(now())
 
   // --- M1 ---
-  contentFormat Int       @default(1) @db.SmallInt
-  entities      Json?
-  deletedAt     DateTime?
+  contentFormat       Int       @default(1) @db.SmallInt
+  entities            Json?
+  deletedAt           DateTime?
+  /// Moderatör/admin kaldırdı (K-A); bkz. `Post.removedByModeration`.
+  removedByModeration Boolean   @default(false)
+  /// Çift gönderim idempotency anahtarı; kullanıcı başına benzersiz (ADR-0002 Karar 7, S10).
+  clientRequestId     String?   @db.Uuid
 
   post          Post           @relation(fields: [postId], references: [postId])
   user          User           @relation(fields: [userId], references: [userId])
   likes         CommentLike[]
   notifications Notification[]
 
+  @@unique([userId, clientRequestId])
   @@index([postId])
   @@index([userId])
   @@index([createdAt])
@@ -247,6 +256,8 @@ model PostLike {
 
   @@unique([userId, postId])
   @@index([userId, postId])
+  /// Gönderi başına beğeni sayımı (`_count.likes`) ve gönderi silmede tarama (S10).
+  @@index([postId])
   @@index([likedAt])
   @@map("PostLikes")
 }
@@ -262,6 +273,8 @@ model CommentLike {
 
   @@unique([userId, commentId])
   @@index([userId, commentId])
+  /// Yorum başına beğeni sayımı (S10).
+  @@index([commentId])
   @@map("CommentLikes")
 }
 

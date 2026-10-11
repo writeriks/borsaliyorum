@@ -253,8 +253,13 @@ başlanabilir.
   yorumda cashtag kabul edilir (eski hata #6'nın regresyonu); 11 mention → `TOO_MANY_ENTITIES`;
   rate limit aşımı → `RATE_LIMITED` + `retryAfter`; kendine mention bildirim üretmez; seni
   engellemiş kullanıcıya bildirim gitmez; `entities` ile `_PostStocks`/`_PostTags` tutarlı;
-  her başarılı yazmada tek `ContentEvent` (IP dahil); başkasının gönderisini silme `FORBIDDEN`,
-  moderator silebilir; silme soft (`deletedAt`) ve `ContentEvent('post.delete')`; beğeni
+  her başarılı yazmada tek `ContentEvent` (IP dahil; production'da IP yoksa yazma reddedilir,
+  K-B); başkasının gönderisini silme `FORBIDDEN`, moderator/admin (rol DB'den) silebilir (K-A:
+  `ContentEvent('moderation.remove')` + `removedByModeration`); silme soft (`deletedAt`) ve
+  sahibinde `ContentEvent('post.delete')`; engelli/etkin olmayan sahibin içeriğine yorum ve
+  beğeni `FORBIDDEN` (K-C); yeni etiket açma günde 50, mention bildirimi çift başına günde 20;
+  ham metin ≤ 4000/2000 code unit ve grafem başına ≤ 4 birleştirici işaret; cache action içinde
+  senkron `updateTag`; beğeni
   idempotent (iki kez `liked:true` tek satır); metin sınırı `CONTENT_MAX_CHARS`'tan
   (`src/lib/content-limits.ts`: gönderi 1000, yorum 500 — K11; şema sayıyı tekrar yazmaz,
   1001/501 grafem → `CONTENT_TOO_LONG`); `Comment.clientRequestId` migration'ı + aynı kimlikle

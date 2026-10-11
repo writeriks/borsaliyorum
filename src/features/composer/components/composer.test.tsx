@@ -15,7 +15,7 @@ import type { PostSubmitHandler } from '../types';
 
 import { CharCounter } from './char-counter';
 import { Composer, type ComposerHandle } from './composer';
-import { ComposerGate } from './composer-lazy';
+import { ComposerGate, ComposerSkeleton } from './composer-lazy';
 
 vi.mock('sonner', () => ({ toast: vi.fn() }));
 
@@ -211,8 +211,14 @@ describe('ComposerGate (tasarım §1.9)', () => {
         {() => <div>composer</div>}
       </ComposerGate>
     );
-    expect(screen.getByTestId('composer-skeleton')).toBeInTheDocument();
+    // Auth iskeleti chunk iskeleti olarak işaretlenmez (auth flash testi bunu yakalamalı)
+    expect(screen.getByTestId('composer-skeleton')).not.toHaveAttribute('data-skeleton');
     expect(screen.queryByText(tr.common.login)).toBeNull();
+  });
+
+  it('chunk iskeleti data-skeleton="chunk" taşır', () => {
+    renderWithIntl(<ComposerSkeleton reason='chunk' />);
+    expect(screen.getByTestId('composer-skeleton')).toHaveAttribute('data-skeleton', 'chunk');
   });
 
   it('anonymous: giriş çağrısı, composer yok', () => {

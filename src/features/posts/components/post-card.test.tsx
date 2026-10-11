@@ -210,6 +210,22 @@ describe('PostCard', () => {
     expect(screen.getByRole('link', { name: /^\$THYAO,/ })).toHaveAttribute('href', '/hisse/THYAO');
   });
 
+  it.each(['feed', 'detail'] as const)(
+    '%s: gövde taşması kırpılır (zalgo işaretleri komşu kartlara binmez)',
+    variant => {
+      const zalgo: PostCardData = {
+        ...POST_ALL_ENTITIES,
+        body: { text: `a${'\u0301'.repeat(200)}`, entities: [] },
+      };
+      const { container } = renderWithIntl(
+        <PostCard post={zalgo} variant={variant} now={FIXTURE_NOW} />
+      );
+      const wrapper = container.querySelector('[data-slot="post-body"]');
+      expect(wrapper).toHaveClass('overflow-hidden');
+      expect(wrapper?.querySelector('[data-slot="rich-text"]')).not.toBeNull();
+    }
+  );
+
   it('detail varyantında "Devamını gör" kırpması yok', () => {
     const { container } = renderWithIntl(
       <PostCard post={POST_ALL_ENTITIES} variant='detail' now={FIXTURE_NOW} />

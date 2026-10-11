@@ -161,6 +161,11 @@ exception atmaz, (d) `normalizeContent` idempotent.
 - **`normalizeContent` ek olarak siler:** U+00AD, U+061C, U+180E, U+200B, U+200C, U+200E,
   U+200F, U+2060–2064, U+FEFF, U+E0000–E007F (`$TH` + U+200B + `YAO` → `$THYAO`). ZWJ korunur. Bedel:
   etiket karakterli bölge bayrakları (🏴 + tag dizisi) düz bayrağa iner.
+- **Zalgo (S10 review):** NFC'den sonra grafem başına en fazla 4 birleştirici işaret (`\p{M}`,
+  `MAX_MARKS_PER_GRAPHEME`) kalır; fazlası kırpılır, sonuç yeniden NFC. Ardışık diziye değil
+  grafeme bakılır (ZWJ ile bölünmüş işaretler aynı grafemde kalır). Vietnamca/Devanagari/emoji
+  etkilenmez. Render'da gövde kapsayıcısı taşmayı kırpar (`PostCard`, v1'in normalize edilmemiş
+  metni için ikinci savunma).
 - **URL `href` kanonik:** `new URL(...).href` (punycode host, küçük harf şema/host, `\` → `/`,
   sonda `/`); görünen metin `start`/`end` aralığı. `http://①②⑦.0.0.1/` → `http://127.0.0.1/`.
   Host etiketleri LDH olmalı (`www.$THYAO` link değil); kanonik href de ≤ 2048.
@@ -216,7 +221,10 @@ placeholder/geçmiş `editor/basics.ts`.
 - Karakter sayacı `countChars` (sunucuyla aynı); sınırı (gönderi 1000, yorum 500 — **K11**)
   aşınca gönder pasif, aşan kısım dekorasyonla işaretlenir (metin kesilmez). Sınırlar tek
   kaynaktan: `src/lib/content-limits.ts` (`CONTENT_MAX_CHARS`); composer ve S10 sunucu
-  şemaları bu sabiti import eder, sayıyı tekrar yazmaz.
+  şemaları bu sabiti import eder, sayıyı tekrar yazmaz. **S10 ek:** ham UTF-16 code unit sınırı
+  `CONTENT_MAX_CODE_UNITS` (gönderi 4000, yorum 2000) sunucuda normalize/parse'tan **önce**
+  uygulanır (aşım `CONTENT_TOO_LONG`, `meta.max` grafem sınırı); composer da aynı sabitle gönder
+  düğmesini kapatır. Grafem sayımı tek başına yükü sınırlamaz (bir grafem sınırsız uzun olabilir).
 - Yapıştırma ve sürükle-bırak aynı düz metin yolundan geçer (`normalizePastedText`); tek
   seferde en fazla 20.000 karakter eklenir, fazlası kırpılır (taslak şemasının üst sınırı).
 - SSR: `useEditor({ immediatelyRender: false })`; composer `next/dynamic` ile lazy, yüklenene
@@ -391,16 +399,16 @@ createPost(input: {
   sentiment: Sentiment;            // cashtag yoksa sunucu 'neutral'e zorlar (tasarım §1.5)
   isSponsored: boolean;            // legal: Reklam / İşbirliği etiketi
   previewUrl?: string | null;      // null = kullanıcı önizlemeyi kapattı
-  clientRequestId: string;         // uuid; çift gönderim idempotency'si (Post.clientRequestId UNIQUE)
+  clientRequestId: string;         // uuid; çift gönderim idempotency'si (UNIQUE (userId, clientRequestId))
 }): Promise<Result<{ postId: number }>>
-deletePost(input: { postId: number }): Promise<Result<null>>          // sahibi ya da moderator/admin
+deletePost(input: { postId: number }): Promise<Result<null>>          // sahibi ya da moderator/admin (rol DB'den, K-A)
 setPostLike(input: { postId: number; liked: boolean }): Promise<Result<{ liked: boolean }>> // idempotent
 
 // features/comments/server/actions.ts
 createComment(input: {
   postId: number;
   text: string;                    // ≤ 500 grafem (K11, CONTENT_MAX_CHARS.comment)
-  clientRequestId: string;         // uuid; Comment.clientRequestId UNIQUE (migration S10'da)
+  clientRequestId: string;         // uuid; UNIQUE (userId, clientRequestId) (migration S10'da)
 }): Promise<Result<{ commentId: number }>>
 deleteComment(input: { commentId: number }): Promise<Result<null>>
 setCommentLike(input: { commentId: number; liked: boolean }): Promise<Result<{ liked: boolean }>>
@@ -412,11 +420,55 @@ type Result<T> = { ok: true; data: T } | { ok: false; error: ErrorCode; meta?: E
 `text + sentiment + isSponsored + previewUrl`, yorumda `text`. Aynı yükle yeniden deneme aynı
 kimliği taşır; herhangi bir alan değişirse yeni kimlik üretilir (aksi halde sunucu eski kaydı
 döndürür ve ör. sonradan açılan sponsorluk etiketi düşer). Sunucu aynı kimlikle gelen ikinci
-isteğe ilk kaydı döndürür; yükü karşılaştırmaz.
+isteğe ilk kaydı döndürür. **S10 güncellemesi:** benzersizlik kullanıcı başınadır
+(`UNIQUE (userId, clientRequestId)`, Post ve Comment); sunucu saklanan yükü karşılaştırır
+(gönderide normalize metin + etkin sentiment + `isSponsored`, yorumda `postId` + metin; önizleme
+URL'si saklanmadığı için karşılaştırılmaz) ve farklıysa `CONFLICT` döner. İstemci `CONFLICT`'te
+otomatik yeniden denemez; kullanıcının bir sonraki Paylaş'ı yeni kimlik kullanır.
 
-**S10 notu:** `Comment` tablosunda `clientRequestId` yok — S10 migration'ı
-`Comment.clientRequestId String? @unique` (Post ile aynı biçim) ekler; `createComment` aynı
-idempotency adımını uygular. Metin sınırları `src/lib/content-limits.ts`'ten import edilir.
+**S10 notu:** `Comment` tablosunda `clientRequestId` yoktu — S10 migration'ı
+`Comment.clientRequestId String? @db.Uuid` + `@@unique([userId, clientRequestId])` (Post ile aynı
+biçim: benzersizlik kullanıcı başına, başka kullanıcının kimliği çakışmaz ve onun kaydını
+döndürmez) ekler; `createComment` aynı idempotency adımını uygular. Metin sınırları
+`src/lib/content-limits.ts`'ten import edilir.
+
+**S10 review kararları (2026-10-11, kullanıcı adına koordinatör; `docs/plan/kararlar.md` K-A–K-C):**
+
+- **Silme yetkisi (K-A):** `deletePost`/`deleteComment` sahibi **veya** moderatör/admin. Rol
+  oturumdan değil DB'den (`SecurityRole`, `lib/content/moderation.ts`) okunur. Sahibinin silmesi
+  `ContentEvent('post.delete' | 'comment.delete')`; moderatör/admin kaldırması ayrı eylem
+  `moderation.remove` (enum değeri M1 migration'ında vardı, yeni enum migration'ı gerekmedi) ve
+  `Post/Comment.removedByModeration = true` (sahibine "moderasyonla kaldırıldı" durumu; UI M2).
+  Diğerleri `FORBIDDEN`; silinmiş içerikte yetkisiz istek `NOT_FOUND`.
+- **5651 IP (K-B):** production runtime'da (`isProductionRuntime`) istemci IP'si alınamazsa
+  ContentEvent üreten yazma (gönderi/yorum oluşturma ve silme) DB'ye dokunmadan reddedilir
+  (`INTERNAL`) ve error seviyesinde loglanır. Dev/test'te olay atlanır + log (önceki davranış).
+- **Etkileşim (K-C):** yorum ve beğeni (gönderi/yorum), içerik sahibiyle iki yönlü engel varsa ya
+  da sahibin hesabı etkin değilse (`status != active`) `FORBIDDEN`; neden söylenmez. Beğeniyi
+  geri almak serbest. Yorum beğenisinde hem yorum hem gönderi sahibi kontrol edilir.
+- **Etiket upsert:** v1'in slug'sız eklediği ve aynı slug'a katlanan satır
+  (`slug IS NULL AND legacy_tag_slug("tagName") = ANY($slugs)`, grup başına en eskisi) önce
+  slug'ını alır, sonra kalanlar `createMany` ile eklenir (v1 `#bist100` + v2 `#BIST100` → tek
+  etiket). Ekleme ve `updatedAt` kilidi slug sırasıyla (ters sırada aynı etiketleri açan
+  eşzamanlı gönderiler deadlock'a girmez).
+- **Ek sınırlar:** yeni etiket açma kullanıcı başına günde 50 (`tag.create`, gönderi
+  transaction'ında; aşımda gönderi `RATE_LIMITED` ve geri alınır). Mention bildirimi (yazar,
+  alıcı) çifti başına günde 20; aşan alıcı bildirim almaz, gönderi yazılır.
+- **Önbellek:** yazma action'ları `updateTag` ile action içinde **senkron** geçersiz kılar
+  (read-your-own-writes): gönderi oluşturma/silme `feed` + `post:<id>`, beğeni `post:<id>`,
+  yorum oluşturma/silme/beğeni `post:<id>:comments` + `post:<id>`. `after()` yalnızca önizleme
+  çekme/bağlama içindir; bağlanırsa kart `revalidateTag(…, 'max')` ile arka planda tazelenir.
+- **Sayaçlar:** kartın tek seçimi `features/posts/server/post-card-select.ts`
+  (`postCardSelect`); `_count.comments` silinmiş yorumları saymaz. `PostLikes(postId)` ve
+  `CommentLikes(commentId)` index'leri (CONCURRENTLY, ayrı migration + rollback).
+- **Yazma kapısı genişleme noktası:** `requireWriter` e-posta doğrulamasından sonra
+  `lib/auth/writer-gates.ts` → `WRITER_GATES` listesini sırayla çalıştırır (şimdilik boş).
+  `claude/v2-legal`'daki "güncel koşulları kabul etmeyen yazamaz" kapısı buraya eklenir.
+- **Migration notu:** `20261010120900_m1_idx_post_client_request_id` S10'da yerinde değiştirildi
+  (benzersizlik `clientRequestId` → `(userId, clientRequestId)`). Bu kabul edilebilir çünkü v2
+  migration'larının **hiçbiri henüz kalıcı bir ortama (Neon prod/preview) uygulanmadı**; yalnızca
+  geçici test DB'lerinde koşuyor. Herhangi bir kalıcı ortama uygulandıktan sonra migration
+  dosyaları değiştirilmez, düzeltme yeni migration ile yapılır.
 
 `createPost` sırası: Zod parse → `requireUser()` (Server Action'da redirect değil
 `UNAUTHENTICATED` döner) → `status`/`emailVerified`/onboarding kontrolü → rate limit

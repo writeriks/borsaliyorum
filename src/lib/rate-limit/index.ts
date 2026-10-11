@@ -45,21 +45,29 @@ const assertRule = (rule: RateLimitRule): void => {
   }
 };
 
+/**
+ * `cost`: tek çağrıda tüketilen birim (ör. bir gönderinin açtığı yeni etiket sayısı). Aşan çağrı
+ * da sayılır (spam denemesi kotayı tüketir); işlem içinde çağrılırsa geri alma sayacı da geri alır.
+ */
 export const consumeRateLimit = async (
   db: RateLimitDb,
   rule: RateLimitRule,
-  now: Date = new Date()
+  now: Date = new Date(),
+  cost = 1
 ): Promise<RateLimitResult> => {
   assertRule(rule);
+  if (!Number.isInteger(cost) || cost < 1) {
+    throw new RangeError('rate-limit: cost pozitif tam sayı olmalı');
+  }
   const windowStartMs = Math.floor(now.getTime() / rule.windowMs) * rule.windowMs;
   const windowStart = new Date(windowStartMs);
   const rows = await db.$queryRaw<{ count: number }[]>`
     INSERT INTO "RateLimitBucket" ("key", "windowStart", "count")
-    VALUES (${rule.key}, ${windowStart}, 1)
+    VALUES (${rule.key}, ${windowStart}, ${cost})
     ON CONFLICT ("key", "windowStart")
-    DO UPDATE SET "count" = "RateLimitBucket"."count" + 1
+    DO UPDATE SET "count" = "RateLimitBucket"."count" + ${cost}
     RETURNING "count"`;
-  const count = rows[0]?.count ?? 1;
+  const count = rows[0]?.count ?? cost;
   if (count <= rule.limit) return { allowed: true, remaining: rule.limit - count };
   const retryAfterMs = windowStartMs + rule.windowMs - now.getTime();
   return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil(retryAfterMs / 1000)) };

@@ -4,7 +4,6 @@ import type { Sentiment, SubmitErrorKind, SubmitResult } from '../types';
 
 const RESTRICTED: ReadonlySet<ErrorCode> = new Set([
   ErrorCode.ACCOUNT_SUSPENDED,
-  ErrorCode.EMAIL_NOT_VERIFIED,
   ErrorCode.ONBOARDING_REQUIRED,
   ErrorCode.FORBIDDEN,
 ]);
@@ -16,7 +15,9 @@ const RESTRICTED: ReadonlySet<ErrorCode> = new Set([
 export const mapSubmitError = (result: SubmitResult | null): SubmitErrorKind => {
   if (result === null || result.ok) return { kind: 'generic' };
   const { error, meta } = result;
-  if (error === ErrorCode.INTERNAL || error === ErrorCode.CONFLICT) return { kind: 'generic' };
+  if (error === ErrorCode.INTERNAL) return { kind: 'generic' };
+  if (error === ErrorCode.CONFLICT) return { kind: 'conflict' };
+  if (error === ErrorCode.EMAIL_NOT_VERIFIED) return { kind: 'unverified' };
   if (error === ErrorCode.RATE_LIMITED) return { kind: 'rateLimited' };
   if (error === ErrorCode.UNAUTHENTICATED) return { kind: 'session' };
   if (RESTRICTED.has(error)) return { kind: 'restricted' };

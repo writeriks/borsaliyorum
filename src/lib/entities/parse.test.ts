@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { normalizeContent } from './normalize';
 import { firstPreviewableUrl, parseEntities } from './parse';
 import { summarize } from './test-utils';
 
@@ -62,6 +63,20 @@ describe('parseEntities — hashtag', () => {
     const body = astralLetter.repeat(50);
     expect(parseEntities(`#${body}`)).toHaveLength(1);
     expect(parseEntities(`#${body}a`)).toHaveLength(0);
+  });
+});
+
+describe('parseEntities — normalize edilmiş metin (zalgo)', () => {
+  it("hashtag gövdesindeki işaretler grafem başına 4 ile sınırlıdır; offset'ler tutarlı", () => {
+    const text = normalizeContent(
+      `#bist${'\u0301\u0302\u0303\u0304\u0305\u0306'.repeat(3)} yukarı`
+    );
+    const [tag] = parseEntities(text);
+    expect(tag?.type).toBe('hashtag');
+    if (tag?.type !== 'hashtag') return;
+    const body = text.slice(tag.start + 1, tag.end);
+    expect(body.match(/\p{M}/gu)?.length).toBe(4);
+    expect(text.slice(tag.end)).toBe(' yukarı');
   });
 });
 

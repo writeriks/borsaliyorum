@@ -16,14 +16,23 @@ import type { ComposerProps } from './composer';
 
 /**
  * Kapalı composer ile aynı ölçüde yer tutucu (CLS yok, [AUTH-02]). "Giriş yap" asla burada
- * görünmez: auth `unknown` iken de bu skeleton kullanılır (auth-session).
+ * görünmez: auth `unknown` iken de bu skeleton kullanılır (auth-session). `reason='chunk'`:
+ * yalnızca lazy chunk yüklemesi (auth biliniyor); `data-skeleton='chunk'` ile işaretlenir ki
+ * auth flash testi bunu auth iskeletinden ayırabilsin.
  */
-export const ComposerSkeleton = ({ className }: { className?: string }): ReactElement => {
+export const ComposerSkeleton = ({
+  className,
+  reason = 'auth',
+}: {
+  className?: string;
+  reason?: 'auth' | 'chunk';
+}): ReactElement => {
   const t = useTranslations('composer');
   return (
     <div
       aria-busy='true'
       data-testid='composer-skeleton'
+      data-skeleton={reason === 'chunk' ? 'chunk' : undefined}
       className={cn(
         'flex min-h-17 flex-col justify-center gap-2 rounded-lg border border-border bg-bg-subtle p-3',
         className
@@ -42,7 +51,7 @@ export const ComposerSkeleton = ({ className }: { className?: string }): ReactEl
  */
 export const ComposerLazy = dynamic<ComposerProps>(
   () => import('./composer').then(mod => mod.Composer),
-  { ssr: false, loading: () => <ComposerSkeleton /> }
+  { ssr: false, loading: () => <ComposerSkeleton reason='chunk' /> }
 );
 
 export type ComposerViewer =
