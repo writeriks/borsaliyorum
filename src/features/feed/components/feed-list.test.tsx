@@ -18,6 +18,8 @@ vi.mock('next/navigation', async importOriginal => ({
   usePathname: () => '/akis',
   useSearchParams: () => new URLSearchParams(),
 }));
+const toastError = vi.hoisted(() => vi.fn());
+vi.mock('sonner', () => ({ toast: Object.assign(vi.fn(), { error: toastError }) }));
 vi.mock('@/features/posts/server/actions', () => ({
   setPostLike: vi.fn(),
   deletePost: vi.fn(),
@@ -192,5 +194,55 @@ describe('FeedList', () => {
     renderList({ initialPage: page([post(3), post(2)], null) });
     act(() => dispatchPostDeleted(3));
     await waitFor(() => expect(cardIds()).toEqual(['2']));
+  });
+
+  it('remount (ör. /paylas → /akis): önbellek doluyken sunucunun taze ilk sayfası esas alınır', async () => {
+    fetchMock.mockResolvedValueOnce(json({ ok: true, data: page([post(1)], null) }));
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const ui = (initialPage: FeedPage, show: boolean): ReactElement => (
+      <QueryClientProvider client={client}>
+        <h1 id='feed-heading'>{tr.feed.title}</h1>
+        {show ? (
+          <FeedList tab='latest' labelledBy='feed-heading' initialPage={initialPage} />
+        ) : null}
+      </QueryClientProvider>
+    );
+    const first = page([post(3), post(2)], 'c1', 'h3');
+    const { rerender } = renderWithIntl(ui(first, true));
+    // İkinci sayfa da önbellekte olsun
+    await userEvent.click(screen.getByRole('button', { name: tr.feed.loadMore }));
+    await waitFor(() => expect(cardIds()).toEqual(['3', '2', '1']));
+
+    rerender(ui(first, false));
+    expect(screen.queryByRole('feed')).toBeNull();
+    // Başka sayfada: yeni gönderi yazıldı (9), 3 silindi
+    rerender(ui(page([post(9, 90), post(2)], 'c9', 'h9'), true));
+    // İlk karede bile eski liste görünmez
+    expect(cardIds()).toEqual(['9', '2']);
+  });
+
+  it('"N yeni gönderi" tazelemesi başarısız: yüklü sayfalar geri gelir, satır içi hata + toast', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    fetchMock
+      .mockResolvedValueOnce(json({ ok: true, data: page([post(1)], null) }))
+      .mockResolvedValueOnce(json({ ok: true, data: { count: 3 } }))
+      .mockResolvedValueOnce(json({ ok: false, error: 'INTERNAL' }, 500))
+      .mockResolvedValueOnce(json({ ok: true, data: page([post(9, 90), post(3)], 'c9', 'h9') }));
+    renderList({ initialPage: page([post(3), post(2)], 'c1', 'h3'), pollMs: 1000 });
+    await userEvent.click(screen.getByRole('button', { name: tr.feed.loadMore }));
+    await waitFor(() => expect(cardIds()).toEqual(['3', '2', '1']));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+
+    await userEvent.click(await screen.findByTestId('feed-new-posts'));
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(tr.feed.loadError);
+    expect(toastError).toHaveBeenCalledWith(tr.feed.loadError);
+    expect(cardIds()).toEqual(['3', '2', '1']);
+
+    await userEvent.click(within(alert).getByRole('button', { name: tr.common.retry }));
+    await waitFor(() => expect(cardIds()).toEqual(['9', '3']));
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 });

@@ -4,6 +4,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowUp } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 import { ErrorState } from '@/components/states/error-state';
 import { Button } from '@/components/ui/button';
@@ -68,6 +69,16 @@ export const FeedList = ({
   const handleResult = useActionResult();
   const queryKey = feedQueryKey(tab);
 
+  // Mount anında önbellekteki eski liste yerine sunucunun taze ilk sayfası esas alınır: aynı
+  // anahtarda kayıt varken TanStack `initialData`'yı yok sayar (ör. /paylas → /akis, sekme
+  // dönüşü); başka yerde yazılan/silinen gönderi sayfa yenilenmeden yansımazdı. Gözlemci
+  // abone olmadan (ilk render'dan önce) yazılır: eski liste tek kare bile görünmez. Remount'ta
+  // kaydırma konumu zaten sıfırlandığı için yüklü ek sayfaları atmak kayıp değildir.
+  useState(() => {
+    queryClient.setQueryData<FeedData>(queryKey, initialFeedData(initialPage));
+    return null;
+  });
+
   const query = useInfiniteQuery<
     FeedPage,
     Error,
@@ -90,7 +101,8 @@ export const FeedList = ({
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError, refetch } =
     query;
 
-  // Sunucudan taze ilk sayfa (router.refresh): yeni kendi gönderin hemen başa gelir
+  // Mount sonrası sunucudan taze ilk sayfa (router.refresh): yeni kendi gönderin hemen başa
+  // gelir, yüklü sayfalar ve kaydırma korunur
   const seenInitial = useRef(initialPage);
   useEffect(() => {
     if (seenInitial.current === initialPage) return;
@@ -174,17 +186,30 @@ export const FeedList = ({
 
   const listRef = useRef<HTMLDivElement>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [refreshFailed, setRefreshFailed] = useState(false);
   const showNewPosts = async (): Promise<void> => {
     setRefreshing(true);
+    setRefreshFailed(false);
+    const previous = queryClient.getQueryData<FeedData>(queryKey);
+    // Yalnızca ilk sayfa kalır: refetch tek istek atar ve en yeni sayfayı getirir
     queryClient.setQueryData<FeedData>(queryKey, current =>
       current ? keepFirstPage(current) : current
     );
-    try {
-      await refetch();
-    } finally {
-      setRefreshing(false);
-      setPolled(null);
+    const result = await refetch();
+    setRefreshing(false);
+    if (result.isError) {
+      // Liste sessizce kırpılmış kalmasın: yüklü sayfalar geri gelir, bant tekrar denenebilir
+      if (previous) queryClient.setQueryData<FeedData>(queryKey, previous);
+      if (isSessionError(result.error) && result.error instanceof FeedRequestError) {
+        handleResult(fail(result.error.code));
+        return;
+      }
+      log.warn('new posts refresh failed', { err: result.error });
+      setRefreshFailed(true);
+      toast.error(t('loadError'));
+      return;
     }
+    setPolled(null);
     // Odak listenin başına: klavye/ekran okuyucu kullanıcısı yeni kartlardan devam eder
     listRef.current?.focus({ preventScroll: true });
     listRef.current?.scrollIntoView({ block: 'start' });
@@ -210,6 +235,14 @@ export const FeedList = ({
               : t('newPosts', { count: newCount })}
           </Button>
         </div>
+      ) : null}
+      {refreshFailed ? (
+        <ErrorState
+          variant='inline'
+          message={t('loadError')}
+          onRetry={showNewPosts}
+          className='border-b border-border'
+        />
       ) : null}
       {/* Bant görsel; ekran okuyucuya aynı bilgi kibarca bildirilir */}
       <p aria-live='polite' className='sr-only'>

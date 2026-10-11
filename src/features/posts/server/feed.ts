@@ -102,9 +102,12 @@ const discoverPageSql = (viewerId: number, take: number): Prisma.Sql => Prisma.s
   LIMIT ${take}`;
 
 /**
- * "Popüler" sayfasının kimlikleri. Puan yalnızca `asOf` anına kadarki beğeni ve silinmemiş
- * yorumlardan: sayfalar arasında gelen yeni etkileşim sıralamayı kaydırmaz. Pencere
- * `(asOf - N gün, asOf]`; `asOf`'tan sonra yazılan gönderi bu listede yoktur (En yeni'de görünür).
+ * "Popüler" sayfasının kimlikleri. Puan `asOf` anındaki duruma göre: o ana kadarki beğeniler ve
+ * o anda silinmemiş yorumlar (`asOf`'tan sonra silinen yorum hâlâ sayılır). Sonradan gelen
+ * etkileşim puanı artıramaz → sayfalar arasında atlama yok. Geri çekilen beğeninin satırı
+ * silindiği için puan düşebilir; düşen gönderi sonraki sayfada tekrar gelebilir, tekrar
+ * istemcide ayıklanır (`flattenUnique`). Pencere `(asOf - N gün, asOf]`; `asOf`'tan sonra
+ * yazılan gönderi bu listede yoktur (En yeni'de görünür).
  */
 const popularPageSql = (
   viewerId: number,
@@ -119,7 +122,8 @@ const popularPageSql = (
         (SELECT COUNT(*) FROM "PostLikes" l WHERE l."postId" = p."postId" AND l."likedAt" <= ${asOf})
         + 2 * (
           SELECT COUNT(*) FROM "Comment" c
-          WHERE c."postId" = p."postId" AND c."deletedAt" IS NULL AND c."createdAt" <= ${asOf}
+          WHERE c."postId" = p."postId" AND c."createdAt" <= ${asOf}
+            AND (c."deletedAt" IS NULL OR c."deletedAt" > ${asOf})
         )
       )::int AS "score"
     FROM "Post" p

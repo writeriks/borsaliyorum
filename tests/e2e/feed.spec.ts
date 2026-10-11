@@ -164,29 +164,32 @@ test.describe('akış (S11)', () => {
     }
   );
 
-  test(
-    'mobil: tab bar "Gönderi" → tam ekran sheet → paylaş → akışta en üstte',
-    { tag: '@mobile' },
-    async ({ page }) => {
-      const viewer = await seedOnboardedUser();
-      await mockComposerApis(page);
-      await login(page, viewer);
+  test('akışı dolu kullanıcı: /akis → "Gönderi" (istemci gezinmesi) → sheet → paylaş → yeni gönderi en üstte', async ({
+    page,
+  }) => {
+    // FeedList'in mount olup önbelleği doldurması için akışta gönderi olmalı (remount hatası)
+    const viewer = await seedOnboardedUser();
+    const label = `mevcut-${uniqueSuffix()}`;
+    await seedPosts(await userIdOf(viewer.username), 1, label);
+    await mockComposerApis(page);
+    await login(page, viewer);
+    const cards = page.getByTestId('feed-list').getByTestId('post-card');
+    await expect(cards.first()).toContainText(label);
 
-      await page.getByTestId('tab-bar').getByRole('link', { name: tr.shell.nav.compose }).click();
-      await page.waitForURL('**/paylas');
-      await expect(editor(page)).toBeFocused();
+    // Mobil: alt tab bar; masaüstü: sol menü. İkisi de istemci tarafı link
+    await page.locator('a[href="/paylas"]').filter({ visible: true }).first().click();
+    await page.waitForURL('**/paylas');
+    await expect(editor(page)).toBeFocused();
 
-      const text = `sheetten paylaşım ${uniqueSuffix()}`;
-      await typeInEditor(page, text);
-      await submitButton(page).click();
-      await page.waitForURL('**/akis');
-      await expect(page.getByTestId('feed-list').getByTestId('post-card').first()).toContainText(
-        text
-      );
+    const text = `sheetten paylaşım ${uniqueSuffix()}`;
+    await typeInEditor(page, text);
+    await submitButton(page).click();
+    await page.waitForURL('**/akis');
+    await expect(cards.first()).toContainText(text);
+    await expect(cards.nth(1)).toContainText(label);
 
-      // Paylaşım replace ile: geri tuşu boş sheet'e dönmez
-      await page.goBack();
-      await expect(page).not.toHaveURL(/\/paylas$/);
-    }
-  );
+    // Paylaşım replace ile: geri tuşu boş sheet'e dönmez
+    await page.goBack();
+    await expect(page).not.toHaveURL(/\/paylas$/);
+  });
 });

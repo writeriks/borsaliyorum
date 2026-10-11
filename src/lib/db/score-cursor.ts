@@ -5,8 +5,10 @@ import { ErrorCode, fail, ok, type Result } from '@/lib/errors';
 /**
  * Puan sıralı listelerin (akışın "Popüler" sekmesi) keyset imleci: `(score, createdAt, id)` ve
  * listenin anlık görüntü zamanı `asOf`. Puan yalnızca `asOf` anına kadarki etkileşimlerden
- * hesaplanır; böylece sayfalar arasında gelen yeni beğeniler sırayı kaydırıp tekrar/atlama
- * üretmez. Dışarıya `base64url("<score>|<ISO createdAt>|<id>|<ISO asOf>")` olarak çıkar; bozuk
+ * hesaplanır: sayfalar arasında gelen yeni beğeni/yorum puanı artıramaz, bu yüzden **atlama
+ * olmaz**. Anlık görüntü tam değildir: geri çekilen beğeninin satırı silinir, puan yalnızca
+ * düşebilir ve düşen gönderi sonraki sayfada **tekrar** gelebilir; tekrar istemcide ayıklanır
+ * (`features/feed/client/pages.ts` `flattenUnique`). Dışarıya `base64url("<score>|<ISO createdAt>|<id>|<ISO asOf>")` olarak çıkar; bozuk
  * imleç ilk sayfaya düşmez, `VALIDATION` döner (`cursor.ts` ile aynı sözleşme).
  */
 export type ScoreCursor = {

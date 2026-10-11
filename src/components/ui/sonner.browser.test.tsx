@@ -21,7 +21,17 @@ vi.mock('@/i18n/navigation', () => ({
     </a>
   ),
   usePathname: (): string => '/akis',
+  // TabBar → use-shell-viewer → auth-provider zinciri modül yüklenirken bunu import eder
+  getPathname: ({ href }: { href: string }): string => href,
 }));
+
+// Tarayıcı modunda `process` yok (Next.js istemci paketinde `process.env` derlemede gömülür);
+// auth-provider zinciri logger'ı yükler
+vi.mock('@/lib/logger', () => {
+  const noop = (): void => undefined;
+  const log = { debug: noop, info: noop, warn: noop, error: noop, child: () => log };
+  return { logger: log };
+});
 
 const Shell = (): ReactElement => (
   <NextIntlClientProvider locale='tr' messages={tr} timeZone='Europe/Istanbul'>

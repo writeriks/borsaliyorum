@@ -359,6 +359,63 @@ describe('Popüler sıralama', () => {
   });
 });
 
+describe('Popüler: sayfalar arasında puan düşerse', () => {
+  it('beğeni geri çekme ve yorum silme atlama üretmez; tekrar olabilir, istemci ayıklar', async () => {
+    const viewer = await createUser();
+    const friend = await createUser();
+    await followUser(viewer.userId, friend.userId);
+    const base = Date.now();
+    const post = (minutes: number) =>
+      createPost({ userId: friend.userId, createdAt: new Date(base - minutes * 60_000) });
+    // Puanlar: A=4 (2 yorum), B=3 (3 beğeni), C=2, D=1, E=0, F=0
+    const [a, b, c, d, e, f] = await Promise.all([
+      post(1),
+      post(2),
+      post(3),
+      post(4),
+      post(5),
+      post(6),
+    ]);
+    if (!a || !b || !c || !d || !e || !f) throw new Error('tohum');
+    const likers = await Promise.all([createUser(), createUser(), createUser()]);
+    const comments = await Promise.all([
+      createComment({ postId: a.postId, createdAt: new Date(base - 30_000) }),
+      createComment({ postId: a.postId, createdAt: new Date(base - 30_000) }),
+    ]);
+    for (const liker of likers) await likePost(liker.userId, b.postId);
+    for (const liker of likers.slice(0, 2)) await likePost(liker.userId, c.postId);
+    await likePost(likers[0]?.userId ?? 0, d.postId);
+    await new Promise(resolve => setTimeout(resolve, 20));
+    const snapshot = new Date();
+    await new Promise(resolve => setTimeout(resolve, 20));
+
+    const first = await ids(viewer.userId, { tab: 'popular', limit: 2, now: snapshot });
+    expect(first.ids).toEqual([a.postId, b.postId]);
+
+    // İlk sayfadan sonra: A'nın yorumları silinir, B'nin beğenileri geri çekilir
+    await getDb().comment.updateMany({
+      where: { commentId: { in: comments.map(comment => comment.commentId) } },
+      data: { deletedAt: new Date() },
+    });
+    await getDb().postLike.deleteMany({ where: { postId: b.postId } });
+
+    const seen = [...first.ids];
+    let cursor = first.nextCursor;
+    for (let guard = 0; cursor !== null && guard < 10; guard += 1) {
+      const next = await ids(viewer.userId, { tab: 'popular', limit: 2, cursor });
+      seen.push(...next.ids);
+      cursor = next.nextCursor;
+    }
+    // Atlama yok: her gönderi en az bir kez, ilk görülme sırası anlık görüntüye uygun
+    const unique = [...new Set(seen)];
+    expect(unique).toEqual([a.postId, b.postId, c.postId, d.postId, e.postId, f.postId]);
+    // A'nın puanı anlık görüntüde (silinen yorumlar asOf'tan sonra) → A tekrar gelmez
+    expect(seen.filter(id => id === a.postId)).toHaveLength(1);
+    // B'nin beğeni satırları silindi → puanı düştü, sonraki sayfada tekrar gelebilir
+    expect(seen.filter(id => id === b.postId).length).toBeGreaterThanOrEqual(1);
+  });
+});
+
 describe('yeni gönderi sayımı', () => {
   it('headCursor’dan yeni, başkalarının kapsamdaki gönderileri; kendi ve kapsam dışı sayılmaz', async () => {
     const viewer = await createUser();
