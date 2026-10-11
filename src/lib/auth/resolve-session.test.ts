@@ -108,9 +108,25 @@ describe('resolveSession', () => {
     expect((await resolveSession('cookie', d)).status).toBe('authenticated');
   });
 
-  it.each(['suspended', 'deleted'] as const)('status=%s → anonim', async status => {
-    const d = deps({ findUserByFirebaseUid: vi.fn(async () => record({ status })) });
+  it('status=deleted → anonim', async () => {
+    const d = deps({ findUserByFirebaseUid: vi.fn(async () => record({ status: 'deleted' })) });
     expect(await resolveSession('cookie', d)).toEqual({ status: 'anonymous' });
+  });
+
+  it('status=suspended → anonim + askı nedeni (istemciye anonim olarak gider)', async () => {
+    const d = deps({ findUserByFirebaseUid: vi.fn(async () => record({ status: 'suspended' })) });
+    const session = await resolveSession('cookie', d);
+    expect(session).toEqual({ status: 'anonymous', reason: 'suspended' });
+    expect(toClientSession(session)).toEqual({ status: 'anonymous' });
+  });
+
+  it('askı, oturum iptalinden (sessionsValidAfter) önce gelir: neden kaybolmaz', async () => {
+    const d = deps({
+      findUserByFirebaseUid: vi.fn(async () =>
+        record({ status: 'suspended', sessionsValidAfter: new Date((NOW_SECONDS + 60) * 1000) })
+      ),
+    });
+    expect(await resolveSession('cookie', d)).toEqual({ status: 'anonymous', reason: 'suspended' });
   });
 
   it('DB satırı yok (yeni kayıt) → needs-onboarding, placeholder kullanıcı yok', async () => {
@@ -215,11 +231,24 @@ describe('verifySensitiveSession (hassas işlemler: checkRevoked=true + taze gir
     });
   });
 
-  it('sessionsValidAfter / askı DB kontrolleri de uygulanır', async () => {
+  it('askıdaki hesap → ACCOUNT_SUSPENDED (UNAUTHENTICATED değil)', async () => {
     const d = deps({ findUserByFirebaseUid: vi.fn(async () => record({ status: 'suspended' })) });
     expect(await verifySensitiveSession('cookie', d, NOW)).toEqual({
       ok: false,
-      error: 'UNAUTHENTICATED',
+      error: 'ACCOUNT_SUSPENDED',
     });
+  });
+
+  it('silinmiş hesap ya da iptal edilmiş oturum → UNAUTHENTICATED', async () => {
+    for (const overrides of [
+      { status: 'deleted' as const },
+      { sessionsValidAfter: new Date((NOW_SECONDS + 60) * 1000) },
+    ]) {
+      const d = deps({ findUserByFirebaseUid: vi.fn(async () => record(overrides)) });
+      expect(await verifySensitiveSession('cookie', d, NOW)).toEqual({
+        ok: false,
+        error: 'UNAUTHENTICATED',
+      });
+    }
   });
 });

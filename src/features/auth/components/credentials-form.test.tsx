@@ -45,6 +45,10 @@ vi.mock('sonner', () => ({
   },
 }));
 const routerReplace = vi.fn();
+const hardNavigate = vi.fn();
+vi.mock('@/lib/client/hard-navigate', () => ({
+  hardNavigate: (...args: unknown[]) => hardNavigate(...args),
+}));
 vi.mock('next/navigation', async importOriginal => ({
   ...(await importOriginal<typeof NextNavigation>()),
   useRouter: () => ({ replace: routerReplace, refresh: vi.fn(), push: vi.fn() }),
@@ -60,6 +64,13 @@ const PendingProbe = (): null => {
 };
 
 const ANONYMOUS = { status: 'anonymous' } as const;
+const AUTH_USER = {
+  username: 'ayse',
+  displayName: 'Ayşe',
+  avatarUrl: null,
+  email: 'ayse@example.test',
+  emailVerified: true,
+} as const;
 
 const tree = (showForm: boolean, mode: CredentialsMode = 'login'): ReactElement => (
   <AuthProvider session={ANONYMOUS}>
@@ -85,6 +96,8 @@ beforeEach(() => {
   prewarmClientAuth.mockReset();
   toastSuccess.mockReset();
   toastError.mockReset();
+  routerReplace.mockReset();
+  hardNavigate.mockReset();
   pendingSeen = [];
 });
 
@@ -173,7 +186,7 @@ describe('CredentialsForm', () => {
     const { rerender } = renderWithIntl(tree(true));
     await fill('ayse@example.test', 'dogru-sifre');
     await userEvent.click(screen.getByTestId('auth-submit'));
-    await waitFor(() => expect(routerReplace).toHaveBeenCalled());
+    await waitFor(() => expect(hardNavigate).toHaveBeenCalled());
     expect(pendingSeen.at(-1)).toBe('signing-in');
     // Navigasyon: form sayfadan kalkar, kalıcı sağlayıcıda bekleyen durum kalmamalı
     rerender(tree(false));
@@ -212,5 +225,38 @@ describe('CredentialsForm', () => {
     await userEvent.click(screen.getByTestId('auth-submit'));
     await waitFor(() => expect(toastError).toHaveBeenCalledWith(tr.auth.verify.resendRateLimited));
     expect(sendVerificationEmail).not.toHaveBeenCalled();
+  });
+
+  it("anonimken giriş: next'e tam sayfa geçiş (eski router önbelleği yönlendirme döngüsü kurmasın)", async () => {
+    signInWithEmail.mockResolvedValue({
+      ok: true,
+      session: { status: 'authenticated', user: AUTH_USER },
+    });
+    renderWithIntl(
+      <AuthProvider session={ANONYMOUS}>
+        <CredentialsForm mode='login' next='/akis?sekme=son' />
+      </AuthProvider>
+    );
+    await fill('ayse@example.test', 'dogru-sifre');
+    await userEvent.click(screen.getByTestId('auth-submit'));
+    await waitFor(() => expect(hardNavigate).toHaveBeenCalledWith('/akis?sekme=son'));
+    expect(hardNavigate).toHaveBeenCalledTimes(1);
+    expect(routerReplace).not.toHaveBeenCalled();
+  });
+
+  it('zaten girişliyken yeniden doğrulama: yumuşak geçiş (toast korunur)', async () => {
+    signInWithEmail.mockResolvedValue({
+      ok: true,
+      session: { status: 'authenticated', user: AUTH_USER },
+    });
+    renderWithIntl(
+      <AuthProvider session={{ status: 'authenticated', user: AUTH_USER }}>
+        <CredentialsForm mode='login' next={null} />
+      </AuthProvider>
+    );
+    await fill('ayse@example.test', 'dogru-sifre');
+    await userEvent.click(screen.getByTestId('auth-submit'));
+    await waitFor(() => expect(routerReplace).toHaveBeenCalledWith('/akis'));
+    expect(hardNavigate).not.toHaveBeenCalled();
   });
 });

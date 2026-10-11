@@ -3,7 +3,12 @@ import type { Logger } from '@/lib/logger';
 import { ErrorCode, fail, ok, type Result } from '@/lib/errors';
 
 import { isAuthTimeFresh, isSessionInvalidated, MAX_AUTH_AGE_MS } from './rules';
-import { ANONYMOUS_SESSION, type SessionState } from './types';
+import {
+  ANONYMOUS_SESSION,
+  anonymousErrorCode,
+  type SessionState,
+  SUSPENDED_SESSION,
+} from './types';
 
 export type AuthenticatedSession = Extract<SessionState, { status: 'authenticated' }>;
 import { type SessionUserRecord, toSessionUser } from './user-record';
@@ -51,7 +56,8 @@ const verify = async (cookie: string, deps: ResolveSessionDeps): Promise<Session
  * `__session` çerezinden oturum durumu (ADR-0001 Karar 5):
  * - çerez geçersiz/süresi dolmuş/iptal → anonim
  * - DB'de kullanıcı yok ya da `onboardedAt` boş → needs-onboarding (placeholder ad üretilmez)
- * - `status != active` ya da `auth_time < sessionsValidAfter` (çıkış/ban) → anonim
+ * - `status = suspended` → anonim + `reason: 'suspended'` (Server Action'lar `ACCOUNT_SUSPENDED`)
+ * - `status = deleted` ya da `auth_time < sessionsValidAfter` (çıkış/ban) → anonim
  */
 export const resolveSession = async (
   cookie: string,
@@ -68,6 +74,7 @@ const sessionFromClaims = async (
 ): Promise<SessionState> => {
   const record = await deps.findUserByFirebaseUid(claims.uid);
   if (record) {
+    if (record.status === 'suspended') return SUSPENDED_SESSION;
     if (record.status !== 'active') return ANONYMOUS_SESSION;
     if (isSessionInvalidated(claims.auth_time, record.sessionsValidAfter)) {
       return ANONYMOUS_SESSION;
@@ -121,7 +128,7 @@ export const verifySensitiveSession = async (
     return fail(ErrorCode.REAUTH_REQUIRED);
   }
   const session = await sessionFromClaims(claims, deps);
-  if (session.status === 'anonymous') return fail(ErrorCode.UNAUTHENTICATED);
+  if (session.status === 'anonymous') return fail(anonymousErrorCode(session));
   if (session.status === 'needs-onboarding') return fail(ErrorCode.ONBOARDING_REQUIRED);
   if (!isAuthTimeFresh(claims.auth_time, now, maxAuthAgeMs)) {
     return fail(ErrorCode.REAUTH_REQUIRED);

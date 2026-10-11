@@ -1,7 +1,7 @@
 import { ErrorCode, fail, ok, type Result } from '@/lib/errors';
 import type { Logger } from '@/lib/logger';
 
-import type { SessionState, SessionUser } from './types';
+import { anonymousErrorCode, type SessionState, type SessionUser } from './types';
 
 export type WriterDeps = {
   /** Firebase'deki güncel `emailVerified` (`admin.getUser(uid)`). */
@@ -13,8 +13,8 @@ export type WriterDeps = {
 
 /**
  * Yazma yetkisi (gönderi, yorum, beğeni …; ADR-0001 Karar 5, auth-session "Güvenlik"):
- * - anonim → `UNAUTHENTICATED`, onboarding eksik → `ONBOARDING_REQUIRED`
- *   (askıdaki/çıkış yapmış hesap `resolveSession`'da zaten anonimdir)
+ * - anonim → `UNAUTHENTICATED` (askıdaki hesap → `ACCOUNT_SUSPENDED`), onboarding eksik →
+ *   `ONBOARDING_REQUIRED` (askıdaki/çıkış yapmış hesap `resolveSession`'da zaten anonimdir)
  * - e-posta doğrulanmamışsa Firebase'den **bir kez** tazelenir (bu durumda tek ağ çağrısı);
  *   doğrulanmışsa DB güncellenir ve devam edilir, değilse `EMAIL_NOT_VERIFIED`.
  *   Firebase'e ulaşılamazsa bilinen durum geçerlidir (fail-closed: `EMAIL_NOT_VERIFIED`).
@@ -23,7 +23,7 @@ export const resolveWriter = async (
   session: SessionState,
   deps: WriterDeps
 ): Promise<Result<SessionUser>> => {
-  if (session.status === 'anonymous') return fail(ErrorCode.UNAUTHENTICATED);
+  if (session.status === 'anonymous') return fail(anonymousErrorCode(session));
   if (session.status === 'needs-onboarding') return fail(ErrorCode.ONBOARDING_REQUIRED);
   const { user, firebaseUid } = session;
   if (user.emailVerified) return ok(user);

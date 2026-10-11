@@ -67,6 +67,15 @@ describe('resolveWriter (requireWriter çekirdeği)', () => {
     expect(d.fetchEmailVerified).not.toHaveBeenCalled();
   });
 
+  it('askıdaki hesap → ACCOUNT_SUSPENDED (UNAUTHENTICATED değil)', async () => {
+    const d = deps();
+    expect(await resolveWriter({ status: 'anonymous', reason: 'suspended' }, d)).toEqual({
+      ok: false,
+      error: 'ACCOUNT_SUSPENDED',
+    });
+    expect(d.fetchEmailVerified).not.toHaveBeenCalled();
+  });
+
   it('doğrulanmış kullanıcı → ok, ağ çağrısı yok', async () => {
     const d = deps();
     expect(await resolveWriter(authenticated(), d)).toEqual({ ok: true, data: user() });

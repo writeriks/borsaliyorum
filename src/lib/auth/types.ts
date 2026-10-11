@@ -1,3 +1,5 @@
+import { ErrorCode } from '@/lib/errors';
+
 /**
  * Oturum tipleri (ADR-0001 Karar 5). Sunucu tek doğruluk kaynağıdır; istemciye yalnızca
  * `ClientSession` gider (firebaseUid, rol ve iç kimlikler yok; e-posta yalnızca sahibine).
@@ -41,7 +43,15 @@ export type SessionState =
       readonly identity: OnboardingIdentity;
       readonly authTime: number;
     }
-  | { readonly status: 'anonymous' };
+  | {
+      readonly status: 'anonymous';
+      /**
+       * Hesap askıda: sayfalar için anonimle aynıdır (istemciye taşınmaz), ama Server Action'lar
+       * `UNAUTHENTICATED` yerine `ACCOUNT_SUSPENDED` döner (kullanıcı neden yazamadığını bilsin;
+       * giriş tekrar denenince de aynı kod gelir).
+       */
+      readonly reason?: 'suspended';
+    };
 
 /** İstemciye giden kullanıcı (AuthProvider). */
 export type ClientUser = {
@@ -58,6 +68,13 @@ export type ClientSession =
   | { readonly status: 'anonymous' };
 
 export const ANONYMOUS_SESSION: SessionState = { status: 'anonymous' };
+export const SUSPENDED_SESSION: SessionState = { status: 'anonymous', reason: 'suspended' };
+
+/** Anonim oturumun Server Action hata kodu: askıdaki hesap ayrıca bildirilir. */
+export const anonymousErrorCode = (
+  session: Extract<SessionState, { status: 'anonymous' }>
+): typeof ErrorCode.ACCOUNT_SUSPENDED | typeof ErrorCode.UNAUTHENTICATED =>
+  session.reason === 'suspended' ? ErrorCode.ACCOUNT_SUSPENDED : ErrorCode.UNAUTHENTICATED;
 
 export const toClientUser = (user: SessionUser): ClientUser => ({
   username: user.username,

@@ -26,6 +26,7 @@ import {
 import { invalidationMark, safeNextPath } from './rules';
 import {
   ANONYMOUS_SESSION,
+  anonymousErrorCode,
   type OnboardingIdentity,
   type SessionState,
   type SessionUser,
@@ -112,15 +113,15 @@ export const canReverifyEmail = async (): Promise<boolean> => {
   return session.status === 'authenticated' && !session.user.emailVerified;
 };
 
-/** Server Action'lar için: yönlendirmez, `UNAUTHENTICATED` / `ONBOARDING_REQUIRED` döner. */
+/**
+ * Server Action'lar için: yönlendirmez, `UNAUTHENTICATED` / `ACCOUNT_SUSPENDED` /
+ * `ONBOARDING_REQUIRED` döner.
+ */
 export const requireActionUser = async (): Promise<Result<SessionUser>> => {
   const session = await getSession();
   if (session.status === 'authenticated') return ok(session.user);
-  return fail(
-    session.status === 'needs-onboarding'
-      ? ErrorCode.ONBOARDING_REQUIRED
-      : ErrorCode.UNAUTHENTICATED
-  );
+  if (session.status === 'needs-onboarding') return fail(ErrorCode.ONBOARDING_REQUIRED);
+  return fail(anonymousErrorCode(session));
 };
 
 /** Onboarding Server Action'ı için kimlik (kullanıcı satırı henüz olmayabilir). */
