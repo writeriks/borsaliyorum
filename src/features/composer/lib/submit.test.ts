@@ -43,6 +43,13 @@ describe('mapSubmitError (tasarım §1.7)', () => {
     });
   });
 
+  it('yeni yasal sürüm kabul edilmemiş → kendi i18n mesajıyla (errors.LEGAL_ACCEPTANCE_REQUIRED)', () => {
+    expect(mapSubmitError(fail(ErrorCode.LEGAL_ACCEPTANCE_REQUIRED))).toEqual({
+      kind: 'validation',
+      code: ErrorCode.LEGAL_ACCEPTANCE_REQUIRED,
+    });
+  });
+
   it('başarı hata değildir (savunma: genel)', () => {
     expect(mapSubmitError(ok({ id: 1 }))).toEqual({ kind: 'generic' });
   });

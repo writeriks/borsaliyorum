@@ -14,6 +14,11 @@ export type SessionUser = {
   /** Yalnızca oturum sahibine gösterilir. */
   readonly email: string;
   readonly emailVerified: boolean;
+  /**
+   * Kabul edilen yasal metin paketi güncel değil (`LEGAL_BUNDLE_VERSION`): yeniden kabul edene
+   * kadar okuyabilir, yazamaz (`requireWriter` → `LEGAL_ACCEPTANCE_REQUIRED`).
+   */
+  readonly legalAcceptanceRequired: boolean;
   /** Sunucu tarafı yetki için; istemciye gönderilmez. */
   readonly roles: readonly UserRole[];
 };
@@ -50,6 +55,7 @@ export type ClientUser = {
   readonly avatarUrl: string | null;
   readonly email: string;
   readonly emailVerified: boolean;
+  readonly legalAcceptanceRequired: boolean;
 };
 
 export type ClientSession =
@@ -65,6 +71,7 @@ export const toClientUser = (user: SessionUser): ClientUser => ({
   avatarUrl: user.avatarUrl,
   email: user.email,
   emailVerified: user.emailVerified,
+  legalAcceptanceRequired: user.legalAcceptanceRequired,
 });
 
 export const toClientSession = (state: SessionState): ClientSession => {

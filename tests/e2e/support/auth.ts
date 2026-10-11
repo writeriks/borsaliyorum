@@ -4,6 +4,7 @@ import { expect, type Locator, type Page } from '@playwright/test';
 import { Client } from 'pg';
 
 import tr from '../../../messages/tr.json' with { type: 'json' };
+import { LEGAL_BUNDLE_VERSION } from '../../../src/lib/legal/versions';
 
 import { AUTH_EMULATOR_HOST, E2E_PROJECT_ID, e2eDatabaseUrl } from './env';
 
@@ -51,17 +52,22 @@ export const withDb = async <T>(fn: (client: Client) => Promise<T>): Promise<T> 
   }
 };
 
-/** Onboarding'i tamamlanmış kullanıcı (Firebase + DB satırı). */
-export const seedOnboardedUser = async (): Promise<TestAccount> => {
+/**
+ * Onboarding'i tamamlanmış kullanıcı (Firebase + DB satırı). Varsayılan: güncel yasal metin
+ * paketini kabul etmiş; `legalBundleVersion: null` yeniden kabul akışını test eder.
+ */
+export const seedOnboardedUser = async ({
+  legalBundleVersion = LEGAL_BUNDLE_VERSION,
+}: { legalBundleVersion?: string | null } = {}): Promise<TestAccount> => {
   const account = await createFirebaseAccount();
   const username = `e2e_${uniqueSuffix()}`;
   const displayName = 'Ece Test';
   await withDb(client =>
     client.query(
       `INSERT INTO "User" ("firebaseUserId", username, "displayName", email, "isEmailVerified",
-         "onboardedAt", "noticeAcknowledgedAt", "ageConfirmedAt")
-       VALUES ($1, $2, $3, $4, true, now(), now(), now())`,
-      [account.uid, username, displayName, account.email]
+         "onboardedAt", "noticeAcknowledgedAt", "ageConfirmedAt", "legalBundleVersion")
+       VALUES ($1, $2, $3, $4, true, now(), now(), now(), $5)`,
+      [account.uid, username, displayName, account.email, legalBundleVersion]
     )
   );
   return { ...account, username, displayName };

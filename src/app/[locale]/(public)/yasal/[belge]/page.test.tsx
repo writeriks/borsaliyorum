@@ -2,7 +2,7 @@ import { screen, within } from '@testing-library/react';
 import { createTranslator } from 'next-intl';
 import { describe, expect, it, vi } from 'vitest';
 
-import { LEGAL_DOCUMENTS, LEGAL_EFFECTIVE_DATE } from '@/lib/legal/versions';
+import { LEGAL_DOCUMENTS } from '@/lib/legal/versions';
 import { SUPPORT_EMAIL } from '@/lib/support';
 
 import en from '../../../../../../messages/legal/en.json';
@@ -53,8 +53,9 @@ describe('/yasal/[belge]', () => {
     expect(within(main).getByRole('heading', { level: 1 })).toHaveTextContent(content.title);
     // Sürüm tek kaynaktan (lib/legal/versions.ts)
     expect(within(main).getByTestId('legal-version')).toHaveTextContent(doc.version);
-    expect(main).toHaveTextContent(locale === 'tr' ? '10 Ekim 2026' : '10 October 2026');
-    expect(LEGAL_EFFECTIVE_DATE).toBe('2026-10-10');
+    // Yürürlük tarihi belge başına (sürümle birlikte değişir)
+    const day = Number(doc.effectiveDate.slice(8));
+    expect(main).toHaveTextContent(locale === 'tr' ? `${day} Ekim 2026` : `${day} October 2026`);
 
     const toc = within(main).getByRole('navigation', { name: LEGAL[locale].chrome.toc });
     const tocLinks = within(toc).getAllByRole('link');
@@ -85,9 +86,18 @@ describe('/yasal/[belge]', () => {
       expect(link).toHaveAttribute('href', `mailto:${SUPPORT_EMAIL}`);
     }
     const abroad = within(main).getByRole('region', { name: 'Yurt dışındaki alıcılar' });
-    for (const name of ['Google LLC (Firebase Authentication)', 'Vercel Inc.', /Neon Inc\./]) {
+    for (const name of [
+      'Google LLC (Firebase Authentication)',
+      'Vercel Inc.',
+      /Neon Inc\./,
+      'GitHub Inc. (GitHub Actions)',
+    ]) {
       expect(within(abroad).getByRole('rowheader', { name })).toBeInTheDocument();
     }
+    // Mobilde yapışkan üst bar (56px) bölüm başlığını örtmesin: kaydırma payı üst bar + 16px
+    expect(document.getElementById('veri-sorumlusu')?.className).toMatch(
+      /(^| )scroll-mt-\[calc\(var\(--spacing-topbar\)\+1rem\)\]( |$)/
+    );
     for (const link of within(main).getAllByRole('link', { name: /Çerez Politikası/ })) {
       expect(link).toHaveAttribute('href', '/yasal/cerez-politikasi');
     }

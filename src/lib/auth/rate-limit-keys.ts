@@ -30,6 +30,8 @@ export const AUTH_RATE_LIMITS = {
   'username-check.ip': { limit: 120, windowMs: MINUTE },
   /** Onboarding gönderimi, hesap başına. */
   'onboarding.uid': { limit: 10, windowMs: 10 * MINUTE },
+  /** Yasal metin paketinin yeni sürümünü kabul, hesap başına. */
+  'legal-accept.uid': { limit: 10, windowMs: 10 * MINUTE },
 } as const satisfies Record<string, Omit<RateLimitRule, 'key'>>;
 
 export type AuthRateLimitName = keyof typeof AUTH_RATE_LIMITS;

@@ -49,6 +49,7 @@ const EXTRA_FUNCTIONS = [
   'legacy_tag_slug',
   'append_only_guard',
   'content_event_purge',
+  'consent_event_purge',
 ];
 const EXTRA_TRIGGERS = [
   'content_event_append_only',
@@ -62,6 +63,7 @@ const EXTRA_CONSTRAINTS = [
   'ContentEvent_port_range',
   'ConsentEvent_text_version_required',
   'LegalIdentityRetention_purge_after_delete',
+  'DeploymentEnvironment_singleton',
 ];
 const EXTRA_INDEXES = ['User_username_lower_pattern_idx'];
 

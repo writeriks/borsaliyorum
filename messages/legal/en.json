@@ -12,6 +12,7 @@
     "kep": "KEP (registered email) address",
     "dbRegion": "Database country and region",
     "transferSafeguard": "Transfer safeguard and date notified to the Board",
+    "appRegion": "Application server country and region",
     "court": "Competent court location"
   },
   "documents": {
@@ -54,7 +55,7 @@
               "items": [
                 "**Identity and contact:** email address, username, display name; if you use Google, the name on your Google account and your Google account ID.",
                 "**Account security:** password (only in irreversible form, at our authentication provider), email verification status, session information.",
-                "**Statements and records:** your confirmation that you are 18 or older; the version and time at which you accepted the Terms of Use and confirmed reading this notice.",
+                "**Statements and records:** your confirmation that you are 18 or older; the versions and time at which you accepted the Terms of Use, the Community Guidelines and the Investment Disclaimer and confirmed reading this notice.",
                 "**User content:** posts, replies, likes, follows, links and images you share.",
                 "**Security logs:** IP address (stored encrypted), port, time and type of action for sign-ins and content actions.",
                 "**Stored on your device:** your theme preference and drafts you are writing; never sent to our servers (see the [[link:cookies|Cookie Policy]])."
@@ -62,7 +63,7 @@
             },
             {
               "type": "p",
-              "text": "**How we collect it:** Data is collected electronically, partly by automated means, through the sign-up, sign-in and profile forms, Google sign-in, the post and reply screens and server logs. We do not ask for your date of birth, ID number or special categories of personal data. Please do not share special categories of data such as health, religion or political opinions, or other people's personal data, in your posts."
+              "text": "**How we collect it:** Data is collected electronically, partly by automated means, through the sign-up, sign-in and profile forms, Google sign-in, the post and reply screens and server logs. We do not ask for your date of birth, ID number or special categories of personal data for membership (see below for what a written KVKK application needs). Please do not share special categories of data such as health, religion or political opinions, or other people's personal data, in your posts."
             }
           ]
         },
@@ -83,7 +84,7 @@
                 [
                   "Providing features such as posts, replies and follows",
                   "User content",
-                  "Performance of a contract (Art. 5/2-c); data you have made public (Art. 5/2-d)"
+                  "Performance of a contract (Art. 5/2-c)"
                 ],
                 [
                   "Keeping your account and the platform secure and preventing abuse and spam",
@@ -126,7 +127,7 @@
               "type": "ul",
               "items": [
                 "**Competent public authorities and courts:** only where required by law or upon a lawful request (e.g. requests under Law No. 5651 and Capital Markets Law No. 6362).",
-                "**Our service providers (data processors):** hosting, database and authentication services. As they are located abroad, they are listed separately below."
+                "**Our service providers (data processors):** hosting, database, authentication and maintenance-job services. As they are located abroad, they are listed separately below."
               ]
             },
             {
@@ -157,7 +158,7 @@
                 ],
                 [
                   "Vercel Inc.",
-                  "USA (company); application servers in Germany (Frankfurt)",
+                  "USA; requests pass through edge servers worldwide; application server location: [[ph:appRegion]]",
                   "Requests sent while you use the platform, IP address and session cookie",
                   "Hosting and running the application",
                   "[[ph:transferSafeguard]]"
@@ -167,6 +168,13 @@
                   "[[ph:dbRegion]]",
                   "Account data, user content, encrypted security logs",
                   "Database hosting",
+                  "[[ph:transferSafeguard]]"
+                ],
+                [
+                  "GitHub Inc. (GitHub Actions)",
+                  "USA",
+                  "During maintenance jobs, the Firebase account list (user ID, email address, creation and sign-in times) and user IDs for matching; processed only while the job runs, not stored at GitHub",
+                  "Daily maintenance jobs such as deleting data whose retention period has ended",
                   "[[ph:transferSafeguard]]"
                 ]
               ]
@@ -204,11 +212,15 @@
                 ],
                 [
                   "Incomplete sign-ups (authentication account created but no username chosen)",
-                  "30 days from creation; deleted automatically afterwards."
+                  "30 days from creation (provided at least 15 days have passed since the last sign-in); deleted automatically afterwards."
                 ],
                 [
-                  "Acceptance, acknowledgement and permission records (document version and time)",
+                  "Acceptance and acknowledgement records (document version and time)",
                   "For as long as you are a member and afterwards for the statutory limitation period for possible disputes."
+                ],
+                [
+                  "Marketing permission records (text version, time and source of the permission and the address it was given for)",
+                  "While the permission is in force and for 3 years after it ends (withdrawal or account deletion); deleted automatically afterwards."
                 ],
                 [
                   "Theme preference and drafts on your device",
@@ -252,7 +264,7 @@
           "blocks": [
             {
               "type": "p",
-              "text": "In line with the Communiqué on the Procedures and Principles of Application to the Data Controller, you can send your request **from the email address registered to your Borsalıyorum account** to [[mail:support]], in writing to [[ph:address]], or by registered electronic mail (KEP) to [[ph:kep]]. Please include your full name, username, contact address and your request."
+              "text": "In line with the Communiqué on the Procedures and Principles of Application to the Data Controller, you can send your request **from the email address registered to your Borsalıyorum account** to [[mail:support]], in writing to [[ph:address]], or by registered electronic mail (KEP) to [[ph:kep]]. Please include your full name, username, contact address and your request. A written application must also bear your wet signature and your Turkish ID number (or, for foreign nationals, your nationality and passport or ID number), as required by the Communiqué; we use this only to verify your identity and handle your request."
             },
             {
               "type": "p",
@@ -276,7 +288,7 @@
           "blocks": [
             {
               "type": "p",
-              "text": "When we update this notice we change its version number and effective date. We will tell you about significant changes on the platform."
+              "text": "When we update this notice we change its version number and effective date. We will tell you about significant changes by email and on the Platform."
             }
           ]
         }
@@ -328,14 +340,14 @@
                   "Borsalıyorum",
                   "Remembers your theme on this device; never sent to our servers",
                   "Until you clear it",
-                  "Preference"
+                  "Strictly necessary (for a feature you request)"
                 ],
                 [
                   "bz:draft:… (local storage)",
                   "Borsalıyorum",
                   "Keeps drafts of posts and replies you are writing on this device; never sent to our servers",
                   "Until you post or clear them, up to 7 days",
-                  "Functional"
+                  "Strictly necessary (for a feature you request)"
                 ],
                 [
                   "borsaliyorum:google-redirect (session storage)",
@@ -352,6 +364,10 @@
                   "Strictly necessary (third party)"
                 ]
               ]
+            },
+            {
+              "type": "p",
+              "text": "Items marked “Strictly necessary (for a feature you request)” are essential to provide a feature you explicitly ask for (remembering the theme you chose, not losing a draft you are writing). They therefore do not require consent; they stay on your device and are never sent to our servers."
             }
           ]
         },
@@ -387,7 +403,7 @@
           "blocks": [
             {
               "type": "p",
-              "text": "These Terms of Use (“Terms”) are the agreement between you and [[ph:company]] (“Borsalıyorum”) for the use of the website and apps it operates (the “Platform”). You accept the Terms with a separate box at sign-up; the version and time of your acceptance are recorded. The Turkish version prevails."
+              "text": "These Terms of Use (“Terms”) are the agreement between you and [[ph:company]] (“Borsalıyorum”) for the use of the website and apps it operates (the “Platform”). You accept the Terms with a separate box at sign-up; the versions of the Terms, the Community Guidelines and the Investment Disclaimer you accepted and the time of acceptance are recorded. The Turkish version prevails."
             },
             {
               "type": "p",
@@ -461,7 +477,7 @@
               "type": "ul",
               "items": [
                 "**Market manipulation:** spreading false, inaccurate or misleading information, rumours, news or comments to influence prices, values or investors' decisions; taking part in or organising coordinated “pump and dump” schemes.",
-                "**Inside information:** sharing non-public information that may affect prices, or steering others based on it.",
+                "**Inside information:** sharing non-public information that may affect prices, steering others based on it, or trading based on it.",
                 "**Unauthorised investment services:** offering or advertising personalised investment advice, portfolio management, “signals” or “VIP groups” for a fee or on a regular basis; directing people to unauthorised providers (including crypto asset service providers).",
                 "**Promoting stocks or crypto for a benefit:** promoting a specific capital market instrument or crypto asset in exchange for money, gifts, discounts or any other benefit. This is not allowed even with the “Ad / Collaboration” label. Paid promotion of any kind is prohibited in replies."
               ]
@@ -482,7 +498,7 @@
                 "For every post you create in return for money, gifts, discounts or any other benefit from a brand or person, you must turn on “This post is an ad or paid collaboration” when creating it. An “Ad / Collaboration (Reklam / İşbirliği)” label appears at the top of the post.",
                 "Hiding the label or otherwise concealing the commercial relationship is covert advertising and is prohibited (Consumer Protection Law No. 6502 and the Regulation on Commercial Advertising and Unfair Commercial Practices).",
                 "Posts mentioning stocks, crypto or other investment instruments cannot be shared as ads or collaborations.",
-                "Where we consider it necessary, we may add the “Ad / Collaboration” label to a post ourselves."
+                "Where we consider it necessary, we may add the “Ad / Collaboration” label to a post ourselves. Posts promoting an investment instrument in return for a benefit are not labelled; we remove them."
               ]
             }
           ]
@@ -510,10 +526,10 @@
               "type": "ul",
               "items": [
                 "We may review, remove or restrict access to content that breaches these Terms, the Community Guidelines or the law, upon notice or on our own initiative. We have no obligation to review content in advance.",
-                "Depending on the severity and repetition of a breach, we may: warn you, remove content, add the “Ad / Collaboration” label, temporarily restrict posting features, suspend your account or close it permanently.",
+                "Depending on the severity and repetition of a breach, we may: warn you, remove content, add the “Ad / Collaboration” label, temporarily restrict posting features, suspend your account or close it permanently. Posts promoting an investment instrument in return for a benefit are not labelled; we remove them.",
                 "For serious breaches (e.g. market manipulation or criminal content) we may act without prior warning and notify the competent authorities.",
                 "When we remove your content or restrict your account, we tell you why where possible. To appeal a decision, write to [[mail:support]].",
-                "You can also send notices of unlawful content and personality-rights complaints to the same address."
+                "You can also send notices of unlawful content and personality-rights complaints to the same address. In your notice, include the link to the content, what the violation is and, if you are the rights holder, your name and contact details. We review notices within 24 hours at the latest and tell you the outcome. We implement court and competent authority decisions without delay."
               ]
             }
           ]
@@ -541,7 +557,7 @@
               "items": [
                 "The Platform is provided as is; we do not guarantee that it will run without interruption or errors. We may suspend the service temporarily for maintenance or security.",
                 "We do not guarantee the accuracy of user content and are not liable for losses from investment decisions you make based on it.",
-                "Liability that cannot be limited by law (e.g. for intent and gross negligence) is not affected."
+                "Liability for losses caused by our own fault, and liability that cannot be limited by law (e.g. for intent and gross negligence), is not affected."
               ]
             }
           ]
@@ -552,7 +568,7 @@
           "blocks": [
             {
               "type": "p",
-              "text": "We may change the Terms. When we do, we update the version number and effective date and announce significant changes on the Platform a reasonable time before they take effect. After a significant change you may be asked to accept the new version to keep using the Platform."
+              "text": "We may change the Terms; whenever we do, we update the version number and effective date. We notify you of significant changes against your interests by email and on the Platform at least 30 days before they take effect. Such changes apply to you only if you accept the new version. If you do not accept, you can end your membership free of charge. Until you accept the new version you can keep reading the Platform; to post, reply or share you need to accept it. Changes in your favour or required by law take effect on the day they are published."
             }
           ]
         },
@@ -562,7 +578,7 @@
           "blocks": [
             {
               "type": "p",
-              "text": "These Terms are governed by the laws of the Republic of Türkiye. The courts and enforcement offices of [[ph:court]] have jurisdiction over disputes. Where you act as a consumer, your right to apply to consumer arbitration committees and consumer courts under Law No. 6502 is reserved."
+              "text": "These Terms are governed by the laws of the Republic of Türkiye. The courts and enforcement offices with statutory jurisdiction are competent for disputes. As a consumer, you can apply to the consumer arbitration committee where you live within the monetary limits, and to the consumer court for disputes above those limits. If you use the Platform as a merchant in connection with your business, the courts and enforcement offices of [[ph:court]] have jurisdiction."
             }
           ]
         },
@@ -678,7 +694,7 @@
               "type": "ul",
               "items": [
                 "No coordinated buy or sell calls such as “let's all buy” or “limit up tomorrow”.",
-                "Do not share non-public company information.",
+                "Do not share non-public company information or trade based on it.",
                 "Do not promote stocks or crypto in return for money, gifts or any other benefit. This is not allowed even with the “Ad / Collaboration” label.",
                 "Do not advertise paid signals, “VIP groups”, copy trading or unauthorised investment services."
               ]
@@ -729,7 +745,7 @@
           "blocks": [
             {
               "type": "p",
-              "text": "If you see content that breaks these guidelines, write to [[mail:support]]. Depending on the severity, we may issue a warning, remove content, apply a temporary restriction or close the account. You can appeal decisions at the same address."
+              "text": "If you see content that breaks these guidelines, write to [[mail:support]]. Include the link to the content, what the violation is and, if you are the rights holder, your name and contact details. We review notices within 24 hours at the latest and tell you the outcome. Depending on the severity, we may issue a warning, remove content, apply a temporary restriction or close the account. You can appeal decisions at the same address."
             }
           ]
         }

@@ -175,6 +175,66 @@ describe('yasal metin katalogları', () => {
     );
   });
 
+  it('hukuk incelemesi metinleri (S5 legal review): tr', () => {
+    const doc = (key: keyof LegalCatalog['documents']): string =>
+      JSON.stringify(catalogs.tr.documents[key]);
+    const section = (key: keyof LegalCatalog['documents'], id: string): string =>
+      JSON.stringify(catalogs.tr.documents[key].sections.find(s => s.id === id));
+
+    // Uyuşmazlık: tüketici yolu açık; yetkili mahkeme yer tutucusu yalnızca tacir cümlesinde
+    const disputes = section('terms', 'uyusmazliklar');
+    expect(disputes).toContain('kanunen yetkili mahkemeler ve icra daireleri yetkilidir');
+    expect(disputes).toContain('tüketici hakem heyetine');
+    expect(disputes).toMatch(/tacir sıfatıyla[^.]*\[\[ph:court\]\]/);
+    // Değişiklikler: 30 gün önce bildirim, kabul edilmezse ücretsiz fesih
+    const changes = section('terms', 'degisiklikler');
+    expect(changes).toContain('en az 30 gün önce e-postayla ve Platformda bildiririz');
+    expect(changes).toContain('üyeliğini ücretsiz sona erdirebilirsin');
+    // Yurt dışı: Vercel uç sunucular + bölge; GitHub Actions
+    const abroad = section('privacy', 'yurt-disi-aktarim');
+    expect(abroad).toContain('uç sunuculardan geçer');
+    expect(abroad).toContain('[[ph:appRegion]]');
+    expect(abroad).toContain('GitHub Inc. (GitHub Actions)');
+    // 5651: bildirim içeriği ve 24 saat taahhüdü
+    expect(section('terms', 'yaptirimlar')).toContain('en geç 24 saat içinde inceler');
+    expect(section('terms', 'yaptirimlar')).toContain('gecikmeksizin uygularız');
+    // Sponsorlu içerik: yatırım aracı tanıtımı etiketlenmez, kaldırılır
+    for (const id of ['sponsorlu-icerik', 'yaptirimlar']) {
+      expect(section('terms', id)).toContain('menfaat karşılığı tanıtan gönderileri etiketlemez');
+    }
+    // ConsentEvent saklama satırı
+    expect(section('privacy', 'saklama-sureleri')).toMatch(/Pazarlama izni kayıtları[^\]]*3 yıl/);
+    // Düşük öncelikli düzeltmeler
+    expect(section('privacy', 'basvuru')).toContain('ıslak imzan');
+    expect(doc('privacy')).not.toContain('5/2-d');
+    expect(section('terms', 'piyasa-butunlugu')).toContain('bu bilgiye dayanarak işlem yapmak');
+    expect(section('terms', 'sorumluluk')).toContain('Kendi kusurumuzdan doğan zararlar');
+  });
+
+  it('çerez tablosu: tema ve taslaklar "Zorunlu (istediğin işlev için)", diğerleri zorunlu', () => {
+    const expected = {
+      tr: { needed: 'Zorunlu (istediğin işlev için)', strict: /^Zorunlu( \(üçüncü taraf\))?$/ },
+      en: {
+        needed: 'Strictly necessary (for a feature you request)',
+        strict: /^Strictly necessary( \(third party\))?$/,
+      },
+    } as const;
+    for (const locale of routing.locales) {
+      const blocks = catalogs[locale].documents.cookies.sections.flatMap(s => s.blocks);
+      const table = blocks.find(block => block.type === 'table');
+      const rows = table?.type === 'table' ? table.rows : [];
+      for (const row of rows) {
+        const type = row[row.length - 1] ?? '';
+        if (/^(theme|bz:draft)/.test(row[0] ?? ''))
+          expect(type, row[0]).toBe(expected[locale].needed);
+        else expect(type, row[0]).toMatch(expected[locale].strict);
+      }
+      // Sınıflandırmanın açıklaması tablonun hemen altında
+      const note = blocks[blocks.indexOf(table ?? blocks[0]!) + 1];
+      expect(note?.type === 'p' ? note.text : '').toContain(expected[locale].needed);
+    }
+  });
+
   it('yatırım uyarısı sayfası tam SPK metnini ana katalogdaki tek kaynaktan alır', () => {
     for (const locale of routing.locales) {
       const blocks = catalogs[locale].documents.disclaimer.sections.flatMap(s => s.blocks);

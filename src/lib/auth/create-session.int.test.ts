@@ -98,6 +98,7 @@ describe('createSessionFromIdToken (gerçek DB)', () => {
         avatarUrl: null,
         email: user.email,
         emailVerified: true,
+        legalAcceptanceRequired: false,
       },
     });
     const updated = await getDb().user.findUniqueOrThrow({ where: { userId: user.userId } });

@@ -1,8 +1,12 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+
 import type { NextConfig } from 'next';
 import { PHASE_PRODUCTION_BUILD } from 'next/constants';
 import createNextIntlPlugin from 'next-intl/plugin';
 
 import { assertBuildEnv } from './src/lib/env';
+import { assertLegalTextsPublishable } from './src/lib/legal/publish-gate';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
@@ -28,8 +32,21 @@ export const noindexHeaders =
       ? []
       : [{ source: '/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex' }] }];
 
+/** `messages/legal/<dil>.json` (yer tutucu kapısı için ham içerik). */
+const readLegalCatalogs = (): Record<string, unknown> =>
+  Object.fromEntries(
+    ['tr', 'en'].map(locale => [
+      locale,
+      JSON.parse(
+        readFileSync(path.join(process.cwd(), 'messages', 'legal', `${locale}.json`), 'utf8')
+      ) as unknown,
+    ])
+  );
+
 const config = (phase: string): NextConfig => {
   if (phase === PHASE_PRODUCTION_BUILD) {
+    // SKIP_ENV_VALIDATION'dan bağımsız: production'a yer tutuculu yasal metin çıkmaz
+    assertLegalTextsPublishable(process.env, readLegalCatalogs());
     const { skipped } = assertBuildEnv(process.env);
     if (skipped) {
       console.warn('[env] SKIP_ENV_VALIDATION=1: ortam değişkeni doğrulaması atlandı.');

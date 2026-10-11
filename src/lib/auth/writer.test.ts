@@ -23,6 +23,7 @@ const user = (overrides: Partial<SessionUser> = {}): SessionUser => ({
   avatarUrl: null,
   email: 'ayse@example.test',
   emailVerified: true,
+  legalAcceptanceRequired: false,
   roles: [],
   ...overrides,
 });
@@ -104,5 +105,21 @@ describe('resolveWriter (requireWriter çekirdeği)', () => {
       error: 'EMAIL_NOT_VERIFIED',
     });
     expect(d.log.warn).toHaveBeenCalled();
+  });
+
+  it('yasal metin paketi güncel değil → LEGAL_ACCEPTANCE_REQUIRED (yazma kapalı)', async () => {
+    const d = deps();
+    expect(await resolveWriter(authenticated({ legalAcceptanceRequired: true }), d)).toEqual({
+      ok: false,
+      error: 'LEGAL_ACCEPTANCE_REQUIRED',
+    });
+  });
+
+  it('kabul eksikliği e-posta doğrulama tazelemesini engellemez (önce doğrulama yazılır)', async () => {
+    const d = deps({ fetchEmailVerified: vi.fn(async () => true) });
+    expect(
+      await resolveWriter(authenticated({ emailVerified: false, legalAcceptanceRequired: true }), d)
+    ).toEqual({ ok: false, error: 'LEGAL_ACCEPTANCE_REQUIRED' });
+    expect(d.markEmailVerified).toHaveBeenCalledWith(7);
   });
 });

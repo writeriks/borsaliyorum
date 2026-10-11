@@ -1,4 +1,5 @@
 import type { Prisma } from '@/generated/prisma/client';
+import { needsLegalAcceptance } from '@/lib/legal/versions';
 
 import type { SessionUser, UserRole } from './types';
 
@@ -14,6 +15,7 @@ export const sessionUserSelect = {
   onboardedAt: true,
   sessionsValidAfter: true,
   status: true,
+  legalBundleVersion: true,
   roles: { select: { role: true } },
 } as const satisfies Prisma.UserSelect;
 
@@ -26,5 +28,6 @@ export const toSessionUser = (record: SessionUserRecord): SessionUser => ({
   avatarUrl: record.profilePhoto,
   email: record.email,
   emailVerified: record.isEmailVerified,
+  legalAcceptanceRequired: needsLegalAcceptance(record.legalBundleVersion),
   roles: record.roles.map(({ role }): UserRole => role),
 });

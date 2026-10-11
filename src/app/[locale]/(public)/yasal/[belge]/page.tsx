@@ -7,7 +7,7 @@ import { AppShell } from '@/components/shell/app-shell';
 import { LegalDocumentView } from '@/features/legal/components/legal-document-view';
 import { getLegalCatalog } from '@/features/legal/content';
 import { resolveLocale } from '@/i18n/page-params';
-import { findLegalDocument, LEGAL_DOCUMENTS, LEGAL_EFFECTIVE_DATE } from '@/lib/legal/versions';
+import { findLegalDocument, LEGAL_DOCUMENTS } from '@/lib/legal/versions';
 
 type LegalPageProps = { params: Promise<{ locale: string; belge: string }> };
 
@@ -48,7 +48,7 @@ const LegalPage = async ({ params }: LegalPageProps): Promise<ReactElement> => {
         chrome={catalog.chrome}
         placeholders={catalog.placeholders}
         version={doc.version}
-        effectiveDate={LEGAL_EFFECTIVE_DATE}
+        effectiveDate={doc.effectiveDate}
         disclaimerText={tDisclaimer('full')}
         documentLabels={{
           disclaimer: tFooter('disclaimerLink'),

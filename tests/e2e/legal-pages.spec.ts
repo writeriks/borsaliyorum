@@ -19,7 +19,7 @@ const FOOTER_LABEL = {
  */
 const visibleFooter = (page: Page) => page.locator('footer').filter({ visible: true }).first();
 
-test.describe('yasal sayfalar (herkese açık, statik)', () => {
+test.describe('yasal sayfalar (herkese açık, sunucuda render)', () => {
   // X-Robots-Tag: production dışı ortamlar bilinçli olarak tümden noindex (next.config.ts);
   // burada sayfanın kendisinin noindex taşımadığı kontrol edilir.
   test('/yasal/kvkk ve /en/yasal/kvkk 200; sayfa noindex taşımaz; anonim erişim', async ({
@@ -80,4 +80,24 @@ test.describe('yasal sayfalar (herkese açık, statik)', () => {
     expect(response?.status()).toBe(200);
     await expect(page.getByRole('main').getByText(tr.legal.disclaimer.full)).toBeVisible();
   });
+
+  test(
+    'mobil: içindekiler bağlantısı bölüm başlığını yapışkan üst barın altında bırakır',
+    { tag: '@mobile' },
+    async ({ page }) => {
+      await page.goto('/yasal/kullanim-kosullari');
+      const section = legalTr.documents.terms.sections.find(s => s.id === 'yasakli-icerik');
+      await page
+        .getByRole('navigation', { name: legalTr.chrome.toc })
+        .getByRole('link', { name: section?.heading ?? '' })
+        .click();
+      await expect(page).toHaveURL(/#yasakli-icerik$/);
+      const topBar = await page.getByTestId('top-bar').boundingBox();
+      const heading = page.locator('#yasakli-icerik-baslik');
+      await expect(heading).toBeInViewport();
+      await expect
+        .poll(async () => (await heading.boundingBox())?.y ?? -1)
+        .toBeGreaterThanOrEqual((topBar?.y ?? 0) + (topBar?.height ?? 0));
+    }
+  );
 });

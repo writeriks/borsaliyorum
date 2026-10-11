@@ -495,6 +495,51 @@ bekler), HTTP cache/AbortSignal desteği yoktur. Bu GET uçları ince sarmalayı
   ya da production runtime'da (`next start`) proje `demo-` değilse build/başlangıç hata verir
   (emulator token'ları imzasızdır). E2E yalnızca `demo-` projesiyle koşar.
 
+### Yetim hesap imhası (legal review, 2026-10-11)
+
+Onboarding'i 30 günde tamamlamayan Firebase hesapları (`src/lib/auth/orphan-accounts.ts`,
+`scripts/purge-retention.ts`) geri alınamaz biçimde silinir; bu yüzden:
+
+- **Koruma payı:** son giriş (`lastSignInTime`/`lastRefreshTime`) üzerinden en az
+  `SESSION_MAX_AGE_MS + 1 gün` (15 gün) geçmeyen hesap silinmez. 25. günde giren kullanıcının
+  çerezi 39. güne kadar geçerlidir; 31. gündeki koşu onu silmez, 32. gündeki onboarding geçer.
+- **Onboarding'de son kontrol:** `completeOnboarding` User yazmadan önce `admin.getUser(uid)`
+  ile hesabın varlığını doğrular. `auth/user-not-found` → `UNAUTHENTICATED` + oturum sonlandırılır;
+  Firebase'e ulaşılamazsa `INTERNAL` (User yazılmaz).
+- **Frenler** (fren devreye girerse `OrphanPurgeAbortError`, iş 1 ile biter, o sayfada hiçbir şey
+  silinmez):
+  1. **Ortam eşleşmesi:** DB'de tek satırlık `DeploymentEnvironment(id = 1, firebaseProjectId,
+     label)` tablosu. Satır yoksa ya da `FIREBASE_PROJECT_ID` ile eşleşmezse iş çalışmaz. Seçim
+     gerekçesi: env etiketi aynı secret kümesinden geldiği için yanlış eşleşmeyi yakalayamaz;
+     etiket DB'nin kendisinde olmalı. Migration satır yazmaz; her ortamda bir kez elle eklenir
+     (README "Bakım işleri"). `app_maintenance` yalnızca okur.
+  2. `SELECT count(*) FROM "User"` = 0 → iptal (boş/yanlış DB'de herkes "yetim" görünür).
+  3. Sayfa başına aday/taranan > %20 → o sayfa silinmeden hata (dry-run'da da).
+  4. Koşu başına en fazla 200 silme; kalan sonraki günlerin koşularına.
+  5. Sayfalar arası ≥ 1 sn bekleme; `deleteUsers` `failureCount > 0` → non-zero çıkış.
+- **İki anahtar:** script varsayılan dry-run; gerçek silme yalnızca `--execute` ile (zamanlanmış
+  koşu dahil: workflow `--execute`'u yalnızca repo değişkeni `RETENTION_PURGE_EXECUTE == 'true'`
+  iken ekler). Firebase silmesi ayrıca `ORPHAN_PURGE_ENABLED=true` ister.
+- **Kimlik bilgisi yalıtımı:** workflow iki işe bölündü. `db` işi onaysız; `firebase` işi
+  `environment: production-purge` altında (Required reviewers ile her koşuda onay). Firebase
+  secret'ları yalnızca bu environment'ta durur; repo düzeyinde tutulmaz. Kurulum adımları:
+  README "Bakım işleri".
+- `app_maintenance` için ek yetkiler (migration `20261011090000_legal_deployment_environment`):
+  `GRANT SELECT ON "DeploymentEnvironment", "User"`; ConsentEvent temizliği için
+  `GRANT EXECUTE ON FUNCTION consent_event_purge(INTERVAL)` (`20261011090200`).
+
+### Yasal metin paketi ve yeniden kabul (legal review, 2026-10-11)
+
+- `User.legalBundleVersion` (+ ispat için `termsVersion`, `communityRulesVersion`,
+  `disclaimerVersion`; kabul anı `termsAcceptedAt`). Paket = Koşullar + Topluluk Kuralları +
+  Yatırım Uyarısı; sürümü `LEGAL_BUNDLE_VERSION` (`src/lib/legal/versions.ts`) yalnızca aleyhe
+  önemli değişiklikte artırılır.
+- Paket güncel değilse `SessionUser.legalAcceptanceRequired = true`: `requireWriter` e-posta
+  kontrolünden sonra `LEGAL_ACCEPTANCE_REQUIRED` döner (okuma serbest). Kabukta kalıcı bant,
+  kabul ekranı `/yasal/yeni-surum` (`(app)` grubu; `acceptLegalUpdate` Server Action
+  `requireActionUser` ile çalışır, çünkü kullanıcı tam da yazamadığı için oradadır).
+- Backfill yok: mevcut kullanıcılar (eski v1 hesapları dahil) bir kez kabul ekranını görür.
+
 ## Alternatifler (özet)
 
 - Yeni repo / uzun ömürlü branch / monorepo araçları → Karar 1 tablosu.

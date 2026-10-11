@@ -1,20 +1,28 @@
 name: Purge retention
 
-# Günlük saklama süresi / TTL temizliği (scripts/purge-retention.ts): ContentEvent (1–2 yıl,
-# varsayılan 2), RateLimitBucket (pencere + 24 saat), bağlantısız süresi dolmuş LinkPreview,
-# LegalIdentityRetention (purgeAt) ve onboarding'i 30 günde tamamlamayan Firebase hesapları.
-# DATABASE_URL secret'ı (tercihen doğrudan/pooler olmayan URL; roller ayrılınca app_maintenance
-# rolü) tanımlı değilse iş atlanır. FIREBASE_* secret'ları yoksa yalnızca Firebase adımı
-# uyarıyla atlanır. Elle deneme: workflow_dispatch + dry_run (hiçbir şey silinmez).
+# Günlük saklama süresi / TTL temizliği (scripts/purge-retention.ts). Ayrıntı ve kurulum:
+# ADR-0001 "Yetim hesap imhası" ve README "Bakım işleri".
+#
+# VARSAYILAN DRY-RUN (zamanlanmış koşu dahil): script yalnızca `--execute` ile siler.
+#   - Zamanlanmış koşu `--execute`'u yalnızca repo değişkeni RETENTION_PURGE_EXECUTE == 'true'
+#     iken ekler; elle tetiklemede `execute` kutusu işaretlenmelidir.
+#   - Firebase hesapları ayrıca `production-purge` environment'ının ORPHAN_PURGE_ENABLED
+#     değişkeni 'true' değilse silinmez (yalnızca sayılır).
+# İşler:
+#   db       — ContentEvent, RateLimitBucket, LinkPreview, LegalIdentityRetention, ConsentEvent.
+#              DATABASE_URL (repo secret'ı; roller ayrılınca app_maintenance) yoksa atlanır.
+#   firebase — onboarding'i 30 günde tamamlamayan Firebase hesapları. Firebase secret'ları
+#              YALNIZCA onay gerektiren `production-purge` environment'ında durur; iş her
+#              koşuda onay bekler.
 on:
   schedule:
     - cron: '23 1 * * *' # her gün 04:23 (TR)
   workflow_dispatch:
     inputs:
-      dry_run:
-        description: 'Yalnızca say, silme'
+      execute:
+        description: 'Gerçekten sil (işaretsiz: yalnızca say)'
         type: boolean
-        default: true
+        default: false
 
 permissions:
   contents: read
@@ -27,17 +35,17 @@ defaults:
   run:
     shell: bash
 
+env:
+  EXECUTE_FLAG: >-
+    ${{ ((github.event_name == 'workflow_dispatch' && inputs.execute) ||
+    (github.event_name == 'schedule' && vars.RETENTION_PURGE_EXECUTE == 'true')) && '--execute' || '' }}
+
 jobs:
-  purge:
+  db:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
-      FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
-      # Zamanlanmış koşuda input yok → gerçek silme; elle tetiklemede varsayılan dry-run
-      DRY_RUN_FLAG: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '--dry-run' || '' }}
     steps:
       - name: Skip when DATABASE_URL secret is missing
         if: env.DATABASE_URL == ''
@@ -53,4 +61,31 @@ jobs:
       - if: env.DATABASE_URL != ''
         run: npm ci --ignore-scripts
       - if: env.DATABASE_URL != ''
-        run: npx tsx scripts/purge-retention.ts $DRY_RUN_FLAG
+        run: npx tsx scripts/purge-retention.ts --only=db $EXECUTE_FLAG
+
+  firebase:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Onay gerektiren environment: Firebase secret'ları yalnızca burada (repo secret'ı DEĞİL)
+    environment: production-purge
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+      ORPHAN_PURGE_ENABLED: ${{ vars.ORPHAN_PURGE_ENABLED }}
+    steps:
+      - name: Skip when DATABASE_URL secret is missing
+        if: env.DATABASE_URL == ''
+        run: echo "::notice::DATABASE_URL secret tanımlı değil; yetim hesap imhası atlandı."
+      - if: env.DATABASE_URL != ''
+        uses: actions/checkout@v4
+      - if: env.DATABASE_URL != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - if: env.DATABASE_URL != ''
+        run: npm ci --ignore-scripts
+      - if: env.DATABASE_URL != ''
+        run: npx tsx scripts/purge-retention.ts --only=firebase $EXECUTE_FLAG

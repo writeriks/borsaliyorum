@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { z } from 'zod';
 
 import type { Locale } from '@/i18n/routing';
@@ -19,6 +21,7 @@ export const PLACEHOLDER_KEYS = [
   'kep',
   'dbRegion',
   'transferSafeguard',
+  'appRegion',
   'court',
 ] as const;
 export type PlaceholderKey = (typeof PLACEHOLDER_KEYS)[number];

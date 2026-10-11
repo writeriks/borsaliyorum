@@ -92,7 +92,8 @@
     "REAUTH_REQUIRED": "Güvenliğin için yeniden giriş yapman gerekiyor.",
     "USERNAME_TAKEN": "Bu kullanıcı adı alınmış.",
     "USERNAME_RESERVED": "Bu kullanıcı adı kullanılamaz.",
-    "ACCOUNT_EMAIL_CONFLICT": "Bu e-posta adresi başka bir giriş yöntemiyle açılmış bir hesaba bağlı."
+    "ACCOUNT_EMAIL_CONFLICT": "Bu e-posta adresi başka bir giriş yöntemiyle açılmış bir hesaba bağlı.",
+    "LEGAL_ACCEPTANCE_REQUIRED": "Paylaşım yapmak için güncellenen kullanım koşullarını kabul etmen gerekiyor."
   },
   "entity": {
     "newTab": "(yeni sekmede açılır)",
@@ -400,5 +401,22 @@
   "feedPlaceholder": {
     "title": "Akış",
     "body": "Takip ettiğin kişi ve hisselerin gönderileri yakında burada olacak."
+  },
+  "legalUpdate": {
+    "metaTitle": "Güncellenen kullanım koşulları",
+    "title": "Kullanım koşullarımız güncellendi",
+    "intro": "Paylaşım yapmaya devam etmek için güncellenen metinleri okuyup kabul etmen gerekiyor. Kabul etmeden de Borsalıyorum'u okumaya devam edebilirsin.",
+    "documents": "Güncellenen metinler",
+    "version": "Sürüm: {version}",
+    "checkbox": "Kullanım Koşulları, Topluluk Kuralları ve Yatırım Uyarısı'nın yeni sürümlerini okudum ve kabul ediyorum.",
+    "checkboxRequired": "Devam etmek için kutuyu işaretle.",
+    "submit": "Kabul et ve devam et",
+    "submitting": "Kaydediliyor…",
+    "decline": "Kabul etmek istemiyorsan üyeliğini ücretsiz sona erdirebilirsin. Hesap silme talebini, hesabına kayıtlı e-posta adresinden destek adresimize ilet:",
+    "banner": {
+      "title": "Kullanım koşullarımız güncellendi",
+      "body": "Okumaya devam edebilirsin; paylaşım yapmak için yeni sürümü kabul etmen gerekiyor.",
+      "cta": "İncele ve kabul et"
+    }
   }
 }

@@ -92,7 +92,8 @@
     "REAUTH_REQUIRED": "For your security, please log in again.",
     "USERNAME_TAKEN": "This username is taken.",
     "USERNAME_RESERVED": "This username can't be used.",
-    "ACCOUNT_EMAIL_CONFLICT": "This email address belongs to an account created with a different sign-in method."
+    "ACCOUNT_EMAIL_CONFLICT": "This email address belongs to an account created with a different sign-in method.",
+    "LEGAL_ACCEPTANCE_REQUIRED": "To post, you need to accept the updated terms."
   },
   "entity": {
     "newTab": "(opens in a new tab)",
@@ -400,5 +401,22 @@
   "feedPlaceholder": {
     "title": "Feed",
     "body": "Posts from the people and stocks you follow will appear here soon."
+  },
+  "legalUpdate": {
+    "metaTitle": "Updated terms",
+    "title": "Our terms have been updated",
+    "intro": "To keep posting, please read and accept the updated documents. You can keep reading Borsalıyorum without accepting.",
+    "documents": "Updated documents",
+    "version": "Version: {version}",
+    "checkbox": "I have read and accept the new versions of the Terms of Use, the Community Guidelines and the Investment Disclaimer.",
+    "checkboxRequired": "Tick the box to continue.",
+    "submit": "Accept and continue",
+    "submitting": "Saving…",
+    "decline": "If you do not want to accept, you can end your membership free of charge. Send your account deletion request from the email address registered to your account to our support address:",
+    "banner": {
+      "title": "Our terms have been updated",
+      "body": "You can keep reading; to post, you need to accept the new version.",
+      "cta": "Review and accept"
+    }
   }
 }

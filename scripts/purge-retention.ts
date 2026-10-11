@@ -5,34 +5,41 @@
  *   - RateLimitBucket: en uzun pencere + 24 saat
  *   - LinkPreview: expiresAt geçmiş ve hiçbir gönderiye bağlı olmayanlar
  *   - LegalIdentityRetention: purgeAt geçmiş olanlar
+ *   - ConsentEvent: consent_event_purge('3 years') — izin sona erdikten 3 yıl sonra
  *   Firebase (src/lib/auth/orphan-accounts.ts):
  *   - Onboarding'i 30 günde tamamlamayan hesaplar (Firebase'de var, DB'de User yok)
  *
  *   DATABASE_URL_UNPOOLED=… FIREBASE_PROJECT_ID=… FIREBASE_CLIENT_EMAIL=… FIREBASE_PRIVATE_KEY=… \
- *     npx tsx scripts/purge-retention.ts [--content-event-retention="2 years"] [--dry-run]
+ *     npx tsx scripts/purge-retention.ts [--execute] [--only=db|firebase] \
+ *       [--content-event-retention="2 years"]
  *
- * `--dry-run`: hiçbir şey silinmez. DB adımları (dry-run modları yok) atlanır; Firebase adımı
- * yalnızca silinecek hesap sayısını raporlar. Firebase değişkenleri yoksa Firebase adımı
- * uyarıyla atlanır (DB adımı yine çalışır).
+ * VARSAYILAN DRY-RUN: `--execute` verilmeden hiçbir şey silinmez (DB adımları atlanır, Firebase
+ * adımı yalnızca sayar). Firebase hesapları ayrıca `ORPHAN_PURGE_ENABLED=true` olmadan silinmez.
+ * Firebase adımının frenleri (ortam etiketi, boş User tablosu, sayfa oranı, koşu başına 200)
+ * ve silme hataları süreci 1 ile bitirir. Firebase değişkenleri yoksa adım uyarıyla atlanır.
  *
- * GitHub Actions: .github/workflows/purge-retention.yml (her gün). Roller ayrıldığında bu
- * script `app_maintenance` rolüyle çalışır (ADR-0001 "Rol ayrımı").
+ * GitHub Actions: .github/workflows/purge-retention.yml. Roller ayrıldığında bu script
+ * `app_maintenance` rolüyle çalışır (ADR-0001 "Rol ayrımı", "Yetim hesap imhası").
  */
 import { cert, deleteApp, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { Client } from 'pg';
 
-import { createUidLookup, purgeOrphanFirebaseAccounts } from '@/lib/auth/orphan-accounts';
+import {
+  createEnvironmentReader,
+  createUidLookup,
+  createUserCounter,
+  OrphanPurgeAbortError,
+  purgeOrphanFirebaseAccounts,
+} from '@/lib/auth/orphan-accounts';
 import { resolveDirectDatabaseUrl } from '@/lib/db/connection-url';
-import { DEFAULT_CONTENT_EVENT_RETENTION, runRetentionPurge } from '@/lib/db/retention';
-
-const RETENTION_ARG = '--content-event-retention=';
-const DRY_RUN_ARG = '--dry-run';
-
-const parseRetention = (argv: readonly string[]): string => {
-  const arg = argv.find(value => value.startsWith(RETENTION_ARG));
-  return arg ? arg.slice(RETENTION_ARG.length) : DEFAULT_CONTENT_EVENT_RETENTION;
-};
+import {
+  type FirebaseStepResult,
+  type PurgeOptions,
+  purgeExitCode,
+  resolvePurgeOptions,
+} from '@/lib/db/purge-options';
+import { runRetentionPurge } from '@/lib/db/retention';
 
 type FirebaseConfig = { projectId: string; clientEmail?: string; privateKey?: string };
 
@@ -47,12 +54,20 @@ const readFirebaseConfig = (env: NodeJS.ProcessEnv): FirebaseConfig | null => {
   return { projectId, clientEmail, privateKey };
 };
 
-const purgeFirebaseOrphans = async (client: Client, dryRun: boolean): Promise<unknown> => {
+const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+
+const purgeFirebaseOrphans = async (
+  client: Client,
+  options: PurgeOptions
+): Promise<FirebaseStepResult & Record<string, unknown>> => {
   const config = readFirebaseConfig(process.env);
   if (!config) {
     // GitHub Actions uyarısı: secrets eklenene kadar imha yapılmadığı görünür olsun
     console.log('::warning::Firebase değişkenleri tanımlı değil; yetim hesap imhası atlandı.');
     return { skipped: true };
+  }
+  if (options.execute && !options.firebaseDelete) {
+    console.log('::notice::ORPHAN_PURGE_ENABLED=true değil; Firebase adımı yalnızca sayıyor.');
   }
   const app = initializeApp(
     config.clientEmail && config.privateKey
@@ -74,33 +89,54 @@ const purgeFirebaseOrphans = async (client: Client, dryRun: boolean): Promise<un
         listUsers: (maxResults, pageToken) => auth.listUsers(maxResults, pageToken),
         deleteUsers: uids => auth.deleteUsers(uids),
         findUidsWithUser: createUidLookup(client),
+        countUsers: createUserCounter(client),
+        readEnvironmentProjectId: createEnvironmentReader(client),
+        sleep,
         now: () => new Date(),
       },
-      { dryRun }
+      { dryRun: !options.firebaseDelete, expectedProjectId: config.projectId }
     );
+  } catch (error) {
+    if (error instanceof OrphanPurgeAbortError) {
+      console.log(`::error::Yetim hesap imhası durduruldu (${error.reason}): ${error.message}`);
+      return { aborted: error.reason };
+    }
+    throw error;
   } finally {
     await deleteApp(app);
   }
 };
 
 const main = async (): Promise<void> => {
+  const options = resolvePurgeOptions(process.argv.slice(2), process.env);
   const url = resolveDirectDatabaseUrl(process.env);
   if (!url) throw new Error('DATABASE_URL_UNPOOLED ya da DATABASE_URL tanımlı değil.');
-  const argv = process.argv.slice(2);
-  const contentEventRetention = parseRetention(argv);
-  const dryRun = argv.includes(DRY_RUN_ARG);
 
   const client = new Client({ connectionString: url, connectionTimeoutMillis: 10_000 });
   await client.connect();
   try {
-    const db = dryRun
-      ? { skipped: 'dry-run' }
-      : await runRetentionPurge(client, { contentEventRetention });
-    const firebaseOrphans = await purgeFirebaseOrphans(client, dryRun);
+    const db = !options.steps.includes('db')
+      ? undefined
+      : options.execute
+        ? await runRetentionPurge(client, {
+            contentEventRetention: options.contentEventRetention,
+          })
+        : { skipped: 'dry-run' };
+    const firebase = options.steps.includes('firebase')
+      ? await purgeFirebaseOrphans(client, options)
+      : undefined;
     // Yalnızca sayılar loglanır; kişisel veri (uid, e-posta) yok
     console.log(
-      JSON.stringify({ job: 'purge-retention', dryRun, contentEventRetention, db, firebaseOrphans })
+      JSON.stringify({
+        job: 'purge-retention',
+        execute: options.execute,
+        firebaseDelete: options.firebaseDelete,
+        contentEventRetention: options.contentEventRetention,
+        db,
+        firebase,
+      })
     );
+    process.exitCode = purgeExitCode(firebase ? { firebase } : {});
   } finally {
     await client.end();
   }

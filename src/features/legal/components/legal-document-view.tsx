@@ -53,8 +53,9 @@ const Block = ({
     case 'ul':
       return (
         <ul className='flex list-disc flex-col gap-2 pl-6 marker:text-fg-subtle'>
-          {block.items.map(item => (
-            <li key={item}>
+          {block.items.map((item, index) => (
+            // Aynı metin iki kez geçebilir: anahtar sıra + metin
+            <li key={`${index}-${item}`}>
               <LegalInline text={item} placeholders={placeholders} />
             </li>
           ))}
@@ -76,9 +77,9 @@ const Block = ({
             </caption>
             <thead className='bg-bg-subtle'>
               <tr>
-                {block.head.map(cell => (
+                {block.head.map((cell, index) => (
                   <th
-                    key={cell}
+                    key={`${index}-${cell}`}
                     scope='col'
                     className='border-t border-border px-3 py-2 font-semibold text-fg'
                   >
@@ -88,8 +89,8 @@ const Block = ({
               </tr>
             </thead>
             <tbody>
-              {block.rows.map(row => (
-                <tr key={row.join('|')} className='align-top'>
+              {block.rows.map((row, rowIndex) => (
+                <tr key={`${rowIndex}-${row.join('|')}`} className='align-top'>
                   {row.map((cell, index) =>
                     index === 0 ? (
                       <th
@@ -125,7 +126,7 @@ const Block = ({
 };
 
 /**
- * Statik yasal belge görünümü (server component): başlık, sürüm + yürürlük tarihi (tek kaynak
+ * Yasal belge görünümü (server component; sayfa istek başına sunucuda render edilir): başlık, sürüm + yürürlük tarihi (tek kaynak
  * `lib/legal/versions.ts`), içindekiler, bölümler ve diğer yasal metinlere bağlantılar.
  */
 export const LegalDocumentView = ({
@@ -172,7 +173,8 @@ export const LegalDocumentView = ({
         key={section.id}
         id={section.id}
         aria-labelledby={`${section.id}-baslik`}
-        className='flex scroll-mt-4 flex-col gap-3 text-sm leading-relaxed text-fg-muted'
+        // Mobilde yapışkan üst bar (56px) başlığı örtmesin; md+ üst bar yok
+        className='flex scroll-mt-[calc(var(--spacing-topbar)+1rem)] flex-col gap-3 text-sm leading-relaxed text-fg-muted md:scroll-mt-4'
       >
         <h2 id={`${section.id}-baslik`} className='text-lg font-semibold text-fg'>
           {section.heading}

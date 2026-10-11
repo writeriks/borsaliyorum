@@ -21,6 +21,7 @@ const clientUserSchema = z.object({
   avatarUrl: z.string().nullable(),
   email: z.string(),
   emailVerified: z.boolean(),
+  legalAcceptanceRequired: z.boolean(),
 });
 
 const sessionResponseSchema = z.union([

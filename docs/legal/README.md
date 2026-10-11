@@ -15,20 +15,33 @@
 | Başvuru / destek e-postası | `src/lib/support.ts` |
 | Pazarlama izni kutusu | `MARKETING_CONSENT_ENABLED` (varsayılan kapalı, `src/lib/feature-flags.ts`) |
 
-Metin değiştiğinde: ilgili sürümü `versions.ts`'te artır, aşağıdaki tabloyu güncelle. Kayıt
-kanıtı (`User.noticeVersion`, `User.termsVersion`, `ConsentEvent.textVersion`) sürümü buradan
-yazar.
+Metin değiştiğinde: ilgili sürümü ve yürürlük tarihini `versions.ts`'te artır, aşağıdaki
+tabloyu güncelle. Kayıt kanıtı (`User.noticeVersion`, `User.termsVersion`,
+`User.legalBundleVersion` + `communityRulesVersion` + `disclaimerVersion`,
+`ConsentEvent.textVersion`) sürümü buradan yazar.
+
+**Yeniden kabul:** Koşullar, Topluluk Kuralları ya da Yatırım Uyarısı'nda **aleyhe önemli** bir
+değişiklik yapılırsa `LEGAL_BUNDLE_VERSION` da artırılır. Girişli her kullanıcı
+`/yasal/yeni-surum`'da yeni sürümü kabul edene kadar yazamaz (okuma serbest). Koşullar gereği
+bu değişiklik yürürlükten **en az 30 gün önce** e-postayla ve Platformda duyurulmalıdır (e-posta
+altyapısı henüz yok: takip işi). Lehe ya da kanundan doğan değişiklikte yalnızca belge sürümü
+artar.
+
+**Yayın kapısı:** production build'i (`VERCEL_ENV=production`) metinlerde `[[ph:…]]` kalmışsa
+durur (`src/lib/legal/publish-gate.ts`; `SKIP_ENV_VALIDATION` ile atlanamaz). Aşağıdaki yer
+tutucular doldurulmadan production'a yayın yapılamaz.
 
 ## Sayfa ↔ onay durumu
 
 | Sayfa | Adres (tr / en) | Sürüm | Kaynak taslak | Avukat onayı | Not |
 |-------|-----------------|-------|---------------|--------------|-----|
-| KVKK Aydınlatma Metni | `/yasal/kvkk` · `/en/yasal/kvkk` | 2026-10-v1 | `auth-metinleri.md` HD-1, 2, 5, 7; `references/kvkk.md` | Bekliyor | Yer tutucular dolmadan yayına alınamaz. Yurt dışı aktarım dayanağı (ADR-0001 L1) açık. Saklama süreleri (izin/kabul kayıtları "zamanaşımı süresince") avukata sorulmalı. |
-| Çerez Politikası | `/yasal/cerez-politikasi` | 2026-10-v1 | `auth-metinleri.md` HD-1 | Bekliyor | Taslaktaki tabloya kodda bulunan iki depolama anahtarı eklendi: `bz:draft:*` (composer taslakları, "İşlevsel") ve `borsaliyorum:google-redirect` (sessionStorage, "Zorunlu"). Sınıflandırma legal-advisor tarafından teyit edilmeli. |
-| Kullanım Koşulları | `/yasal/kullanim-kosullari` | 2026-10-v1 | `lansman-kontrol-listesi.md`, `composer-metinleri.md` HD-2, `references/sermaye-piyasasi.md`, `icerik-5651.md`, `tuketici-reklam-fikri.md` | Bekliyor | Taslak metin legal-advisor tarafından bu dilim için **yazılmadı**; engineer kontrol listesinden derledi. legal-advisor incelemesi + avukat onayı zorunlu (TBK genel işlem koşulları, lisans kapsamı, sorumluluk sınırı, yetkili mahkeme). |
-| Yatırım Uyarısı | `/yasal/yatirim-uyarisi` | 2026-10-v1 | `references/sermaye-piyasasi.md` §1, `composer-metinleri.md` HD-1 | Bekliyor | Tam metin referanstaki SPK metniyle birebir. "Bu ne anlama geliyor?" bölümü engineer taslağı. |
-| Topluluk Kuralları | `/yasal/topluluk-kurallari` | 2026-10-v1 | `lansman-kontrol-listesi.md`, `icerik-5651.md` | Bekliyor | Engineer taslağı; legal-advisor + ui-ux-designer (UX metni) incelemesi gerekli. "Şikayet et" özelliği henüz yok; metin e-posta ile bildirime yönlendiriyor. |
-| Kayıt ekranı metinleri | `/giris`, `/kayit`, `/hos-geldin` | — | `auth-metinleri.md` HD-2, 3, 4 | Bekliyor | Pazarlama kutusu metni değişti → `MARKETING_CONSENT_TEXT_VERSION` = 2026-10-v2. Kutu flag ile kapalı. |
+| KVKK Aydınlatma Metni | `/yasal/kvkk` · `/en/yasal/kvkk` | 2026-10-v2 | `auth-metinleri.md` HD-1, 2, 5, 7; `references/kvkk.md`; legal review 2026-10-11 | Bekliyor | Yer tutucular dolmadan yayına alınamaz (yayın kapısı). v2: yurt dışı aktarıma Vercel uç sunucuları + uygulama bölgesi (`appRegion`) ve GitHub Actions eklendi; "alenileştirme (5/2-d)" kaldırıldı (yalnızca 5/2-c); yazılı başvuruda ıslak imza + kimlik numarası; pazarlama izni kayıtları için saklama satırı (**izin sona erdikten 3 yıl — avukat teyidi bekliyor**); yetim hesap satırına 15 günlük son giriş payı. Kabul/okuma kayıtları "zamanaşımı süresince" avukata sorulmalı. |
+| Çerez Politikası | `/yasal/cerez-politikasi` | 2026-10-v2 | `auth-metinleri.md` HD-1; legal review 2026-10-11 | Bekliyor | v2: `theme` ve `bz:draft:*` → "Zorunlu (istediğin işlev için)" + açıklama cümlesi; diğerleri "Zorunlu" (legal-advisor önerisi). Onay penceresi yok (zorunlu çerez/depolama). |
+| Kullanım Koşulları | `/yasal/kullanim-kosullari` | 2026-10-v2 | `lansman-kontrol-listesi.md`, `composer-metinleri.md` HD-2, `references/sermaye-piyasasi.md`, `icerik-5651.md`, `tuketici-reklam-fikri.md`; legal review 2026-10-11 | Bekliyor | v2 (legal-advisor metinleri): uyuşmazlık (kanunen yetkili mahkeme + tüketici hakem heyeti/mahkemesi; `court` yalnızca tacir cümlesinde), değişiklikler (aleyhe değişiklik 30 gün önce, kabul edilmezse ücretsiz fesih, kabul edene kadar yazma kapalı), 5651 bildirim yolu ve **24 saat inceleme taahhüdü (kanuni süre değil)**, menfaat karşılığı yatırım aracı tanıtımı etiketlenmez/kaldırılır, içsel bilgiyle işlem, "kendi kusurumuzdan doğan zararlar saklıdır". Avukat onayı zorunlu (TBK genel işlem koşulları, sorumluluk, yetki). |
+| Yatırım Uyarısı | `/yasal/yatirim-uyarisi` | 2026-10-v1 | `references/sermaye-piyasasi.md` §1, `composer-metinleri.md` HD-1 | Bekliyor | Değişmedi. Tam metin referanstaki SPK metniyle birebir. "Bu ne anlama geliyor?" bölümü engineer taslağı. Yeniden kabul paketinde. |
+| Topluluk Kuralları | `/yasal/topluluk-kurallari` | 2026-10-v2 | `lansman-kontrol-listesi.md`, `icerik-5651.md`; legal review 2026-10-11 | Bekliyor | v2: içsel bilgiyle işlem yasağı; bildirimde istenen bilgiler ve 24 saat taahhüdü. ui-ux-designer (UX metni) incelemesi gerekli. "Şikayet et" özelliği henüz yok; metin e-posta ile bildirime yönlendiriyor. Yeniden kabul paketinde. |
+| Kayıt ekranı metinleri | `/giris`, `/kayit`, `/hos-geldin` | — | `auth-metinleri.md` HD-2, 3, 4 | Bekliyor | Pazarlama kutusu metni değişti → `MARKETING_CONSENT_TEXT_VERSION` = 2026-10-v2. Kutu flag ile kapalı. İzin yalnızca e-postası doğrulanmış kullanıcıda yazılır (**takip:** flag açılınca doğrulanmamış kullanıcıya izin, e-posta doğrulandığında yeniden sorulmalı). |
+| Yeni sürüm kabul ekranı | `/yasal/yeni-surum` | paket 2026-10-v1 | legal review 2026-10-11 (madde 8) | Bekliyor | Yeni ekran (`messages/{tr,en}.json` → `legalUpdate.*`). ui-ux-designer + legal-advisor metin incelemesi gerekli. |
 
 Durum değerleri: **Bekliyor** · **İncelemede** (avukata gönderildi, tarih) · **Onaylandı** (tarih,
 onaylayan) · **Değişiklik istendi**.
@@ -48,7 +61,13 @@ Gerçek değer gelince ilgili `[[ph:…]]` işaretleri düz metinle değiştiril
 | `kep` | KEP adresi | KVKK (veri sorumlusu, başvuru), Koşullar |
 | `dbRegion` | Neon veritabanının ülke/bölgesi (ör. Almanya, AWS eu-central-1) | KVKK (yurt dışı aktarım) |
 | `transferSafeguard` | KVKK md.9 dayanağı (ör. standart sözleşme + Kurul'a bildirim tarihi), Google/Vercel/Neon için | KVKK (yurt dışı aktarım) |
-| `court` | Yetkili mahkeme ve icra daireleri (ör. İstanbul (Çağlayan)) | Koşullar (uyuşmazlıklar) |
+| `appRegion` | Vercel fonksiyon bölgesi (ADR-0001: `fra1` → Almanya, Frankfurt). Depodaki yapılandırmadan doğrulanamadı (`vercel.json`/`preferredRegion` yok); Vercel proje ayarından teyit edilip yazılmalı | KVKK (yurt dışı aktarım, Vercel satırı) |
+| `court` | Tacir kullanıcılarla uyuşmazlıklarda yetkili mahkeme ve icra daireleri (ör. İstanbul (Çağlayan)). Tüketiciler için kanuni yetki kuralları geçerli | Koşullar (uyuşmazlıklar, tacir cümlesi) |
+
+Saklama süresi teyidi bekleyenler (avukat): pazarlama izni kayıtları (ConsentEvent) izin sona
+erdikten **3 yıl** sonra silinir (`consent_event_purge`, `src/lib/db/retention.ts`); yönetmelikteki
+süreyle uyumu avukat teyit etmeli. Hesap silme akışı (henüz yok) verilmiş her izin için bir
+`granted = false` olayı yazmalıdır; aksi halde kayıt silinmez.
 
 Ayrıca karar bekleyenler: VERBIS kaydı/muafiyeti, başvuru adresinin `destek@` mi yoksa ayrı
 bir `kvkk@` adresi mi olacağı (`src/lib/support.ts`), İYS kaydı (pazarlama kutusunu açmadan

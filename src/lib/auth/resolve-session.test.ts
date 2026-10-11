@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { LEGAL_BUNDLE_VERSION } from '@/lib/legal/versions';
 import type { Logger } from '@/lib/logger';
 
 import {
@@ -43,6 +44,7 @@ const record = (overrides: Partial<SessionUserRecord> = {}): SessionUserRecord =
   onboardedAt: new Date('2026-01-01T00:00:00Z'),
   sessionsValidAfter: null,
   status: 'active',
+  legalBundleVersion: LEGAL_BUNDLE_VERSION,
   roles: [],
   ...overrides,
 });
@@ -163,6 +165,7 @@ describe('resolveSession', () => {
         avatarUrl: null,
         email: 'ayse@example.test',
         emailVerified: true,
+        legalAcceptanceRequired: false,
       },
     });
     expect(JSON.stringify(client)).not.toContain('uid-1');
@@ -221,5 +224,15 @@ describe('verifySensitiveSession (hassas işlemler: checkRevoked=true + taze gir
       ok: false,
       error: 'UNAUTHENTICATED',
     });
+  });
+
+  it('kabul edilen yasal paket güncel değilse oturum "yeniden kabul gerekli" taşır', async () => {
+    for (const legalBundleVersion of [null, '2020-01-v1']) {
+      const session = await resolveSession(
+        'cookie',
+        deps({ findUserByFirebaseUid: vi.fn(async () => record({ legalBundleVersion })) })
+      );
+      expect(session.status === 'authenticated' && session.user.legalAcceptanceRequired).toBe(true);
+    }
   });
 });

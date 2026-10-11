@@ -51,18 +51,24 @@ model User {
 
   // --- M1 (ADR-0001) ---
   /// null → onboarding zorunlu (kullanıcı adı kurala uymayan eski hesaplar dahil).
-  onboardedAt          DateTime?
+  onboardedAt           DateTime?
   /// Çıkış/ban: auth_time bu andan eski oturumlar geçersiz.
-  sessionsValidAfter   DateTime?
-  status               UserStatus @default(active)
+  sessionsValidAfter    DateTime?
+  status                UserStatus @default(active)
   /// Okunduğu onaylanan aydınlatma metni sürümü ve zamanı [legal L3]. Rıza değildir.
-  noticeVersion        String?    @db.VarChar(20)
-  noticeAcknowledgedAt DateTime?
+  noticeVersion         String?    @db.VarChar(20)
+  noticeAcknowledgedAt  DateTime?
   /// 18+ beyanı [legal L3].
-  ageConfirmedAt       DateTime?
+  ageConfirmedAt        DateTime?
   /// Kabul edilen Kullanım Koşulları sürümü ve zamanı (TBK genel işlem koşulları; legal S5).
-  termsVersion         String?    @db.VarChar(20)
-  termsAcceptedAt      DateTime?
+  termsVersion          String?    @db.VarChar(20)
+  termsAcceptedAt       DateTime?
+  /// Kabul edilen yasal metin paketi (Koşullar + Topluluk Kuralları + Yatırım Uyarısı;
+  /// `LEGAL_BUNDLE_VERSION`). Güncel paketten farklıysa yeniden kabul edilene kadar yazma kapalı.
+  /// Kabul anı `termsAcceptedAt`.
+  legalBundleVersion    String?    @db.VarChar(20)
+  communityRulesVersion String?    @db.VarChar(20)
+  disclaimerVersion     String?    @db.VarChar(20)
   // Pazarlama izni burada tutulmaz: ConsentEvent'te (userId, kind) için en son satır.
 
   roles             SecurityRole[]
@@ -494,6 +500,18 @@ model LegalIdentityRetention {
 
   @@index([purgeAt])
   @@map("LegalIdentityRetention")
+}
+
+/// Bu DB'nin ait olduğu ortam (tek satır, id = 1; her ortamda elle eklenir). Geri alınamaz
+/// bakım işleri (Firebase yetim hesap imhası) `FIREBASE_PROJECT_ID` ile eşleşmezse çalışmaz
+/// (ADR-0001 "Yetim hesap imhası"). CHECK (id = 1) migration'da.
+model DeploymentEnvironment {
+  id                Int      @id @default(1)
+  firebaseProjectId String   @db.VarChar(128)
+  label             String   @db.VarChar(32)
+  updatedAt         DateTime @default(now())
+
+  @@map("DeploymentEnvironment")
 }
 
 /// Sabit pencereli kullanıcı bazlı rate limit sayacı (Redis yerine Postgres, ADR-0001).

@@ -29,6 +29,8 @@ export const ErrorCode = {
    * açık mesaj + destek iletişimi.
    */
   ACCOUNT_EMAIL_CONFLICT: 'ACCOUNT_EMAIL_CONFLICT',
+  /** Yasal metin paketinin (Koşullar …) yeni sürümü kabul edilmeden yazılamaz (okuma serbest). */
+  LEGAL_ACCEPTANCE_REQUIRED: 'LEGAL_ACCEPTANCE_REQUIRED',
   // --- Gönderi/yorum yazma (ADR-0002 Karar 7); composer (S8) bunları kullanıcı mesajına eşler ---
   CONTENT_EMPTY: 'CONTENT_EMPTY',
   CONTENT_TOO_LONG: 'CONTENT_TOO_LONG',
