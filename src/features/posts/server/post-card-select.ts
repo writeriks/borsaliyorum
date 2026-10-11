@@ -34,21 +34,7 @@ export const postCardSelect = (viewerId: number) =>
 export type PostCardRow = Prisma.PostGetPayload<{ select: ReturnType<typeof postCardSelect> }>;
 
 /** Kart gövdesindeki mention kimlikleri (görünen adlar tek sorguda çözülür). */
-export const mentionIdsOf = (entities: unknown): number[] => {
-  if (typeof entities !== 'object' || entities === null || !('items' in entities)) return [];
-  const { items } = entities;
-  if (!Array.isArray(items)) return [];
-  return items.flatMap((item: unknown) =>
-    typeof item === 'object' &&
-    item !== null &&
-    'type' in item &&
-    item.type === 'mention' &&
-    'userId' in item &&
-    typeof item.userId === 'number'
-      ? [item.userId]
-      : []
-  );
-};
+export { mentionIdsOf } from '@/lib/content/render-refs';
 
 const toLinkPreview = (row: PostCardRow): PostLinkPreview =>
   row.linkPreview?.status === 'ok'
