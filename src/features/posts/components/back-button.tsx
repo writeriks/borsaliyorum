@@ -8,8 +8,21 @@ import { Link, useRouter } from '@/i18n/navigation';
 import { consumeInAppNavigation } from '@/lib/client/in-app-navigation';
 
 /**
- * Detay sayfasının "Geri"si. Uygulama içinden (akıştaki karttan) gelindiyse tarayıcı geçmişinde
- * geri gider: akış istemci önbelleğinden döner ve kaydırma konumu korunur. Doğrudan açılan
+ * Geçmişte geri gitmek siteyi terk ettirmez mi? Navigation API'nin `canGoBack`'i yalnızca aynı
+ * origin'deki önceki girdiyi sayar: akıştan, profil ya da yasal sayfadan (istemci geçişi ya da
+ * tam yükleme) gelindiyse true; aramadan/başka siteden doğrudan açılan linkte false. API'siz
+ * tarayıcıda yalnızca bu belgede karttan yapılan geçişe güvenilir (`markInAppNavigation`).
+ */
+export const canGoBackInApp = (): boolean => {
+  if ('navigation' in window && typeof window.navigation?.canGoBack === 'boolean') {
+    return window.navigation.canGoBack;
+  }
+  return consumeInAppNavigation();
+};
+
+/**
+ * Detay sayfasının "Geri"si. Uygulamanın bir sayfasından gelindiyse tarayıcı geçmişinde geri
+ * gider: o sayfaya döner (akış istemci önbelleğinden, kaydırma konumu korunur). Doğrudan açılan
  * linkte geri gidilecek uygulama sayfası yoktur (başka siteye ya da boş sekmeye dönmesin) → sabit
  * hedef. Her durumda gerçek bir link: yeni sekmede açma ve JS'siz kullanım çalışır.
  */
@@ -24,7 +37,7 @@ export const BackButton = ({ fallbackHref }: { fallbackHref: string }): ReactEle
       className='inline-flex size-hit shrink-0 items-center justify-center rounded-md text-fg hover:bg-bg-muted'
       onClick={event => {
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return;
-        if (!consumeInAppNavigation()) return;
+        if (!canGoBackInApp()) return;
         event.preventDefault();
         router.back();
       }}

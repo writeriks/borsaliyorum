@@ -1,9 +1,9 @@
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type * as NextNavigation from 'next/navigation';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { consumeInAppNavigation } from '@/lib/client/in-app-navigation';
+import { consumeInAppNavigation, markInAppNavigation } from '@/lib/client/in-app-navigation';
 
 import { renderWithIntl } from '../../../../tests/utils/render';
 import { FIXTURE_NOW, POST_ALL_ENTITIES } from '../fixtures';
@@ -121,5 +121,29 @@ describe('BackButton', () => {
     expect(link).toHaveAttribute('href', '/akis');
     await userEvent.click(link);
     expect(back).not.toHaveBeenCalled();
+  });
+
+  describe('Navigation API varken (canGoBack: önceki girdi aynı origin)', () => {
+    const withNavigation = (canGoBack: boolean): void => {
+      Object.defineProperty(window, 'navigation', { value: { canGoBack }, configurable: true });
+    };
+    afterEach(() => {
+      Reflect.deleteProperty(window, 'navigation');
+    });
+
+    it('akış dışı bir site sayfasından gelindiyse (kart tıklaması olmadan) geçmişte geri gider', async () => {
+      withNavigation(true);
+      renderWithIntl(<BackButton fallbackHref='/akis' />);
+      await userEvent.click(screen.getByRole('link', { name: 'Geri' }));
+      expect(back).toHaveBeenCalledTimes(1);
+    });
+
+    it('önceki girdi başka siteyse geri gitmez, sabit hedefe gider', async () => {
+      withNavigation(false);
+      markInAppNavigation();
+      renderWithIntl(<BackButton fallbackHref='/akis' />);
+      await userEvent.click(screen.getByRole('link', { name: 'Geri' }));
+      expect(back).not.toHaveBeenCalled();
+    });
   });
 });

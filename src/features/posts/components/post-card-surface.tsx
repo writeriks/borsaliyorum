@@ -4,7 +4,7 @@ import { useLocale } from 'next-intl';
 import type { ComponentPropsWithoutRef, MouseEvent, ReactElement } from 'react';
 
 import { getPathname, useRouter } from '@/i18n/navigation';
-import { type Locale, routing } from '@/i18n/routing';
+import { resolveLocale } from '@/i18n/page-params';
 import { markInAppNavigation } from '@/lib/client/in-app-navigation';
 import { cn } from '@/lib/utils';
 
@@ -48,11 +48,6 @@ type PostCardSurfaceProps = ComponentPropsWithoutRef<'article'> & {
   href?: string;
 };
 
-const toLocale = (value: string): Locale =>
-  (routing.locales as readonly string[]).includes(value)
-    ? (value as Locale)
-    : routing.defaultLocale;
-
 /**
  * Kartın `<article>` kabuğu (tasarım §7.4: "Kartın tamamı tıklanabilir"). Yalnızca fare/dokunma
  * kolaylığıdır: klavye ve ekran okuyucu için detay linki zaman öğesidir (görünmez overlay link
@@ -65,7 +60,7 @@ export const PostCardSurface = ({
   ...props
 }: PostCardSurfaceProps): ReactElement => {
   const router = useRouter();
-  const locale = toLocale(useLocale());
+  const locale = resolveLocale(useLocale());
 
   if (href === undefined) {
     return (
