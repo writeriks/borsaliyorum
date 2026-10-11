@@ -38,6 +38,31 @@ describe('findUnfilledPlaceholders', () => {
   });
 });
 
+describe('findUnfilledPlaceholders: her yer tutucu biçimi (düz `[[ph:` araması)', () => {
+  it.each([
+    ['tire/alt çizgi içeren anahtar', 'Unvan: [[ph:sirket-adi_1]]', 'tr:sirket-adi_1'],
+    ['boşluklu anahtar', 'Adres: [[ph: address ]]', 'tr:address'],
+    ['Türkçe karakterli anahtar', '[[ph:ünvan]]', 'tr:ünvan'],
+    ['kapanışı eksik', 'Unvan: [[ph:company] ve devamı', 'tr:?'],
+    ['boş anahtar', 'Unvan: [[ph:]]', 'tr:?'],
+  ])('%s → yakalanır', (_, text, key) => {
+    expect(findUnfilledPlaceholders({ tr: { a: [text] } })).toEqual([key]);
+  });
+
+  it('kapanışı eksik yer tutucu sonrakinin anahtarını yutmaz; ikisi de raporlanır', () => {
+    expect(findUnfilledPlaceholders({ tr: { a: '[[ph:x [[ph:company]]' } })).toEqual([
+      'tr:?',
+      'tr:company',
+    ]);
+  });
+
+  it("biçimsiz yer tutucu production build'ini durdurur", () => {
+    expect(() =>
+      assertLegalTextsPublishable({ VERCEL_ENV: 'production' }, { tr: { a: '[[ph:a-b]]' } })
+    ).toThrow(LegalPlaceholderError);
+  });
+});
+
 describe('assertLegalTextsPublishable', () => {
   it('VERCEL_ENV=production iken yer tutucu varsa hata; SKIP_ENV_VALIDATION etkisiz', () => {
     expect(() =>

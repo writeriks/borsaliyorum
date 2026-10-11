@@ -7,7 +7,27 @@
  * Saf modül (`server-only` yok): `next.config.ts` build aşamasında çağırır; katalogları
  * çağıran okur.
  */
-const PLACEHOLDER = /\[\[ph:([A-Za-z0-9]+)\]\]/g;
+const MARKER = '[[ph:';
+
+/**
+ * Düz `[[ph:` araması (regex değil): bozuk/alışılmadık biçimler (`[[ph:sirket-adi]]`,
+ * `[[ph: company]]`, kapanışı eksik `[[ph:company]`) de yakalanır. Sıkı bir desen bunları
+ * kaçırıp yer tutuculu metni production'a sızdırabilirdi. Anahtar yalnızca hata mesajı içindir.
+ */
+const placeholderKeys = (text: string): string[] => {
+  const keys: string[] = [];
+  let from = text.indexOf(MARKER);
+  while (from !== -1) {
+    const start = from + MARKER.length;
+    const close = text.indexOf(']]', start);
+    const next = text.indexOf(MARKER, start);
+    const end = close === -1 || (next !== -1 && next < close) ? -1 : close;
+    const key = end === -1 ? '' : text.slice(start, end).trim();
+    keys.push(key.length > 0 && key.length <= 64 ? key : '?');
+    from = next;
+  }
+  return keys;
+};
 
 export class LegalPlaceholderError extends Error {
   constructor(readonly keys: readonly string[]) {
@@ -34,7 +54,7 @@ export const findUnfilledPlaceholders = (catalogs: Readonly<Record<string, unkno
     const strings: string[] = [];
     collectStrings(catalog, strings);
     for (const text of strings) {
-      for (const match of text.matchAll(PLACEHOLDER)) found.add(`${locale}:${match[1] ?? ''}`);
+      for (const key of placeholderKeys(text)) found.add(`${locale}:${key}`);
     }
   }
   return [...found].sort();
