@@ -9,6 +9,7 @@ import { createDbHandle, type DbHandle } from './create-client';
 
 export type { Prisma, PrismaClient } from '@/generated/prisma/client';
 export { decodeCursor, encodeCursor, type Cursor } from './cursor';
+export { decodeScoreCursor, encodeScoreCursor, type ScoreCursor } from './score-cursor';
 
 // Geliştirmede HMR modülü yeniden yükler; her seferinde yeni havuz açılmasın
 const globalForDb = globalThis as typeof globalThis & { __borsaliyorumDb?: DbHandle };

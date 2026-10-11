@@ -27,6 +27,8 @@ type PostCardProps = {
   variant?: 'feed' | 'detail';
   /** Göreli zaman için sabit "şimdi" (test/önizleme). */
   now?: string;
+  /** `role="feed"` içindeki konum (`aria-posinset`/`aria-setsize`; toplam bilinmiyorsa -1). */
+  feedPosition?: { posInSet: number; setSize: number };
   className?: string;
 };
 
@@ -39,6 +41,7 @@ export const PostCard = ({
   post,
   variant = 'feed',
   now,
+  feedPosition,
   className,
 }: PostCardProps): ReactElement => {
   const t = useTranslations('post');
@@ -61,6 +64,8 @@ export const PostCard = ({
   return (
     <article
       aria-labelledby={`${ids.label} ${ids.author} ${ids.time}`}
+      aria-posinset={feedPosition?.posInSet}
+      aria-setsize={feedPosition?.setSize}
       data-testid='post-card'
       data-post-id={post.id}
       className={cn('flex flex-col gap-2 border-b border-border px-3 py-3 sm:px-4', className)}

@@ -38,10 +38,21 @@ type CreatePostAction = (input: PostSubmitInput) => Promise<Result<{ postId: num
 export const PostComposer = ({
   viewerId,
   action = createPost,
+  layout = 'inline',
+  autoFocus = false,
+  onClose,
+  onPosted,
 }: {
   viewerId: number;
   /** Test/önizleme için action yerine geçer. */
   action?: CreatePostAction;
+  /** `sheet`: mobil tam ekran (`/paylas`, CMP-03). */
+  layout?: 'inline' | 'sheet';
+  autoFocus?: boolean;
+  /** Yalnızca `sheet`: üst bardaki kapat. */
+  onClose?: () => void;
+  /** Başarıdan sonra; verilmezse sunucu verisi yenilenir (`router.refresh`, yeni kart listede). */
+  onPosted?: (postId: number) => void;
 }): ReactElement => {
   const router = useRouter();
   const handleResult = useActionResult();
@@ -68,8 +79,11 @@ export const PostComposer = ({
           draftOwnerId={userId}
           services={services}
           onSubmit={onSubmit}
-          onSubmitted={() => router.refresh()}
+          onSubmitted={id => (onPosted ? onPosted(id) : router.refresh())}
           handleRef={handleRef}
+          layout={layout}
+          autoFocus={autoFocus}
+          onClose={onClose}
         />
       )}
     </ComposerGate>

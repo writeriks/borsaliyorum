@@ -412,11 +412,38 @@
     },
     "privacyNote": "To create your account and recognise you, we process your email address and, if you use Google, the name on your Google account. Details are in the <link>Privacy Notice</link>."
   },
-  "feedPlaceholder": {
+  "feed": {
     "title": "Feed",
-    "body": "Posts from the people and stocks you follow will appear here soon.",
-    "mine": "Your recent posts",
-    "loadError": "Your posts couldn't load. Try again."
+    "tabs": {
+      "label": "Feed order",
+      "latest": "Latest",
+      "popular": "Popular"
+    },
+    "popularHint": "Posts from the last 7 days by people and stocks you follow, ranked by likes and comments.",
+    "loadMore": "Load more",
+    "loadingMore": "Loading more posts",
+    "loadError": "Couldn't load the feed. Try again.",
+    "loadMoreError": "Couldn't load more.",
+    "end": "You're all caught up for now.",
+    "newPosts": "{count, plural, one {# new post} other {# new posts}}",
+    "newPostsCapped": "{count}+ new posts",
+    "empty": {
+      "noFollows": "You don't follow anyone or any stocks yet. Start with the latest posts below.",
+      "discoverTitle": "Discover: latest posts",
+      "noPosts": "The people and stocks you follow haven't posted yet. Be the first to write.",
+      "popular": "No posts from the people and stocks you follow in the last 7 days.",
+      "toLatest": "Switch to Latest"
+    },
+    "aside": {
+      "trendingTitle": "Most used tags in the last 30 days",
+      "trendingCount": "{count, plural, one {# post} other {# posts}}",
+      "trendingEmpty": "No tags used in the last 30 days.",
+      "trendingError": "Trending tags couldn't be loaded right now.",
+      "followedStocksTitle": "Stocks you follow"
+    }
+  },
+  "compose": {
+    "title": "Create post"
   },
   "legalUpdate": {
     "metaTitle": "Updated terms",

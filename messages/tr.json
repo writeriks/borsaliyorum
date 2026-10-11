@@ -412,11 +412,38 @@
     },
     "privacyNote": "Hesabını oluşturmak ve seni tanımak için e-posta adresini ve Google ile girersen Google hesabındaki adını işliyoruz. Ayrıntılar <link>Aydınlatma Metni</link> içinde."
   },
-  "feedPlaceholder": {
+  "feed": {
     "title": "Akış",
-    "body": "Takip ettiğin kişi ve hisselerin gönderileri yakında burada olacak.",
-    "mine": "Son gönderilerin",
-    "loadError": "Gönderilerin yüklenemedi. Tekrar dene."
+    "tabs": {
+      "label": "Akış sıralaması",
+      "latest": "En yeni",
+      "popular": "Popüler"
+    },
+    "popularHint": "Takip ettiklerinin son 7 gündeki gönderileri, beğeni ve yorum sayısına göre.",
+    "loadMore": "Daha fazla yükle",
+    "loadingMore": "Daha fazla gönderi yükleniyor",
+    "loadError": "Akış yüklenemedi. Tekrar dene.",
+    "loadMoreError": "Daha fazlası yüklenemedi.",
+    "end": "Şimdilik hepsi bu kadar.",
+    "newPosts": "{count, plural, other {# yeni gönderi}}",
+    "newPostsCapped": "{count}+ yeni gönderi",
+    "empty": {
+      "noFollows": "Henüz kimseyi ya da hiçbir hisseyi takip etmiyorsun. Aşağıdaki son gönderilerden başlayabilirsin.",
+      "discoverTitle": "Keşfet: son gönderiler",
+      "noPosts": "Takip ettiklerin henüz paylaşım yapmadı. İlk gönderiyi sen yaz.",
+      "popular": "Son 7 günde takip ettiklerinden gönderi yok.",
+      "toLatest": "En yeniye geç"
+    },
+    "aside": {
+      "trendingTitle": "Son 30 günde en çok kullanılan etiketler",
+      "trendingCount": "{count, plural, other {# gönderi}}",
+      "trendingEmpty": "Son 30 günde etiket kullanılmadı.",
+      "trendingError": "Gündem şu anda yüklenemedi.",
+      "followedStocksTitle": "Takip ettiğin hisseler"
+    }
+  },
+  "compose": {
+    "title": "Gönderi paylaş"
   },
   "legalUpdate": {
     "metaTitle": "Güncellenen kullanım koşulları",

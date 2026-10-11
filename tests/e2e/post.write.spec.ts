@@ -52,7 +52,7 @@ test.describe('gönderi yazma (S10)', () => {
     await expect(page.getByText(tr.composer.success.post)).toBeVisible();
     await expect(editor(page)).toHaveText('');
 
-    const card = page.getByTestId('my-posts').getByTestId('post-card').first();
+    const card = page.getByTestId('feed-list').getByTestId('post-card').first();
     await expect(card).toContainText('rekor kırdı');
     await expect(card.getByRole('link', { name: '$THYAO' })).toHaveAttribute(
       'href',
@@ -77,7 +77,7 @@ test.describe('gönderi yazma (S10)', () => {
     await expect(card.getByTestId('post-like-count')).toHaveText('1');
     await expect(like).not.toHaveAttribute('aria-busy');
     await page.reload();
-    const reloaded = page.getByTestId('my-posts').getByTestId('post-card').first();
+    const reloaded = page.getByTestId('feed-list').getByTestId('post-card').first();
     await expect(reloaded.getByTestId('post-like')).toHaveAttribute('aria-pressed', 'true');
     await expect(reloaded.getByTestId('post-like-count')).toHaveText('1');
 
@@ -87,7 +87,8 @@ test.describe('gönderi yazma (S10)', () => {
     const dialog = page.getByRole('dialog', { name: tr.post.actions.deleteTitle });
     await dialog.getByTestId('post-delete-confirm').click();
     await expect(page.getByText(tr.post.actions.deleted)).toBeVisible();
-    await expect(page.getByTestId('my-posts')).toHaveCount(0);
+    await expect(page.getByTestId('feed-list')).toHaveCount(0);
+    await expect(page.getByTestId('feed-empty')).toBeVisible();
     const rows = await postRowsOf(account.username);
     expect(rows).toHaveLength(1);
     expect(rows[0]?.deletedAt).not.toBeNull();

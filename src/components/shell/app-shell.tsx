@@ -16,6 +16,8 @@ type AppShellProps = {
   children: ReactNode;
   /** Sunucudan çözülmüş oturum; verilmezse `unknown` (skeleton, asla "Giriş yap"). */
   viewer?: ShellViewer;
+  /** Sağ kolon içeriği (lg+); verilmezse gündem yer tutucusu. */
+  aside?: ReactNode;
 };
 
 /**
@@ -25,7 +27,11 @@ type AppShellProps = {
  * - md: 72px ikon rayı + akış; lg: + 336px sağ kolon; xl: 248px etiketli sol menü
  * - Akış kolonu en fazla 640px.
  */
-export const AppShell = ({ children, viewer = UNKNOWN_VIEWER }: AppShellProps): ReactElement => {
+export const AppShell = ({
+  children,
+  viewer = UNKNOWN_VIEWER,
+  aside,
+}: AppShellProps): ReactElement => {
   const t = useTranslations('shell');
 
   return (
@@ -53,7 +59,7 @@ export const AppShell = ({ children, viewer = UNKNOWN_VIEWER }: AppShellProps): 
             className='border-t border-border pb-[calc(var(--spacing-tabbar)+env(safe-area-inset-bottom)+24px)] md:pb-6 lg:hidden'
           />
         </div>
-        <RightRail className='hidden lg:flex' />
+        <RightRail className='hidden lg:flex'>{aside}</RightRail>
       </div>
       <TabBar viewer={viewer} className='md:hidden' />
     </>

@@ -25,6 +25,7 @@ import {
 import { useActionResult } from '@/lib/client/action-result';
 import { ErrorCode, type Result } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { dispatchPostDeleted } from '@/lib/post-events';
 
 import { deletePost } from '../server/actions';
 
@@ -66,6 +67,8 @@ export const PostOwnerMenu = ({
       return;
     }
     toast(t('deleted'));
+    // İstemci listeleri (akış önbelleği) kartı hemen çıkarır; sunucu verisi ayrıca tazelenir
+    dispatchPostDeleted(postId);
     router.refresh();
   };
 
