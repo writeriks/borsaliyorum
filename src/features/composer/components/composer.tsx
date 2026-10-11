@@ -195,6 +195,7 @@ export const Composer = (props: ComposerProps): ReactElement => {
   }));
 
   const submitRef = useRef<() => void>(() => undefined);
+  const label = t(mode === 'post' ? 'label.post' : 'label.comment');
   const editor = useComposerEditor({
     initialText: initialDraft?.text ?? '',
     placeholder: t(mode === 'post' ? 'placeholder.post' : 'placeholder.comment'),
@@ -203,6 +204,13 @@ export const Composer = (props: ComposerProps): ReactElement => {
     onSubmitShortcut: () => submitRef.current(),
     onTextChange: instance => setText(getDocText(instance.state.doc)),
     onFocusChange: setEditorFocused,
+    initialAttributes: {
+      'aria-label': label,
+      'aria-multiline': 'true',
+      'aria-autocomplete': 'list',
+      'aria-haspopup': 'listbox',
+      'aria-describedby': ids.counter,
+    },
   });
 
   // Görülen kullanıcı adları editörde "çözülmüş mention" olarak vurgulanır
@@ -303,9 +311,9 @@ export const Composer = (props: ComposerProps): ReactElement => {
   });
 
   // --- ARIA: combobox (çok satırlı metin alanı varyantı, tasarım §2.5) ---
-  const label = t(mode === 'post' ? 'label.post' : 'label.comment');
   const disclaimerVisible = mode === 'post' || focusWithin || !analysis.isBlank;
-  useEffect(() => {
+  // Layout effect: editör görünümü de layout aşamasında takılır; nitelikler boyamadan önce gelir
+  useLayoutEffect(() => {
     if (!editor || editor.isDestroyed) return;
     const describedBy = [ids.counter, disclaimerVisible ? ids.disclaimer : null]
       .filter(Boolean)

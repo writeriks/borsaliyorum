@@ -62,6 +62,45 @@ beforeEach(() => {
 });
 
 describe('Composer (jsdom)', () => {
+  it('editör DOM’a takıldığı anda erişilebilir adı ve açıklaması zaten var (axe yarışı)', async () => {
+    // Takma (layout) ile nitelik ataması arasında boşluk kalırsa, o arada çalışan axe veya
+    // ekran okuyucu etiketsiz bir contenteditable görür. Kayıtlar mutasyon sırasını korur:
+    // takıldıktan sonra `oldValue === null` olan bir nitelik kaydı, takma anında yok demektir.
+    const records: MutationRecord[] = [];
+    const observer = new MutationObserver(batch => records.push(...batch));
+    observer.observe(document.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeOldValue: true,
+      attributeFilter: ['aria-label', 'aria-describedby'],
+    });
+    renderPost(vi.fn<PostSubmitHandler>(async () => ok({ id: 1 })));
+    await screen.findByRole('textbox', { name: tr.composer.label.post });
+    records.push(...observer.takeRecords());
+    observer.disconnect();
+
+    const attachIndex = records.findIndex(
+      record =>
+        record.type === 'childList' &&
+        [...record.addedNodes].some(
+          node => node instanceof HTMLElement && node.classList.contains('tiptap')
+        )
+    );
+    expect(attachIndex).toBeGreaterThanOrEqual(0);
+    const missingAtAttach = records
+      .slice(attachIndex + 1)
+      .filter(
+        record =>
+          record.type === 'attributes' &&
+          record.target instanceof HTMLElement &&
+          record.target.classList.contains('tiptap') &&
+          record.oldValue === null
+      )
+      .map(record => record.attributeName);
+    expect(missingAtAttach).toEqual([]);
+  });
+
   it('sponsorlu + tanınmış cashtag: Paylaş pasif, mesaj görünür, gönderim yok [LEG-07]', async () => {
     const onSubmit = vi.fn<PostSubmitHandler>(async () => ok({ id: 1 }));
     const handle = renderPost(onSubmit);

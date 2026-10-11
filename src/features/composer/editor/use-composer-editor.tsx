@@ -28,6 +28,11 @@ type ComposerEditorOptions = {
   onSubmitShortcut: () => void;
   onTextChange: (editor: Editor) => void;
   onFocusChange: (focused: boolean) => void;
+  /**
+   * Kurulumda verilen nitelikler (erişilebilir ad vb.). Görünüm DOM'a takıldığı ilk anda
+   * etiketsiz olmasın diye gerekir; sonradan değişenler `editor.setOptions` ile güncellenir.
+   */
+  initialAttributes: Record<string, string>;
 };
 
 /**
@@ -51,6 +56,7 @@ export const useComposerEditor = (options: ComposerEditorOptions): Editor | null
     const instance = new Editor({
       // Ayrık bir kapta kurulur; `ComposerEditorContent` görünümü kendi kabına taşır
       content: textToDoc(initial.initialText),
+      editorProps: { attributes: initial.initialAttributes },
       extensions: [
         Document,
         Paragraph,
