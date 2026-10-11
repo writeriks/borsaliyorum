@@ -19,11 +19,19 @@ export const toggleLike = (state: LikeState): LikeState => ({
   count: Math.max(0, state.count + (state.liked ? -1 : 1)),
 });
 
+export type LikeAction = (input: {
+  targetId: number;
+  liked: boolean;
+}) => Promise<Result<{ liked: boolean }>>;
+
+/** Varsayılan: gönderi beğenisi. Yorum gibi başka hedefler kendi action'ını verir. */
+const likePost: LikeAction = ({ targetId, liked }) => setPostLike({ postId: targetId, liked });
+
 type PostLikeButtonProps = {
-  postId: number;
+  /** Beğenilen kaydın kimliği (gönderi ya da yorum; hangisi olduğunu `action` bilir). */
+  targetId: number;
   initial: LikeState;
-  /** Test/önizleme için action yerine geçer. */
-  action?: (input: { postId: number; liked: boolean }) => Promise<Result<{ liked: boolean }>>;
+  action?: LikeAction;
 };
 
 /**
@@ -34,9 +42,9 @@ type PostLikeButtonProps = {
  * `useActionResult` kullanıcıya bildirir (oturum düştüyse girişe yönlendirir).
  */
 export const PostLikeButton = ({
-  postId,
+  targetId,
   initial,
-  action = setPostLike,
+  action = likePost,
 }: PostLikeButtonProps): ReactElement => {
   const t = useTranslations('post.actions');
   const tStats = useTranslations('post.stats');
@@ -63,7 +71,7 @@ export const PostLikeButton = ({
         const target = desired.current;
         let result: Result<{ liked: boolean }> | null = null;
         try {
-          result = await action({ postId, liked: target.liked });
+          result = await action({ targetId, liked: target.liked });
         } catch (error) {
           logger.warn('like action failed', { err: error });
         }

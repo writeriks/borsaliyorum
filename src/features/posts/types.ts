@@ -50,3 +50,16 @@ export type PostCardData = {
   counts: PostCounts;
   viewer?: PostViewerState;
 };
+
+/**
+ * Gönderi detayının (S12, `/gonderi/[id]`) görüntüleyene göre durumu. `removed`: silinmiş (soft
+ * delete); `byModeration` yalnızca gönderi sahibine true olur (K-A: "moderasyonla kaldırıldı"
+ * sahibine gösterilir, başkalarına genel metin). `unavailable`: görüntüleyenle yazar arasında iki
+ * yönlü engel var ya da yazarın hesabı etkin değil; hangisi olduğu söylenmez (engel bilgisi
+ * sızmasın). `not-found`: böyle bir gönderi hiç yok.
+ */
+export type PostDetail =
+  | { status: 'ok'; post: PostCardData }
+  | { status: 'removed'; byModeration: boolean }
+  | { status: 'unavailable' }
+  | { status: 'not-found' };

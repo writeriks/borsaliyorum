@@ -6,6 +6,7 @@ import { PHASE_PRODUCTION_BUILD } from 'next/constants';
 import createNextIntlPlugin from 'next-intl/plugin';
 
 import { assertBuildEnv } from './src/lib/env';
+import { LEGACY_REDIRECTS } from './src/lib/legacy-redirects';
 import { assertLegalTextsPublishable } from './src/lib/legal/publish-gate';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
@@ -43,6 +44,10 @@ const readLegalCatalogs = (): Record<string, unknown> =>
     ])
   );
 
+/** v1 → v2 kalıcı yönlendirmeleri (K7; liste `src/lib/legacy-redirects.ts`). */
+export const legacyRedirects: NextConfig['redirects'] = async () =>
+  LEGACY_REDIRECTS.map(redirect => ({ ...redirect }));
+
 const config = (phase: string): NextConfig => {
   if (phase === PHASE_PRODUCTION_BUILD) {
     // SKIP_ENV_VALIDATION'dan bağımsız: production'a yer tutuculu yasal metin çıkmaz
@@ -52,7 +57,11 @@ const config = (phase: string): NextConfig => {
       console.warn('[env] SKIP_ENV_VALIDATION=1: ortam değişkeni doğrulaması atlandı.');
     }
   }
-  return withNextIntl({ ...baseConfig, headers: noindexHeaders(process.env.VERCEL_ENV) });
+  return withNextIntl({
+    ...baseConfig,
+    headers: noindexHeaders(process.env.VERCEL_ENV),
+    redirects: legacyRedirects,
+  });
 };
 
 export default config;

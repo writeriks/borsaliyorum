@@ -461,5 +461,34 @@
       "body": "Okumaya devam edebilirsin; paylaşım yapmak için yeni sürümü kabul etmen gerekiyor.",
       "cta": "İncele ve kabul et"
     }
+  },
+  "postDetail": {
+    "title": "Gönderi",
+    "back": "Geri",
+    "metaTitle": "{name}: “{excerpt}”",
+    "metaTitleNoText": "Gönderen: {name}",
+    "toHome": "Ana sayfaya dön",
+    "notFound": "Bu gönderi bulunamadı. Silinmiş ya da artık görüntülenemiyor olabilir.",
+    "notFoundMetaTitle": "Gönderi bulunamadı"
+  },
+  "comments": {
+    "heading": "Yorumlar",
+    "listLabel": "Yorumlar",
+    "itemLabel": "Yorum",
+    "loading": "Yorumlar yükleniyor",
+    "empty": "Henüz yorum yok. İlk yorumu sen yaz.",
+    "emptyAnonymous": "Henüz yorum yok.",
+    "error": "Yorumlar yüklenemedi.",
+    "loadMore": "Daha fazla yükle",
+    "loadMoreError": "Daha fazlası yüklenemedi.",
+    "actions": {
+      "menu": "Yorum seçenekleri",
+      "delete": "Sil",
+      "deleting": "Siliniyor…",
+      "deleteTitle": "Yorum silinsin mi?",
+      "deleteBody": "Yorum gönderiden kaldırılır. Bu işlem geri alınamaz.",
+      "cancel": "Vazgeç",
+      "deleted": "Yorum silindi."
+    }
   }
 }

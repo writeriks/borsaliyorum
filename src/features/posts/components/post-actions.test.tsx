@@ -63,7 +63,7 @@ describe('PostLikeButton', () => {
     const pending = deferred<Result<{ liked: boolean }>>();
     const action = vi.fn(() => pending.promise);
     renderWithIntl(
-      <PostLikeButton postId={7} initial={{ liked: false, count: 4 }} action={action} />
+      <PostLikeButton targetId={7} initial={{ liked: false, count: 4 }} action={action} />
     );
     const button = screen.getByRole('button', { name: /Beğen/ });
     expect(button).toHaveAttribute('aria-pressed', 'false');
@@ -71,7 +71,7 @@ describe('PostLikeButton', () => {
     await userEvent.click(button);
     expect(button).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByTestId('post-like-count')).toHaveTextContent('5');
-    expect(action).toHaveBeenCalledWith({ postId: 7, liked: true });
+    expect(action).toHaveBeenCalledWith({ targetId: 7, liked: true });
 
     pending.resolve(ok({ liked: true }));
     await waitFor(() => expect(button).not.toHaveAttribute('aria-busy'));
@@ -85,7 +85,7 @@ describe('PostLikeButton', () => {
     const second = deferred<Result<{ liked: boolean }>>();
     const action = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
     renderWithIntl(
-      <PostLikeButton postId={7} initial={{ liked: false, count: 4 }} action={action} />
+      <PostLikeButton targetId={7} initial={{ liked: false, count: 4 }} action={action} />
     );
     const button = screen.getByRole('button', { name: /Beğen/ });
 
@@ -98,7 +98,7 @@ describe('PostLikeButton', () => {
 
     first.resolve(ok({ liked: true }));
     await waitFor(() => expect(action).toHaveBeenCalledTimes(2));
-    expect(action).toHaveBeenLastCalledWith({ postId: 7, liked: false });
+    expect(action).toHaveBeenLastCalledWith({ targetId: 7, liked: false });
     second.resolve(ok({ liked: false }));
     await waitFor(() => expect(button).not.toHaveAttribute('aria-busy'));
     expect(button).toHaveAttribute('aria-pressed', 'false');
@@ -109,7 +109,7 @@ describe('PostLikeButton', () => {
     const first = deferred<Result<{ liked: boolean }>>();
     const action = vi.fn(() => first.promise);
     renderWithIntl(
-      <PostLikeButton postId={7} initial={{ liked: false, count: 4 }} action={action} />
+      <PostLikeButton targetId={7} initial={{ liked: false, count: 4 }} action={action} />
     );
     const button = screen.getByRole('button', { name: /Beğen/ });
     await userEvent.click(button);
@@ -129,7 +129,7 @@ describe('PostLikeButton', () => {
       .mockReturnValueOnce(first.promise)
       .mockResolvedValueOnce(fail('RATE_LIMITED', { retryAfter: 5 }));
     renderWithIntl(
-      <PostLikeButton postId={7} initial={{ liked: false, count: 4 }} action={action} />
+      <PostLikeButton targetId={7} initial={{ liked: false, count: 4 }} action={action} />
     );
     const button = screen.getByRole('button', { name: /Beğen/ });
     await userEvent.click(button);
@@ -143,7 +143,7 @@ describe('PostLikeButton', () => {
   it('hata → önceki duruma döner + hata toast’ı (RATE_LIMITED)', async () => {
     const action = vi.fn(async () => fail('RATE_LIMITED', { retryAfter: 30 }));
     renderWithIntl(
-      <PostLikeButton postId={7} initial={{ liked: true, count: 9 }} action={action} />
+      <PostLikeButton targetId={7} initial={{ liked: true, count: 9 }} action={action} />
     );
     const button = screen.getByRole('button', { name: /Beğen/ });
     await userEvent.click(button);
@@ -155,7 +155,7 @@ describe('PostLikeButton', () => {
   it('oturum düştüyse geri alır ve girişe next ile yönlendirir', async () => {
     const action = vi.fn(async () => fail('UNAUTHENTICATED'));
     renderWithIntl(
-      <PostLikeButton postId={7} initial={{ liked: false, count: 0 }} action={action} />
+      <PostLikeButton targetId={7} initial={{ liked: false, count: 0 }} action={action} />
     );
     await userEvent.click(screen.getByRole('button', { name: /Beğen/ }));
     await waitFor(() => expect(push).toHaveBeenCalledWith('/giris?next=%2Fakis'));
@@ -167,7 +167,7 @@ describe('PostLikeButton', () => {
       throw new Error('offline');
     });
     renderWithIntl(
-      <PostLikeButton postId={7} initial={{ liked: false, count: 2 }} action={action} />
+      <PostLikeButton targetId={7} initial={{ liked: false, count: 2 }} action={action} />
     );
     await userEvent.click(screen.getByRole('button', { name: /Beğen/ }));
     await waitFor(() => expect(toastError).toHaveBeenCalledWith(tr.errors.INTERNAL));
