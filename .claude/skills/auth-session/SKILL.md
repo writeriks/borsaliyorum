@@ -25,7 +25,7 @@ yansıtır. İstemci auth durumunu "keşfetmek" zorunda kalmaz.
            createSessionCookie(expiresIn: 14 gün)
            Set-Cookie: __session=...; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=...
       <-- { user: PublicUser }
-istemci: firebase signOut() (client persistence gerekmez) → router.refresh()
+istemci: firebase signOut() (client persistence gerekmez) → TAM SAYFA geçiş (hardNavigate)
 ```
 
 Sonraki her istek: `getCurrentUser()` → `verifySessionCookie(cookie, checkRevoked)` → DB'den
@@ -54,7 +54,11 @@ zararsız).
    boyutta skeleton gösterilir.
 2. Giriş/kayıt butonuna basıldığı an buton `disabled` + spinner + metin "Giriş yapılıyor…".
    Google popup açıkken de bu durum korunur.
-3. Başarılı girişten sonra kullanıcı bulunduğu sayfada kalır (`router.refresh()`) ya da `next`
+3. Anonimken başlayan başarılı girişten (ve çıkıştan) sonra **tam sayfa geçiş** yapılır
+   (`src/lib/client/hard-navigate.ts`). `router.replace` + `router.refresh()` KULLANMA: istemci
+   router'ı anonimken önceden yüklenen korumalı rota yönlendirmesini önbellekte tutar ve
+   `/akis ↔ /giris` sonsuz döngüsüne yol açar (2026-10 hatası, `tests/e2e/auth.login-redirect.spec.ts`).
+   Kullanıcı bulunduğu sayfada kalır ya da `next`
    parametresine gider. Rastgele `/akis`'e atlatma.
 4. Hata mesajları Firebase kodlarından i18n'e eşlenir (`auth/wrong-password` →
    "E-posta veya şifre hatalı."). Ham Firebase mesajı gösterilmez. Hangi alanın yanlış olduğu
