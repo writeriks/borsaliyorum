@@ -13,13 +13,15 @@ import type { PostCardData } from '../types';
 import { AuthorAvatar } from './author-avatar';
 import { ClampedBody } from './clamped-body';
 import { SentimentTag, SponsoredLabel } from './post-labels';
+import { PostCardSurface } from './post-card-surface';
+import { postHref } from './post-href';
 import { PostLikeButton } from './post-like-button';
 import { PostMedia } from './post-media';
 import { PostOwnerMenu } from './post-owner-menu';
 import { PostStats } from './post-stats';
 import { RelativeTime } from './relative-time';
 
-export const postHref = (id: number): string => `/gonderi/${id}`;
+export { postHref };
 
 type PostCardProps = {
   post: PostCardData;
@@ -59,7 +61,9 @@ export const PostCard = ({
   );
 
   return (
-    <article
+    <PostCardSurface
+      // Akışta kartın tamamı detaya götürür; detay sayfasında kart zaten hedeftir
+      href={variant === 'feed' ? postHref(post.id) : undefined}
       aria-labelledby={`${ids.label} ${ids.author} ${ids.time}`}
       data-testid='post-card'
       data-post-id={post.id}
@@ -132,6 +136,6 @@ export const PostCard = ({
           />
         </div>
       </div>
-    </article>
+    </PostCardSurface>
   );
 };

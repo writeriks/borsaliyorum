@@ -434,5 +434,38 @@
       "body": "You can keep reading; to post, you need to accept the new version.",
       "cta": "Review and accept"
     }
+  },
+  "postDetail": {
+    "title": "Post",
+    "back": "Back",
+    "metaTitle": "{name}: “{excerpt}”",
+    "metaTitleNoText": "Post by {name}",
+    "removed": "This post has been removed.",
+    "removedByModeration": "Your post was removed by moderators.",
+    "removedMetaTitle": "Post removed",
+    "unavailable": "This content isn’t available.",
+    "unavailableMetaTitle": "Content unavailable",
+    "toFeed": "Back to feed",
+    "toHome": "Back to home"
+  },
+  "comments": {
+    "heading": "Comments",
+    "listLabel": "Comments",
+    "itemLabel": "Comment",
+    "loading": "Loading comments",
+    "empty": "No comments yet. Be the first to comment.",
+    "emptyAnonymous": "No comments yet.",
+    "error": "Couldn’t load the comments.",
+    "loadMore": "Load more",
+    "loadMoreError": "Couldn’t load more.",
+    "actions": {
+      "menu": "Comment options",
+      "delete": "Delete",
+      "deleting": "Deleting…",
+      "deleteTitle": "Delete this comment?",
+      "deleteBody": "The comment will be removed from the post. This can’t be undone.",
+      "cancel": "Cancel",
+      "deleted": "Comment deleted."
+    }
   }
 }
