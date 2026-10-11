@@ -11,7 +11,8 @@ import { accountMenu, loginViaUi, seedOnboardedUser } from './support/auth';
  * - "Giriş yap" bağlantısı (`login-cta`) ya da metni (`common.login`; test kimliği olmayan bir
  *   kopya da yakalansın)
  * - auth skeleton'ları: sol menü (`auth-slot-skeleton`), mobil üst bar
- *   (`top-bar-account-skeleton`) ve `aria-busy="true"` taşıyan her yer tutucu
+ *   (`top-bar-account-skeleton`) ve `aria-busy="true"` taşıyan her yer tutucu (composer'ın
+ *   lazy-chunk iskeleti hariç: içerik yüklemesi, auth değil)
  */
 const installFlashObserver = async (page: Page): Promise<void> => {
   await page.addInitScript((loginText: string) => {
@@ -26,7 +27,11 @@ const installFlashObserver = async (page: Page): Promise<void> => {
       if (document.querySelector('[data-testid="top-bar-account-skeleton"]')) {
         record('top-bar-skeleton');
       }
-      if (document.querySelector('[aria-busy="true"]')) record('aria-busy');
+      // Composer'ın lazy chunk iskeleti içerik yüklemesidir, auth durumu değil (S10'da /akis'e
+      // geldi; auth'tan bağımsız olarak her girişli yüklemede kısa süre görünür)
+      if (document.querySelector('[aria-busy="true"]:not([data-testid="composer-skeleton"])')) {
+        record('aria-busy');
+      }
       // Yalnızca görünen metin: <script> içindeki RSC yükünde i18n kataloğu bulunabilir
       if (document.body?.innerText.includes(loginText)) record('login-text');
     };

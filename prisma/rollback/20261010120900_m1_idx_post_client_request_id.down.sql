@@ -5,7 +5,7 @@
 
 BEGIN;
 
-DROP INDEX IF EXISTS "Post_clientRequestId_key";
+DROP INDEX IF EXISTS "Post_userId_clientRequestId_key";
 
 DELETE FROM "_prisma_migrations" WHERE "migration_name" = '20261010120900_m1_idx_post_client_request_id';
 

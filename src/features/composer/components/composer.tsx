@@ -513,6 +513,10 @@ export const Composer = (props: ComposerProps): ReactElement => {
     const mapped = mapSubmitError(result);
     if (mapped.kind === 'session') persistDraft(draftRef.current);
     if (mapped.kind === 'restricted') setRestricted(true);
+    // Sunucu bu kimlikle başka bir yük kaydetmiş: aynı kimlikle yeniden denemek hep CONFLICT
+    // döner, otomatik yeni kimlikle denemek ise döngü olur. Kullanıcı bir sonraki Paylaş'ta
+    // (bilinçli eylem) yeni kimlikle gönderir.
+    if (mapped.kind === 'conflict') requestRef.current = null;
     setSubmitError(mapped);
   };
   useLayoutEffect(() => {
@@ -795,6 +799,10 @@ const errorMessage = (error: SubmitErrorKind, t: Translator, tErrors: ErrorTrans
       return t('error.session');
     case 'restricted':
       return t('error.restricted');
+    case 'unverified':
+      return tErrors('EMAIL_NOT_VERIFIED');
+    case 'conflict':
+      return t('error.conflict');
     case 'validation': {
       if (error.code === 'UNKNOWN_CASHTAG') {
         const tickers = error.meta?.tickers;

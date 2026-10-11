@@ -156,8 +156,8 @@ model Post {
   deletedAt       DateTime?
   /// "Reklam / İşbirliği" beyanı.
   isSponsored     Boolean      @default(false)
-  /// Çift gönderim idempotency anahtarı.
-  clientRequestId String?      @unique @db.Uuid
+  /// Çift gönderim idempotency anahtarı; kullanıcı başına benzersiz (ADR-0002 Karar 7).
+  clientRequestId String?      @db.Uuid
   linkPreviewId   Int?
   linkPreview     LinkPreview? @relation(fields: [linkPreviewId], references: [id], onDelete: SetNull)
 
@@ -169,6 +169,7 @@ model Post {
   notifications Notification[]
   reposts       Repost[]
 
+  @@unique([userId, clientRequestId])
   @@index([createdAt])
   @@index([userId])
   @@index([createdAt(sort: Desc), postId(sort: Desc)], map: "Post_feed_cursor_idx")
@@ -209,15 +210,18 @@ model Comment {
   updatedAt DateTime @default(now())
 
   // --- M1 ---
-  contentFormat Int       @default(1) @db.SmallInt
-  entities      Json?
-  deletedAt     DateTime?
+  contentFormat   Int       @default(1) @db.SmallInt
+  entities        Json?
+  deletedAt       DateTime?
+  /// Çift gönderim idempotency anahtarı; kullanıcı başına benzersiz (ADR-0002 Karar 7, S10).
+  clientRequestId String?   @db.Uuid
 
   post          Post           @relation(fields: [postId], references: [postId])
   user          User           @relation(fields: [userId], references: [userId])
   likes         CommentLike[]
   notifications Notification[]
 
+  @@unique([userId, clientRequestId])
   @@index([postId])
   @@index([userId])
   @@index([createdAt])

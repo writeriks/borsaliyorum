@@ -13,7 +13,9 @@ import type { PostCardData } from '../types';
 import { AuthorAvatar } from './author-avatar';
 import { ClampedBody } from './clamped-body';
 import { SentimentTag, SponsoredLabel } from './post-labels';
+import { PostLikeButton } from './post-like-button';
 import { PostMedia } from './post-media';
+import { PostOwnerMenu } from './post-owner-menu';
 import { PostStats } from './post-stats';
 import { RelativeTime } from './relative-time';
 
@@ -93,6 +95,7 @@ export const PostCard = ({
               />
             </div>
             <SentimentTag sentiment={post.sentiment} />
+            {post.viewer?.isOwner ? <PostOwnerMenu postId={post.id} /> : null}
           </header>
           {variant === 'feed' ? (
             <ClampedBody id={ids.body} text={post.body.text}>
@@ -111,7 +114,17 @@ export const PostCard = ({
               <LinkPreviewCard preview={linkPreview} />
             </div>
           ) : null}
-          <PostStats counts={post.counts} />
+          <PostStats
+            counts={post.counts}
+            likeControl={
+              post.viewer ? (
+                <PostLikeButton
+                  postId={post.id}
+                  initial={{ liked: post.viewer.liked, count: post.counts.likes }}
+                />
+              ) : undefined
+            }
+          />
         </div>
       </div>
     </article>

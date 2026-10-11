@@ -26,6 +26,12 @@ export type PostLinkPreview =
 export type PostCounts = { likes: number; comments: number; reposts: number };
 
 /**
+ * Girişli görüntüleyene özel durum (S10): beğeni butonu ve sahibine silme menüsü. Yoksa kart salt
+ * okunurdur (anonim, önizleme). `isOwner` yalnızca UI içindir; yetki sunucuda kontrol edilir.
+ */
+export type PostViewerState = { liked: boolean; isOwner: boolean };
+
+/**
  * `PostCard`'ın tek girdisi. Serileştirilebilir (istemci bileşenine de geçebilir): tarih ISO
  * metni, sözlükler düz nesne. Gövde `toRichTextContent` ile hazırlanır (eski format dahil).
  */
@@ -42,4 +48,5 @@ export type PostCardData = {
   mediaUrl: string | null;
   linkPreview: PostLinkPreview;
   counts: PostCounts;
+  viewer?: PostViewerState;
 };

@@ -374,7 +374,11 @@ type Result<T> = { ok: true; data: T } | { ok: false; error: ErrorCode; meta?: E
 `text + sentiment + isSponsored + previewUrl`, yorumda `text`. Aynı yükle yeniden deneme aynı
 kimliği taşır; herhangi bir alan değişirse yeni kimlik üretilir (aksi halde sunucu eski kaydı
 döndürür ve ör. sonradan açılan sponsorluk etiketi düşer). Sunucu aynı kimlikle gelen ikinci
-isteğe ilk kaydı döndürür; yükü karşılaştırmaz.
+isteğe ilk kaydı döndürür. **S10 güncellemesi:** benzersizlik kullanıcı başınadır
+(`UNIQUE (userId, clientRequestId)`, Post ve Comment); sunucu saklanan yükü karşılaştırır
+(gönderide normalize metin + etkin sentiment + `isSponsored`, yorumda `postId` + metin; önizleme
+URL'si saklanmadığı için karşılaştırılmaz) ve farklıysa `CONFLICT` döner. İstemci `CONFLICT`'te
+otomatik yeniden denemez; kullanıcının bir sonraki Paylaş'ı yeni kimlik kullanır.
 
 **S10 notu:** `Comment` tablosunda `clientRequestId` yok — S10 migration'ı
 `Comment.clientRequestId String? @unique` (Post ile aynı biçim) ekler; `createComment` aynı

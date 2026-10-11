@@ -23,12 +23,19 @@ describe('mapSubmitError (tasarım §1.7)', () => {
   it('kısıtlı hesap kodları → restricted', () => {
     for (const code of [
       ErrorCode.ACCOUNT_SUSPENDED,
-      ErrorCode.EMAIL_NOT_VERIFIED,
       ErrorCode.ONBOARDING_REQUIRED,
       ErrorCode.FORBIDDEN,
     ]) {
       expect(mapSubmitError(fail(code))).toEqual({ kind: 'restricted' });
     }
+  });
+
+  it('e-posta doğrulanmamış → unverified (paylaşım kilitlenmez: doğrulayıp tekrar dener)', () => {
+    expect(mapSubmitError(fail(ErrorCode.EMAIL_NOT_VERIFIED))).toEqual({ kind: 'unverified' });
+  });
+
+  it('CONFLICT → conflict (genel "tekrar dene" değil: aynı kimlikle yeniden deneme döngüsü yok)', () => {
+    expect(mapSubmitError(fail(ErrorCode.CONFLICT))).toEqual({ kind: 'conflict' });
   });
 
   it('doğrulama hataları kod ve meta ile', () => {
