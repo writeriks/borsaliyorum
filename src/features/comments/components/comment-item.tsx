@@ -57,6 +57,8 @@ export const CommentItem = ({
   return (
     <article
       id={anchor}
+      // Yeni yorum yazılınca odak buraya taşınır (programatik; sekme sırasında değil)
+      tabIndex={-1}
       aria-labelledby={`${ids.label} ${ids.author} ${ids.time}`}
       data-testid='comment'
       data-comment-id={comment.id}
@@ -111,9 +113,9 @@ export const CommentItem = ({
         <div className='flex min-h-hit items-center'>
           {comment.viewer ? (
             <PostLikeButton
-              postId={comment.id}
+              targetId={comment.id}
               initial={{ liked: comment.viewer.liked, count: comment.likes }}
-              action={({ postId: commentId, liked }) => likeAction({ commentId, liked })}
+              action={({ targetId, liked }) => likeAction({ commentId: targetId, liked })}
             />
           ) : (
             <span className='inline-flex min-h-hit items-center gap-1.5 text-sm text-fg-subtle tabular-nums'>

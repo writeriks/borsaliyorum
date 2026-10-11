@@ -128,7 +128,7 @@ export const PostCard = ({
             likeControl={
               post.viewer ? (
                 <PostLikeButton
-                  postId={post.id}
+                  targetId={post.id}
                   initial={{ liked: post.viewer.liked, count: post.counts.likes }}
                 />
               ) : undefined

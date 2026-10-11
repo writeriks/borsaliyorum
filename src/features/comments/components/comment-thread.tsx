@@ -4,7 +4,7 @@ import { type InfiniteData, useInfiniteQuery, useQueryClient } from '@tanstack/r
 import { MessageCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { type ReactElement, useCallback } from 'react';
+import { type ReactElement, useCallback, useEffect, useState } from 'react';
 
 import { EmptyState } from '@/components/states/empty-state';
 import { ErrorState } from '@/components/states/error-state';
@@ -15,7 +15,7 @@ import { commentsQueryKey, fetchCommentsPage } from '../client/api';
 import type { CommentsPage } from '../types';
 
 import { CommentComposer, type CreateCommentAction } from './comment-composer';
-import { CommentItem, type CommentLikeAction } from './comment-item';
+import { commentAnchorId, CommentItem, type CommentLikeAction } from './comment-item';
 import type { DeleteCommentAction } from './comment-menu';
 
 type PageParam = string | null;
@@ -41,6 +41,21 @@ type CommentThreadProps = {
 /** İlk sayfa sunucudan geldiyse bu süre içinde hidrasyonda yeniden istenmez. */
 const INITIAL_STALE_MS = 30_000;
 
+/**
+ * Yeni yorumu göstermek için en fazla bu kadar sonraki sayfa çekilir (20'şer → 500 yorum). Daha
+ * uzun konuşmada yorum yazılmıştır, liste "Daha fazla yükle" ile devam eder.
+ */
+export const MAX_REVEAL_PAGES = 25;
+
+/** Son yüklü sayfanın imleci: refetch sonucu `hasNextPage` taşımaz, aynı bilgi buradan. */
+const hasMorePages = (data: InfiniteData<CommentsPage, PageParam> | undefined): boolean =>
+  (data?.pages.at(-1)?.nextCursor ?? null) !== null;
+
+const containsComment = (
+  data: InfiniteData<CommentsPage, PageParam> | undefined,
+  commentId: number
+): boolean => data?.pages.some(page => page.items.some(item => item.id === commentId)) ?? false;
+
 /** Yorum satırı ölçüsünde iskelet (CLS yok); içerik yüklemesi, auth değil. */
 export const CommentSkeleton = (): ReactElement => (
   <div
@@ -60,9 +75,10 @@ export const CommentSkeleton = (): ReactElement => (
 /**
  * Yorumlar (S12): composer + eskiden yeniye liste + "Daha fazla yükle". İlk sayfa sunucuda render
  * edilir ve `useInfiniteQuery`'ye `initialData` olarak verilir; sonraki sayfalar
- * `GET /api/posts/[id]/comments?cursor=`. Yeni yorum ya da silme sonrası yüklü sayfalar yeniden
- * doğrulanır ve sunucu verisi (gönderi kartındaki yorum sayacı) tazelenir. Dört durum: yükleniyor
- * (iskelet), boş, hata (tümü ya da liste sonunda satır içi), başarı.
+ * `GET /api/posts/[id]/comments?cursor=`. Yeni yorumdan sonra liste yorumu içerene kadar yüklenir
+ * ve yoruma kaydırılır; silinen yorum yerelde çıkarılır; ikisinde de kartın yorum sayacı
+ * sunucudan tazelenir. Dört durum: yükleniyor (iskelet), boş, hata (tümü ya da liste sonunda
+ * satır içi), başarı.
  */
 export const CommentThread = ({
   postId,
@@ -99,11 +115,38 @@ export const CommentThread = ({
       : {}),
   });
 
-  const refreshAll = useCallback((): void => {
-    void queryClient.invalidateQueries({ queryKey });
-    // Gönderi kartındaki yorum sayacı sunucu bileşeninde
+  /** Kaydırılıp odaklanacak yeni yorum (liste onu içerdiğinde ayarlanır). */
+  const [revealId, setRevealId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (revealId === null) return;
+    const element = document.getElementById(commentAnchorId(revealId));
+    if (!element) return;
+    element.scrollIntoView({ block: 'center' });
+    // Ekran okuyucu yeni yorumu okur; klavye kullanıcısı oradan devam eder
+    element.focus({ preventScroll: true });
+  }, [revealId]);
+
+  /**
+   * Yorum eskiden yeniye sıralı: yeni yorum son sayfadadır. Yüklü sayfalar tazelenir (sayfa
+   * sınırları kayar), sonra yorum görünene ya da sayfa kalmayana kadar sonrakiler çekilir.
+   * Yorum sayacı sunucu bileşenindeki kartta; yalnızca onun için `router.refresh()`.
+   */
+  const onSubmitted = async (commentId: number): Promise<void> => {
     router.refresh();
-  }, [queryClient, queryKey, router]);
+    let result = await query.refetch();
+    for (
+      let pages = 0;
+      pages < MAX_REVEAL_PAGES &&
+      !result.isError &&
+      hasMorePages(result.data) &&
+      !containsComment(result.data, commentId);
+      pages += 1
+    ) {
+      result = await query.fetchNextPage();
+    }
+    if (containsComment(result.data, commentId)) setRevealId(commentId);
+  };
 
   const onDeleted = useCallback(
     (commentId: number): void => {
@@ -118,9 +161,10 @@ export const CommentThread = ({
             }
           : data
       );
-      refreshAll();
+      // Liste yerelde güncel; yalnızca kartın yorum sayacı sunucudan
+      router.refresh();
     },
-    [queryClient, queryKey, refreshAll]
+    [queryClient, queryKey, router]
   );
 
   const items = query.data?.pages.flatMap(page => page.items) ?? [];
@@ -192,7 +236,7 @@ export const CommentThread = ({
           replyToUsername={replyToUsername}
           loginHref={loginHref}
           signupHref={signupHref}
-          onSubmitted={refreshAll}
+          onSubmitted={commentId => void onSubmitted(commentId)}
           action={actions.create}
         />
       </div>

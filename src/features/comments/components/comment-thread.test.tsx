@@ -12,7 +12,7 @@ import { fail, ok } from '@/lib/errors';
 import { MESSAGES, renderWithIntl } from '../../../../tests/utils/render';
 import type { CommentData, CommentsPage } from '../types';
 
-import { CommentThread } from './comment-thread';
+import { CommentThread, MAX_REVEAL_PAGES } from './comment-thread';
 
 const refresh = vi.fn();
 vi.mock('next/navigation', async importOriginal => ({
@@ -191,7 +191,50 @@ describe('CommentThread', () => {
     );
     await waitFor(() => expect(screen.getAllByTestId('comment')).toHaveLength(2));
     expect(fetchPage).toHaveBeenCalledWith(1, null, expect.anything());
-    expect(refresh).toHaveBeenCalled();
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(document.getElementById('yorum-9')).toHaveFocus();
+  });
+
+  it('25 yorum (2 sayfa), yalnızca ilk sayfa yüklüyken: yeni yorum sonraki sayfadan gelir, görünür ve odaklanır', async () => {
+    const ids = (from: number, to: number) =>
+      Array.from({ length: to - from + 1 }, (_, i) => comment(from + i));
+    // Sunucu: 25 mevcut + 1 yeni = 26 yorum, 20'şer
+    const fetchPage = vi.fn<ThreadProps['fetchPage'] & {}>(async (_postId, cursor) =>
+      cursor === null ? page(ids(1, 20), 'imlec-20') : page(ids(21, 26))
+    );
+    const create = vi.fn(async () => ok({ commentId: 26 }));
+    const scrollIntoView = vi.spyOn(Element.prototype, 'scrollIntoView');
+    renderThread({ initialPage: page(ids(1, 20), 'imlec-20'), fetchPage, actions: { create } });
+    expect(screen.getAllByTestId('comment')).toHaveLength(20);
+    expect(document.getElementById('yorum-26')).toBeNull();
+
+    await userEvent.click(screen.getByTestId('composer-stub'));
+
+    await waitFor(() => expect(document.getElementById('yorum-26')).toHaveFocus());
+    expect(screen.getAllByTestId('comment')).toHaveLength(26);
+    expect(fetchPage).toHaveBeenCalledWith(1, null, expect.anything());
+    expect(fetchPage).toHaveBeenCalledWith(1, 'imlec-20', expect.anything());
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'center' });
+    expect(scrollIntoView.mock.contexts.at(-1)).toBe(document.getElementById('yorum-26'));
+    expect(screen.queryByTestId('comments-load-more')).toBeNull();
+    scrollIntoView.mockRestore();
+  });
+
+  it('yeni yorum sayfa sınırı kadar sonraki sayfa çekilip bulunamazsa sonsuz döngüye girmez', async () => {
+    let n = 0;
+    const fetchPage = vi.fn<ThreadProps['fetchPage'] & {}>(async () => {
+      n += 1;
+      return page([comment(1000 + n)], `imlec-${n}`);
+    });
+    renderThread({
+      initialPage: page([comment(1)], 'imlec-0'),
+      fetchPage,
+      actions: { create: async () => ok({ commentId: 99_999 }) },
+    });
+    await userEvent.click(screen.getByTestId('composer-stub'));
+    // 1 refetch + MAX_REVEAL_PAGES sonraki sayfa
+    await waitFor(() => expect(fetchPage).toHaveBeenCalledTimes(1 + MAX_REVEAL_PAGES));
+    expect(screen.getByTestId('comments-load-more')).toBeInTheDocument();
   });
 
   it('beğeni yoruma bağlı action’ı çağırır (optimistic)', async () => {
