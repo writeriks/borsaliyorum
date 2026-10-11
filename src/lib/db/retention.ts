@@ -11,6 +11,13 @@
 export const DEFAULT_CONTENT_EVENT_RETENTION = '2 years';
 
 /**
+ * İzin kayıtları (ConsentEvent): izin sona erdikten (geri alma ya da hesap silinirken yazılan
+ * `granted = false`) sonra 3 yıl. DB fonksiyonu daha kısasını reddeder. Süre avukat teyidi
+ * bekliyor (docs/legal/README.md).
+ */
+export const DEFAULT_CONSENT_EVENT_RETENTION = '3 years';
+
+/**
  * Rate limit sayaçları: en uzun pencere (günlük limit, 24 saat) + 24 saat pay. Pencere süresi
  * satırda tutulmadığı için en uzun pencereye göre silinir; daha kısa pencereler zaten bitmiştir.
  */
@@ -35,6 +42,7 @@ export type RetentionSummary = {
   rateLimitBuckets: number;
   linkPreviews: number;
   legalIdentities: number;
+  consentEvents: number;
 };
 
 const firstNumber = (rows: unknown[], column: string): number => {
@@ -48,7 +56,10 @@ const firstNumber = (rows: unknown[], column: string): number => {
  */
 export const runRetentionPurge = async (
   db: Queryable,
-  { contentEventRetention = DEFAULT_CONTENT_EVENT_RETENTION } = {}
+  {
+    contentEventRetention = DEFAULT_CONTENT_EVENT_RETENTION,
+    consentEventRetention = DEFAULT_CONSENT_EVENT_RETENTION,
+  }: { contentEventRetention?: string; consentEventRetention?: string } = {}
 ): Promise<RetentionSummary> => {
   // ContentEvent yalnızca append-only korumasını aşabilen DB fonksiyonuyla silinir
   const events = await db.query('SELECT content_event_purge($1::interval) AS deleted', [
@@ -79,10 +90,16 @@ export const runRetentionPurge = async (
     `DELETE FROM "LegalIdentityRetention" WHERE "purgeAt" < (now() AT TIME ZONE 'UTC')`
   );
 
+  // ConsentEvent de append-only; yalnızca kendi SECURITY DEFINER fonksiyonuyla silinir
+  const consents = await db.query('SELECT consent_event_purge($1::interval) AS deleted', [
+    consentEventRetention,
+  ]);
+
   return {
     contentEvents: firstNumber(events.rows, 'deleted'),
     rateLimitBuckets: (buckets.rowCount ?? 0) + (ipBuckets.rowCount ?? 0),
     linkPreviews: previews.rowCount ?? 0,
     legalIdentities: identities.rowCount ?? 0,
+    consentEvents: firstNumber(consents.rows, 'deleted'),
   };
 };

@@ -33,7 +33,16 @@ const scan = async (page: Page): Promise<{ id: string; impact: string; targets: 
 };
 
 test.describe('erişilebilirlik (axe): serious/critical ihlal yok', () => {
-  for (const path of ['/', '/en', '/giris', '/kayit', '/en/giris']) {
+  for (const path of [
+    '/',
+    '/en',
+    '/giris',
+    '/kayit',
+    '/en/giris',
+    '/yasal/kvkk',
+    '/yasal/cerez-politikasi',
+    '/en/yasal/kullanim-kosullari',
+  ]) {
     for (const theme of ['dark', 'light'] as const) {
       test(`${path} · ${theme}`, async ({ page }) => {
         await page.addInitScript(value => {

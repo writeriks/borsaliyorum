@@ -132,6 +132,7 @@ test('kayıt → onboarding → /akis: tek varış, döngü yok', async ({ page 
   await page.getByLabel(tr.auth.onboarding.displayName.label).fill('Döngü Testi');
   await page.getByLabel(tr.auth.onboarding.age.label).check();
   await page.getByLabel(/Aydınlatma Metni/).check();
+  await page.getByLabel(/Kullanım Koşulları/).check();
   await expect(page.getByText(tr.auth.onboarding.username.available)).toBeVisible();
   await page.waitForLoadState('networkidle');
 

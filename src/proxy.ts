@@ -8,7 +8,14 @@ import { PATHNAME_HEADER } from '@/lib/auth/headers';
 const handleI18nRouting = createMiddleware(routing);
 
 /** Oturum gerektiren rotalar (`(app)` grubu + onboarding), yerel önek olmadan. */
-const PROTECTED_PREFIXES = ['/akis', '/hos-geldin', '/bildirimler', '/ayarlar', '/paylas'];
+const PROTECTED_PREFIXES = [
+  '/akis',
+  '/hos-geldin',
+  '/bildirimler',
+  '/ayarlar',
+  '/paylas',
+  '/yasal/yeni-surum',
+];
 
 const LOCALE_PREFIX = /^\/(en)(?=\/|$)/;
 

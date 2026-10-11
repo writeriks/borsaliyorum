@@ -8,8 +8,16 @@ import { getDb } from '@/lib/db';
 import { fail, ok } from '@/lib/errors';
 import type { Logger } from '@/lib/logger';
 
+import {
+  COMMUNITY_RULES_VERSION,
+  INVESTMENT_DISCLAIMER_VERSION,
+  LEGAL_BUNDLE_VERSION,
+  MARKETING_CONSENT_TEXT_VERSION,
+  PRIVACY_NOTICE_VERSION,
+  TERMS_VERSION,
+} from '@/lib/legal/versions';
+
 import { createUser } from '../../../../tests/factories';
-import { MARKETING_CONSENT_TEXT_VERSION, PRIVACY_NOTICE_VERSION } from '../legal-versions';
 import type { OnboardingData } from '../schemas';
 
 import {
@@ -23,9 +31,18 @@ const IP_KEY = new Uint8Array(randomBytes(32));
 // --- Server Action sınırları (ADR-0003: next/headers, next/cache ve oturum mock'lanır) ---
 const requireActionOnboardingIdentity = vi.fn();
 const getSession = vi.fn();
+const destroySession = vi.fn(async () => undefined);
+const requireWriter = vi.fn();
 vi.mock('@/lib/auth/session', () => ({
   requireActionOnboardingIdentity: () => requireActionOnboardingIdentity(),
   getSession: () => getSession(),
+  destroySession: () => destroySession(),
+  requireWriter: () => requireWriter(),
+}));
+// Firebase Admin: onboarding öncesi hesabın hâlâ var olduğu kontrol edilir (yetim hesap imhası)
+const getFirebaseUser = vi.fn(async (uid: string) => ({ uid }));
+vi.mock('@/lib/auth/firebase-admin', () => ({
+  getAdminAuth: () => ({ getUser: (uid: string) => getFirebaseUser(uid) }),
 }));
 vi.mock('next/headers', () => ({
   headers: async () => new Headers({ 'x-forwarded-for': '198.51.100.20' }),
@@ -50,9 +67,19 @@ vi.mock('next/navigation', () => ({
   },
 }));
 vi.mock('@/lib/crypto/key', () => ({ getIpEncryptionKey: () => IP_KEY }));
+// Pazarlama kutusu flag'i (varsayılan kapalı); testler açıp kapatır
+const marketingFlag = vi.fn(() => false);
+vi.mock('@/lib/env.server', async importOriginal => ({
+  ...(await importOriginal<object>()),
+  getMarketingConsentEnabled: () => marketingFlag(),
+}));
 
-const { authorizeVerificationEmail, checkUsernameAvailability, completeOnboarding } =
-  await import('./actions');
+const {
+  authorizeVerificationEmail,
+  checkUsernameAvailability,
+  completeOnboarding,
+  refreshEmailVerification,
+} = await import('./actions');
 
 const log: Logger = {
   debug: vi.fn(),
@@ -62,7 +89,17 @@ const log: Logger = {
   child: () => log,
 };
 
-const deps = () => ({ db: getDb(), ipKey: () => IP_KEY, now: () => new Date(), log });
+const deps = (
+  marketingConsentEnabled = true,
+  firebaseAccountExists: (uid: string) => Promise<boolean> = async () => true
+) => ({
+  db: getDb(),
+  ipKey: () => IP_KEY,
+  now: () => new Date(),
+  log,
+  marketingConsentEnabled,
+  firebaseAccountExists,
+});
 const meta = { ip: '203.0.113.7', port: null, requestId: 'req-1' };
 
 const newIdentity = (overrides: Partial<OnboardingIdentity> = {}): OnboardingIdentity => {
@@ -87,6 +124,7 @@ const data = (overrides: Partial<OnboardingData> = {}): OnboardingData => ({
   username: uniqueName(),
   displayName: 'Ayşe Kaya',
   ageConfirmed: true,
+  termsAccepted: true,
   noticeAcknowledged: true,
   marketingOptIn: false,
   next: null,
@@ -96,10 +134,14 @@ const data = (overrides: Partial<OnboardingData> = {}): OnboardingData => ({
 beforeEach(() => {
   requireActionOnboardingIdentity.mockReset();
   revalidatePath.mockReset();
+  destroySession.mockClear();
+  getFirebaseUser.mockReset();
+  getFirebaseUser.mockImplementation(async (uid: string) => ({ uid }));
+  marketingFlag.mockReturnValue(false);
 });
 
 describe('completeOnboardingForIdentity (gerçek DB)', () => {
-  it('yeni kayıt: kullanıcı satırı burada oluşur; aydınlatma/18+ zamanı yazılır; session.start olayı', async () => {
+  it('yeni kayıt: kullanıcı satırı burada oluşur; aydınlatma/koşullar/18+ zamanı yazılır; session.start olayı', async () => {
     const identity = newIdentity();
     const input = data();
     const result = await completeOnboardingForIdentity(identity, input, meta, deps());
@@ -114,11 +156,17 @@ describe('completeOnboardingForIdentity (gerçek DB)', () => {
       email: identity.email,
       isEmailVerified: false,
       noticeVersion: PRIVACY_NOTICE_VERSION,
+      termsVersion: TERMS_VERSION,
+      // Koşullar ile birlikte paketin diğer belgeleri de kabul edilir (yeniden kabul ekranı yok)
+      legalBundleVersion: LEGAL_BUNDLE_VERSION,
+      communityRulesVersion: COMMUNITY_RULES_VERSION,
+      disclaimerVersion: INVESTMENT_DISCLAIMER_VERSION,
       status: 'active',
       birthday: null,
     });
     expect(user.onboardedAt).toBeInstanceOf(Date);
     expect(user.noticeAcknowledgedAt).toBeInstanceOf(Date);
+    expect(user.termsAcceptedAt).toBeInstanceOf(Date);
     expect(user.ageConfirmedAt).toBeInstanceOf(Date);
 
     const events = await getDb().contentEvent.findMany({ where: { actorUserId: user.userId } });
@@ -134,8 +182,8 @@ describe('completeOnboardingForIdentity (gerçek DB)', () => {
     expect(await getDb().consentEvent.count({ where: { userId: user.userId } })).toBe(0);
   });
 
-  it('pazarlama izni verildiyse metin sürümüyle ConsentEvent yazılır', async () => {
-    const identity = newIdentity();
+  it('pazarlama izni verildiyse metin sürümü ve onay verilen adresle ConsentEvent yazılır', async () => {
+    const identity = newIdentity({ emailVerified: true });
     const result = await completeOnboardingForIdentity(
       identity,
       data({ marketingOptIn: true }),
@@ -150,8 +198,54 @@ describe('completeOnboardingForIdentity (gerçek DB)', () => {
         granted: true,
         textVersion: MARKETING_CONSENT_TEXT_VERSION,
         source: 'signup',
+        address: identity.email,
       }),
     ]);
+  });
+
+  it('e-posta doğrulanmamışsa pazarlama izni yazılmaz (adresin sahibi olduğu ispatlanmadı)', async () => {
+    const result = await completeOnboardingForIdentity(
+      newIdentity({ emailVerified: false }),
+      data({ marketingOptIn: true }),
+      meta,
+      deps()
+    );
+    expect(result.ok).toBe(true);
+    const userId = result.ok ? result.data.userId : -1;
+    expect(await getDb().consentEvent.count({ where: { userId } })).toBe(0);
+  });
+
+  it('Firebase hesabı silinmişse (yetim imhası) User yazılmaz → UNAUTHENTICATED', async () => {
+    const identity = newIdentity();
+    const exists = vi.fn(async () => false);
+    expect(await completeOnboardingForIdentity(identity, data(), meta, deps(true, exists))).toEqual(
+      fail('UNAUTHENTICATED')
+    );
+    expect(exists).toHaveBeenCalledWith(identity.firebaseUid);
+    expect(await getDb().user.count({ where: { firebaseUserId: identity.firebaseUid } })).toBe(0);
+  });
+
+  it("Firebase'e ulaşılamazsa User yazılmaz (hata yukarı iletilir)", async () => {
+    const identity = newIdentity();
+    const exists = vi.fn(async (): Promise<boolean> => {
+      throw new Error('firebase down');
+    });
+    await expect(
+      completeOnboardingForIdentity(identity, data(), meta, deps(true, exists))
+    ).rejects.toThrow('firebase down');
+    expect(await getDb().user.count({ where: { firebaseUserId: identity.firebaseUid } })).toBe(0);
+  });
+
+  it('pazarlama kutusu flag ile kapalıyken istemciden gelen true izin sayılmaz', async () => {
+    const result = await completeOnboardingForIdentity(
+      newIdentity(),
+      data({ marketingOptIn: true }),
+      meta,
+      deps(false)
+    );
+    expect(result.ok).toBe(true);
+    const userId = result.ok ? result.data.userId : -1;
+    expect(await getDb().consentEvent.count({ where: { userId } })).toBe(0);
   });
 
   it('rezerve ad → USERNAME_RESERVED, satır oluşmaz', async () => {
@@ -217,6 +311,7 @@ describe('completeOnboarding Server Action', () => {
     username: uniqueName(),
     displayName: 'Mehmet',
     ageConfirmed: true,
+    termsAccepted: true,
     noticeAcknowledged: true,
     marketingOptIn: false,
     next: '/gonderi/12',
@@ -233,6 +328,65 @@ describe('completeOnboarding Server Action', () => {
       await completeOnboarding(formInput({ ageConfirmed: false, noticeAcknowledged: false }))
     ).toMatchObject({ ok: false, error: 'VALIDATION' });
     expect(requireActionOnboardingIdentity).not.toHaveBeenCalled();
+  });
+
+  it('Kullanım Koşulları işaretlenmeden → VALIDATION (fields: termsAccepted)', async () => {
+    expect(await completeOnboarding(formInput({ termsAccepted: false }))).toEqual(
+      fail('VALIDATION', { fields: ['termsAccepted'] })
+    );
+    expect(await completeOnboarding(formInput({ termsAccepted: undefined }))).toMatchObject({
+      ok: false,
+      error: 'VALIDATION',
+    });
+    expect(requireActionOnboardingIdentity).not.toHaveBeenCalled();
+  });
+
+  it('başarıda kabul edilen Koşullar sürümü yazılır; flag kapalıyken pazarlama izni yazılmaz', async () => {
+    const identity = newIdentity();
+    requireActionOnboardingIdentity.mockResolvedValue(ok(identity));
+    await completeOnboarding(formInput({ marketingOptIn: true })).catch(() => undefined);
+    const user = await getDb().user.findUniqueOrThrow({
+      where: { firebaseUserId: identity.firebaseUid },
+    });
+    expect(user.termsVersion).toBe(TERMS_VERSION);
+    expect(user.termsAcceptedAt).toBeInstanceOf(Date);
+    expect(await getDb().consentEvent.count({ where: { userId: user.userId } })).toBe(0);
+  });
+
+  it('flag açıkken pazarlama izni adresle yazılır', async () => {
+    marketingFlag.mockReturnValue(true);
+    const identity = newIdentity({ emailVerified: true });
+    requireActionOnboardingIdentity.mockResolvedValue(ok(identity));
+    await completeOnboarding(formInput({ marketingOptIn: true })).catch(() => undefined);
+    const user = await getDb().user.findUniqueOrThrow({
+      where: { firebaseUserId: identity.firebaseUid },
+    });
+    expect(await getDb().consentEvent.findMany({ where: { userId: user.userId } })).toEqual([
+      expect.objectContaining({ granted: true, address: identity.email }),
+    ]);
+  });
+
+  it('Firebase hesabı yoksa (auth/user-not-found) oturum sonlandırılır, User yazılmaz', async () => {
+    const identity = newIdentity();
+    requireActionOnboardingIdentity.mockResolvedValue(ok(identity));
+    getFirebaseUser.mockRejectedValueOnce(
+      Object.assign(new Error('no user'), { code: 'auth/user-not-found' })
+    );
+    expect(await completeOnboarding(formInput())).toEqual(fail('UNAUTHENTICATED'));
+    expect(getFirebaseUser).toHaveBeenCalledWith(identity.firebaseUid);
+    expect(destroySession).toHaveBeenCalledOnce();
+    expect(await getDb().user.count({ where: { firebaseUserId: identity.firebaseUid } })).toBe(0);
+  });
+
+  it('Firebase geçici hatası → INTERNAL; oturum korunur, User yazılmaz', async () => {
+    const identity = newIdentity();
+    requireActionOnboardingIdentity.mockResolvedValue(ok(identity));
+    getFirebaseUser.mockRejectedValueOnce(
+      Object.assign(new Error('unavailable'), { code: 'app/network-error' })
+    );
+    expect(await completeOnboarding(formInput())).toEqual(fail('INTERNAL'));
+    expect(destroySession).not.toHaveBeenCalled();
+    expect(await getDb().user.count({ where: { firebaseUserId: identity.firebaseUid } })).toBe(0);
   });
 
   it('rezerve ad şemada yakalanır → USERNAME_RESERVED', async () => {
@@ -315,6 +469,7 @@ describe('authorizeVerificationEmail Server Action (özel token yok)', () => {
       avatarUrl: null,
       email: 'u@example.test',
       emailVerified,
+      legalAcceptanceRequired: false,
       roles: [],
     },
   });
@@ -356,5 +511,36 @@ describe('emailBelongsToOtherIdentity (onboarding sayfası formu göstermeden so
         firebaseUid: 'x',
       })
     ).toBe(false);
+  });
+});
+
+describe('refreshEmailVerification Server Action', () => {
+  const unverified = {
+    status: 'authenticated',
+    firebaseUid: 'uid-r',
+    authTime: 1,
+    user: {
+      userId: 1,
+      username: 'u',
+      displayName: 'U',
+      avatarUrl: null,
+      email: 'u@example.test',
+      emailVerified: false,
+      legalAcceptanceRequired: true,
+      roles: [],
+    },
+  };
+
+  it('yeni koşullar kabul beklerken de doğrulama "doğrulandı" sayılır (yazma kapısı ayrı)', async () => {
+    getSession.mockResolvedValue(unverified);
+    requireWriter.mockResolvedValue(fail('LEGAL_ACCEPTANCE_REQUIRED'));
+    expect(await refreshEmailVerification()).toEqual(ok({ verified: true }));
+    expect(revalidatePath).toHaveBeenCalledWith('/', 'layout');
+  });
+
+  it('hâlâ doğrulanmamış → verified: false', async () => {
+    getSession.mockResolvedValue(unverified);
+    requireWriter.mockResolvedValue(fail('EMAIL_NOT_VERIFIED'));
+    expect(await refreshEmailVerification()).toEqual(ok({ verified: false }));
   });
 });

@@ -13,6 +13,7 @@ import type {
   UserFollow,
 } from '@/generated/prisma/client';
 import { getDb } from '@/lib/db';
+import { LEGAL_BUNDLE_VERSION } from '@/lib/legal/versions';
 
 /**
  * Integration test verisi (ADR-0003). Her factory geçerli, birbirinden bağımsız bir satır
@@ -37,6 +38,8 @@ export const createUser = async (
       email: `user${n}@example.test`,
       isEmailVerified: true,
       onboardedAt: new Date(),
+      // Güncel yasal paketi kabul etmiş (yeniden kabul akışı test edilirken override edilir)
+      legalBundleVersion: LEGAL_BUNDLE_VERSION,
       ...overrides,
     },
   });

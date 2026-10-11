@@ -4,12 +4,17 @@ import { Prisma, type PrismaClient } from '@/generated/prisma/client';
 import { recordContentEvent } from '@/lib/audit/content-event';
 import type { OnboardingIdentity } from '@/lib/auth/types';
 import { ErrorCode, fail, ok, type Result } from '@/lib/errors';
+import {
+  LEGAL_BUNDLE_DOCUMENT_VERSIONS,
+  LEGAL_BUNDLE_VERSION,
+  MARKETING_CONSENT_TEXT_VERSION,
+  PRIVACY_NOTICE_VERSION,
+} from '@/lib/legal/versions';
 import type { Logger } from '@/lib/logger';
 import type { RequestMeta } from '@/lib/request-meta';
 import { isReservedUsername } from '@/lib/users/reserved-usernames';
 import { USERNAME_PATTERN } from '@/lib/users/username';
 
-import { MARKETING_CONSENT_TEXT_VERSION, PRIVACY_NOTICE_VERSION } from '../legal-versions';
 import type { OnboardingData } from '../schemas';
 
 export type OnboardingDeps = {
@@ -17,6 +22,14 @@ export type OnboardingDeps = {
   readonly ipKey: () => Uint8Array;
   readonly now: () => Date;
   readonly log: Logger;
+  /** Pazarlama izni kutusu açık mı (`MARKETING_CONSENT_ENABLED`)? Kapalıyken izin yazılmaz. */
+  readonly marketingConsentEnabled: boolean;
+  /**
+   * Firebase hesabı hâlâ var mı (`admin.getUser`)? Yetim hesap imhası hesabı silmiş olabilir;
+   * oturum çerezi o sırada hâlâ geçerlidir. Hesabı olmayan kimliğe User satırı yazılmaz.
+   * Firebase'e ulaşılamazsa fırlatır (fail-closed).
+   */
+  readonly firebaseAccountExists: (firebaseUid: string) => Promise<boolean>;
 };
 
 export type UsernameAvailability = 'available' | 'taken' | 'reserved' | 'invalid';
@@ -70,8 +83,12 @@ const uniqueTarget = (error: Prisma.PrismaClientKnownRequestError): string =>
 /**
  * Onboarding'i tamamlar (ADR-0001 Karar 5): kullanıcı satırı ilk kez burada oluşturulur
  * (yeni kayıt) ya da kurala uymayan eski hesap güncellenir. Tek transaction'da:
- * - User: kullanıcı adı, görünen ad, `onboardedAt`, aydınlatma sürümü/anı, 18+ beyanı
- * - ConsentEvent: yalnızca pazarlama izni verildiyse (işaretsiz varsayılan = izin yok)
+ * - User: kullanıcı adı, görünen ad, `onboardedAt`, aydınlatma sürümü/anı, yasal metin paketi
+ *   (Koşullar + Topluluk Kuralları + Yatırım Uyarısı) sürümleri/anı, 18+ beyanı
+ * - ConsentEvent: yalnızca pazarlama izni verildiyse, kutu açıksa (işaretsiz varsayılan =
+ *   izin yok) ve e-posta doğrulanmışsa (adresin sahibinin izni olduğu ispatlanabilsin); iznin
+ *   verildiği e-posta adresiyle. TAKİP: flag açılınca doğrulanmamış kullanıcıya izin, e-posta
+ *   doğrulandığında yeniden sorulmalı (şu an kutu kapalı).
  * - ContentEvent `session.start`: hesabın ilk oturumu (IP şifreli). Mevcut hesapların sonraki
  *   girişleri `auth.login` olarak `/api/auth/session`'da yazılır.
  */
@@ -81,6 +98,11 @@ export const completeOnboardingForIdentity = async (
   meta: RequestMeta,
   deps: OnboardingDeps
 ): Promise<Result<{ userId: number; username: string }>> => {
+  if (!(await deps.firebaseAccountExists(identity.firebaseUid))) {
+    deps.log.warn('onboarding for deleted firebase account', { requestId: meta.requestId });
+    return fail(ErrorCode.UNAUTHENTICATED);
+  }
+
   const availability = await checkUsername(deps.db, data.username, identity.existingUserId);
   if (availability === 'invalid') return fail(ErrorCode.VALIDATION, { field: 'username' });
   if (availability === 'reserved') return fail(ErrorCode.USERNAME_RESERVED);
@@ -93,8 +115,16 @@ export const completeOnboardingForIdentity = async (
     onboardedAt: now,
     noticeVersion: PRIVACY_NOTICE_VERSION,
     noticeAcknowledgedAt: now,
+    // Koşullar kutusu paketin tamamını kapsar (Topluluk Kuralları ve Yatırım Uyarısı
+    // Koşulların ayrılmaz parçası); ayrı ayrı sürümler ispat için yazılır
+    legalBundleVersion: LEGAL_BUNDLE_VERSION,
+    ...LEGAL_BUNDLE_DOCUMENT_VERSIONS,
+    termsAcceptedAt: now,
     ageConfirmedAt: now,
   };
+  // Kutu gösterilmediyse (flag kapalı) istemciden gelen değer izin sayılmaz
+  const marketingGranted =
+    deps.marketingConsentEnabled && data.marketingOptIn && identity.emailVerified;
 
   try {
     const result = await deps.db.$transaction(async tx => {
@@ -116,7 +146,7 @@ export const completeOnboardingForIdentity = async (
               select: { userId: true, username: true },
             });
 
-      if (data.marketingOptIn) {
+      if (marketingGranted) {
         await tx.consentEvent.create({
           data: {
             userId: user.userId,
@@ -124,6 +154,7 @@ export const completeOnboardingForIdentity = async (
             granted: true,
             textVersion: MARKETING_CONSENT_TEXT_VERSION,
             source: 'signup',
+            address: identity.email,
             at: now,
           },
         });

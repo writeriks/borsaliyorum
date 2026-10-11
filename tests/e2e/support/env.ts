@@ -43,6 +43,8 @@ export const e2eServerEnv = (): Record<string, string> => ({
   DATABASE_URL: e2eDatabaseUrl(),
   IP_ENCRYPTION_KEY: E2E_IP_ENCRYPTION_KEY,
   STOCKS_REVALIDATE_SECRET: E2E_STOCKS_REVALIDATE_SECRET,
+  // Varsayılan (kapalı) davranış test edilir; geliştiricinin kabuğundaki değer sızmasın
+  MARKETING_CONSENT_ENABLED: 'false',
   E2E_PORT: String(E2E_PORT),
   NEXT_TELEMETRY_DISABLED: '1',
 });

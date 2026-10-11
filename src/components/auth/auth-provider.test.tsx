@@ -33,6 +33,7 @@ const authenticated: ClientSession = {
     avatarUrl: null,
     email: 'ayse@example.test',
     emailVerified: true,
+    legalAcceptanceRequired: false,
   },
 };
 

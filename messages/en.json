@@ -45,7 +45,9 @@
     "footer": {
       "disclaimerLink": "Investment disclaimer",
       "privacy": "Privacy notice (KVKK)",
+      "cookies": "Cookie policy",
       "terms": "Terms of use",
+      "community": "Community guidelines",
       "copyright": "© Borsalıyorum"
     },
     "completeSignup": "Complete sign-up",
@@ -90,7 +92,8 @@
     "REAUTH_REQUIRED": "For your security, please log in again.",
     "USERNAME_TAKEN": "This username is taken.",
     "USERNAME_RESERVED": "This username can't be used.",
-    "ACCOUNT_EMAIL_CONFLICT": "This email address belongs to an account created with a different sign-in method."
+    "ACCOUNT_EMAIL_CONFLICT": "This email address belongs to an account created with a different sign-in method.",
+    "LEGAL_ACCEPTANCE_REQUIRED": "To post, you need to accept the updated terms."
   },
   "entity": {
     "newTab": "(opens in a new tab)",
@@ -304,8 +307,7 @@
       "submit": "Create account",
       "submitting": "Creating account…",
       "haveAccount": "Already have an account?",
-      "loginLink": "Log in",
-      "privacyNote": "You can find out how your personal data is processed in the <link>Privacy Notice</link>."
+      "loginLink": "Log in"
     },
     "errors": {
       "invalidCredentials": "Incorrect email or password.",
@@ -342,23 +344,27 @@
       },
       "displayName": {
         "label": "Display name",
-        "hint": "Shown on your profile and posts.",
+        "hint": "Public: shown on your profile and posts. It doesn't have to be your real name.",
         "errors": {
           "required": "Enter your display name.",
           "tooLong": "Display name can be at most 50 characters."
         }
       },
       "age": {
-        "label": "I am over 18 years old.",
-        "required": "To continue, confirm that you are over 18."
+        "label": "I am 18 or older.",
+        "required": "You must be 18 or older to use Borsalıyorum."
+      },
+      "terms": {
+        "label": "I accept the <link>Terms of Use</link>.",
+        "required": "To continue, accept the Terms of Use."
       },
       "notice": {
-        "label": "I have read the <link>Privacy Notice</link>.",
+        "label": "I have read and understood the <link>Privacy Notice</link>.",
         "required": "To continue, confirm that you have read the Privacy Notice."
       },
       "marketing": {
-        "label": "I'd like to receive campaigns, newsletters and announcements by email (optional).",
-        "hint": "You can withdraw this at any time; not giving it doesn't affect your membership."
+        "label": "I'd like to receive Borsalıyorum news, offers and newsletters by email. (Optional)",
+        "hint": "You can withdraw anytime in settings or via the link in any email. Not giving permission doesn't affect your membership."
       },
       "submit": "Continue",
       "submitting": "Saving…",
@@ -389,10 +395,28 @@
       "lead": "For your security, log in again and we'll send the verification link to your email right away.",
       "submit": "Log in and send",
       "submitting": "Sending…"
-    }
+    },
+    "privacyNote": "To create your account and recognise you, we process your email address and, if you use Google, the name on your Google account. Details are in the <link>Privacy Notice</link>."
   },
   "feedPlaceholder": {
     "title": "Feed",
     "body": "Posts from the people and stocks you follow will appear here soon."
+  },
+  "legalUpdate": {
+    "metaTitle": "Updated terms",
+    "title": "Our terms have been updated",
+    "intro": "To keep posting, please read and accept the updated documents. You can keep reading Borsalıyorum without accepting.",
+    "documents": "Updated documents",
+    "version": "Version: {version}",
+    "checkbox": "I have read and accept the new versions of the Terms of Use, the Community Guidelines and the Investment Disclaimer.",
+    "checkboxRequired": "Tick the box to continue.",
+    "submit": "Accept and continue",
+    "submitting": "Saving…",
+    "decline": "If you do not want to accept, you can end your membership free of charge. Send your account deletion request from the email address registered to your account to our support address:",
+    "banner": {
+      "title": "Our terms have been updated",
+      "body": "You can keep reading; to post, you need to accept the new version.",
+      "cta": "Review and accept"
+    }
   }
 }

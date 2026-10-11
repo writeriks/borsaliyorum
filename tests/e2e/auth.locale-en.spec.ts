@@ -24,6 +24,7 @@ test.describe('/en: next yönlendirmesi tek önekli', () => {
     await page.getByLabel(en.auth.onboarding.username.label).fill(`en_${suffix}`);
     await page.getByLabel(en.auth.onboarding.displayName.label).fill('English Test');
     await page.getByLabel(en.auth.onboarding.age.label).check();
+    await page.getByLabel(/Terms of Use/).check();
     await page.getByLabel(/Privacy Notice/).check();
     await expect(page.getByText(en.auth.onboarding.username.available)).toBeVisible();
     await page.getByTestId('onboarding-submit').click();

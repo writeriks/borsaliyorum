@@ -10,9 +10,9 @@ import type { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
 import { ErrorCode, errorMessageKey } from '@/lib/errors';
+import { PRIVACY_NOTICE_HREF, TERMS_HREF } from '@/lib/legal/versions';
 import { normalizeUsernameInput, usernameIssue } from '@/lib/users/username';
 
-import { PRIVACY_NOTICE_HREF } from '../legal-versions';
 import { onboardingSchema } from '../schemas';
 import { checkUsernameAvailability, completeOnboarding } from '../server/actions';
 
@@ -26,21 +26,37 @@ type Checked = { readonly username: string; readonly availability: Availability 
 
 const CHECK_DELAY_MS = 400;
 
+/** Etiket içindeki yasal metin bağlantısı (yeni sekme: form doldurulurken kaybolmasın). */
+const legalLink = (href: string, chunks: ReactNode): ReactElement => (
+  <Link
+    href={href}
+    target='_blank'
+    className='font-medium text-accent underline underline-offset-2'
+  >
+    {chunks}
+  </Link>
+);
+
 type OnboardingFormProps = {
   /** Oturumdaki kimliğin e-postası (yalnızca sahibine; çakışma mesajında gösterilir). */
   email: string;
   suggestedDisplayName: string | null;
   next: string | null;
+  /** `MARKETING_CONSENT_ENABLED` (sunucuda okunur). Kapalıyken pazarlama kutusu hiç render edilmez. */
+  marketingEnabled: boolean;
 };
 
 /**
- * Onboarding: kullanıcı adı (kural + rezerve + canlı müsaitlik), görünen ad, 18+ beyanı,
- * aydınlatma metninin okunduğu (rıza değil) ve ayrı, işaretsiz pazarlama izni.
+ * Onboarding: kullanıcı adı (kural + rezerve + canlı müsaitlik), görünen ad ve sırasıyla
+ * (docs/legal/auth-metinleri.md): 18+ beyanı → Kullanım Koşulları kabulü (zorunlu) →
+ * aydınlatma metninin okunup anlaşıldığı (rıza değil) → ayraç → ayrı, işaretsiz pazarlama izni
+ * (yalnızca flag açıkken).
  */
 export const OnboardingForm = ({
   email,
   suggestedDisplayName,
   next,
+  marketingEnabled,
 }: OnboardingFormProps): ReactElement => {
   const t = useTranslations('auth.onboarding');
   const tRoot = useTranslations();
@@ -55,6 +71,7 @@ export const OnboardingForm = ({
       username: '',
       displayName: suggestedDisplayName ?? '',
       ageConfirmed: false,
+      termsAccepted: false,
       noticeAcknowledged: false,
       marketingOptIn: false,
       next,
@@ -134,16 +151,6 @@ export const OnboardingForm = ({
       </span>
     ) : null;
 
-  const privacyLink = (chunks: ReactNode): ReactElement => (
-    <Link
-      href={PRIVACY_NOTICE_HREF}
-      target='_blank'
-      className='font-medium text-accent underline underline-offset-2'
-    >
-      {chunks}
-    </Link>
-  );
-
   if (emailConflict) return <EmailConflictNotice email={email} />;
 
   return (
@@ -192,17 +199,31 @@ export const OnboardingForm = ({
           {...form.register('ageConfirmed')}
         />
         <CheckboxField
+          id='onboarding-terms'
+          label={t.rich('terms.label', { link: chunks => legalLink(TERMS_HREF, chunks) })}
+          error={errors.termsAccepted ? t('terms.required') : null}
+          {...form.register('termsAccepted')}
+        />
+        <CheckboxField
           id='onboarding-notice'
-          label={t.rich('notice.label', { link: privacyLink })}
+          label={t.rich('notice.label', {
+            link: chunks => legalLink(PRIVACY_NOTICE_HREF, chunks),
+          })}
           error={errors.noticeAcknowledged ? t('notice.required') : null}
           {...form.register('noticeAcknowledged')}
         />
-        <CheckboxField
-          id='onboarding-marketing'
-          label={t('marketing.label')}
-          hint={t('marketing.hint')}
-          {...form.register('marketingOptIn')}
-        />
+        {marketingEnabled ? (
+          <>
+            {/* Aydınlatma ile açık rıza ayrı beyanlar (KVK Kurulu 2026/347): görsel ayraç */}
+            <hr className='my-2 border-border' />
+            <CheckboxField
+              id='onboarding-marketing'
+              label={t('marketing.label')}
+              hint={t('marketing.hint')}
+              {...form.register('marketingOptIn')}
+            />
+          </>
+        ) : null}
       </fieldset>
 
       {errors.next ? <FieldError>{t('failed')}</FieldError> : null}

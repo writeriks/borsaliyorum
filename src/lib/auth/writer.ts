@@ -18,7 +18,13 @@ export type WriterDeps = {
  * - e-posta doğrulanmamışsa Firebase'den **bir kez** tazelenir (bu durumda tek ağ çağrısı);
  *   doğrulanmışsa DB güncellenir ve devam edilir, değilse `EMAIL_NOT_VERIFIED`.
  *   Firebase'e ulaşılamazsa bilinen durum geçerlidir (fail-closed: `EMAIL_NOT_VERIFIED`).
+ * - yasal metin paketi güncel değilse `LEGAL_ACCEPTANCE_REQUIRED` (okuma serbest, yazma kapalı;
+ *   /yasal/yeni-surum). E-posta kontrolünden SONRA: "Doğruladım" tazelemesi kabul beklerken de
+ *   DB'ye yazılır.
  */
+const requireLegalAcceptance = (user: SessionUser): Result<SessionUser> =>
+  user.legalAcceptanceRequired ? fail(ErrorCode.LEGAL_ACCEPTANCE_REQUIRED) : ok(user);
+
 export const resolveWriter = async (
   session: SessionState,
   deps: WriterDeps
@@ -26,7 +32,7 @@ export const resolveWriter = async (
   if (session.status === 'anonymous') return fail(anonymousErrorCode(session));
   if (session.status === 'needs-onboarding') return fail(ErrorCode.ONBOARDING_REQUIRED);
   const { user, firebaseUid } = session;
-  if (user.emailVerified) return ok(user);
+  if (user.emailVerified) return requireLegalAcceptance(user);
 
   let verified: boolean;
   try {
@@ -38,5 +44,5 @@ export const resolveWriter = async (
   if (!verified) return fail(ErrorCode.EMAIL_NOT_VERIFIED);
 
   await deps.markEmailVerified(user.userId);
-  return ok({ ...user, emailVerified: true });
+  return requireLegalAcceptance({ ...user, emailVerified: true });
 };

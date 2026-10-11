@@ -3,12 +3,19 @@
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 
+import { getAdminAuth } from '@/lib/auth/firebase-admin';
 import { consumeAuthRateLimit, type RateLimitDecision } from '@/lib/auth/rate-limit';
 import { redirectToNext } from '@/lib/auth/redirect-next';
-import { getSession, requireActionOnboardingIdentity, requireWriter } from '@/lib/auth/session';
+import {
+  destroySession,
+  getSession,
+  requireActionOnboardingIdentity,
+  requireWriter,
+} from '@/lib/auth/session';
 import { getIpEncryptionKey } from '@/lib/crypto/key';
 import { getDb } from '@/lib/db';
 import { ErrorCode, fail, ok, type Result, toFailure } from '@/lib/errors';
+import { getMarketingConsentEnabled } from '@/lib/env.server';
 import { logger } from '@/lib/logger';
 import { readRequestMeta } from '@/lib/request-meta';
 import { normalizeUsernameInput, usernameIssue } from '@/lib/users/username';
@@ -22,6 +29,17 @@ import {
 } from './onboarding';
 
 const log = logger.child({ module: 'auth.actions' });
+
+/** `admin.getUser`: hesap yoksa false; diğer hatalar (ağ vb.) fırlatılır → INTERNAL. */
+const firebaseAccountExists = async (firebaseUid: string): Promise<boolean> => {
+  try {
+    await getAdminAuth().getUser(firebaseUid);
+    return true;
+  } catch (error) {
+    if ((error as { code?: unknown } | null)?.code === 'auth/user-not-found') return false;
+    throw error;
+  }
+};
 
 const rateLimited = (limit: Extract<RateLimitDecision, { ok: false }>) =>
   fail(ErrorCode.RATE_LIMITED, { retryAfter: limit.retryAfterSeconds });
@@ -52,11 +70,20 @@ export const completeOnboarding = async (input: unknown): Promise<Result<never>>
       identity.data,
       parsed.data,
       readRequestMeta(await headers()),
-      { db: getDb(), ipKey: getIpEncryptionKey, now: () => new Date(), log }
+      {
+        db: getDb(),
+        ipKey: getIpEncryptionKey,
+        now: () => new Date(),
+        log,
+        marketingConsentEnabled: getMarketingConsentEnabled(),
+        firebaseAccountExists,
+      }
     );
   } catch (error) {
     return toFailure(error, log);
   }
+  // Firebase hesabı silinmiş (yetim imhası): geçerli görünen çerez de sonlandırılır
+  if (!result.ok && result.error === ErrorCode.UNAUTHENTICATED) await destroySession();
   if (!result.ok) return result;
 
   revalidatePath('/', 'layout');
@@ -101,7 +128,8 @@ export const refreshEmailVerification = async (): Promise<Result<{ verified: boo
   if (before.status !== 'authenticated') return fail(ErrorCode.UNAUTHENTICATED);
   if (before.user.emailVerified) return ok({ verified: true });
   const writer = await requireWriter();
-  if (writer.ok) {
+  // Kabul bekleyen yasal metin kapısı e-posta kontrolünden sonra gelir: doğrulama yazılmıştır
+  if (writer.ok || writer.error === ErrorCode.LEGAL_ACCEPTANCE_REQUIRED) {
     revalidatePath('/', 'layout');
     return ok({ verified: true });
   }

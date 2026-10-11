@@ -88,6 +88,7 @@ describe('runRetentionPurge', () => {
       rateLimitBuckets: 2,
       linkPreviews: 1,
       legalIdentities: 1,
+      consentEvents: 0,
     });
     const events = await getDb().contentEvent.findMany({ select: { id: true } });
     expect(events.map(e => e.id)).toEqual([recentEvent.id]);
@@ -111,6 +112,7 @@ describe('runRetentionPurge', () => {
       rateLimitBuckets: 0,
       linkPreviews: 0,
       legalIdentities: 0,
+      consentEvents: 0,
     });
   });
 
@@ -123,5 +125,64 @@ describe('runRetentionPurge', () => {
     await expect(purge('6 months')).rejects.toThrow(/1 ile 2 yıl/);
     await expect(purge('3 years')).rejects.toThrow(/1 ile 2 yıl/);
     expect(await getDb().rateLimitBucket.count()).toBe(before);
+  });
+
+  it('ConsentEvent: izin sona erdikten 3 yıl sonra (userId, kind) geçmişi silinir', async () => {
+    const YEAR = 365 * DAY;
+    const consent = (
+      userId: number,
+      granted: boolean,
+      at: Date,
+      kind: 'marketing_email' | 'marketing_sms' = 'marketing_email'
+    ) => ({
+      userId,
+      kind,
+      granted,
+      textVersion: granted ? '2026-10-v2' : null,
+      source: granted ? ('signup' as const) : ('settings' as const),
+      at,
+    });
+    await getDb().consentEvent.createMany({
+      data: [
+        // 1: 4 yıl önce verildi, 3 yıl + 10 gün önce geri alındı → tüm geçmiş silinir
+        consent(9001, true, ago(4 * YEAR)),
+        consent(9001, false, ago(3 * YEAR + 10 * DAY)),
+        // 1 / sms: aynı kullanıcının hâlâ geçerli izni → kalır
+        consent(9001, true, ago(5 * YEAR), 'marketing_sms'),
+        // 2: 2 yıl önce geri alındı → süre dolmadı, kalır
+        consent(9002, true, ago(4 * YEAR)),
+        consent(9002, false, ago(2 * YEAR)),
+        // 3: eski geri alma sonra yeniden verildi → son olay granted, kalır
+        consent(9003, false, ago(5 * YEAR)),
+        consent(9003, true, ago(4 * YEAR)),
+      ],
+    });
+
+    expect(await purge()).toMatchObject({ consentEvents: 2 });
+
+    const left = await getDb().consentEvent.findMany({
+      where: { userId: { in: [9001, 9002, 9003] } },
+      select: { userId: true, kind: true },
+      orderBy: [{ userId: 'asc' }, { at: 'asc' }],
+    });
+    expect(left).toEqual([
+      { userId: 9001, kind: 'marketing_sms' },
+      { userId: 9002, kind: 'marketing_email' },
+      { userId: 9002, kind: 'marketing_email' },
+      { userId: 9003, kind: 'marketing_email' },
+      { userId: 9003, kind: 'marketing_email' },
+    ]);
+    // Append-only koruması temizlik dışında hâlâ geçerli
+    await expect(getDb().consentEvent.deleteMany({ where: { userId: 9002 } })).rejects.toThrow(
+      /append-only/
+    );
+  });
+
+  it('ConsentEvent saklama süresi 3 yıldan kısa verilemez', async () => {
+    await expect(
+      withClient(workerDatabaseUrl(), client =>
+        runRetentionPurge(client, { consentEventRetention: '2 years' })
+      )
+    ).rejects.toThrow(/en az 3 yıl/);
   });
 });

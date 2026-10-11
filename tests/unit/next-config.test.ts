@@ -1,7 +1,7 @@
 import { PHASE_DEVELOPMENT_SERVER, PHASE_PRODUCTION_BUILD } from 'next/constants';
 import { describe, expect, it, vi } from 'vitest';
 
-import config, { baseConfig } from '../../next.config';
+import config, { baseConfig, noindexHeaders } from '../../next.config';
 
 describe('next.config', () => {
   it('istemciye env gömmez (FIREBASE_PRIVATE_KEY vb. sızmasın)', () => {
@@ -37,9 +37,24 @@ describe('next.config', () => {
   });
 
   it('Vercel production’da noindex eklemez', async () => {
-    vi.stubEnv('SKIP_ENV_VALIDATION', '1');
-    vi.stubEnv('VERCEL_ENV', 'production');
-    const headers = await config(PHASE_PRODUCTION_BUILD).headers?.();
+    const headers = await noindexHeaders('production')?.();
     expect(headers ?? []).toEqual([]);
+  });
+
+  it('production build’de yasal metinlerde [[ph:…]] kalmışsa build durur; SKIP ile atlanamaz', () => {
+    vi.stubEnv('SKIP_ENV_VALIDATION', '1');
+    vi.stubEnv('VERCEL', '');
+    vi.stubEnv('VERCEL_ENV', 'production');
+    // Depodaki metinlerde şu an doldurulmamış yer tutucular var (docs/legal/README.md)
+    expect(() => config(PHASE_PRODUCTION_BUILD)).toThrow(/yer tutucu/i);
+    expect(() => config(PHASE_PRODUCTION_BUILD)).toThrow(/company/);
+  });
+
+  it('preview/yerel build yer tutucularla devam eder (yalnızca production kapısı)', () => {
+    vi.stubEnv('SKIP_ENV_VALIDATION', '1');
+    for (const vercelEnv of ['preview', '']) {
+      vi.stubEnv('VERCEL_ENV', vercelEnv);
+      expect(() => config(PHASE_PRODUCTION_BUILD)).not.toThrow();
+    }
   });
 });

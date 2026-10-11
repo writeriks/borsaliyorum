@@ -3,15 +3,17 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { User } from 'firebase/auth';
 import { useLocale, useTranslations } from 'next-intl';
-import { type ReactElement, useCallback, useEffect, useState } from 'react';
+import { type ReactElement, type ReactNode, useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { useAuth } from '@/components/auth/auth-provider';
 import { Button } from '@/components/ui/button';
+import { Link } from '@/i18n/navigation';
 import { prewarmClientAuth } from '@/lib/auth/firebase-client';
 import { prefetchCsrfToken } from '@/lib/auth/session-api';
 import { ErrorCode } from '@/lib/errors';
+import { PRIVACY_NOTICE_HREF } from '@/lib/legal/versions';
 
 import {
   type AfterAuthenticate,
@@ -204,6 +206,26 @@ export const CredentialsForm = ({ mode, next }: CredentialsFormProps): ReactElem
         {busy === 'google' ? null : <GoogleIcon />}
         {busy === 'google' ? t('google.pending') : t('google.action')}
       </Button>
+
+      {/*
+        KVKK md.10: aydınlatma, veri elde edilirken. Firebase hesabı (Google ile ilk girişte de)
+        bu butonlara basıldığı an oluştuğu için not hemen altlarında; footer'a gömülmez.
+      */}
+      {mode === 'reverify' ? null : (
+        <p data-testid='auth-privacy-note' className='text-xs text-fg-muted'>
+          {t.rich('privacyNote', {
+            link: (chunks: ReactNode) => (
+              <Link
+                href={PRIVACY_NOTICE_HREF}
+                target='_blank'
+                className='font-medium text-accent underline-offset-2 hover:underline'
+              >
+                {chunks}
+              </Link>
+            ),
+          })}
+        </p>
+      )}
     </div>
   );
 };

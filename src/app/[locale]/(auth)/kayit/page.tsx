@@ -1,11 +1,10 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import type { ReactElement, ReactNode } from 'react';
+import type { ReactElement } from 'react';
 
 import { AppShell } from '@/components/shell/app-shell';
 import { AuthPageFrame, firstParam } from '@/features/auth/components/auth-page-frame';
 import { CredentialsForm } from '@/features/auth/components/credentials-form';
-import { PRIVACY_NOTICE_HREF } from '@/features/auth/legal-versions';
 import { Link } from '@/i18n/navigation';
 import { type AuthPageProps, resolveLocale } from '@/i18n/page-params';
 import { safeNextPath } from '@/lib/auth/rules';
@@ -16,8 +15,6 @@ export const generateMetadata = async ({ params }: AuthPageProps): Promise<Metad
   const t = await getTranslations({ locale });
   return { title: `${t('auth.signup.metaTitle')} · ${t('metadata.title')}` };
 };
-
-const linkClass = 'font-medium text-accent underline-offset-2 hover:underline';
 
 const SignupPage = async ({ params, searchParams }: AuthPageProps): Promise<ReactElement> => {
   const locale = resolveLocale((await params).locale);
@@ -32,26 +29,15 @@ const SignupPage = async ({ params, searchParams }: AuthPageProps): Promise<Reac
         title={t('signup.title')}
         lead={t('signup.lead')}
         footer={
-          <>
-            <p className='text-xs'>
-              {t.rich('signup.privacyNote', {
-                link: (chunks: ReactNode) => (
-                  <Link href={PRIVACY_NOTICE_HREF} target='_blank' className={linkClass}>
-                    {chunks}
-                  </Link>
-                ),
-              })}
-            </p>
-            <p>
-              {t('signup.haveAccount')}{' '}
-              <Link
-                href={next ? { pathname: '/giris', query: { next } } : '/giris'}
-                className={linkClass}
-              >
-                {t('signup.loginLink')}
-              </Link>
-            </p>
-          </>
+          <p>
+            {t('signup.haveAccount')}{' '}
+            <Link
+              href={next ? { pathname: '/giris', query: { next } } : '/giris'}
+              className='font-medium text-accent underline-offset-2 hover:underline'
+            >
+              {t('signup.loginLink')}
+            </Link>
+          </p>
         }
       >
         <CredentialsForm mode='signup' next={next} />

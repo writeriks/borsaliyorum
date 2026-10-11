@@ -47,6 +47,7 @@ describe('useShellViewer', () => {
           avatarUrl: null,
           email: 'ayse@example.test',
           emailVerified: true,
+          legalAcceptanceRequired: false,
         },
       });
     });

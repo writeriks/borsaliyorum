@@ -46,6 +46,9 @@ describe('interpretActionResult', () => {
     expect(interpretActionResult(fail('ONBOARDING_REQUIRED'))).toEqual({
       kind: 'onboarding-required',
     });
+    expect(interpretActionResult(fail('LEGAL_ACCEPTANCE_REQUIRED'))).toEqual({
+      kind: 'legal-acceptance-required',
+    });
     expect(interpretActionResult(fail('RATE_LIMITED'))).toEqual({
       kind: 'error',
       error: 'RATE_LIMITED',
@@ -102,5 +105,21 @@ describe('useActionResult', () => {
     expect(push).toHaveBeenCalledWith('/hos-geldin');
     result.current(fail('EMAIL_NOT_VERIFIED'));
     expect(toastError).toHaveBeenCalledWith(MESSAGES.tr.errors.EMAIL_NOT_VERIFIED);
+  });
+
+  it('LEGAL_ACCEPTANCE_REQUIRED → açıklayıcı toast + kabul ekranı (bulunduğu sayfaya dönecek şekilde)', () => {
+    const { result } = renderHook(() => useActionResult(), { wrapper: wrapper('tr') });
+    const onSessionExpired = vi.fn();
+    expect(result.current(fail('LEGAL_ACCEPTANCE_REQUIRED'), { onSessionExpired })).toBeNull();
+    expect(toastError).toHaveBeenCalledWith(MESSAGES.tr.errors.LEGAL_ACCEPTANCE_REQUIRED);
+    expect(push).toHaveBeenCalledWith('/yasal/yeni-surum?next=%2Fakis%3Fsekme%3Dson');
+    // Taslak, oturum düşmesindeki gibi kaydedilir (sayfadan ayrılınıyor)
+    expect(onSessionExpired).toHaveBeenCalledOnce();
+
+    pathname = '/en/akis';
+    search = '';
+    const en = renderHook(() => useActionResult(), { wrapper: wrapper('en') });
+    en.result.current(fail('LEGAL_ACCEPTANCE_REQUIRED'));
+    expect(push).toHaveBeenLastCalledWith('/en/yasal/yeni-surum?next=%2Fen%2Fakis');
   });
 });

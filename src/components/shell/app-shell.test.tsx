@@ -147,6 +147,28 @@ describe('AppShell', () => {
       expect(within(footer).getByText(tr.legal.disclaimer.full)).toBeInTheDocument();
     }
   });
+
+  it.each([
+    ['tr', ''],
+    ['en', '/en'],
+  ] as const)('%s: footer her yasal sayfaya link verir (iki kopyada da)', (locale, prefix) => {
+    renderShell(undefined, locale);
+    const labels = MESSAGES[locale].shell.footer;
+    const expected = [
+      [labels.disclaimerLink, '/yasal/yatirim-uyarisi'],
+      [labels.privacy, '/yasal/kvkk'],
+      [labels.cookies, '/yasal/cerez-politikasi'],
+      [labels.terms, '/yasal/kullanim-kosullari'],
+      [labels.community, '/yasal/topluluk-kurallari'],
+    ] as const;
+    for (const footer of screen.getAllByRole('contentinfo')) {
+      const nav = within(footer).getByRole('navigation', { name: MESSAGES[locale].shell.legalNav });
+      const links = within(nav).getAllByRole('link');
+      expect(links.map(link => [link.textContent, link.getAttribute('href')])).toEqual(
+        expected.map(([label, href]) => [label, `${prefix}${href}`])
+      );
+    }
+  });
 });
 
 describe('isActivePath', () => {

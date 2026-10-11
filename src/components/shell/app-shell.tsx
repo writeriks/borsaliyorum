@@ -1,6 +1,8 @@
 import { useTranslations } from 'next-intl';
 import type { ReactElement, ReactNode } from 'react';
 
+import { LegalUpdateNotice } from '@/features/legal/components/legal-update-notice';
+
 import { RightRail } from './right-rail';
 import { SideNav } from './side-nav';
 import { SiteFooter } from './site-footer';
@@ -42,6 +44,8 @@ export const AppShell = ({ children, viewer = UNKNOWN_VIEWER }: AppShellProps): 
         >
           <TopBar className='md:hidden' viewer={viewer} />
           <main id={MAIN_CONTENT_ID} tabIndex={-1} className='flex-1 outline-none'>
+            {/* Yeni yasal metin sürümü kabul edilmemişse her sayfada (okuma serbest) */}
+            <LegalUpdateNotice />
             {children}
           </main>
           <SiteFooter
