@@ -1,0 +1,21 @@
+# v2 kararları (kullanıcı onayı: 2026-10-10)
+
+Bu dosya ADR'lerdeki "karar gerekli" maddelerinin sonucudur ve çelişki halinde ADR'lerin önündedir.
+
+| # | Karar |
+|---|-------|
+| K1 | **v2 ayrı dizin/proje değil.** Mevcut repo kökünde, mevcut Next.js uygulamasının yerine yazılır; aynı Vercel projesi. Eski kod referans için `legacy/` altına taşınır ve build/lint/tsconfig dışında tutulur. Uygulamanın aktif kullanıcısı yok; geçiş koruması (S0, ignored build step) gerekmez. |
+| K2 | Aynı Neon DB. Şema değişiklikleri `prisma migrate` ile; testler **asla** bu DB'ye bağlanmaz (yerel/CI Postgres). |
+| K3 | Geçişte herkes bir kez yeniden giriş yapar. |
+| K4 | Gönderide cashtag zorunluluğu kalkar. |
+| K5 | Bilinmeyen cashtag gönderiyi reddeder; editör önceden işaretler. |
+| K6 | Link önizlemede M1'de görsel yok. |
+| K7 | Türkçe URL'ler (`/akis`, `/gonderi/:id`, `/u/:kullanici`, `/hisse/:kod`, `/etiket/:slug`), eski URL'ler 301. |
+| K8 | Çıkış = tüm cihazlardan çıkış. |
+| K9 | **Ayrı Firebase projesi yok.** Testler Firebase Auth emulator kullanır; preview/prod aynı Firebase projesi. |
+| K10 | Görsel/GIF yükleme M1'de yok. GIF sağlayıcısı (KVKK) M2'de. |
+| K11 | **Yorum sınırı 500 grafem** (gönderi 1000). İstemci ve sunucu aynı sabiti kullanır: `src/lib/content-limits.ts` → `CONTENT_MAX_CHARS`. ADR-0002 Karar 3'teki "yorumda 1000, açık soru" bununla kapanır. |
+| K-A | (2026-10-11, S10 review; kullanıcı adına koordinatör) Gönderi/yorum silme: sahibi **veya** moderatör/admin (rol DB'den, `SecurityRole`). Moderatör kaldırması `ContentEvent('moderation.remove')` + `removedByModeration` işareti (sahibine "moderasyonla kaldırıldı"; UI M2). ADR-0002 Karar 7 "S10 review kararları". |
+| K-B | (2026-10-11) Production runtime'da istemci IP'si alınamazsa ContentEvent üreten yazma reddedilir (`INTERNAL`) ve error loglanır; dev/test'te olay atlanır + log. |
+| K-C | (2026-10-11) İçerik sahibiyle iki yönlü engel varsa ya da sahibin hesabı etkin değilse yorum ve beğeni `FORBIDDEN`. |
+| — | Prod'daki `api/image-proxy` ve `api/content/get-preview` SSRF açıkları yeni sürümde SSRF korumalı servisle değiştirilir; eski route'lar S1'de kaldırılır. |

@@ -1,135 +1,494 @@
 {
-  "HomePage": {
-    "title": "Ana Sayfa, günün en aktif hisseleri için yaklaşık 10 gönderi göster."
+  "metadata": {
+    "title": "Borsalıyorum",
+    "description": "Borsa İstanbul hisseleri ve yatırım üzerine konuşan Türkçe topluluk."
   },
-  "Feed": {
-    "latestPosts": "En Son Gönderiler",
-    "popularPosts": "En Popüler Gönderiler"
+  "home": {
+    "title": "Borsalıyorum",
+    "lead": "Hisseler, etiketler ve yatırımcılar hakkında konuşan topluluk. Yeni sürüm hazırlanıyor.",
+    "switchLocale": "English",
+    "switchLocaleLabel": "Sayfayı İngilizce görüntüle"
   },
-  "Common": {
-    "placeholder": "Ne düşünüyorsun?",
-    "errorMessage": "An error occurred.",
-    "email": "E-posta",
-    "username": "Kullanıcı Adı",
-    "warning": "Uyarı"
+  "notFound": {
+    "title": "Sayfa bulunamadı",
+    "description": "Aradığın sayfa taşınmış ya da hiç var olmamış olabilir.",
+    "backHome": "Ana sayfaya dön"
   },
-  "NewPost": {
-    "successMessage": "Gönderi başarıyla oluşturuldu.",
-    "sending": "Gönderiliyor",
-    "send": "Gönder",
-    "gif": "gif",
-    "uploadedAlt": "yüklendi"
+  "errorPage": {
+    "message": "Bu sayfa yüklenemedi. Tekrar dene."
   },
-  "EntryOptions": {
-    "deleteCommentSuccess": "Yorumunuz başarıyla silindi.",
-    "deletePostSuccess": "Gönderiniz başarıyla silindi.",
-    "options": "Seçenekler",
-    "unfollow": "Takipten Çıkar",
-    "follow": "Takip Et",
-    "block": "Engelle",
-    "delete": "Sil"
+  "common": {
+    "retry": "Tekrar dene",
+    "login": "Giriş yap",
+    "signup": "Kayıt ol",
+    "close": "Kapat"
   },
-  "PostDetail": {
-    "back": "Geri",
-    "loadMore": "Daha Fazla Yükle"
-  },
-  "userProfileOptions": {
-    "UserSettings": {
+  "shell": {
+    "skipToContent": "İçeriğe geç",
+    "brand": "borsalıyorum",
+    "homeLabel": "Borsalıyorum ana sayfa",
+    "mainNav": "Ana menü",
+    "nav": {
+      "feed": "Akış",
+      "explore": "Keşfet",
+      "compose": "Gönderi",
       "notifications": "Bildirimler",
-      "settings": "Ayarlar"
+      "profile": "Profil",
+      "settings": "Ayarlar",
+      "search": "Ara"
     },
-    "UserProfileOptionsMobile": {
-      "editProfile": "Profilini Düzenle",
-      "logout": "Çıkış Yap"
+    "composeCta": "Gönderi paylaş",
+    "accountLoading": "Hesap bilgisi yükleniyor",
+    "joinPrompt": "Sohbete katıl:",
+    "aside": "Gündem",
+    "trendingTitle": "Son 24 saatte en çok bahsedilenler",
+    "trendingEmpty": "Gündem listesi yakında burada olacak. Şimdilik akışa göz at.",
+    "trendingEmptyAction": "Akışa git",
+    "legalNav": "Yasal",
+    "footer": {
+      "disclaimerLink": "Yatırım uyarısı",
+      "privacy": "KVKK Aydınlatma Metni",
+      "cookies": "Çerez Politikası",
+      "terms": "Kullanım Koşulları",
+      "community": "Topluluk Kuralları",
+      "copyright": "© Borsalıyorum"
     },
-    "UserProfileOptions": {
-      "viewProfile": "Profilini Gör",
-      "editProfile": "Profilini Düzenle",
-      "logout": "Çıkış Yap"
-    },
-    "LoginContainer": {
-      "login": "Giriş Yap"
+    "completeSignup": "Kaydı tamamla",
+    "completeSignupPrompt": "Hesabın neredeyse hazır:"
+  },
+  "theme": {
+    "menuLabel": "Tema",
+    "toggle": "Temayı değiştir",
+    "dark": "Koyu",
+    "light": "Açık",
+    "system": "Sistem"
+  },
+  "legal": {
+    "disclaimer": {
+      "short": "Paylaşımlar yazarlarının kişisel görüşüdür, yatırım tavsiyesi değildir.",
+      "comment": "Yorumlar kişisel görüştür, yatırım tavsiyesi değildir.",
+      "more": "Ayrıntılar",
+      "title": "Yatırım tavsiyesi değildir",
+      "full": "Burada yer alan yatırım bilgi, yorum ve tavsiyeleri yatırım danışmanlığı kapsamında değildir. Yatırım danışmanlığı hizmeti, aracı kurumlar, portföy yönetim şirketleri, mevduat kabul etmeyen bankalar ile müşteri arasında imzalanacak yatırım danışmanlığı sözleşmesi çerçevesinde sunulmaktadır. Burada yer alan yorum ve tavsiyeler, yorum ve tavsiyede bulunanların kişisel görüşlerine dayanmaktadır. Bu görüşler mali durumunuz ile risk ve getiri tercihlerinize uygun olmayabilir. Bu nedenle, sadece burada yer alan bilgilere dayanılarak yatırım kararı verilmesi beklentilerinize uygun sonuçlar doğurmayabilir."
     }
   },
-  "userProfileCard": {
-    "bio": "Bio",
-    "website": "Web sitesi",
-    "followers": "Takipçiler",
-    "following": "Takip edilenler",
-    "posts": "Gönderiler",
-    "noFollowers": "Henüz takipçi yok",
-    "noFollowing": "Henüz kimseyi takip etmiyor",
-    "loading": "Yükleniyor...",
+  "linkPreview": {
+    "cardLabel": "{title}, {host} (yeni sekmede açılır)",
+    "loading": "Bağlantı önizlemesi yükleniyor"
+  },
+  "errors": {
+    "UNAUTHENTICATED": "Bu işlem için giriş yapmalısın.",
+    "FORBIDDEN": "Bu işlem için yetkin yok.",
+    "NOT_FOUND": "Aradığın içerik bulunamadı.",
+    "VALIDATION": "Girdiğin bilgileri kontrol edip tekrar dene.",
+    "CONFLICT": "Bu işlem şu anda tamamlanamıyor. Sayfayı yenileyip tekrar dene.",
+    "RATE_LIMITED": "Çok fazla deneme yaptın. Biraz bekleyip tekrar dene.",
+    "INTERNAL": "Bir şeyler ters gitti. Lütfen tekrar dene.",
+    "ONBOARDING_REQUIRED": "Devam etmek için hesabını tamamla.",
+    "EMAIL_NOT_VERIFIED": "Gönderi ve yorum yazmak için önce e-posta adresini doğrula.",
+    "ACCOUNT_SUSPENDED": "Bu hesap askıya alınmış.",
+    "CONTENT_EMPTY": "Bir şeyler yaz.",
+    "CONTENT_TOO_LONG": "Metin karakter sınırını aşıyor.",
+    "UNKNOWN_CASHTAG": "Gönderide tanınmayan bir hisse kodu var.",
+    "SPONSORED_CASHTAG_BLOCKED": "Hisse, kripto ya da başka yatırım aracı içeren gönderiler reklam/işbirliği olarak paylaşılamaz.",
+    "TOO_MANY_ENTITIES": "Bir gönderide en fazla 10 hisse, 10 etiket ve 10 kişi anabilirsin.",
+    "REAUTH_REQUIRED": "Güvenliğin için yeniden giriş yapman gerekiyor.",
+    "USERNAME_TAKEN": "Bu kullanıcı adı alınmış.",
+    "USERNAME_RESERVED": "Bu kullanıcı adı kullanılamaz.",
+    "ACCOUNT_EMAIL_CONFLICT": "Bu e-posta adresi başka bir giriş yöntemiyle açılmış bir hesaba bağlı.",
+    "LEGAL_ACCEPTANCE_REQUIRED": "Paylaşım yapmak için güncellenen kullanım koşullarını kabul etmen gerekiyor."
+  },
+  "entity": {
+    "newTab": "(yeni sekmede açılır)",
+    "cashtagName": "{text}, {company}",
+    "mentionName": "{text}, {name}"
+  },
+  "hovercard": {
+    "stockPage": "Hisse sayfası",
+    "kap": "KAP",
+    "tradingview": "TradingView",
+    "mentions24h": "Son 24 saatte {count} gönderi",
+    "statsLoading": "Gönderi sayısı yükleniyor",
+    "follow": "Takip et",
+    "followLoading": "Takip durumu yükleniyor",
+    "market": {
+      "stock": "BIST · Pay",
+      "crypto": "Kripto",
+      "other": "Diğer"
+    }
+  },
+  "post": {
+    "cardLabel": "Gönderi",
+    "sponsoredLabel": "Reklam / İşbirliği",
+    "sentiment": {
+      "bullish": "Yükseliş",
+      "bearish": "Düşüş"
+    },
+    "readMore": "Devamını gör",
+    "readLess": "Daha az göster",
+    "mediaAlt": "Gönderi görseli",
+    "stats": {
+      "label": "Etkileşimler",
+      "comments": "{count, plural, other {# yorum}}",
+      "reposts": "{count, plural, other {# yeniden paylaşım}}",
+      "likes": "{count, plural, other {# beğeni}}"
+    },
+    "loading": "Gönderi yükleniyor",
+    "error": "Gönderi yüklenemedi.",
+    "unavailable": "Bu gönderi kaldırılmış ya da artık görüntülenemiyor.",
+    "actions": {
+      "like": "Beğen",
+      "menu": "Gönderi seçenekleri",
+      "delete": "Sil",
+      "deleting": "Siliniyor…",
+      "deleteTitle": "Gönderi silinsin mi?",
+      "deleteBody": "Gönderi akıştan ve profilinden kaldırılır. Bu işlem geri alınamaz.",
+      "cancel": "Vazgeç",
+      "deleted": "Gönderin silindi."
+    }
+  },
+  "composer": {
+    "placeholder": {
+      "post": "Ne düşünüyorsun?",
+      "comment": "Yanıtını yaz"
+    },
+    "label": {
+      "post": "Gönderi yaz",
+      "comment": "Yanıt yaz"
+    },
+    "title": "Yeni gönderi",
+    "replyingTo": "Yanıtlanan: @{username}",
+    "submit": {
+      "post": "Paylaş",
+      "comment": "Yanıtla"
+    },
+    "submitting": "Paylaşılıyor",
+    "loading": "Gönderi alanı yükleniyor",
+    "disabled": {
+      "empty": "Bir şeyler yaz"
+    },
+    "toolbar": {
+      "label": "Gönderi araçları",
+      "cashtag": "Hisse ekle",
+      "hashtag": "Etiket ekle",
+      "mention": "Kişi an"
+    },
+    "counter": {
+      "remaining": "Kalan karakter: {n}",
+      "over": "Karakter sınırı {n} aşıldı"
+    },
+    "sentiment": {
+      "label": "Görüşün",
+      "bullish": "Yükseliş",
+      "bearish": "Düşüş",
+      "neutral": "Nötr",
+      "help": "Seçimin gönderinde küçük bir etiket olarak görünür ve kişisel görüşün olarak gösterilir."
+    },
+    "sponsored": {
+      "label": "Bu gönderi reklam veya işbirliği içeriyor",
+      "help": "Bir marka ya da kişiden para, hediye, indirim veya başka bir menfaat aldıysan aç. Gönderinin başında \"Reklam / İşbirliği\" etiketi görünür.",
+      "preview": "Reklam / İşbirliği",
+      "cashtagBlocked": "Hisse, kripto ya da başka yatırım aracı içeren gönderiler reklam/işbirliği olarak paylaşılamaz."
+    },
+    "unknownCashtag": "Tanınmayan hisse kodu: {tickers}. Kodu düzelt ya da listeden seç.",
+    "linkPreview": {
+      "remove": "Önizlemeyi kaldır"
+    },
+    "success": {
+      "post": "Gönderin paylaşıldı.",
+      "view": "Görüntüle",
+      "comment": "Yanıtın paylaşıldı."
+    },
+    "error": {
+      "generic": "Gönderin paylaşılamadı. Bağlantını kontrol edip tekrar dene.",
+      "rateLimit": "Çok sık paylaşım yapıyorsun. Biraz bekleyip tekrar dene.",
+      "session": "Oturumunun süresi doldu. Tekrar giriş yap, taslağın saklandı.",
+      "restricted": "Hesabın şu anda gönderi paylaşamıyor. Ayrıntılar bildirimlerinde.",
+      "conflict": "Gönderin paylaşılamadı. Metni kontrol edip yeniden paylaş."
+    },
+    "draft": {
+      "restored": "Kaydedilmemiş taslağın geri yüklendi.",
+      "discard": "Taslağı sil",
+      "confirmTitle": "Taslak kaydedilsin mi?",
+      "confirmBody": "Bu gönderiyi daha sonra tamamlayabilirsin.",
+      "save": "Taslağı kaydet",
+      "delete": "Sil"
+    },
+    "anon": {
+      "post": "Fikrini paylaşmak için giriş yap.",
+      "comment": "Yanıt yazmak için giriş yap."
+    }
+  },
+  "ac": {
+    "listbox": {
+      "stocks": "Hisse önerileri",
+      "tags": "Etiket önerileri",
+      "users": "Kişi önerileri"
+    },
+    "heading": {
+      "stocks": "Hisseler",
+      "followedStocks": "Takip ettiğin hisseler",
+      "mostMentioned": "Çok konuşulanlar (son 24 saat)",
+      "tags": "Etiketler",
+      "trendingTags": "Son 24 saatte çok kullanılanlar",
+      "users": "Kişiler",
+      "following": "Takip ettiklerin"
+    },
+    "market": {
+      "stock": "BIST",
+      "crypto": "Kripto",
+      "other": "Diğer"
+    },
+    "tagCount": "{count, number} gönderi",
+    "following": "Takip ediyorsun",
+    "empty": {
+      "stock": "\"{query}\" ile eşleşen hisse yok.",
+      "tag": "\"#{query}\" henüz kullanılmamış. Yazmaya devam edebilirsin.",
+      "user": "\"@{query}\" ile eşleşen kişi yok.",
+      "stockDefault": "Hisse kodu ya da şirket adı yaz."
+    },
+    "error": "Öneriler yüklenemedi.",
+    "sr": {
+      "count": "{count} öneri. Yukarı ve aşağı oklarla gezin, Enter ile seç.",
+      "none": "Sonuç yok."
+    }
+  },
+  "devComposer": {
+    "title": "Composer önizlemesi (yalnızca geliştirme)",
+    "intro": "Bu sayfa yalnızca geliştirme ve test ortamında açılır. Veriler sahtedir.",
+    "variant": "Varyant",
+    "variants": {
+      "inline": "Akış başı",
+      "dialog": "Dialog",
+      "sheet": "Mobil sayfa",
+      "comment": "Yorum"
+    },
+    "outcome": "Gönderme sonucu",
+    "outcomes": {
+      "ok": "Başarılı",
+      "internal": "Sunucu hatası (500)",
+      "network": "Ağ hatası",
+      "rateLimited": "Hız sınırı (429)",
+      "unauthenticated": "Oturum düştü (401)",
+      "restricted": "Kısıtlı hesap (403)",
+      "unknownCashtag": "Bilinmeyen hisse (422)"
+    },
+    "delay": "Gecikme (ms)",
+    "calls": "Gönderme çağrısı: {count}",
+    "lastPayload": "Son gönderilen veri",
+    "openDialog": "Gönderi paylaş",
+    "openSheet": "Mobil composer'ı aç"
+  },
+  "auth": {
+    "accountMenu": {
+      "label": "Hesap menüsü: {name}"
+    },
+    "signOut": {
+      "action": "Çıkış yap",
+      "pending": "Çıkış yapılıyor…",
+      "failed": "Çıkış yapılamadı. Bağlantını kontrol edip tekrar dene.",
+      "allDevicesNote": "Çıkış yaptığında tüm cihazlardaki oturumların kapanır."
+    },
+    "or": "ya da",
+    "google": {
+      "action": "Google ile devam et",
+      "pending": "Google ile bağlanılıyor…"
+    },
+    "fields": {
+      "email": "E-posta",
+      "password": "Şifre",
+      "passwordHint": "En az 8 karakter."
+    },
+    "validation": {
+      "emailInvalid": "Geçerli bir e-posta adresi gir.",
+      "passwordRequired": "Şifreni gir.",
+      "passwordTooShort": "Şifre en az 8 karakter olmalı.",
+      "passwordTooLong": "Şifre en fazla 128 karakter olabilir."
+    },
+    "login": {
+      "metaTitle": "Giriş yap",
+      "title": "Giriş yap",
+      "lead": "Hesabına giriş yap, hisseler ve yatırımcılar hakkındaki sohbete katıl.",
+      "submit": "Giriş yap",
+      "submitting": "Giriş yapılıyor…",
+      "noAccount": "Hesabın yok mu?",
+      "signupLink": "Kayıt ol"
+    },
+    "signup": {
+      "metaTitle": "Kayıt ol",
+      "title": "Kayıt ol",
+      "lead": "Ücretsiz hesap oluştur. Kullanıcı adını bir sonraki adımda seçeceksin.",
+      "submit": "Hesap oluştur",
+      "submitting": "Hesap oluşturuluyor…",
+      "haveAccount": "Zaten hesabın var mı?",
+      "loginLink": "Giriş yap"
+    },
+    "errors": {
+      "invalidCredentials": "E-posta veya şifre hatalı.",
+      "signupUnavailable": "Bu e-posta ile hesap oluşturulamadı. Zaten hesabın varsa giriş yap.",
+      "weakPassword": "Daha güçlü bir şifre seç (en az 8 karakter).",
+      "invalidEmail": "Geçerli bir e-posta adresi gir.",
+      "tooManyRequests": "Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.",
+      "network": "Bağlantı kurulamadı. İnternetini kontrol edip tekrar dene.",
+      "popupBlocked": "Tarayıcın giriş penceresini engelledi. Açılır pencerelere izin verip tekrar dene.",
+      "otherProvider": "Bu e-posta başka bir giriş yöntemiyle kayıtlı. O yöntemle giriş yap.",
+      "reauth": "Güvenliğin için yeniden giriş yapman gerekiyor.",
+      "suspended": "Bu hesap askıya alınmış. Destek ekibiyle iletişime geç.",
+      "generic": "Giriş yapılamadı. Lütfen tekrar dene.",
+      "signupGeneric": "Hesap oluşturulamadı. Lütfen tekrar dene."
+    },
+    "onboarding": {
+      "metaTitle": "Hesabını tamamla",
+      "title": "Hesabını tamamla",
+      "lead": "Son bir adım: diğer kullanıcıların seni tanıyacağı adı seç.",
+      "signedInAs": "Giriş yapılan hesap: {email}",
+      "switchAccount": "Farklı bir hesapla gir",
+      "username": {
+        "label": "Kullanıcı adı",
+        "hint": "3-20 karakter: küçük harf (a-z), rakam ve alt çizgi (_).",
+        "checking": "Kontrol ediliyor…",
+        "available": "Bu kullanıcı adı uygun.",
+        "errors": {
+          "tooShort": "Kullanıcı adı en az 3 karakter olmalı.",
+          "tooLong": "Kullanıcı adı en fazla 20 karakter olabilir.",
+          "invalidChars": "Yalnızca küçük harf (a-z), rakam ve alt çizgi (_) kullanabilirsin.",
+          "reserved": "Bu kullanıcı adı kullanılamaz. Başka bir ad dene.",
+          "taken": "Bu kullanıcı adı alınmış. Başka bir ad dene."
+        }
+      },
+      "displayName": {
+        "label": "Görünen ad",
+        "hint": "Herkese açıktır; profilinde ve gönderilerinde görünür. Gerçek adını yazmak zorunda değilsin.",
+        "errors": {
+          "required": "Görünen adını gir.",
+          "tooLong": "Görünen ad en fazla 50 karakter olabilir."
+        }
+      },
+      "age": {
+        "label": "18 yaşında ya da daha büyüğüm.",
+        "required": "Borsalıyorum'u kullanmak için 18 yaşında ya da daha büyük olmalısın."
+      },
+      "terms": {
+        "label": "<link>Kullanım Koşulları</link>'nı kabul ediyorum.",
+        "required": "Devam etmek için Kullanım Koşulları'nı kabul etmelisin."
+      },
+      "notice": {
+        "label": "<link>Aydınlatma Metni</link>'ni okudum ve anladım.",
+        "required": "Devam etmek için Aydınlatma Metni'ni okuduğunu belirtmelisin."
+      },
+      "marketing": {
+        "label": "Borsalıyorum'un yenilik, kampanya ve bültenlerini e-posta ile almak istiyorum. (İsteğe bağlı)",
+        "hint": "İznini istediğin an ayarlardan ya da e-postadaki bağlantıdan geri alabilirsin. İzin vermemen üyeliğini etkilemez."
+      },
+      "submit": "Devam et",
+      "submitting": "Kaydediliyor…",
+      "failed": "Bilgilerin kaydedilemedi. Lütfen tekrar dene.",
+      "emailConflict": {
+        "title": "Bu e-posta başka bir hesapta kayıtlı",
+        "body": "{email} adresiyle daha önce farklı bir giriş yöntemi (ör. şifre ya da Google) kullanılarak bir hesap açılmış. O yöntemle giriş yapabilir ya da hesaplarının birleştirilmesi için destek ekibine yazabilirsin.",
+        "contact": "Destek: <link>{supportEmail}</link>"
+      }
+    },
+    "verify": {
+      "title": "E-posta adresini doğrula",
+      "body": "{email} adresine bir doğrulama bağlantısı gönderdik. Doğrulayana kadar gönderileri okuyabilirsin ama gönderi ve yorum yazamazsın.",
+      "resend": "Bağlantıyı yeniden gönder",
+      "resending": "Gönderiliyor…",
+      "resent": "Doğrulama bağlantısı gönderildi. Gelen kutunu kontrol et.",
+      "resendFailed": "Bağlantı gönderilemedi. Biraz bekleyip tekrar dene.",
+      "check": "Doğruladım",
+      "checking": "Kontrol ediliyor…",
+      "stillUnverified": "E-posta adresin henüz doğrulanmamış görünüyor. Bağlantıya tıkladıktan sonra tekrar dene.",
+      "verified": "E-posta adresin doğrulandı.",
+      "resendRateLimited": "Kısa sürede çok fazla bağlantı istedin. Biraz bekleyip tekrar dene."
+    },
+    "sessionExpired": "Oturumun sona erdi. Devam etmek için tekrar giriş yap; yazdıkların kaybolmaz.",
+    "reverify": {
+      "metaTitle": "Doğrulama bağlantısı",
+      "title": "Doğrulama bağlantısını gönder",
+      "lead": "Güvenliğin için tekrar giriş yap; doğrulama bağlantısını hemen e-posta adresine gönderelim.",
+      "submit": "Giriş yap ve gönder",
+      "submitting": "Gönderiliyor…"
+    },
+    "privacyNote": "Hesabını oluşturmak ve seni tanımak için e-posta adresini ve Google ile girersen Google hesabındaki adını işliyoruz. Ayrıntılar <link>Aydınlatma Metni</link> içinde."
+  },
+  "feed": {
+    "title": "Akış",
+    "tabs": {
+      "label": "Akış sıralaması",
+      "latest": "En yeni",
+      "popular": "Popüler"
+    },
+    "popularHint": "Takip ettiklerinin son 7 gündeki gönderileri, beğeni ve yorum sayısına göre.",
     "loadMore": "Daha fazla yükle",
-    "connections": "Bağlantılar"
+    "loadingMore": "Daha fazla gönderi yükleniyor",
+    "loadError": "Akış yüklenemedi. Tekrar dene.",
+    "loadMoreError": "Daha fazlası yüklenemedi.",
+    "end": "Şimdilik hepsi bu kadar.",
+    "newPosts": "{count, plural, other {# yeni gönderi}}",
+    "newPostsCapped": "{count}+ yeni gönderi",
+    "empty": {
+      "noFollows": "Henüz kimseyi ya da hiçbir hisseyi takip etmiyorsun. Aşağıdaki son gönderilerden başlayabilirsin.",
+      "discoverTitle": "Keşfet: son gönderiler",
+      "noPosts": "Takip ettiklerin henüz paylaşım yapmadı. İlk gönderiyi sen yaz.",
+      "popular": "Son 7 günde takip ettiklerinden gönderi yok.",
+      "toLatest": "En yeniye geç"
+    },
+    "aside": {
+      "trendingTitle": "Son 30 günde en çok kullanılan etiketler",
+      "trendingCount": "{count, plural, other {# gönderi}}",
+      "trendingEmpty": "Son 30 günde etiket kullanılmadı.",
+      "trendingError": "Gündem şu anda yüklenemedi.",
+      "followedStocksTitle": "Takip ettiğin hisseler"
+    }
   },
-  "followButton": {
-    "follow": "Takip Et",
-    "unfollow": "Takibi Bırak"
+  "compose": {
+    "title": "Gönderi paylaş"
   },
-  "Settings": {
-    "settings": "Ayarlar",
-    "sameEmailError": "Bu e-posta adresi zaten kullanımda.",
-    "change": "Değiştir",
-    "googleSignInInfo": "Google ile giriş yaptığınız için şifre veya e-posta adresinizi değiştiremezsiniz.",
-    "currentPassword": "Mevcut Şifre",
-    "samePasswordError": "Yeni şifre mevcut şifre ile aynı olamaz.",
-    "newPassword": "Yeni Şifre",
-    "confirmPassword": "Şifreyi Onayla",
-    "deletingAccount": "Hesabınız siliniyor...",
-    "deleteAccount": "Hesabı Sil",
-    "deleteAccountConfirmation": "Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
-    "deleteAccountSuccess": "Hesabınız başarıyla silindi.",
-    "passwordConfirmationModalTitle": "Şifrenizi onaylayın",
-    "passwordConfirmationModalBody": "Bu işlemi gerçekleştirmek için şifrenizi onaylamanız gerekmektedir.",
-    "confirm": "Onayla",
-    "cancel": "İptal",
-    "successMessage": "Ayarlarınız başarıyla güncellendi.",
-    "save": "Kaydet",
-    "saving": "Kaydediliyor"
+  "legalUpdate": {
+    "metaTitle": "Güncellenen kullanım koşulları",
+    "title": "Kullanım koşullarımız güncellendi",
+    "intro": "Paylaşım yapmaya devam etmek için güncellenen metinleri okuyup kabul etmen gerekiyor. Kabul etmeden de Borsalıyorum'u okumaya devam edebilirsin.",
+    "documents": "Güncellenen metinler",
+    "version": "Sürüm: {version}",
+    "checkbox": "Kullanım Koşulları, Topluluk Kuralları ve Yatırım Uyarısı'nın yeni sürümlerini okudum ve kabul ediyorum.",
+    "checkboxRequired": "Devam etmek için kutuyu işaretle.",
+    "submit": "Kabul et ve devam et",
+    "submitting": "Kaydediliyor…",
+    "decline": "Kabul etmek istemiyorsan üyeliğini ücretsiz sona erdirebilirsin. Hesap silme talebini, hesabına kayıtlı e-posta adresinden destek adresimize ilet:",
+    "banner": {
+      "title": "Kullanım koşullarımız güncellendi",
+      "body": "Okumaya devam edebilirsin; paylaşım yapmak için yeni sürümü kabul etmen gerekiyor.",
+      "cta": "İncele ve kabul et"
+    }
   },
-  "EditProfile": {
-    "editProfile": "Profilini Düzenle",
-    "successMessage": "Profil başarıyla güncellendi.",
-    "imagePreviewAlt": "Profil resmi önizlemesi",
-    "saveChanges": "Değişiklikleri Kaydet",
-    "displayName": "Ad Soyad",
-    "username": "Kullanıcı Adı",
-    "bio": "Hakkında",
-    "website": "Websitesi",
-    "location": "Konum",
-    "birthday": "Doğum Tarihi",
-    "savingChanges": "Değişiklikler Kaydediliyor"
+  "postDetail": {
+    "title": "Gönderi",
+    "back": "Geri",
+    "metaTitle": "{name}: “{excerpt}”",
+    "metaTitleNoText": "Gönderen: {name}",
+    "toHome": "Ana sayfaya dön",
+    "notFound": "Bu gönderi bulunamadı. Silinmiş ya da artık görüntülenemiyor olabilir.",
+    "notFoundMetaTitle": "Gönderi bulunamadı"
   },
-  "landingPage": {
-    "heroTitleFirst": "Borsa Topluluğunuz",
-    "heroTitleSecond": "Burada Başlıyor",
-    "heroSubtitle": "Yatırımcılarla bağlantı kurun, piyasa görüşlerinizi paylaşın ve toplulukla birlikte büyüyün.",
-    "startNow": "Hemen Başla"
-  },
-
-  "notifications": {
-    "notificationsTitle": "Bildirimler",
-    "followedBy": "{userDisplayName} seni takip etti.",
-    "likedCommentSingle": "{userDisplayName} bir yorumunu beğendi.",
-    "likedCommentMultiple": "{userDisplayName} ve {count} kişi daha bir yorumunu beğendi.",
-    "likedPostMultiple": "{userDisplayName} ve {count} kişi daha bir gönderini beğendi.",
-    "likedPostSingle": "{userDisplayName} bir gönderini beğendi.",
-    "commentedSingle": "{userDisplayName} bir gönderine yorum yaptı.",
-    "commentedMultiple": "{userDisplayName} ve {count} kişi daha bir gönderine yorum yaptı.",
-    "mentionedInCommentMultiple": "{userDisplayName} ve {count} kişi daha bir yorumda senden bahsetti.",
-    "mentionedInCommentSingle": "{userDisplayName} bir yorumda senden bahsetti.",
-    "mentionedInPostMultiple": "{userDisplayName} ve {count} kişi daha bir gönderide senden bahsetti.",
-    "mentionedInPostSingle": "{userDisplayName} bir gönderide senden bahsetti."
-  },
-
-  "search": {
-    "postCount": "{query} gönderi",
-    "search": "Ara",
-    "users": "Kullanıcılar",
-    "stocks": "Hisseler",
-    "hashtags": "Konular",
-    "placeholder": "Kullanıcıları, hisseleri veya konuları arayın...",
-    "noResults": "\"{query}\" için sonuç bulunamadı."
+  "comments": {
+    "heading": "Yorumlar",
+    "listLabel": "Yorumlar",
+    "itemLabel": "Yorum",
+    "loading": "Yorumlar yükleniyor",
+    "empty": "Henüz yorum yok. İlk yorumu sen yaz.",
+    "emptyAnonymous": "Henüz yorum yok.",
+    "error": "Yorumlar yüklenemedi.",
+    "loadMore": "Daha fazla yükle",
+    "loadMoreError": "Daha fazlası yüklenemedi.",
+    "actions": {
+      "menu": "Yorum seçenekleri",
+      "delete": "Sil",
+      "deleting": "Siliniyor…",
+      "deleteTitle": "Yorum silinsin mi?",
+      "deleteBody": "Yorum gönderiden kaldırılır. Bu işlem geri alınamaz.",
+      "cancel": "Vazgeç",
+      "deleted": "Yorum silindi."
+    }
   }
 }

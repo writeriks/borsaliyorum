@@ -1,10 +1,14 @@
 import { defineRouting } from 'next-intl/routing';
-import { createNavigation } from 'next-intl/navigation';
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '@/i18n/config';
 
 export const routing = defineRouting({
-  locales: SUPPORTED_LOCALES,
-  defaultLocale: DEFAULT_LOCALE,
+  locales: ['tr', 'en'],
+  defaultLocale: 'tr',
+  // tr öneksiz (`/akis`), en `/en/...`
+  localePrefix: 'as-needed',
+  // Dil, Accept-Language'a göre tahmin edilmez ve çerezde saklanmaz: URL tek kaynak.
+  // (Yeni çerez = KVKK incelemesi; otomatik /en yönlendirmesi Türkçe ziyaretçiyi şaşırtır.)
+  localeDetection: false,
+  localeCookie: false,
 });
 
-export const { Link, redirect, usePathname, useRouter, getPathname } = createNavigation(routing);
+export type Locale = (typeof routing.locales)[number];

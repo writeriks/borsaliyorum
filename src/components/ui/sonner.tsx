@@ -1,30 +1,41 @@
 'use client';
 
-import React from 'react';
 import { useTheme } from 'next-themes';
-import { Toaster as Sonner } from 'sonner';
+import type { CSSProperties, ReactElement } from 'react';
+import { Toaster as Sonner, type ToasterProps } from 'sonner';
 
-type ToasterProps = React.ComponentProps<typeof Sonner>;
+import { cn } from '@/lib/utils';
 
-const Toaster = ({ ...props }: ToasterProps): React.ReactNode => {
-  const { theme = 'system' } = useTheme();
+/**
+ * Alt boşluk tek CSS değişkeninden okunur, kesme noktasını Tailwind belirler: sonner'ın kendi
+ * `mobileOffset`'i yalnızca ≤600px'te devreye girer, oysa tab bar md (768px) altında görünür.
+ * 601–767px aralığında toast tab bar'ın üstüne binmesin diye iki offset de aynı değişkene bağlı.
+ * md ve üstünde sonner'ın varsayılanı (24px).
+ */
+const BOTTOM_OFFSET = 'var(--toast-offset-bottom)';
+const offsetClasses =
+  '[--toast-offset-bottom:calc(var(--spacing-tabbar)_+_16px_+_env(safe-area-inset-bottom))] md:[--toast-offset-bottom:24px]';
+
+/** Uygulamada tek Toaster (Providers). Tema next-themes'ten okunur; renkler token'lardan. */
+export const Toaster = ({ className, ...props }: ToasterProps): ReactElement => {
+  const { resolvedTheme } = useTheme();
 
   return (
     <Sonner
-      theme={theme as ToasterProps['theme']}
-      className='toaster group'
-      toastOptions={{
-        classNames: {
-          toast:
-            'group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg',
-          description: 'group-[.toast]:text-muted-foreground',
-          actionButton: 'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground',
-          cancelButton: 'group-[.toast]:bg-muted group-[.toast]:text-muted-foreground',
-        },
-      }}
+      theme={resolvedTheme === 'light' ? 'light' : 'dark'}
+      position='bottom-center'
+      offset={{ bottom: BOTTOM_OFFSET }}
+      mobileOffset={{ bottom: BOTTOM_OFFSET }}
+      className={cn(offsetClasses, className)}
+      style={
+        {
+          '--normal-bg': 'hsl(var(--bg-elevated))',
+          '--normal-text': 'hsl(var(--fg))',
+          '--normal-border': 'hsl(var(--border))',
+          zIndex: 70,
+        } as CSSProperties
+      }
       {...props}
     />
   );
 };
-
-export { Toaster };

@@ -1,11 +1,35 @@
+// Borsalıyorum v2 veri modeli (ADR-0001 Karar 3).
+//
+// Mevcut prod tabloları `@@map`/`@map` ile temiz model adlarına eşlenir; DB'de tablo/kolon adı
+// değişmez (eski uygulama aynı tabloları okur). M1 değişiklikleri yalnızca additive'dir
+// (expand). Her migration'ın geri alma betiği `prisma/rollback/<migration>.down.sql`'dedir.
+//
+// Prisma'nın ifade edemediği DB nesneleri (migration SQL'inde, `db:migrations:check` kapsamında):
+//   - `fold_tag`/`hashtag_slug`/`legacy_tag_slug` (Tag.slug backfill, ADR-0002; scripts/hashtag-sql.ts)
+//   - `ContentEvent`/`ConsentEvent` append-only trigger'ları + `content_event_purge()`
+//   - CHECK kısıtları (ContentEvent IP zorunluluğu/port aralığı, ConsentEvent metin sürümü,
+//     LegalIdentityRetention purgeAt > deletedAt)
+//   - `User_username_lower_pattern_idx` (lower(username) text_pattern_ops, autocomplete öneki)
+//   - `Tag_slug_pattern_idx` ((slug::text) text_pattern_ops, etiket autocomplete öneki; Prisma
+//     btree opclass'ını diff'te koruyamadığı için ifade index'i)
+
+// Prisma 7 istemcisi TS olarak src/generated'a üretilir (gitignore'da; postinstall üretir).
+// `.ts` uzantılı import'lar: scripts/sync-stocks.mjs istemciyi düz `node` ile (Node 22 tip
+// ayıklama) derleme adımı olmadan yükleyebilsin.
 generator client {
-  provider = "prisma-client-js"
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "ts"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
+
+// ---------------------------------------------------------------------------------------------
+// Kullanıcılar
+// ---------------------------------------------------------------------------------------------
 
 model User {
   userId           Int       @id @default(autoincrement())
@@ -13,63 +37,77 @@ model User {
   username         String    @unique
   displayName      String
   email            String    @unique
+  /// v2 toplamaz ve okumaz (legal L3). M1'de NULL'lanır (imha); kolon contract fazında kalkar.
   birthday         DateTime?
   profilePhoto     String?
   coverPhoto       String?
   bio              String?
   theme            String?
   website          String?
-  createdAt        DateTime
+  createdAt        DateTime  @default(now())
   updatedAt        DateTime?
   premiumBeginDate DateTime?
   premiumEndDate   DateTime?
   isEmailVerified  Boolean
   location         String?
 
-  // Relation to SecurityRole
-  securityRole SecurityRole[] @relation("UserRoles")
+  // --- M1 (ADR-0001) ---
+  /// null → onboarding zorunlu (kullanıcı adı kurala uymayan eski hesaplar dahil).
+  onboardedAt           DateTime?
+  /// Çıkış/ban: auth_time bu andan eski oturumlar geçersiz.
+  sessionsValidAfter    DateTime?
+  status                UserStatus @default(active)
+  /// Okunduğu onaylanan aydınlatma metni sürümü ve zamanı [legal L3]. Rıza değildir.
+  noticeVersion         String?    @db.VarChar(20)
+  noticeAcknowledgedAt  DateTime?
+  /// 18+ beyanı [legal L3].
+  ageConfirmedAt        DateTime?
+  /// Kabul edilen Kullanım Koşulları sürümü ve zamanı (TBK genel işlem koşulları; legal S5).
+  termsVersion          String?    @db.VarChar(20)
+  termsAcceptedAt       DateTime?
+  /// Kabul edilen yasal metin paketi (Koşullar + Topluluk Kuralları + Yatırım Uyarısı;
+  /// `LEGAL_BUNDLE_VERSION`). Güncel paketten farklıysa yeniden kabul edilene kadar yazma kapalı.
+  /// Kabul anı `termsAcceptedAt`.
+  legalBundleVersion    String?    @db.VarChar(20)
+  communityRulesVersion String?    @db.VarChar(20)
+  disclaimerVersion     String?    @db.VarChar(20)
+  // Pazarlama izni burada tutulmaz: ConsentEvent'te (userId, kind) için en son satır.
 
-  // Relations to UserFollowers
-  following UserFollowers[] @relation("Following")
-  followers UserFollowers[] @relation("Followers")
-
-  // Relations to UserBlocks
-  blocking  UserBlocks[] @relation("Blocking")
-  blockedBy UserBlocks[] @relation("BlockedBy")
-
-  // Relations to Posts
-  posts Post[] @relation("UserPosts")
-
-  // Relations to PostLikes
-  likedPosts PostLikes[] @relation("PostLikes")
-
-  // Relations to Comments
-  comments Comment[] @relation("UserComments")
-
-  // Relations to CommentLikes
-  likedComments CommentLikes[] @relation("CommentLikes")
-
-  // Relations to StockFollowers
-  stockFollowers StockFollowers[] @relation("UserStockFollowers")
-  notifications  Notification[]
-
-  // Repost relation
-  reposts      Repost[]       @relation("UserReposts")
-  Notification Notification[] @relation("FromUser")
+  roles             SecurityRole[]
+  following         UserFollow[]   @relation("Following")
+  followers         UserFollow[]   @relation("Followers")
+  blocking          UserBlock[]    @relation("Blocking")
+  blockedBy         UserBlock[]    @relation("BlockedBy")
+  posts             Post[]
+  postLikes         PostLike[]
+  comments          Comment[]
+  commentLikes      CommentLike[]
+  stockFollows      StockFollow[]
+  notifications     Notification[] @relation("NotificationRecipient")
+  notificationsSent Notification[] @relation("NotificationSender")
+  reposts           Repost[]
 
   @@index([email])
   @@index([firebaseUserId])
   @@index([username])
+  @@map("User")
+}
+
+enum UserStatus {
+  active
+  suspended
+  deleted
 }
 
 model SecurityRole {
   id     Int      @id @default(autoincrement())
   role   RoleType @default(default)
   userId Int
-  user   User     @relation("UserRoles", fields: [userId], references: [userId])
+  user   User     @relation(fields: [userId], references: [userId])
 
-  @@unique([role, userId]) // Ensures that each user can have only one role
+  @@unique([role, userId])
   @@index([userId])
+  @@map("SecurityRole")
 }
 
 enum RoleType {
@@ -77,6 +115,40 @@ enum RoleType {
   admin
   moderator
 }
+
+model UserFollow {
+  id          Int      @id @default(autoincrement())
+  followerId  Int
+  followingId Int
+  followedAt  DateTime @default(now())
+
+  follower  User @relation("Followers", fields: [followerId], references: [userId])
+  following User @relation("Following", fields: [followingId], references: [userId])
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("UserFollowers")
+}
+
+model UserBlock {
+  id        Int      @id @default(autoincrement())
+  blockerId Int
+  blockedId Int
+  blockedAt DateTime @default(now())
+
+  blocker User @relation("Blocking", fields: [blockerId], references: [userId])
+  blocked User @relation("BlockedBy", fields: [blockedId], references: [userId])
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+  @@map("UserBlocks")
+}
+
+// ---------------------------------------------------------------------------------------------
+// İçerik
+// ---------------------------------------------------------------------------------------------
 
 model Post {
   postId    Int       @id @default(autoincrement())
@@ -87,43 +159,59 @@ model Post {
   updatedAt DateTime?
   sentiment Sentiment
 
-  // Relation to User
-  user User @relation("UserPosts", fields: [userId], references: [userId])
+  // --- M1 (ADR-0001/0002) ---
+  /// 1 = eski react-mentions markup'ı `$(X)`, 2 = düz metin (ADR-0002).
+  contentFormat       Int          @default(1) @db.SmallInt
+  /// ADR-0002 StoredEntities; yalnızca render için.
+  entities            Json?
+  deletedAt           DateTime?
+  /// Moderatör/admin kaldırdı (K-A): `deletedAt` ile birlikte set edilir; sahibine "moderasyonla
+  /// kaldırıldı" durumu gösterilir (UI M2). Sahibinin kendi silmesinde false.
+  removedByModeration Boolean      @default(false)
+  /// "Reklam / İşbirliği" beyanı.
+  isSponsored         Boolean      @default(false)
+  /// Çift gönderim idempotency anahtarı; kullanıcı başına benzersiz (ADR-0002 Karar 7).
+  clientRequestId     String?      @db.Uuid
+  linkPreviewId       Int?
+  linkPreview         LinkPreview? @relation(fields: [linkPreviewId], references: [id], onDelete: SetNull)
 
-  // Relations to Stocks
-  stocks Stock[] @relation("PostStocks")
-
-  // Relations to PostLikes
-  likedBy PostLikes[] @relation("PostLikes")
-
-  // Relations to Comments
-  comments Comment[] @relation("PostComments")
-
-  // Relations to Tags
-  tags          Tag[]          @relation("PostTags")
+  user          User           @relation(fields: [userId], references: [userId])
+  stocks        PostStock[]
+  tags          PostTag[]
+  likes         PostLike[]
+  comments      Comment[]
   notifications Notification[]
+  reposts       Repost[]
 
-  // Repost relation
-  reposts Repost[] @relation("PostReposts")
-
+  @@unique([userId, clientRequestId])
   @@index([createdAt])
   @@index([userId])
+  @@index([createdAt(sort: Desc), postId(sort: Desc)], map: "Post_feed_cursor_idx")
+  @@index([userId, createdAt(sort: Desc), postId(sort: Desc)], map: "Post_user_feed_cursor_idx")
+  @@index([linkPreviewId])
+  @@map("Post")
+}
+
+enum Sentiment {
+  bullish
+  bearish
+  neutral
 }
 
 model Repost {
   repostId     Int      @id @default(autoincrement())
-  repostedBy   Int // User who reposted
-  repostedFrom Int // Original poster
-  postId       Int // Original post being reposted
-  repostDate   DateTime @default(now()) // Date of the repost
+  repostedBy   Int
+  repostedFrom Int
+  postId       Int
+  repostDate   DateTime @default(now())
 
-  // Relations
-  user         User @relation("UserReposts", fields: [repostedBy], references: [userId])
-  originalPost Post @relation("PostReposts", fields: [postId], references: [postId])
+  user         User @relation(fields: [repostedBy], references: [userId])
+  originalPost Post @relation(fields: [postId], references: [postId])
 
   @@unique([repostedBy, postId])
   @@index([repostedBy, postId])
   @@index([postId])
+  @@map("Repost")
 }
 
 model Comment {
@@ -133,20 +221,66 @@ model Comment {
   content   String
   mediaUrl  String?
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @default(now())
 
-  // Relations
-  post Post @relation("PostComments", fields: [postId], references: [postId])
-  user User @relation("UserComments", fields: [userId], references: [userId])
+  // --- M1 ---
+  contentFormat       Int       @default(1) @db.SmallInt
+  entities            Json?
+  deletedAt           DateTime?
+  /// Moderatör/admin kaldırdı (K-A); bkz. `Post.removedByModeration`.
+  removedByModeration Boolean   @default(false)
+  /// Çift gönderim idempotency anahtarı; kullanıcı başına benzersiz (ADR-0002 Karar 7, S10).
+  clientRequestId     String?   @db.Uuid
 
-  // Relations to CommentLikes
-  likedBy       CommentLikes[] @relation("CommentLikes")
+  post          Post           @relation(fields: [postId], references: [postId])
+  user          User           @relation(fields: [userId], references: [userId])
+  likes         CommentLike[]
   notifications Notification[]
 
+  @@unique([userId, clientRequestId])
   @@index([postId])
   @@index([userId])
   @@index([createdAt])
+  @@index([postId, createdAt, commentId], map: "Comment_post_cursor_idx")
+  @@map("Comment")
 }
+
+model PostLike {
+  postLikeId Int      @id @default(autoincrement())
+  userId     Int
+  postId     Int
+  likedAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [userId])
+  post Post @relation(fields: [postId], references: [postId])
+
+  @@unique([userId, postId])
+  @@index([userId, postId])
+  /// Gönderi başına beğeni sayımı (`_count.likes`) ve gönderi silmede tarama (S10).
+  @@index([postId])
+  @@index([likedAt])
+  @@map("PostLikes")
+}
+
+model CommentLike {
+  commentLikeId Int      @id @default(autoincrement())
+  userId        Int
+  commentId     Int
+  likedAt       DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [userId])
+  comment Comment @relation(fields: [commentId], references: [commentId])
+
+  @@unique([userId, commentId])
+  @@index([userId, commentId])
+  /// Yorum başına beğeni sayımı (S10).
+  @@index([commentId])
+  @@map("CommentLikes")
+}
+
+// ---------------------------------------------------------------------------------------------
+// Hisse ve etiketler
+// ---------------------------------------------------------------------------------------------
 
 model Stock {
   stockId         Int       @id @default(autoincrement())
@@ -156,19 +290,11 @@ model Stock {
   stockType       StockType
   marketEntryDate DateTime?
 
-  // Relations to Posts
-  posts Post[] @relation("PostStocks")
-
-  // Relations to StockFollowers
-  followers StockFollowers[] @relation("StockFollowers")
+  posts     PostStock[]
+  followers StockFollow[]
 
   @@index([ticker])
-}
-
-enum Sentiment {
-  bullish
-  bearish
-  neutral
+  @@map("Stock")
 }
 
 enum StockType {
@@ -177,91 +303,67 @@ enum StockType {
   other
 }
 
-model UserFollowers {
-  id          Int      @id @default(autoincrement())
-  followerId  Int
-  followingId Int
-  followedAt  DateTime @default(now())
-
-  // Relations to User
-  follower  User @relation("Followers", fields: [followerId], references: [userId])
-  following User @relation("Following", fields: [followingId], references: [userId])
-
-  @@unique([followerId, followingId]) // Ensures that a user can't follow the same person more than once
-  @@index([followerId])
-  @@index([followingId])
-}
-
-model UserBlocks {
-  id        Int      @id @default(autoincrement())
-  blockerId Int
-  blockedId Int
-  blockedAt DateTime @default(now())
-
-  // Relations to User
-  blocker User @relation("Blocking", fields: [blockerId], references: [userId])
-  blocked User @relation("BlockedBy", fields: [blockedId], references: [userId])
-
-  @@unique([blockerId, blockedId]) // Ensures that a user can't block the same person more than once
-  @@index([blockerId])
-  @@index([blockedId])
-}
-
-model PostLikes {
-  postLikeId Int      @id @default(autoincrement())
-  userId     Int
-  postId     Int
-  likedAt    DateTime @default(now())
-
-  // Relations
-  user User @relation("PostLikes", fields: [userId], references: [userId])
-  post Post @relation("PostLikes", fields: [postId], references: [postId])
-
-  @@unique([userId, postId]) // Ensures a user can like a post only once
-  @@index([userId, postId])
-  @@index([likedAt])
-}
-
-model CommentLikes {
-  commentLikeId Int      @id @default(autoincrement())
-  userId        Int
-  commentId     Int
-  likedAt       DateTime @default(now())
-
-  // Relations
-  user    User    @relation("CommentLikes", fields: [userId], references: [userId])
-  comment Comment @relation("CommentLikes", fields: [commentId], references: [commentId])
-
-  @@unique([userId, commentId]) // Ensures a user can like a comment only once
-  @@index([userId, commentId])
-}
-
-model StockFollowers {
+model StockFollow {
   stockFollowerId Int      @id @default(autoincrement())
   userId          Int
   stockId         Int
   followedAt      DateTime @default(now())
 
-  // Relations
-  user  User  @relation("UserStockFollowers", fields: [userId], references: [userId])
-  stock Stock @relation("StockFollowers", fields: [stockId], references: [stockId])
+  user  User  @relation(fields: [userId], references: [userId])
+  stock Stock @relation(fields: [stockId], references: [stockId])
 
-  @@unique([userId, stockId]) // Ensures a user can follow a stock only once
+  @@unique([userId, stockId])
   @@index([userId, stockId])
+  @@map("StockFollowers")
+}
+
+/// Eski uygulamanın implicit m2m tablosu; iki uygulama aynı tabloyu okur/yazar.
+/// Prisma 5'in ürettiği biçimde PK yok, (A, B) unique index'i var.
+model PostStock {
+  postId  Int @map("A")
+  stockId Int @map("B")
+
+  post  Post  @relation(fields: [postId], references: [postId], onDelete: Cascade, map: "_PostStocks_A_fkey")
+  stock Stock @relation(fields: [stockId], references: [stockId], onDelete: Cascade, map: "_PostStocks_B_fkey")
+
+  @@unique([postId, stockId], map: "_PostStocks_AB_unique")
+  @@index([stockId], map: "_PostStocks_B_index")
+  @@map("_PostStocks")
 }
 
 model Tag {
   tagId     Int      @id @default(autoincrement())
+  /// Görünen ad: ilk kullanılan biçim.
   tagName   String   @unique @db.VarChar(255)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
+  /// Katlanmış ad (ADR-0002 foldTag; SQL karşılığı fold_tag()). Eski uygulamanın eklediği
+  /// satırlarda null olabilir.
+  slug      String?  @unique @db.VarChar(64)
 
-  // Relations to Posts
-  posts Post[] @relation("PostTags")
+  posts PostTag[]
 
   @@index([tagName])
   @@index([createdAt])
+  @@map("Tag")
 }
+
+/// Eski uygulamanın implicit m2m tablosu (bkz. PostStock).
+model PostTag {
+  postId Int @map("A")
+  tagId  Int @map("B")
+
+  post Post @relation(fields: [postId], references: [postId], onDelete: Cascade, map: "_PostTags_A_fkey")
+  tag  Tag  @relation(fields: [tagId], references: [tagId], onDelete: Cascade, map: "_PostTags_B_fkey")
+
+  @@unique([postId, tagId], map: "_PostTags_AB_unique")
+  @@index([tagId], map: "_PostTags_B_index")
+  @@map("_PostTags")
+}
+
+// ---------------------------------------------------------------------------------------------
+// Bildirimler
+// ---------------------------------------------------------------------------------------------
 
 model Notification {
   notificationId Int              @id @default(autoincrement())
@@ -272,23 +374,19 @@ model Notification {
   read           Boolean          @default(false)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime
+  postId         Int?
+  commentId      Int?
 
-  // Relations
-  user     User @relation(fields: [userId], references: [userId])
-  fromUser User @relation("FromUser", fields: [fromUserId], references: [userId])
-
-  // Optional fields to store references to related entities
-  postId    Int? // Optional post reference
-  commentId Int? // Optional comment reference
-
-  // Relations to related entities
-  post    Post?    @relation(fields: [postId], references: [postId])
-  comment Comment? @relation(fields: [commentId], references: [commentId])
+  user     User     @relation("NotificationRecipient", fields: [userId], references: [userId])
+  fromUser User     @relation("NotificationSender", fields: [fromUserId], references: [userId])
+  post     Post?    @relation(fields: [postId], references: [postId])
+  comment  Comment? @relation(fields: [commentId], references: [commentId])
 
   @@index([userId])
   @@index([type])
   @@index([postId])
   @@index([commentId])
+  @@map("Notification")
 }
 
 enum NotificationType {
@@ -296,4 +394,150 @@ enum NotificationType {
   COMMENT
   FOLLOW
   MENTION
+}
+
+// ---------------------------------------------------------------------------------------------
+// M1 yeni tablolar
+// ---------------------------------------------------------------------------------------------
+
+/// ADR-0002 §6. Görsel yok (K6); başlık/açıklama legal saklama sınırına göre kısaltılır.
+model LinkPreview {
+  id          Int               @id @default(autoincrement())
+  /// sha256(normalizePreviewUrl(url)), hex (src/lib/link-preview/normalize-url.ts).
+  urlHash     String            @unique @db.Char(64)
+  /// Normalize edilmiş URL: izleme parametreleri (utm_*, fbclid, gclid…) ve fragment yok.
+  url         String
+  finalUrl    String?
+  status      LinkPreviewStatus
+  siteName    String?           @db.VarChar(100)
+  title       String?           @db.VarChar(120)
+  description String?           @db.VarChar(200)
+  fetchedAt   DateTime          @default(now())
+  /// Süresi dolan ve hiçbir gönderinin bağlı olmadığı kayıtlar purge script'iyle silinir.
+  expiresAt   DateTime
+
+  posts Post[]
+
+  @@index([expiresAt])
+  @@map("LinkPreview")
+}
+
+enum LinkPreviewStatus {
+  ok
+  failed
+  blocked
+}
+
+/// 5651 / moderasyon / erişim izi. Append-only: UPDATE/DELETE trigger ile reddedilir; saklama
+/// süresi (1–2 yıl) dolanlar yalnızca content_event_purge() ile silinir. Kullanıcı silinse de
+/// kayıt kalır (FK yok). IP uygulama katmanında AES-256-GCM ile şifrelenir (src/lib/crypto/ip.ts);
+/// system.* dışındaki her işlemde zorunludur (CHECK). User-Agent toplanmaz.
+model ContentEvent {
+  id          BigInt             @id @default(autoincrement())
+  at          DateTime           @default(now())
+  actorUserId Int
+  action      ContentEventAction
+  entityType  ContentEntityType
+  entityId    Int
+  /// encryptIp() çıktısı (sürüm + IV + GCM etiketi + şifreli metin) [legal L2].
+  ipEncrypted Bytes?
+  /// Kaynak port; alınabildiğinde (1–65535) [legal L2].
+  port        Int?
+  requestId   String?            @db.VarChar(64)
+
+  @@index([actorUserId, at])
+  @@index([entityType, entityId])
+  @@index([at])
+  @@map("ContentEvent")
+}
+
+enum ContentEventAction {
+  post_create       @map("post.create")
+  post_update       @map("post.update")
+  post_delete       @map("post.delete")
+  comment_create    @map("comment.create")
+  comment_delete    @map("comment.delete")
+  auth_login        @map("auth.login")
+  session_start     @map("session.start")
+  moderation_remove @map("moderation.remove")
+  /// Otomatik işlem (ör. hesap silmede içerik kaldırma); IP'siz olabilen tek eylem.
+  system_remove     @map("system.remove")
+}
+
+enum ContentEntityType {
+  post
+  comment
+  user
+}
+
+/// İzin olayları (KVKK açık rıza, 6563 ticari ileti). Append-only; güncel durum (userId, kind)
+/// için en son satır. İzin verilirken textVersion zorunlu (CHECK). FK yok: ispat hesap
+/// silindikten sonra da gerekir.
+model ConsentEvent {
+  id          BigInt        @id @default(autoincrement())
+  userId      Int
+  kind        ConsentKind
+  granted     Boolean
+  textVersion String?       @db.VarChar(20)
+  source      ConsentSource
+  at          DateTime      @default(now())
+  /// İznin verildiği/geri alındığı iletişim adresi (e-posta). İYS adres bazlı çalışır; kullanıcı
+  /// adresini değiştirse de eski iznin hangi adrese verildiği ispatlanabilsin (legal S5).
+  address     String?       @db.VarChar(320)
+
+  @@index([userId, kind, at])
+  @@map("ConsentEvent")
+}
+
+enum ConsentKind {
+  marketing_email
+  marketing_sms
+  marketing_call
+  marketing_push
+}
+
+enum ConsentSource {
+  signup
+  settings
+  unsubscribe_link
+  iys
+  support
+}
+
+/// Silinen hesabın yasal saklama kimliği (5651 / adli talep): ContentEvent.actorUserId'yi
+/// purgeAt'e kadar tanımlayabilmek için. Hesap silme akışı (S5+) yazar, purge script'i siler.
+model LegalIdentityRetention {
+  userId      Int      @id
+  firebaseUid String   @db.VarChar(128)
+  email       String   @db.VarChar(320)
+  deletedAt   DateTime @default(now())
+  purgeAt     DateTime
+
+  @@index([purgeAt])
+  @@map("LegalIdentityRetention")
+}
+
+/// Bu DB'nin ait olduğu ortam (tek satır, id = 1; her ortamda elle eklenir). Geri alınamaz
+/// bakım işleri (Firebase yetim hesap imhası) `FIREBASE_PROJECT_ID` ile eşleşmezse çalışmaz
+/// (ADR-0001 "Yetim hesap imhası"). CHECK (id = 1) migration'da.
+model DeploymentEnvironment {
+  id                Int      @id @default(1)
+  firebaseProjectId String   @db.VarChar(128)
+  label             String   @db.VarChar(32)
+  updatedAt         DateTime @default(now())
+
+  @@map("DeploymentEnvironment")
+}
+
+/// Sabit pencereli kullanıcı bazlı rate limit sayacı (Redis yerine Postgres, ADR-0001).
+model RateLimitBucket {
+  /// ör. 'post.create:u:42'
+  key         String   @db.VarChar(120)
+  windowStart DateTime
+  count       Int      @default(0)
+
+  @@id([key, windowStart])
+  /// TTL temizliği: pencere + 24 saat (scripts/purge-retention.ts).
+  @@index([windowStart])
+  @@map("RateLimitBucket")
 }

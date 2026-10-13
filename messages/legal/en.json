@@ -1,0 +1,755 @@
+{
+  "chrome": {
+    "toc": "On this page",
+    "version": "Version: {version}",
+    "effective": "Effective date: {date}",
+    "otherDocuments": "Other legal documents"
+  },
+  "placeholders": {
+    "company": "Company legal name",
+    "address": "Company address",
+    "mersis": "MERSİS number",
+    "kep": "KEP (registered email) address",
+    "dbRegion": "Database country and region",
+    "transferSafeguard": "Transfer safeguard and date notified to the Board",
+    "appRegion": "Application server country and region",
+    "court": "Competent court location"
+  },
+  "documents": {
+    "privacy": {
+      "title": "Privacy Notice (KVKK)",
+      "description": "Why and on what legal basis Borsalıyorum processes your personal data, who receives it, how long we keep it and your rights under the KVKK.",
+      "sections": [
+        {
+          "id": "veri-sorumlusu",
+          "heading": "Data controller",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Under Turkish Personal Data Protection Law No. 6698 (“KVKK”), the data controller is [[ph:company]] (“Borsalıyorum”, “we”). This notice is provided under Article 10 of the KVKK and the Communiqué on the Procedures and Principles for Fulfilling the Obligation to Inform. The Turkish version prevails."
+            },
+            {
+              "type": "table",
+              "caption": "Data controller contact details",
+              "head": ["Detail", "Value"],
+              "rows": [
+                ["Legal name", "[[ph:company]]"],
+                ["Address", "[[ph:address]]"],
+                ["MERSİS number", "[[ph:mersis]]"],
+                ["KEP address", "[[ph:kep]]"],
+                ["Request email", "[[mail:support]]"]
+              ]
+            }
+          ]
+        },
+        {
+          "id": "toplanan-veriler",
+          "heading": "What we collect and how",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "When you sign up we collect your email address and password (we never store your password in plain text). If you choose “Continue with Google”, we receive your name, email address and Google account ID from Google. We then record the username and display name you choose and your confirmation that you are 18 or older. When you sign in we log your IP address and the time, for security and legal record-keeping."
+            },
+            {
+              "type": "ul",
+              "items": [
+                "**Identity and contact:** email address, username, display name; if you use Google, the name on your Google account and your Google account ID.",
+                "**Account security:** password (only in irreversible form, at our authentication provider), email verification status, session information.",
+                "**Statements and records:** your confirmation that you are 18 or older; the versions and time at which you accepted the Terms of Use, the Community Guidelines and the Investment Disclaimer and confirmed reading this notice.",
+                "**User content:** posts, replies, likes, follows, links and images you share.",
+                "**Security logs:** IP address (stored encrypted), port, time and type of action for sign-ins and content actions.",
+                "**Stored on your device:** your theme preference and drafts you are writing; never sent to our servers (see the [[link:cookies|Cookie Policy]])."
+              ]
+            },
+            {
+              "type": "p",
+              "text": "**How we collect it:** Data is collected electronically, partly by automated means, through the sign-up, sign-in and profile forms, Google sign-in, the post and reply screens and server logs. We do not ask for your date of birth, ID number or special categories of personal data for membership (see below for what a written KVKK application needs). Please do not share special categories of data such as health, religion or political opinions, or other people's personal data, in your posts."
+            }
+          ]
+        },
+        {
+          "id": "amaclar-ve-hukuki-sebepler",
+          "heading": "Why we process it and on what legal basis",
+          "blocks": [
+            {
+              "type": "table",
+              "caption": "Purposes and legal bases under Article 5 of the KVKK",
+              "head": ["Purpose", "Data", "Legal basis"],
+              "rows": [
+                [
+                  "Creating and managing your account",
+                  "Identity and contact, account security",
+                  "Formation and performance of a contract (Art. 5/2-c)"
+                ],
+                [
+                  "Providing features such as posts, replies and follows",
+                  "User content",
+                  "Performance of a contract (Art. 5/2-c)"
+                ],
+                [
+                  "Keeping your account and the platform secure and preventing abuse and spam",
+                  "Account security, security logs",
+                  "Legitimate interest (Art. 5/2-f)"
+                ],
+                [
+                  "Keeping traffic data under Law No. 5651 and answering requests from competent authorities",
+                  "Security logs",
+                  "Expressly provided by law and legal obligation (Art. 5/2-a, ç)"
+                ],
+                [
+                  "Handling reports and moderation, protecting our legal rights",
+                  "User content, security logs",
+                  "Establishment, exercise or protection of a right (Art. 5/2-e); legitimate interest (Art. 5/2-f)"
+                ],
+                [
+                  "Proving the age requirement and the documents you accepted",
+                  "Statements and records",
+                  "Formation of a contract (Art. 5/2-c); establishment of a right (Art. 5/2-e)"
+                ],
+                [
+                  "Sending marketing emails (only if you give separate permission)",
+                  "Email address",
+                  "Explicit consent (Art. 5/1) and approval under Law No. 6563"
+                ]
+              ]
+            },
+            {
+              "type": "p",
+              "text": "We do not currently send marketing emails and do not ask for marketing permission at sign-up. If this changes, permission will be requested with a separate, unticked box apart from this notice; you can withdraw it at any time and not giving it does not affect your membership."
+            }
+          ]
+        },
+        {
+          "id": "aktarim",
+          "heading": "Who receives your data",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "**Competent public authorities and courts:** only where required by law or upon a lawful request (e.g. requests under Law No. 5651 and Capital Markets Law No. 6362).",
+                "**Our service providers (data processors):** hosting, database, authentication and maintenance-job services. As they are located abroad, they are listed separately below."
+              ]
+            },
+            {
+              "type": "p",
+              "text": "We do not sell your personal data or share it with third parties for advertising. Your public profile and posts are, by their nature, visible to other visitors. Your email address is never shown publicly."
+            }
+          ]
+        },
+        {
+          "id": "yurt-disi-aktarim",
+          "heading": "Transfers abroad",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "The service providers below are established or process data outside Türkiye, so using them is a transfer abroad under Article 9 of the KVKK."
+            },
+            {
+              "type": "table",
+              "caption": "Recipients abroad",
+              "head": ["Recipient", "Country", "Data", "Purpose", "Safeguard"],
+              "rows": [
+                [
+                  "Google LLC (Firebase Authentication)",
+                  "USA",
+                  "Email address, password (in irreversible form), name and Google account ID if you use Google, sign-in times",
+                  "Authentication and sending verification emails",
+                  "[[ph:transferSafeguard]]"
+                ],
+                [
+                  "Vercel Inc.",
+                  "USA; requests pass through edge servers worldwide; application server location: [[ph:appRegion]]",
+                  "Requests sent while you use the platform, IP address and session cookie",
+                  "Hosting and running the application",
+                  "[[ph:transferSafeguard]]"
+                ],
+                [
+                  "Neon Inc. (infrastructure: Amazon Web Services)",
+                  "[[ph:dbRegion]]",
+                  "Account data, user content, encrypted security logs",
+                  "Database hosting",
+                  "[[ph:transferSafeguard]]"
+                ],
+                [
+                  "GitHub Inc. (GitHub Actions)",
+                  "USA",
+                  "During maintenance jobs, the Firebase account list (user ID, email address, creation and sign-in times) and user IDs for matching; processed only while the job runs, not stored at GitHub",
+                  "Daily maintenance jobs such as deleting data whose retention period has ended",
+                  "[[ph:transferSafeguard]]"
+                ]
+              ]
+            },
+            {
+              "type": "p",
+              "text": "When you sign in with Google, Google's own processing for your Google account is governed by Google's privacy policy."
+            }
+          ]
+        },
+        {
+          "id": "saklama-sureleri",
+          "heading": "How long we keep it",
+          "blocks": [
+            {
+              "type": "table",
+              "caption": "Retention periods",
+              "head": ["Data", "Period"],
+              "rows": [
+                [
+                  "Account and profile data",
+                  "For as long as you are a member. When your account is deleted it is deleted or anonymised; the identity link needed for legal requests is kept separately, with restricted access, until the end of the security log retention period."
+                ],
+                [
+                  "User content",
+                  "Until you or your account deletion removes it. Content removed as unlawful may be kept with restricted access for official requests for the same period as security logs."
+                ],
+                [
+                  "Security logs (IP address, port, time, type of action)",
+                  "2 years (Law No. 5651 and its regulation); deleted automatically afterwards."
+                ],
+                [
+                  "Abuse-prevention counters",
+                  "Up to 48 hours; counters keyed to an IP address (as an irreversible hash) up to 24 hours."
+                ],
+                [
+                  "Incomplete sign-ups (authentication account created but no username chosen)",
+                  "30 days from creation (provided at least 15 days have passed since the last sign-in); deleted automatically afterwards."
+                ],
+                [
+                  "Acceptance and acknowledgement records (document version and time)",
+                  "For as long as you are a member and afterwards for the statutory limitation period for possible disputes."
+                ],
+                [
+                  "Marketing permission records (text version, time and source of the permission and the address it was given for)",
+                  "While the permission is in force and for 3 years after it ends (withdrawal or account deletion); deleted automatically afterwards."
+                ],
+                [
+                  "Theme preference and drafts on your device",
+                  "Theme until you clear it; drafts for up to 7 days."
+                ]
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Data whose retention period has ended is deleted, destroyed or anonymised by daily automated jobs."
+            }
+          ]
+        },
+        {
+          "id": "haklarin",
+          "heading": "Your rights under Article 11 of the KVKK",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "By applying to us you can:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "learn whether your personal data is processed,",
+                "request information about the processing,",
+                "learn the purpose of processing and whether data is used accordingly,",
+                "know the third parties in Türkiye or abroad to whom data is transferred,",
+                "request correction of incomplete or inaccurate data,",
+                "request deletion or destruction under the conditions in Article 7 of the KVKK,",
+                "request that corrections, deletions and destructions be notified to the third parties who received the data,",
+                "object to a result against you arising solely from automated analysis of your data,",
+                "claim compensation for damage caused by unlawful processing."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "basvuru",
+          "heading": "How to apply",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "In line with the Communiqué on the Procedures and Principles of Application to the Data Controller, you can send your request **from the email address registered to your Borsalıyorum account** to [[mail:support]], in writing to [[ph:address]], or by registered electronic mail (KEP) to [[ph:kep]]. Please include your full name, username, contact address and your request. A written application must also bear your wet signature and your Turkish ID number (or, for foreign nationals, your nationality and passport or ID number), as required by the Communiqué; we use this only to verify your identity and handle your request."
+            },
+            {
+              "type": "p",
+              "text": "We will answer free of charge as soon as possible and within 30 days at the latest. If the action requires an additional cost, the fee set by the Personal Data Protection Board may be charged. If your request is rejected, you find the answer insufficient or we do not answer in time, you may complain to the Personal Data Protection Board within 30 days of learning of our answer and in any case within 60 days of your application."
+            }
+          ]
+        },
+        {
+          "id": "cerezler",
+          "heading": "Cookies",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "We only use strictly necessary cookies that keep you signed in and secure; we do not use analytics or advertising cookies. See the [[link:cookies|Cookie Policy]]."
+            }
+          ]
+        },
+        {
+          "id": "degisiklikler",
+          "heading": "Changes to this notice",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "When we update this notice we change its version number and effective date. We will tell you about significant changes by email and on the Platform."
+            }
+          ]
+        }
+      ]
+    },
+    "cookies": {
+      "title": "Cookie Policy",
+      "description": "Which cookies and browser storage Borsalıyorum uses, why, and for how long.",
+      "sections": [
+        {
+          "id": "cerez-nedir",
+          "heading": "What are cookies?",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Cookies are small text files that a website stores in your browser. Local storage (localStorage) and session storage (sessionStorage) store data in your browser in a similar way. This policy covers all of them and should be read together with the [[link:privacy|Privacy Notice]]."
+            }
+          ]
+        },
+        {
+          "id": "kullandiklarimiz",
+          "heading": "What we use today",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "**We do not use analytics, advertising or tracking cookies.** We only use cookies needed for the service to work and device storage that remembers the preferences you choose. Strictly necessary cookies do not require consent, so we do not show a cookie consent banner."
+            },
+            {
+              "type": "table",
+              "caption": "Cookies and browser storage in use",
+              "head": ["Name", "Provider", "Purpose", "Duration", "Type"],
+              "rows": [
+                [
+                  "__session (cookie)",
+                  "Borsalıyorum",
+                  "Keeps you signed in",
+                  "14 days or until you sign out",
+                  "Strictly necessary"
+                ],
+                [
+                  "__Host-csrf (cookie)",
+                  "Borsalıyorum",
+                  "Protects sign-in and sign-out requests against forged requests",
+                  "2 hours",
+                  "Strictly necessary"
+                ],
+                [
+                  "theme (local storage)",
+                  "Borsalıyorum",
+                  "Remembers your theme on this device; never sent to our servers",
+                  "Until you clear it",
+                  "Strictly necessary (for a feature you request)"
+                ],
+                [
+                  "bz:draft:… (local storage)",
+                  "Borsalıyorum",
+                  "Keeps drafts of posts and replies you are writing on this device; never sent to our servers",
+                  "Until you post or clear them, up to 7 days",
+                  "Strictly necessary (for a feature you request)"
+                ],
+                [
+                  "borsaliyorum:google-redirect (session storage)",
+                  "Borsalıyorum",
+                  "Completes sign-in when you return from the “Continue with Google” redirect",
+                  "Until the tab is closed",
+                  "Strictly necessary"
+                ],
+                [
+                  "Google / Firebase sign-in window",
+                  "Google LLC",
+                  "Completes sign-in only when you choose “Continue with Google”",
+                  "Per Google's policy",
+                  "Strictly necessary (third party)"
+                ]
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Items marked “Strictly necessary (for a feature you request)” are essential to provide a feature you explicitly ask for (remembering the theme you chose, not losing a draft you are writing). They therefore do not require consent; they stay on your device and are never sent to our servers."
+            }
+          ]
+        },
+        {
+          "id": "yonetim",
+          "heading": "How to manage cookies",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "You can delete or block cookies and device storage in your browser settings. If you block strictly necessary cookies you will not be able to sign in. You can change your theme with the theme button on the page."
+            }
+          ]
+        },
+        {
+          "id": "degisiklikler",
+          "heading": "Changes",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "If we add analytics, advertising or third-party content (such as a chart widget), we will not run it without your consent; we will offer “Accept” and “Reject” with equal prominence and update this table."
+            }
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "title": "Terms of Use",
+      "description": "The rules you agree to when using Borsalıyorum: prohibited content, content licence, sanctions and dispute resolution.",
+      "sections": [
+        {
+          "id": "taraflar",
+          "heading": "Parties and scope",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "These Terms of Use (“Terms”) are the agreement between you and [[ph:company]] (“Borsalıyorum”) for the use of the website and apps it operates (the “Platform”). You accept the Terms with a separate box at sign-up; the versions of the Terms, the Community Guidelines and the Investment Disclaimer you accepted and the time of acceptance are recorded. The Turkish version prevails."
+            },
+            {
+              "type": "p",
+              "text": "The [[link:community|Community Guidelines]] and the [[link:disclaimer|Investment Disclaimer]] form part of these Terms. How your personal data is processed is explained in the [[link:privacy|Privacy Notice]]."
+            }
+          ]
+        },
+        {
+          "id": "hizmet",
+          "heading": "What the Platform does and does not do",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Borsalıyorum is a social platform where users share views about stocks, indices and other investment instruments. Content is created by users; for that content Borsalıyorum is a hosting provider under Law No. 5651.",
+                "**Borsalıyorum does not provide investment advisory services or investment advice.** It does not offer buy, sell or hold recommendations, price targets, model portfolios or signal services. User content reflects its authors' personal views.",
+                "The Platform shows no price data; stock pages only show the ticker, the name and links to external sources such as the Public Disclosure Platform (KAP).",
+                "Your investment decisions and their outcomes are yours alone. See the [[link:disclaimer|Investment Disclaimer]]."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "uyelik",
+          "heading": "Membership",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "You must be 18 or older to join. Accounts found to belong to someone under 18 are closed and their data deleted.",
+                "The information you give at sign-up must be accurate. Your username cannot be your email address, someone else's name or misleading; reserved names such as institution names cannot be used.",
+                "You are responsible for the security of your account and the secrecy of your password. If you think your account has been used without permission, write to [[mail:support]] immediately.",
+                "You may only open an account for yourself. Opening accounts for others, in bulk or by automated means is prohibited.",
+                "You cannot post or reply until you verify your email address."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "yasakli-icerik",
+          "heading": "Prohibited content and conduct",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "You may not share or do any of the following:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Any unlawful content or incitement to crime.",
+                "Insults, threats, harassment, hate speech, discrimination or content that violates personality rights.",
+                "Sharing other people's personal data (e.g. phone number, address, ID details) without permission.",
+                "Content that infringes copyright, trademarks or other intellectual property rights.",
+                "Spam, repeatedly posting the same content, fake engagement or bots.",
+                "Impersonating another person, an institution or Borsalıyorum.",
+                "Obscene or violent content, or content that may harm children.",
+                "Sharing malware or phishing links; attempting to compromise the Platform's security or operation; collecting data from the Platform by automated means without permission."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "piyasa-butunlugu",
+          "heading": "No market manipulation, inside information or paid promotion",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Conduct that breaches Capital Markets Law No. 6362 may be a crime. In particular, the following are prohibited:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "**Market manipulation:** spreading false, inaccurate or misleading information, rumours, news or comments to influence prices, values or investors' decisions; taking part in or organising coordinated “pump and dump” schemes.",
+                "**Inside information:** sharing non-public information that may affect prices, steering others based on it, or trading based on it.",
+                "**Unauthorised investment services:** offering or advertising personalised investment advice, portfolio management, “signals” or “VIP groups” for a fee or on a regular basis; directing people to unauthorised providers (including crypto asset service providers).",
+                "**Promoting stocks or crypto for a benefit:** promoting a specific capital market instrument or crypto asset in exchange for money, gifts, discounts or any other benefit. This is not allowed even with the “Ad / Collaboration” label. Paid promotion of any kind is prohibited in replies."
+              ]
+            },
+            {
+              "type": "p",
+              "text": "You can report such content to us. If competent authorities (e.g. the Capital Markets Board, public prosecutors) request it, we share the relevant records in accordance with the law."
+            }
+          ]
+        },
+        {
+          "id": "sponsorlu-icerik",
+          "heading": "Disclosing ads and collaborations",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "For every post you create in return for money, gifts, discounts or any other benefit from a brand or person, you must turn on “This post is an ad or paid collaboration” when creating it. An “Ad / Collaboration (Reklam / İşbirliği)” label appears at the top of the post.",
+                "Hiding the label or otherwise concealing the commercial relationship is covert advertising and is prohibited (Consumer Protection Law No. 6502 and the Regulation on Commercial Advertising and Unfair Commercial Practices).",
+                "Posts mentioning stocks, crypto or other investment instruments cannot be shared as ads or collaborations.",
+                "Where we consider it necessary, we may add the “Ad / Collaboration” label to a post ourselves. Posts promoting an investment instrument in return for a benefit are not labelled; we remove them."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "icerik-lisansi",
+          "heading": "Your content and our licence",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "You keep the rights to the content you share. You are responsible for ensuring your content is lawful and does not infringe third-party rights.",
+                "By sharing content you grant Borsalıyorum a free, non-exclusive licence to store, reproduce, display, communicate to the public and technically adapt it (e.g. resizing, previews) for the purpose of operating the Platform. This licence ends when you delete the content or your account, subject to legal retention obligations.",
+                "We may create a preview with a title, short description and small image for links you share. We remove the preview if the rights holder asks us to.",
+                "The Borsalıyorum name, logo and the Platform's software belong to Borsalıyorum and may not be used without permission."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "yaptirimlar",
+          "heading": "Moderation and sanctions",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "We may review, remove or restrict access to content that breaches these Terms, the Community Guidelines or the law, upon notice or on our own initiative. We have no obligation to review content in advance.",
+                "Depending on the severity and repetition of a breach, we may: warn you, remove content, add the “Ad / Collaboration” label, temporarily restrict posting features, suspend your account or close it permanently. Posts promoting an investment instrument in return for a benefit are not labelled; we remove them.",
+                "For serious breaches (e.g. market manipulation or criminal content) we may act without prior warning and notify the competent authorities.",
+                "When we remove your content or restrict your account, we tell you why where possible. To appeal a decision, write to [[mail:support]].",
+                "You can also send notices of unlawful content and personality-rights complaints to the same address. In your notice, include the link to the content, what the violation is and, if you are the rights holder, your name and contact details. We review notices within 24 hours at the latest and tell you the outcome. We implement court and competent authority decisions without delay."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sona-erme",
+          "heading": "Ending your membership",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "You can end your membership at any time. Send your account deletion request from your registered email address to [[mail:support]].",
+                "We may end your membership if you breach the Terms seriously or repeatedly.",
+                "When your membership ends, your data is deleted or anonymised according to the retention periods in the [[link:privacy|Privacy Notice]]."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sorumluluk",
+          "heading": "Liability",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "The Platform is provided as is; we do not guarantee that it will run without interruption or errors. We may suspend the service temporarily for maintenance or security.",
+                "We do not guarantee the accuracy of user content and are not liable for losses from investment decisions you make based on it.",
+                "Liability for losses caused by our own fault, and liability that cannot be limited by law (e.g. for intent and gross negligence), is not affected."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "degisiklikler",
+          "heading": "Changes to the Terms",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "We may change the Terms; whenever we do, we update the version number and effective date. We notify you of significant changes against your interests by email and on the Platform at least 30 days before they take effect. Such changes apply to you only if you accept the new version. If you do not accept, you can end your membership free of charge. Until you accept the new version you can keep reading the Platform; to post, reply or share you need to accept it. Changes in your favour or required by law take effect on the day they are published."
+            }
+          ]
+        },
+        {
+          "id": "uyusmazliklar",
+          "heading": "Governing law and disputes",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "These Terms are governed by the laws of the Republic of Türkiye. The courts and enforcement offices with statutory jurisdiction are competent for disputes. As a consumer, you can apply to the consumer arbitration committee where you live within the monetary limits, and to the consumer court for disputes above those limits. If you use the Platform as a merchant in connection with your business, the courts and enforcement offices of [[ph:court]] have jurisdiction."
+            }
+          ]
+        },
+        {
+          "id": "iletisim",
+          "heading": "Contact",
+          "blocks": [
+            {
+              "type": "table",
+              "caption": "Borsalıyorum contact details",
+              "head": ["Detail", "Value"],
+              "rows": [
+                ["Legal name", "[[ph:company]]"],
+                ["Address", "[[ph:address]]"],
+                ["MERSİS number", "[[ph:mersis]]"],
+                ["KEP address", "[[ph:kep]]"],
+                ["Email", "[[mail:support]]"]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "disclaimer": {
+      "title": "Investment Disclaimer",
+      "description": "Content on Borsalıyorum is not investment advice. The legal disclaimer in line with Capital Markets Board rules.",
+      "sections": [
+        {
+          "id": "yasal-uyari",
+          "heading": "Not investment advice",
+          "blocks": [
+            {
+              "type": "disclaimerFull"
+            }
+          ]
+        },
+        {
+          "id": "ne-anlama-geliyor",
+          "heading": "What this means",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Posts and replies on Borsalıyorum are their authors' personal views. Borsalıyorum does not verify or adopt them.",
+                "Borsalıyorum is not licensed to provide investment advice; it offers no buy/sell recommendations, price targets, model portfolios or signal services. Trending lists are based on a stated criterion (e.g. “most mentioned in the last 24 hours”) and are not recommendations.",
+                "The Platform shows no price data. Follow the Public Disclosure Platform (KAP) for companies' official announcements.",
+                "If you want personalised investment advice, work with a brokerage firm, portfolio management company or authorised bank licensed by the Capital Markets Board.",
+                "Capital market instruments and crypto assets can lose value; you may lose some or all of the money you invest."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "manipulasyon",
+          "heading": "Misleading content and manipulation",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Spreading false or misleading information to influence prices may be a crime under Capital Markets Law No. 6362 and is prohibited by the [[link:terms|Terms of Use]]. If you see such content, report it to us."
+            }
+          ]
+        }
+      ]
+    },
+    "community": {
+      "title": "Community Guidelines",
+      "description": "The rules for a respectful, honest and safe discussion in the Borsalıyorum community.",
+      "sections": [
+        {
+          "id": "neden",
+          "heading": "Why we have rules",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Borsalıyorum is a community where investors exchange ideas. These guidelines keep discussion respectful, honest and safe. They form part of the [[link:terms|Terms of Use]]; breaches are subject to the sanctions there."
+            }
+          ]
+        },
+        {
+          "id": "saygi",
+          "heading": "Be respectful",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Challenge ideas, not people. No insults, humiliation, threats, harassment or hate speech.",
+                "Do not share other people's personal details (phone, address, workplace, photos) without permission.",
+                "Different investment views are legitimate; do not mock anyone for their losses."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "durustluk",
+          "heading": "Be honest",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Separate facts from opinions. When sharing a claim, cite its source (e.g. a link to the KAP disclosure).",
+                "Do not present unverified rumours as fact; even a post starting with “I heard that” can move prices.",
+                "If you hold a position in a stock you mention, we encourage you to say so.",
+                "Do not misrepresent yourself or pretend to be an expert, an institution or another user."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "piyasa",
+          "heading": "Do not try to move the market",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "No coordinated buy or sell calls such as “let's all buy” or “limit up tomorrow”.",
+                "Do not share non-public company information or trade based on it.",
+                "Do not promote stocks or crypto in return for money, gifts or any other benefit. This is not allowed even with the “Ad / Collaboration” label.",
+                "Do not advertise paid signals, “VIP groups”, copy trading or unauthorised investment services."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "reklam",
+          "heading": "Disclose ads and collaborations",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Turn on the “Ad / Collaboration” option for every post where you received a benefit from a brand or person. Paid promotion is not allowed in replies."
+            }
+          ]
+        },
+        {
+          "id": "spam",
+          "heading": "No spam or fake engagement",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Do not post the same content repeatedly or add irrelevant hashtags and tickers.",
+                "Do not buy or sell followers, likes or replies; do not use bots or multiple accounts.",
+                "Do not share phishing, malware or misleading shortened links."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "guvenlik",
+          "heading": "Safe and lawful content",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Do not share unlawful, obscene or violent content, or content that may harm children.",
+                "Do not share images or text you do not have the rights to.",
+                "Report any user you believe is under 18."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "bildirim",
+          "heading": "Reports and sanctions",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "If you see content that breaks these guidelines, write to [[mail:support]]. Include the link to the content, what the violation is and, if you are the rights holder, your name and contact details. We review notices within 24 hours at the latest and tell you the outcome. Depending on the severity, we may issue a warning, remove content, apply a temporary restriction or close the account. You can appeal decisions at the same address."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,60 @@
+/*
+ * Editör içi vurgular (tasarım §3.1). Sınıflar ProseMirror dekorasyonlarından gelir
+ * (editor/entity-decorations.ts, editor/autocomplete.ts); renkler yalnızca token'lardan.
+ * Yazı ağırlığı değişmez: kalınlaşan metin satırı kaydırır, imleç zıplar.
+ */
+.cmp-editor {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  outline: none;
+}
+
+.cmp-editor p {
+  margin: 0;
+}
+
+.cmp-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: hsl(var(--fg-subtle));
+  pointer-events: none;
+}
+
+.cmp-editor .cmp-entity {
+  color: hsl(var(--accent));
+  background-color: hsl(var(--accent-subtle));
+  border-radius: 4px;
+  padding-inline: 2px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.cmp-editor .cmp-url {
+  color: hsl(var(--accent));
+  text-decoration-line: underline;
+  text-underline-offset: 2px;
+}
+
+/* K5: bilinmeyen cashtag — entity stili yok, dalgalı alt çizgi + editör altında metin */
+.cmp-editor .cmp-unknown {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-decoration-color: hsl(var(--danger));
+  text-underline-offset: 3px;
+}
+
+/* Liste açık, henüz çözülmemiş sorgu */
+.cmp-editor .cmp-query {
+  color: hsl(var(--accent));
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+/* Sınırı aşan bölüm: entity stilinin de üzerine */
+.cmp-editor .cmp-overflow,
+.cmp-editor .cmp-overflow.cmp-entity {
+  background-color: hsl(var(--danger-bg));
+  color: hsl(var(--fg));
+}

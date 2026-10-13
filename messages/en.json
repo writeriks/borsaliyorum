@@ -1,133 +1,494 @@
 {
-  "HomePage": {
-    "title": "Home Page, displaying approximately 10 posts for the most active stocks of the day."
+  "metadata": {
+    "title": "Borsalıyorum",
+    "description": "A Turkish community talking about Borsa Istanbul stocks and investing."
   },
-  "Feed": {
-    "latestPosts": "Latest Posts",
-    "popularPosts": "Popular Posts"
+  "home": {
+    "title": "Borsalıyorum",
+    "lead": "A community talking about stocks, tags and investors. A new version is on its way.",
+    "switchLocale": "Türkçe",
+    "switchLocaleLabel": "View this page in Turkish"
   },
-  "Common": {
-    "placeholder": "What's on your mind?",
-    "errorMessage": "An error occurred.",
-    "email": "Email",
-    "username": "Username",
-    "warning": "Warning"
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for may have moved or never existed.",
+    "backHome": "Back to home"
   },
-  "NewPost": {
-    "successMessage": "Post created successfully.",
-    "sending": "Sending",
-    "send": "Send",
-    "gif": "GIF",
-    "uploadedAlt": "uploaded"
+  "errorPage": {
+    "message": "This page couldn't load. Try again."
   },
-  "EntryOptions": {
-    "deleteCommentSuccess": "Your comment has been successfully deleted.",
-    "deletePostSuccess": "Your post has been successfully deleted.",
-    "options": "Options",
-    "unfollow": "Unfollow",
-    "follow": "Follow",
-    "block": "Block",
-    "delete": "Delete"
+  "common": {
+    "retry": "Try again",
+    "login": "Log in",
+    "signup": "Sign up",
+    "close": "Close"
   },
-  "PostDetail": {
-    "back": "Back",
-    "loadMore": "Load More"
-  },
-  "userProfileOptions": {
-    "UserSettings": {
+  "shell": {
+    "skipToContent": "Skip to content",
+    "brand": "borsalıyorum",
+    "homeLabel": "Borsalıyorum home",
+    "mainNav": "Main menu",
+    "nav": {
+      "feed": "Feed",
+      "explore": "Explore",
+      "compose": "Post",
       "notifications": "Notifications",
-      "settings": "Settings"
+      "profile": "Profile",
+      "settings": "Settings",
+      "search": "Search"
     },
-    "UserProfileOptionsMobile": {
-      "editProfile": "Edit Profile",
-      "logout": "Log Out"
+    "composeCta": "Share a post",
+    "accountLoading": "Loading account",
+    "joinPrompt": "Join the conversation:",
+    "aside": "Trending",
+    "trendingTitle": "Most mentioned in the last 24 hours",
+    "trendingEmpty": "The trending list will be here soon. Take a look at the feed for now.",
+    "trendingEmptyAction": "Go to feed",
+    "legalNav": "Legal",
+    "footer": {
+      "disclaimerLink": "Investment disclaimer",
+      "privacy": "Privacy notice (KVKK)",
+      "cookies": "Cookie policy",
+      "terms": "Terms of use",
+      "community": "Community guidelines",
+      "copyright": "© Borsalıyorum"
     },
-    "UserProfileOptions": {
-      "viewProfile": "View Profile",
-      "editProfile": "Edit Profile",
-      "logout": "Log Out"
-    },
-    "LoginContainer": {
-      "login": "Login"
+    "completeSignup": "Complete sign-up",
+    "completeSignupPrompt": "Your account is almost ready:"
+  },
+  "theme": {
+    "menuLabel": "Theme",
+    "toggle": "Change theme",
+    "dark": "Dark",
+    "light": "Light",
+    "system": "System"
+  },
+  "legal": {
+    "disclaimer": {
+      "short": "Posts reflect their authors' personal views and are not investment advice.",
+      "comment": "Replies are personal views, not investment advice.",
+      "more": "Details",
+      "title": "Not investment advice",
+      "full": "The investment information, comments and recommendations here are not investment advisory services. Investment advisory services are provided under an investment advisory agreement signed between the client and brokerage firms, portfolio management companies or non-deposit-taking banks. The comments and recommendations here are based on the personal views of those who make them. These views may not suit your financial situation or your risk and return preferences. Therefore, making an investment decision based solely on the information here may not lead to results that meet your expectations."
     }
   },
-  "userProfileCard": {
-    "bio": "Bio",
-    "website": "Website",
-    "followers": "Followers",
-    "following": "Following",
-    "posts": "Posts",
-    "noFollowers": "No followers yet",
-    "noFollowing": "Not following anyone yet",
-    "loading": "Loading...",
-    "loadMore": "Load more",
-    "connections": "Connections"
+  "linkPreview": {
+    "cardLabel": "{title}, {host} (opens in a new tab)",
+    "loading": "Loading link preview"
   },
-  "followButton": {
+  "errors": {
+    "UNAUTHENTICATED": "You need to sign in to do this.",
+    "FORBIDDEN": "You don't have permission to do this.",
+    "NOT_FOUND": "We couldn't find what you were looking for.",
+    "VALIDATION": "Please check the information you entered and try again.",
+    "CONFLICT": "This can't be completed right now. Refresh the page and try again.",
+    "RATE_LIMITED": "Too many attempts. Please wait a moment and try again.",
+    "INTERNAL": "Something went wrong. Please try again.",
+    "ONBOARDING_REQUIRED": "Complete your account to continue.",
+    "EMAIL_NOT_VERIFIED": "Verify your email address before writing posts or comments.",
+    "ACCOUNT_SUSPENDED": "This account has been suspended.",
+    "CONTENT_EMPTY": "Write something first.",
+    "CONTENT_TOO_LONG": "The text is over the character limit.",
+    "UNKNOWN_CASHTAG": "Your post contains a ticker we don't recognise.",
+    "SPONSORED_CASHTAG_BLOCKED": "Posts mentioning stocks, crypto or other investment instruments can't be shared as ads or collaborations.",
+    "TOO_MANY_ENTITIES": "You can mention up to 10 stocks, 10 hashtags and 10 people in a post.",
+    "REAUTH_REQUIRED": "For your security, please log in again.",
+    "USERNAME_TAKEN": "This username is taken.",
+    "USERNAME_RESERVED": "This username can't be used.",
+    "ACCOUNT_EMAIL_CONFLICT": "This email address belongs to an account created with a different sign-in method.",
+    "LEGAL_ACCEPTANCE_REQUIRED": "To post, you need to accept the updated terms."
+  },
+  "entity": {
+    "newTab": "(opens in a new tab)",
+    "cashtagName": "{text}, {company}",
+    "mentionName": "{text}, {name}"
+  },
+  "hovercard": {
+    "stockPage": "Stock page",
+    "kap": "KAP",
+    "tradingview": "TradingView",
+    "mentions24h": "{count, plural, one {# post} other {# posts}} in the last 24h",
+    "statsLoading": "Loading post count",
     "follow": "Follow",
-    "unfollow": "Unfollow"
+    "followLoading": "Loading follow status",
+    "market": {
+      "stock": "BIST · Equity",
+      "crypto": "Crypto",
+      "other": "Other"
+    }
   },
-  "Settings": {
-    "settings": "Settings",
-    "sameEmailError": "This email address is already in use.",
-    "change": "Change",
-    "googleSignInInfo": "Since you signed in with Google, you cannot change your password or email address.",
-    "currentPassword": "Current Password",
-    "samePasswordError": "The new password cannot be the same as the current password.",
-    "newPassword": "New Password",
-    "confirmPassword": "Confirm Password",
-    "deletingAccount": "Your account is being deleted...",
-    "deleteAccount": "Delete Account",
-    "deleteAccountConfirmation": "Are you sure you want to delete your account? This action cannot be undone.",
-    "deleteAccountSuccess": "Your account has been successfully deleted.",
-    "passwordConfirmationModalTitle": "Confirm Your Password",
-    "passwordConfirmationModalBody": "You need to confirm your password to proceed with this action.",
-    "confirm": "Confirm",
-    "cancel": "Cancel",
-    "successMessage": "Your settings have been successfully updated.",
-    "save": "Save",
-    "saving": "Saving"
+  "post": {
+    "cardLabel": "Post",
+    "sponsoredLabel": "Ad / Collaboration (Reklam)",
+    "sentiment": {
+      "bullish": "Bullish",
+      "bearish": "Bearish"
+    },
+    "readMore": "Show more",
+    "readLess": "Show less",
+    "mediaAlt": "Post image",
+    "stats": {
+      "label": "Engagement",
+      "comments": "{count, plural, one {# comment} other {# comments}}",
+      "reposts": "{count, plural, one {# repost} other {# reposts}}",
+      "likes": "{count, plural, one {# like} other {# likes}}"
+    },
+    "loading": "Loading post",
+    "error": "Couldn't load the post.",
+    "unavailable": "This post was removed or can no longer be viewed.",
+    "actions": {
+      "like": "Like",
+      "menu": "Post options",
+      "delete": "Delete",
+      "deleting": "Deleting…",
+      "deleteTitle": "Delete this post?",
+      "deleteBody": "The post will be removed from the feed and your profile. This can't be undone.",
+      "cancel": "Cancel",
+      "deleted": "Your post was deleted."
+    }
   },
-  "EditProfile": {
-    "editProfile": "Edit Profile",
-    "successMessage": "Profile updated successfully.",
-    "imagePreviewAlt": "Profile picture preview",
-    "saveChanges": "Save Changes",
-    "displayName": "Display Name",
-    "username": "Username",
-    "bio": "Bio",
-    "website": "Website",
-    "location": "Location",
-    "birthday": "Birthday",
-    "savingChanges": "Saving Changes"
+  "composer": {
+    "placeholder": {
+      "post": "What's on your mind?",
+      "comment": "Write a reply"
+    },
+    "label": {
+      "post": "Write a post",
+      "comment": "Write a reply"
+    },
+    "title": "New post",
+    "replyingTo": "Replying to @{username}",
+    "submit": {
+      "post": "Post",
+      "comment": "Reply"
+    },
+    "submitting": "Posting",
+    "loading": "Loading the post editor",
+    "disabled": {
+      "empty": "Write something first"
+    },
+    "toolbar": {
+      "label": "Post tools",
+      "cashtag": "Add stock",
+      "hashtag": "Add hashtag",
+      "mention": "Mention someone"
+    },
+    "counter": {
+      "remaining": "Characters left: {n}",
+      "over": "Over the limit by {n}"
+    },
+    "sentiment": {
+      "label": "Your view",
+      "bullish": "Bullish",
+      "bearish": "Bearish",
+      "neutral": "Neutral",
+      "help": "Your choice appears as a small tag on your post, shown as your personal view."
+    },
+    "sponsored": {
+      "label": "This post is an ad or paid collaboration",
+      "help": "Turn on if you received money, gifts, discounts or any other benefit from a brand or person. A \"Reklam / İşbirliği\" (Ad / Collaboration) label will appear at the top of your post.",
+      "preview": "Ad / Collaboration (Reklam)",
+      "cashtagBlocked": "Posts mentioning stocks, crypto or other investment instruments can't be shared as ads or collaborations."
+    },
+    "unknownCashtag": "Unknown ticker: {tickers}. Fix the code or pick one from the list.",
+    "linkPreview": {
+      "remove": "Remove preview"
+    },
+    "success": {
+      "post": "Your post is live.",
+      "view": "View",
+      "comment": "Your reply is live."
+    },
+    "error": {
+      "generic": "Couldn't share your post. Check your connection and try again.",
+      "rateLimit": "You're posting too often. Wait a bit and try again.",
+      "session": "Your session expired. Log in again, your draft is saved.",
+      "restricted": "Your account can't post right now. See your notifications for details.",
+      "conflict": "Your post couldn't be shared. Check the text and share again."
+    },
+    "draft": {
+      "restored": "Your unsaved draft was restored.",
+      "discard": "Discard draft",
+      "confirmTitle": "Save draft?",
+      "confirmBody": "You can finish this post later.",
+      "save": "Save draft",
+      "delete": "Discard"
+    },
+    "anon": {
+      "post": "Log in to share your thoughts.",
+      "comment": "Log in to reply."
+    }
   },
-  "notifications": {
-    "notificationsTitle": "Notifications",
-    "followedBy": "{userDisplayName} has followed you.",
-    "likedCommentSingle": "{userDisplayName} liked you comment.",
-    "likedCommentMultiple": "{userDisplayName} and {count} more liked your comment.",
-    "likedPostMultiple": "{userDisplayName} and {count} more liked your post.",
-    "likedPostSingle": "{userDisplayName} liked your post.",
-    "commentedSingle": "{userDisplayName} commented on your post.",
-    "commentedMultiple": "{userDisplayName} and {count} more commented on your post.",
-    "mentionedInCommentMultiple": "{userDisplayName} and {count} more mentioned you on a comment.",
-    "mentionedInCommentSingle": "{userDisplayName} mentioned you on a comment.",
-    "mentionedInPostMultiple": "{userDisplayName} and {count} more mentioned you on a post.",
-    "mentionedInPostSingle": "{userDisplayName} mentioned you on a post."
+  "ac": {
+    "listbox": {
+      "stocks": "Stock suggestions",
+      "tags": "Hashtag suggestions",
+      "users": "People suggestions"
+    },
+    "heading": {
+      "stocks": "Stocks",
+      "followedStocks": "Stocks you follow",
+      "mostMentioned": "Most mentioned (last 24h)",
+      "tags": "Hashtags",
+      "trendingTags": "Most used in the last 24h",
+      "users": "People",
+      "following": "People you follow"
+    },
+    "market": {
+      "stock": "BIST",
+      "crypto": "Crypto",
+      "other": "Other"
+    },
+    "tagCount": "{count, plural, one {# post} other {# posts}}",
+    "following": "Following",
+    "empty": {
+      "stock": "No stocks match \"{query}\".",
+      "tag": "\"#{query}\" hasn't been used yet. Keep typing.",
+      "user": "No one matches \"@{query}\".",
+      "stockDefault": "Type a ticker or company name."
+    },
+    "error": "Couldn't load suggestions.",
+    "sr": {
+      "count": "{count} suggestions. Use up and down arrows, Enter to select.",
+      "none": "No results."
+    }
   },
-  "landingPage": {
-    "heroTitleFirst": "Your Stock Market Community",
-    "heroTitleSecond": "Starts Here",
-    "heroSubtitle": "Connect with investors, share market insights, and grow with the community.",
-    "startNow": "Start Now"
+  "devComposer": {
+    "title": "Composer preview (development only)",
+    "intro": "This page only opens in development and test. All data is fake.",
+    "variant": "Variant",
+    "variants": {
+      "inline": "Feed inline",
+      "dialog": "Dialog",
+      "sheet": "Mobile sheet",
+      "comment": "Comment"
+    },
+    "outcome": "Submit outcome",
+    "outcomes": {
+      "ok": "Success",
+      "internal": "Server error (500)",
+      "network": "Network error",
+      "rateLimited": "Rate limited (429)",
+      "unauthenticated": "Session expired (401)",
+      "restricted": "Restricted account (403)",
+      "unknownCashtag": "Unknown ticker (422)"
+    },
+    "delay": "Delay (ms)",
+    "calls": "Submit calls: {count}",
+    "lastPayload": "Last submitted payload",
+    "openDialog": "Share a post",
+    "openSheet": "Open mobile composer"
   },
-  "search": {
-    "postCount": "{query} posts",
-    "search": "Search",
-    "users": "Users",
-    "stocks": "Stocks",
-    "hashtags": "Hashtags",
-    "placeholder": "Search for users, stocks, or tags...",
-    "noResults": "No results found for \"{query}\"."
+  "auth": {
+    "accountMenu": {
+      "label": "Account menu: {name}"
+    },
+    "signOut": {
+      "action": "Log out",
+      "pending": "Logging out…",
+      "failed": "Couldn't log out. Check your connection and try again.",
+      "allDevicesNote": "Logging out ends your sessions on all devices."
+    },
+    "or": "or",
+    "google": {
+      "action": "Continue with Google",
+      "pending": "Connecting to Google…"
+    },
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "passwordHint": "At least 8 characters."
+    },
+    "validation": {
+      "emailInvalid": "Enter a valid email address.",
+      "passwordRequired": "Enter your password.",
+      "passwordTooShort": "Password must be at least 8 characters.",
+      "passwordTooLong": "Password can be at most 128 characters."
+    },
+    "login": {
+      "metaTitle": "Log in",
+      "title": "Log in",
+      "lead": "Log in to join the conversation about stocks and investors.",
+      "submit": "Log in",
+      "submitting": "Logging in…",
+      "noAccount": "Don't have an account?",
+      "signupLink": "Sign up"
+    },
+    "signup": {
+      "metaTitle": "Sign up",
+      "title": "Sign up",
+      "lead": "Create a free account. You'll choose your username in the next step.",
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "haveAccount": "Already have an account?",
+      "loginLink": "Log in"
+    },
+    "errors": {
+      "invalidCredentials": "Incorrect email or password.",
+      "signupUnavailable": "Couldn't create an account with this email. If you already have an account, log in.",
+      "weakPassword": "Choose a stronger password (at least 8 characters).",
+      "invalidEmail": "Enter a valid email address.",
+      "tooManyRequests": "Too many attempts. Wait a moment and try again.",
+      "network": "Couldn't connect. Check your internet connection and try again.",
+      "popupBlocked": "Your browser blocked the sign-in window. Allow pop-ups and try again.",
+      "otherProvider": "This email is registered with another sign-in method. Use that method to log in.",
+      "reauth": "For your security, please log in again.",
+      "suspended": "This account has been suspended. Contact support.",
+      "generic": "Couldn't log in. Please try again.",
+      "signupGeneric": "Couldn't create your account. Please try again."
+    },
+    "onboarding": {
+      "metaTitle": "Complete your account",
+      "title": "Complete your account",
+      "lead": "One last step: choose the name other people will know you by.",
+      "signedInAs": "Signed in as: {email}",
+      "switchAccount": "Use a different account",
+      "username": {
+        "label": "Username",
+        "hint": "3-20 characters: lowercase letters (a-z), digits and underscore (_).",
+        "checking": "Checking…",
+        "available": "This username is available.",
+        "errors": {
+          "tooShort": "Username must be at least 3 characters.",
+          "tooLong": "Username can be at most 20 characters.",
+          "invalidChars": "Use only lowercase letters (a-z), digits and underscore (_).",
+          "reserved": "This username can't be used. Try another one.",
+          "taken": "This username is taken. Try another one."
+        }
+      },
+      "displayName": {
+        "label": "Display name",
+        "hint": "Public: shown on your profile and posts. It doesn't have to be your real name.",
+        "errors": {
+          "required": "Enter your display name.",
+          "tooLong": "Display name can be at most 50 characters."
+        }
+      },
+      "age": {
+        "label": "I am 18 or older.",
+        "required": "You must be 18 or older to use Borsalıyorum."
+      },
+      "terms": {
+        "label": "I accept the <link>Terms of Use</link>.",
+        "required": "To continue, accept the Terms of Use."
+      },
+      "notice": {
+        "label": "I have read and understood the <link>Privacy Notice</link>.",
+        "required": "To continue, confirm that you have read the Privacy Notice."
+      },
+      "marketing": {
+        "label": "I'd like to receive Borsalıyorum news, offers and newsletters by email. (Optional)",
+        "hint": "You can withdraw anytime in settings or via the link in any email. Not giving permission doesn't affect your membership."
+      },
+      "submit": "Continue",
+      "submitting": "Saving…",
+      "failed": "Couldn't save your details. Please try again.",
+      "emailConflict": {
+        "title": "This email is already registered to another account",
+        "body": "An account was previously created for {email} with a different sign-in method (e.g. password or Google). Log in with that method, or contact support to have your accounts merged.",
+        "contact": "Support: <link>{supportEmail}</link>"
+      }
+    },
+    "verify": {
+      "title": "Verify your email address",
+      "body": "We sent a verification link to {email}. Until you verify, you can read posts but can't write posts or comments.",
+      "resend": "Resend link",
+      "resending": "Sending…",
+      "resent": "Verification link sent. Check your inbox.",
+      "resendFailed": "Couldn't send the link. Wait a moment and try again.",
+      "check": "I've verified",
+      "checking": "Checking…",
+      "stillUnverified": "Your email address doesn't look verified yet. Click the link, then try again.",
+      "verified": "Your email address is verified.",
+      "resendRateLimited": "You've requested too many links in a short time. Wait a moment and try again."
+    },
+    "sessionExpired": "Your session has expired. Log in again to continue; your draft won't be lost.",
+    "reverify": {
+      "metaTitle": "Verification link",
+      "title": "Send the verification link",
+      "lead": "For your security, log in again and we'll send the verification link to your email right away.",
+      "submit": "Log in and send",
+      "submitting": "Sending…"
+    },
+    "privacyNote": "To create your account and recognise you, we process your email address and, if you use Google, the name on your Google account. Details are in the <link>Privacy Notice</link>."
+  },
+  "feed": {
+    "title": "Feed",
+    "tabs": {
+      "label": "Feed order",
+      "latest": "Latest",
+      "popular": "Popular"
+    },
+    "popularHint": "Posts from the last 7 days by people and stocks you follow, ranked by likes and comments.",
+    "loadMore": "Load more",
+    "loadingMore": "Loading more posts",
+    "loadError": "Couldn't load the feed. Try again.",
+    "loadMoreError": "Couldn't load more.",
+    "end": "You're all caught up for now.",
+    "newPosts": "{count, plural, one {# new post} other {# new posts}}",
+    "newPostsCapped": "{count}+ new posts",
+    "empty": {
+      "noFollows": "You don't follow anyone or any stocks yet. Start with the latest posts below.",
+      "discoverTitle": "Discover: latest posts",
+      "noPosts": "The people and stocks you follow haven't posted yet. Be the first to write.",
+      "popular": "No posts from the people and stocks you follow in the last 7 days.",
+      "toLatest": "Switch to Latest"
+    },
+    "aside": {
+      "trendingTitle": "Most used tags in the last 30 days",
+      "trendingCount": "{count, plural, one {# post} other {# posts}}",
+      "trendingEmpty": "No tags used in the last 30 days.",
+      "trendingError": "Trending tags couldn't be loaded right now.",
+      "followedStocksTitle": "Stocks you follow"
+    }
+  },
+  "compose": {
+    "title": "Create post"
+  },
+  "legalUpdate": {
+    "metaTitle": "Updated terms",
+    "title": "Our terms have been updated",
+    "intro": "To keep posting, please read and accept the updated documents. You can keep reading Borsalıyorum without accepting.",
+    "documents": "Updated documents",
+    "version": "Version: {version}",
+    "checkbox": "I have read and accept the new versions of the Terms of Use, the Community Guidelines and the Investment Disclaimer.",
+    "checkboxRequired": "Tick the box to continue.",
+    "submit": "Accept and continue",
+    "submitting": "Saving…",
+    "decline": "If you do not want to accept, you can end your membership free of charge. Send your account deletion request from the email address registered to your account to our support address:",
+    "banner": {
+      "title": "Our terms have been updated",
+      "body": "You can keep reading; to post, you need to accept the new version.",
+      "cta": "Review and accept"
+    }
+  },
+  "postDetail": {
+    "title": "Post",
+    "back": "Back",
+    "metaTitle": "{name}: “{excerpt}”",
+    "metaTitleNoText": "Post by {name}",
+    "toHome": "Back to home",
+    "notFound": "This post couldn’t be found. It may have been deleted or is no longer available.",
+    "notFoundMetaTitle": "Post not found"
+  },
+  "comments": {
+    "heading": "Comments",
+    "listLabel": "Comments",
+    "itemLabel": "Comment",
+    "loading": "Loading comments",
+    "empty": "No comments yet. Be the first to comment.",
+    "emptyAnonymous": "No comments yet.",
+    "error": "Couldn’t load the comments.",
+    "loadMore": "Load more",
+    "loadMoreError": "Couldn’t load more.",
+    "actions": {
+      "menu": "Comment options",
+      "delete": "Delete",
+      "deleting": "Deleting…",
+      "deleteTitle": "Delete this comment?",
+      "deleteBody": "The comment will be removed from the post. This can’t be undone.",
+      "cancel": "Cancel",
+      "deleted": "Comment deleted."
+    }
   }
 }

@@ -1,62 +1,74 @@
-## Getting Started
+# Borsalıyorum
 
-First, run the development server:
+Türkiye odaklı borsa/yatırım sosyal platformu. Bu dal **v2** yeniden yazımıdır; v1 kodu
+yalnızca referans için `legacy/` altındadır (build/lint/test dışı). Kararlar: `docs/plan/kararlar.md`,
+`docs/adr/`.
 
-First clone the project
+## Gereksinimler
 
-```bash
-git clone git@github.com:writeriks/borsaliyorum.git
-```
+- Node 22 (`.nvmrc`), npm 10
+- Ortam değişkenleri: `.env.example` → `.env.local`
 
-Then navigate:
-
-```bash
-cd borsaliyorum
-```
-
-And
+## Komutlar
 
 ```bash
-npm i
+npm ci
+npm run dev           # geliştirme sunucusu
+npm run type-check    # tsc --noEmit
+npm run lint          # ESLint, 0 uyarı
+npm run format        # Prettier (format:check CI'da)
+npm run test:unit     # Vitest unit + dom projeleri
+npm run test          # unit + dom + integration (integration DB'si S3'te)
+npm run test:browser  # Vitest browser mode (Chromium)
+npm run build         # production build (env doğrulamalı)
+npm run test:e2e      # Playwright; kendi build'ini alır (SKIP_ENV_VALIDATION=1) ve 3100'de başlatır
 ```
 
-## Setup a new postgress db with docker
+Env'siz yerel build: `SKIP_ENV_VALIDATION=1 npm run build`.
 
-You should install and setup docker prior to next step. For this go to docker website and download the docker
+### Yerel Playwright tarayıcısı
 
-Once you have docker installed, you can create a new postgress db with:
+`playwright install` yapılamayan ortamlarda önceden kurulu Chromium kullanılır:
 
 ```bash
-docker run -d -e POSTGRES_DB=db_name -e POSTGRES_PASSWORD=db_password -e POSTGRES_USER=db_user_name -p "6500:5432" postgres
+echo 'PW_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium' > .env.test.local
 ```
 
-Once the database is created, you should create a new database url into your `.env` file:
+CI'da değişken boştur; `npx playwright install --with-deps chromium` kullanılır.
 
-```bash
-DATABASE_URL="postgresql://db_user_name:db_password@localhost:6500/db_name"
-```
+## Hisse listesi senkronizasyonu
 
-Once database url is created, you may push the prisma file into new db:
+`scripts/fetch-kap-stocks.mjs` KAP'tan hisse listesini çeker, `scripts/sync-stocks.mjs`
+`Stock` tablosuna ekler (varsayılan dry-run; `--apply`, `--max-new=N`). Haftalık çalışır:
+`.github/workflows/sync-stocks.yml`.
 
-```bash
-npx prisma db push
-```
+## Bakım işleri (saklama süresi temizliği)
 
-When database is successfully pushed, it means you should be able to run the prisma studio to open prisma GUI with:
+`scripts/purge-retention.ts` (`.github/workflows/purge-retention.yml`, her gün) DB saklama
+sürelerini uygular ve onboarding'i 30 günde tamamlamayan Firebase hesaplarını siler.
+**Varsayılan dry-run**: script yalnızca `--execute` ile siler. Ayrıntı ve frenler: ADR-0001
+"Yetim hesap imhası".
 
-```bash
-npx prisma studio
-```
+GitHub'da bir kez yapılacak ayarlar (Settings):
 
-## Get the rest of the .env files from team
-In order to run the project, get rest of the .env variables from the team.
+1. **Environments → New environment → `production-purge`**
+   - *Deployment protection rules → Required reviewers*: onaylayacak kişi(ler)i ekle.
+     (*Prevent self-review* açılabilir.) Firebase işi her koşuda bu onayı bekler.
+   - *Deployment branches and tags → Selected branches*: yalnızca `main`.
+   - *Environment secrets*: `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`,
+     `FIREBASE_PRIVATE_KEY` (bakım için ayrı, yalnızca `Firebase Authentication Admin` rolü
+     olan bir service account önerilir).
+   - *Environment variables*: `ORPHAN_PURGE_ENABLED` = `true` (yalnızca gerçek silme
+     istendiğinde; yoksa Firebase adımı yalnızca sayar).
+2. **Secrets and variables → Actions → Repository secrets**: `DATABASE_URL` (roller ayrılınca
+   `app_maintenance`). Repo düzeyinde tanımlı `FIREBASE_*` secret'ları varsa **sil**: Firebase
+   kimlik bilgileri yalnızca onaylı environment'ta dursun.
+3. **Repository variables**: `RETENTION_PURGE_EXECUTE` = `true` — zamanlanmış koşunun gerçekten
+   silmesi için (yoksa her gün yalnızca dry-run raporu üretilir).
+4. Her ortamın veritabanına bir kez ortam etiketi ekle (Firebase projesi ile eşleşmeyen DB'de
+   yetim imhası çalışmaz):
 
-## Run the project in localhost
-
-Once you have all the .env variables, run the project with:
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+   ```sql
+   INSERT INTO "DeploymentEnvironment" ("id", "firebaseProjectId", "label")
+   VALUES (1, '<FIREBASE_PROJECT_ID>', 'production');
+   ```

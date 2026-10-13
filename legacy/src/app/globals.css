@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 213 13% 16%;
+    --muted: 0 12% 90%;
+    --muted-foreground: 0 12% 30%;
+    --popover: 0 0% 97%;
+    --popover-foreground: 213 13% 6%;
+    --card: 0 0% 98%;
+    --card-foreground: 213 13% 11%;
+    --border: 0 0% 95%;
+    --input: 0 0% 92%;
+    --primary: 213 13% 16%;
+    --primary-foreground: 213 13% 76%;
+    --secondary: 213 3% 75%;
+    --secondary-foreground: 213 3% 15%;
+    --accent: 0 0% 85%;
+    --accent-foreground: 0 0% 25%;
+    --destructive: 8 86% 40%;
+    --destructive-foreground: 0 0% 100%;
+    --bullish: 143, 71%, 45%;
+    --bullish-foreground: 0, 0%, 100%;
+    --description: 214deg 12.07% 50.11%;
+    --blue-primary: 221.21deg 83.19% 53.33%;
+    --ring: 213 13% 16%;
+    --radius: 0.5rem;
+
+    /* REACT-MENTIONS BEGIN */
+    .mentions {
+      width: 100%;
+      border-radius: 50%;
+    }
+
+    .mentions--singleLine .mentions__control {
+      display: inline-block;
+    }
+    .mentions--singleLine .mentions__higlighter {
+      padding: 1px;
+      background-color: yellow;
+    }
+    .mentions--singleLine .mentions__input {
+      padding: 5px;
+      background-color: yellow;
+    }
+
+    .mentions--multiLine .mentions__control {
+      font-family: inherit;
+      font-size: 11pt;
+    }
+    .mentions--multiLine .mentions__highlighter {
+      padding: 8px;
+    }
+    .mentions--multiLine .mentions__input {
+      padding: 9px;
+      min-height: 63px;
+      outline: 0;
+      border: 0;
+    }
+
+    .mentions__suggestions__list {
+      background-color: hsl(var(--background));
+      color: hsl(var(--primary));
+      font-size: 10pt;
+    }
+
+    .mentions__suggestions__item {
+      padding: 5px 15px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    }
+
+    .mentions__suggestions__item--focused {
+      background-color: rgba(0, 0, 0, 0.15);
+    }
+
+    .mentions__mention {
+      background-color: #ff0000;
+    }
+
+    /* REACT-MENTIONS END */
+  }
+
+  .dark {
+    --background: 210 12% 16%;
+    --foreground: 214 13% 90%;
+    --muted: 210 12% 20%;
+    --muted-foreground: 210 12% 70%;
+    --popover: 210 12% 13%;
+    --popover-foreground: 214 13% 100%;
+    --card: 210 12% 14%;
+    --card-foreground: 214 13% 95%;
+    --border: 210 2% 21%;
+    --input: 210 2% 24%;
+    --primary: 214 13% 90%;
+    --primary-foreground: 214 13% 30%;
+    --secondary: 214 3% 25%;
+    --secondary-foreground: 214 3% 85%;
+    --accent: 210 12% 31%;
+    --accent-foreground: 210 12% 91%;
+    --destructive: 1 94% 54%;
+    --destructive-foreground: 0 0% 100%;
+    --ring: 214 13% 90%;
+    --bullish: 143, 71%, 45%;
+    --bullish-foreground: 0, 0%, 100%;
+    --description: 214deg 12.07% 50.11%;
+    --blue-primary: 221.21deg 83.19% 53.33%;
+  }
+
+  /* Custom scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--secondary));
+    border-radius: 6px;
+    border: 3px solid hsl(var(--background));
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--primary-foreground));
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    @apply font-sans;
+  }
+}

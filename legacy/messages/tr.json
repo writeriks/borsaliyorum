@@ -1,0 +1,135 @@
+{
+  "HomePage": {
+    "title": "Ana Sayfa, günün en aktif hisseleri için yaklaşık 10 gönderi göster."
+  },
+  "Feed": {
+    "latestPosts": "En Son Gönderiler",
+    "popularPosts": "En Popüler Gönderiler"
+  },
+  "Common": {
+    "placeholder": "Ne düşünüyorsun?",
+    "errorMessage": "An error occurred.",
+    "email": "E-posta",
+    "username": "Kullanıcı Adı",
+    "warning": "Uyarı"
+  },
+  "NewPost": {
+    "successMessage": "Gönderi başarıyla oluşturuldu.",
+    "sending": "Gönderiliyor",
+    "send": "Gönder",
+    "gif": "gif",
+    "uploadedAlt": "yüklendi"
+  },
+  "EntryOptions": {
+    "deleteCommentSuccess": "Yorumunuz başarıyla silindi.",
+    "deletePostSuccess": "Gönderiniz başarıyla silindi.",
+    "options": "Seçenekler",
+    "unfollow": "Takipten Çıkar",
+    "follow": "Takip Et",
+    "block": "Engelle",
+    "delete": "Sil"
+  },
+  "PostDetail": {
+    "back": "Geri",
+    "loadMore": "Daha Fazla Yükle"
+  },
+  "userProfileOptions": {
+    "UserSettings": {
+      "notifications": "Bildirimler",
+      "settings": "Ayarlar"
+    },
+    "UserProfileOptionsMobile": {
+      "editProfile": "Profilini Düzenle",
+      "logout": "Çıkış Yap"
+    },
+    "UserProfileOptions": {
+      "viewProfile": "Profilini Gör",
+      "editProfile": "Profilini Düzenle",
+      "logout": "Çıkış Yap"
+    },
+    "LoginContainer": {
+      "login": "Giriş Yap"
+    }
+  },
+  "userProfileCard": {
+    "bio": "Bio",
+    "website": "Web sitesi",
+    "followers": "Takipçiler",
+    "following": "Takip edilenler",
+    "posts": "Gönderiler",
+    "noFollowers": "Henüz takipçi yok",
+    "noFollowing": "Henüz kimseyi takip etmiyor",
+    "loading": "Yükleniyor...",
+    "loadMore": "Daha fazla yükle",
+    "connections": "Bağlantılar"
+  },
+  "followButton": {
+    "follow": "Takip Et",
+    "unfollow": "Takibi Bırak"
+  },
+  "Settings": {
+    "settings": "Ayarlar",
+    "sameEmailError": "Bu e-posta adresi zaten kullanımda.",
+    "change": "Değiştir",
+    "googleSignInInfo": "Google ile giriş yaptığınız için şifre veya e-posta adresinizi değiştiremezsiniz.",
+    "currentPassword": "Mevcut Şifre",
+    "samePasswordError": "Yeni şifre mevcut şifre ile aynı olamaz.",
+    "newPassword": "Yeni Şifre",
+    "confirmPassword": "Şifreyi Onayla",
+    "deletingAccount": "Hesabınız siliniyor...",
+    "deleteAccount": "Hesabı Sil",
+    "deleteAccountConfirmation": "Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+    "deleteAccountSuccess": "Hesabınız başarıyla silindi.",
+    "passwordConfirmationModalTitle": "Şifrenizi onaylayın",
+    "passwordConfirmationModalBody": "Bu işlemi gerçekleştirmek için şifrenizi onaylamanız gerekmektedir.",
+    "confirm": "Onayla",
+    "cancel": "İptal",
+    "successMessage": "Ayarlarınız başarıyla güncellendi.",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor"
+  },
+  "EditProfile": {
+    "editProfile": "Profilini Düzenle",
+    "successMessage": "Profil başarıyla güncellendi.",
+    "imagePreviewAlt": "Profil resmi önizlemesi",
+    "saveChanges": "Değişiklikleri Kaydet",
+    "displayName": "Ad Soyad",
+    "username": "Kullanıcı Adı",
+    "bio": "Hakkında",
+    "website": "Websitesi",
+    "location": "Konum",
+    "birthday": "Doğum Tarihi",
+    "savingChanges": "Değişiklikler Kaydediliyor"
+  },
+  "landingPage": {
+    "heroTitleFirst": "Borsa Topluluğunuz",
+    "heroTitleSecond": "Burada Başlıyor",
+    "heroSubtitle": "Yatırımcılarla bağlantı kurun, piyasa görüşlerinizi paylaşın ve toplulukla birlikte büyüyün.",
+    "startNow": "Hemen Başla"
+  },
+
+  "notifications": {
+    "notificationsTitle": "Bildirimler",
+    "followedBy": "{userDisplayName} seni takip etti.",
+    "likedCommentSingle": "{userDisplayName} bir yorumunu beğendi.",
+    "likedCommentMultiple": "{userDisplayName} ve {count} kişi daha bir yorumunu beğendi.",
+    "likedPostMultiple": "{userDisplayName} ve {count} kişi daha bir gönderini beğendi.",
+    "likedPostSingle": "{userDisplayName} bir gönderini beğendi.",
+    "commentedSingle": "{userDisplayName} bir gönderine yorum yaptı.",
+    "commentedMultiple": "{userDisplayName} ve {count} kişi daha bir gönderine yorum yaptı.",
+    "mentionedInCommentMultiple": "{userDisplayName} ve {count} kişi daha bir yorumda senden bahsetti.",
+    "mentionedInCommentSingle": "{userDisplayName} bir yorumda senden bahsetti.",
+    "mentionedInPostMultiple": "{userDisplayName} ve {count} kişi daha bir gönderide senden bahsetti.",
+    "mentionedInPostSingle": "{userDisplayName} bir gönderide senden bahsetti."
+  },
+
+  "search": {
+    "postCount": "{query} gönderi",
+    "search": "Ara",
+    "users": "Kullanıcılar",
+    "stocks": "Hisseler",
+    "hashtags": "Konular",
+    "placeholder": "Kullanıcıları, hisseleri veya konuları arayın...",
+    "noResults": "\"{query}\" için sonuç bulunamadı."
+  }
+}

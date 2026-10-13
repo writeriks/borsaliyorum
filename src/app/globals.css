@@ -1,140 +1,120 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import './tokens.css';
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 213 13% 16%;
-    --muted: 0 12% 90%;
-    --muted-foreground: 0 12% 30%;
-    --popover: 0 0% 97%;
-    --popover-foreground: 213 13% 6%;
-    --card: 0 0% 98%;
-    --card-foreground: 213 13% 11%;
-    --border: 0 0% 95%;
-    --input: 0 0% 92%;
-    --primary: 213 13% 16%;
-    --primary-foreground: 213 13% 76%;
-    --secondary: 213 3% 75%;
-    --secondary-foreground: 213 3% 15%;
-    --accent: 0 0% 85%;
-    --accent-foreground: 0 0% 25%;
-    --destructive: 8 86% 40%;
-    --destructive-foreground: 0 0% 100%;
-    --bullish: 143, 71%, 45%;
-    --bullish-foreground: 0, 0%, 100%;
-    --description: 214deg 12.07% 50.11%;
-    --blue-primary: 221.21deg 83.19% 53.33%;
-    --ring: 213 13% 16%;
-    --radius: 0.5rem;
+/* v1 referans kodu ve belgeler sınıf taramasına girmesin */
+@source not '../../legacy';
+@source not '../../docs';
+@source not '../../.claude';
 
-    /* REACT-MENTIONS BEGIN */
-    .mentions {
-      width: 100%;
-      border-radius: 50%;
-    }
+/* Koyu tema `.dark` sınıfıyla gelir (next-themes, attribute="class") */
+@custom-variant dark (&:where(.dark, .dark *));
 
-    .mentions--singleLine .mentions__control {
-      display: inline-block;
-    }
-    .mentions--singleLine .mentions__higlighter {
-      padding: 1px;
-      background-color: yellow;
-    }
-    .mentions--singleLine .mentions__input {
-      padding: 5px;
-      background-color: yellow;
-    }
+/*
+ * Tailwind'in varsayılan renk paleti, yazı ölçeği ve radius'u sıfırlanır: bileşenler yalnızca
+ * semantik token'ları kullanabilsin (`bg-red-500`, `text-base`, `rounded-3xl` derlenmez).
+ */
+@theme inline {
+  --color-*: initial;
+  --color-bg: hsl(var(--bg));
+  --color-bg-subtle: hsl(var(--bg-subtle));
+  --color-bg-elevated: hsl(var(--bg-elevated));
+  --color-bg-muted: hsl(var(--bg-muted));
+  --color-overlay: hsl(var(--overlay));
+  --color-fg: hsl(var(--fg));
+  --color-fg-muted: hsl(var(--fg-muted));
+  --color-fg-subtle: hsl(var(--fg-subtle));
+  --color-border: hsl(var(--border));
+  --color-border-strong: hsl(var(--border-strong));
+  --color-accent: hsl(var(--accent));
+  --color-accent-fg: hsl(var(--accent-fg));
+  --color-accent-subtle: hsl(var(--accent-subtle));
+  --color-up: hsl(var(--up));
+  --color-up-bg: hsl(var(--up-bg));
+  --color-down: hsl(var(--down));
+  --color-down-bg: hsl(var(--down-bg));
+  --color-success: hsl(var(--success));
+  --color-info: hsl(var(--info));
+  --color-warn: hsl(var(--warn));
+  --color-warn-bg: hsl(var(--warn-bg));
+  --color-danger: hsl(var(--danger));
+  --color-danger-bg: hsl(var(--danger-bg));
+  --color-focus-ring: hsl(var(--focus-ring));
 
-    .mentions--multiLine .mentions__control {
-      font-family: inherit;
-      font-size: 11pt;
-    }
-    .mentions--multiLine .mentions__highlighter {
-      padding: 8px;
-    }
-    .mentions--multiLine .mentions__input {
-      padding: 9px;
-      min-height: 63px;
-      outline: 0;
-      border: 0;
-    }
+  --shadow-sm: var(--elevation-sm);
+  --shadow-md: var(--elevation-md);
+  --shadow-lg: var(--elevation-lg);
 
-    .mentions__suggestions__list {
-      background-color: hsl(var(--background));
-      color: hsl(var(--primary));
-      font-size: 10pt;
-    }
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
 
-    .mentions__suggestions__item {
-      padding: 5px 15px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-    }
+@theme {
+  --text-*: initial;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-post: 0.9375rem;
+  --text-post--line-height: 1.5;
+  --text-md: 1rem;
+  --text-md--line-height: 1.5rem;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 2rem;
+  --text-2xl: 2rem;
+  --text-2xl--line-height: 2.5rem;
 
-    .mentions__suggestions__item--focused {
-      background-color: rgba(0, 0, 0, 0.15);
-    }
+  --radius-*: initial;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
 
-    .mentions__mention {
-      background-color: #ff0000;
-    }
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 
-    /* REACT-MENTIONS END */
-  }
-
-  .dark {
-    --background: 210 12% 16%;
-    --foreground: 214 13% 90%;
-    --muted: 210 12% 20%;
-    --muted-foreground: 210 12% 70%;
-    --popover: 210 12% 13%;
-    --popover-foreground: 214 13% 100%;
-    --card: 210 12% 14%;
-    --card-foreground: 214 13% 95%;
-    --border: 210 2% 21%;
-    --input: 210 2% 24%;
-    --primary: 214 13% 90%;
-    --primary-foreground: 214 13% 30%;
-    --secondary: 214 3% 25%;
-    --secondary-foreground: 214 3% 85%;
-    --accent: 210 12% 31%;
-    --accent-foreground: 210 12% 91%;
-    --destructive: 1 94% 54%;
-    --destructive-foreground: 0 0% 100%;
-    --ring: 214 13% 90%;
-    --bullish: 143, 71%, 45%;
-    --bullish-foreground: 0, 0%, 100%;
-    --description: 214deg 12.07% 50.11%;
-    --blue-primary: 221.21deg 83.19% 53.33%;
-  }
-
-  /* Custom scrollbar styles */
-  ::-webkit-scrollbar {
-    width: 12px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: hsl(var(--background));
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--secondary));
-    border-radius: 6px;
-    border: 3px solid hsl(var(--background));
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(var(--primary-foreground));
-  }
+  /* Layout ölçüleri (docs/design/v2-design-system.md §6-7) → `w-rail`, `min-h-hit`, `max-w-feed` */
+  --spacing-hit: 44px;
+  --spacing-topbar: 56px;
+  --spacing-tabbar: 56px;
+  --spacing-rail: 72px;
+  --spacing-sidenav: 248px;
+  --spacing-aside: 336px;
+  --container-feed: 640px;
 }
 
 @layer base {
-  * {
-    @apply border-border;
+  html {
+    -webkit-text-size-adjust: 100%;
   }
+
   body {
-    @apply bg-background text-foreground;
-    @apply font-sans;
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-border);
+  }
+
+  :where(a, button, input, textarea, select, [tabindex], [contenteditable='true']):focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

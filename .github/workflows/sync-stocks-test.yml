@@ -1,0 +1,66 @@
+name: Sync stocks e2e test
+
+on:
+  pull_request:
+    paths:
+      - scripts/*stocks*.mjs
+      - .github/workflows/sync-stocks*.yml
+      - prisma/schema.prisma
+      - prisma/migrations/**
+      - prisma.config.ts
+      - package-lock.json
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:test@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --ignore-scripts
+      # Prisma 7: istemci src/generated'a üretilir; şema gerçek migration'larla kurulur (db push değil)
+      - run: npx prisma generate && npx prisma migrate deploy
+      - name: Seed existing stocks (incl. a delisted one)
+        run: |
+          psql "$DATABASE_URL" -c "INSERT INTO \"Stock\" (ticker, \"companyName\", \"stockType\") VALUES ('THYAO','TURK HAVA YOLLARI','stock'),('KOZAL','KOZA ALTIN','stock'),('BTC','BITCOIN','crypto'),('ASELS','ASELSAN','crypto'),('ZZZ1','BACK\\SLASH O''NEIL','stock');"
+      - run: node scripts/fetch-kap-stocks.mjs > kap-stocks.csv
+      - name: Dry-run must not write
+        run: |
+          node scripts/sync-stocks.mjs kap-stocks.csv | tail -4
+          test "$(psql "$DATABASE_URL" -tAc 'SELECT count(*) FROM "Stock"')" = "5"
+      - name: Apply above the limit must fail without writing
+        run: |
+          if node scripts/sync-stocks.mjs kap-stocks.csv --apply; then echo "limit not enforced"; exit 1; fi
+          test "$(psql "$DATABASE_URL" -tAc 'SELECT count(*) FROM "Stock"')" = "5"
+      - name: Apply
+        run: |
+          node scripts/sync-stocks.mjs kap-stocks.csv --apply --max-new=1000 | tail -3
+          psql "$DATABASE_URL" -tAc "SELECT count(*), count(*) FILTER (WHERE \"stockType\"='stock') FROM \"Stock\""
+          psql "$DATABASE_URL" -tAc "SELECT \"companyName\" FROM \"Stock\" WHERE ticker IN ('THYAO','KOZAL','TRALT','GARAN') ORDER BY ticker"
+          test "$(psql "$DATABASE_URL" -tAc "SELECT count(*) FROM \"Stock\" WHERE ticker IN ('BNPPI','GSIPD','DRPHN','KOCFN')")" = "0"
+      - name: Second apply is a no-op
+        run: node scripts/sync-stocks.mjs kap-stocks.csv --apply | grep -E "^Eklenecek \(0\)"
+      - name: No source file is generated
+        run: |
+          test ! -e src/tickers.ts
+          git status --porcelain -- ':!kap-stocks.csv'
+          test -z "$(git status --porcelain -- ':!kap-stocks.csv')"

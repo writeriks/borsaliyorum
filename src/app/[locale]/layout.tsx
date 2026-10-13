@@ -1,60 +1,62 @@
-import type { Metadata } from 'next';
-import { NextIntlClientProvider } from 'next-intl';
+import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
 import { notFound } from 'next/navigation';
-import { getMessages, setRequestLocale } from 'next-intl/server';
-import { routing } from '@/i18n/routing';
+import { hasLocale, NextIntlClientProvider } from 'next-intl';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import type { ReactElement, ReactNode } from 'react';
 
-import ReduxProvider from '../../components/redux-provider/redux-provider';
-import ClientQueryProvider from '@/components/tanstack-provider/tanstack-provider';
-import { ThemeProvider } from '@/components/theme-provider/theme-provider';
-import MainLayout from '@/components/main-layout/main-layout';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { Providers } from '@/components/providers';
+import { routing } from '@/i18n/routing';
+import { getSession } from '@/lib/auth/session';
+import { toClientSession } from '@/lib/auth/types';
 
 import '../globals.css';
 
-export const metadata: Metadata = {
-  title: 'Türk Borsa ve Yatırım Sosyal Medya Platformu',
-  description:
-    "Türkiye'nin lider borsa sosyal medya platformu ile hisse senetleri, kripto paralar ve diğer yatırım araçları hakkında bilgi alışverişinde bulunun. Analizler, haberler ve yatırım stratejileri ile portföyünüzü güçlendirin.",
-  keywords: ['borsa', 'hisse senetleri', 'kripto paralar', 'yatırım', 'analiz', 'haber', 'portföy'],
+// Türkçe ğ Ğ ş Ş ı İ Latin Extended-A'da: yalnızca `latin` yüklenirse fallback fonttan gelir
+const inter = Inter({
+  subsets: ['latin', 'latin-ext'],
+  display: 'swap',
+  variable: '--font-inter',
+});
+
+export const viewport: Viewport = {
+  // Tarayıcı kontrolleri (kaydırma çubuğu, form) temaya uysun; asıl renkler token'lardan
+  colorScheme: 'dark light',
+  viewportFit: 'cover',
 };
 
-const RootLayout = async ({
-  children,
-  params: { locale },
-}: {
-  children: React.ReactNode;
-  params: { locale: string };
-}): Promise<JSX.Element> => {
-  if (!routing.locales.includes(locale as any)) {
-    notFound();
-  }
+type LocaleParams = { params: Promise<{ locale: string }> };
 
+export const generateStaticParams = (): { locale: string }[] =>
+  routing.locales.map(locale => ({ locale }));
+
+export const generateMetadata = async ({ params }: LocaleParams): Promise<Metadata> => {
+  const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) return {};
+  const t = await getTranslations({ locale, namespace: 'metadata' });
+  return { title: t('title'), description: t('description') };
+};
+
+const LocaleLayout = async ({
+  children,
+  params,
+}: LocaleParams & { children: ReactNode }): Promise<ReactElement> => {
+  const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
-  const messages = await getMessages();
+  // Oturum sunucuda, istek başına bir kez çözülür; ilk HTML doğru durumla gelir (flash yok)
+  const session = toClientSession(await getSession());
 
   return (
-    <html lang={locale}>
-      <body className='min-h-screen flex flex-col lg:flex-row'>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <ClientQueryProvider>
-            <ReduxProvider>
-              <ThemeProvider
-                attribute='class'
-                defaultTheme='dark'
-                enableSystem
-                disableTransitionOnChange
-              >
-                <TooltipProvider>
-                  <MainLayout>{children}</MainLayout>
-                </TooltipProvider>
-              </ThemeProvider>
-            </ReduxProvider>
-          </ClientQueryProvider>
+    // suppressHydrationWarning: next-themes tema sınıfını hidrasyondan önce <html>'e yazar
+    <html lang={locale} className={inter.variable} suppressHydrationWarning>
+      <body className='min-h-dvh antialiased'>
+        <NextIntlClientProvider>
+          <Providers session={session}>{children}</Providers>
         </NextIntlClientProvider>
       </body>
     </html>
   );
 };
 
-export default RootLayout;
+export default LocaleLayout;

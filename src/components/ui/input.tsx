@@ -1,24 +1,25 @@
-import * as React from 'react';
+import type { ComponentProps, ReactElement } from 'react';
 
 import { cn } from '@/lib/utils';
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+/** Kontrol sınırı `--border-strong` (≥3:1). Mobilde 16px: iOS odakta sayfayı zoomlamasın. */
+export const fieldClasses = [
+  'w-full min-w-0 rounded-md border border-border-strong bg-bg-subtle px-3 text-fg',
+  'text-md sm:text-sm placeholder:text-fg-subtle',
+  'transition-colors duration-(--duration-fast)',
+  'disabled:cursor-not-allowed disabled:opacity-60',
+  'aria-invalid:border-danger',
+];
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => {
-    return (
-      <input
-        type={type}
-        className={cn(
-          'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-          className
-        )}
-        ref={ref}
-        {...props}
-      />
-    );
-  }
+export const Input = ({
+  className,
+  type = 'text',
+  ...props
+}: ComponentProps<'input'>): ReactElement => (
+  <input
+    data-slot='input'
+    type={type}
+    className={cn(fieldClasses, 'min-h-hit py-2', className)}
+    {...props}
+  />
 );
-Input.displayName = 'Input';
-
-export { Input };

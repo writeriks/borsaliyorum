@@ -1,0 +1,111 @@
+name: CI
+
+# GitHub Actions dakikası kısıtlı (private repo, ücretsiz plan). Bu yüzden CI yalnızca main'e
+# açılan PR'da ve elle (workflow_dispatch) koşar; agent dallarına push CI tetiklemez — agent'lar
+# aynı kontrolleri yerelde koşar (pre-merge-gate). Hızlı kontroller tek job'ta (tek npm ci).
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: 1
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # type-check + lint + format + unit + migration kapısı + integration + build + bütçe.
+  # Gerçek secret kullanılmaz (ADR-0003); DB yalnızca bu job'un service container'ı.
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        # Neon prod ana sürümüyle aynı olmalı (ADR-0003; doğrulanınca güncellenir)
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test
+        ports: ['54329:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:test@localhost:54329/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'messages/**', 'next.config.ts') }}
+          restore-keys: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+      # postinstall → prisma generate
+      - run: npm ci
+      - run: npm run type-check
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run test:unit
+      - run: npm run db:migrations:check
+      - run: npm run test:integration
+      - run: npm run build
+        env:
+          # CI gerçek secret kullanmaz; Vercel'de bu bayrak yok sayılır
+          SKIP_ENV_VALIDATION: 1
+      # Lazy chunk bütçeleri (composer, ADR-0002 Karar 3): scripts/bundle-budget.ts
+      - run: npm run size:check
+
+  # Firebase Auth emulator (demo- projesi, npx firebase-tools) + gerçek Postgres; gerçek secret yok
+  e2e:
+    # Hızlı kontroller geçmeden pahalı E2E başlamaz
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test
+        ports: ['54329:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:test@localhost:54329/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npx playwright install --with-deps chromium
+      # Auth emulator Node ile çalışır; firebase-tools'un Java kontrolüne takılmamak için sabit JDK
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      # webServer: emulator (npm run emulators) + build:e2e (SKIP_ENV_VALIDATION=1) + start:e2e;
+      # globalSetup E2E veritabanını migration'larla kurar
+      - run: npm run test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

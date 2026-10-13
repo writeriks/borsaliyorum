@@ -1,0 +1,133 @@
+{
+  "HomePage": {
+    "title": "Home Page, displaying approximately 10 posts for the most active stocks of the day."
+  },
+  "Feed": {
+    "latestPosts": "Latest Posts",
+    "popularPosts": "Popular Posts"
+  },
+  "Common": {
+    "placeholder": "What's on your mind?",
+    "errorMessage": "An error occurred.",
+    "email": "Email",
+    "username": "Username",
+    "warning": "Warning"
+  },
+  "NewPost": {
+    "successMessage": "Post created successfully.",
+    "sending": "Sending",
+    "send": "Send",
+    "gif": "GIF",
+    "uploadedAlt": "uploaded"
+  },
+  "EntryOptions": {
+    "deleteCommentSuccess": "Your comment has been successfully deleted.",
+    "deletePostSuccess": "Your post has been successfully deleted.",
+    "options": "Options",
+    "unfollow": "Unfollow",
+    "follow": "Follow",
+    "block": "Block",
+    "delete": "Delete"
+  },
+  "PostDetail": {
+    "back": "Back",
+    "loadMore": "Load More"
+  },
+  "userProfileOptions": {
+    "UserSettings": {
+      "notifications": "Notifications",
+      "settings": "Settings"
+    },
+    "UserProfileOptionsMobile": {
+      "editProfile": "Edit Profile",
+      "logout": "Log Out"
+    },
+    "UserProfileOptions": {
+      "viewProfile": "View Profile",
+      "editProfile": "Edit Profile",
+      "logout": "Log Out"
+    },
+    "LoginContainer": {
+      "login": "Login"
+    }
+  },
+  "userProfileCard": {
+    "bio": "Bio",
+    "website": "Website",
+    "followers": "Followers",
+    "following": "Following",
+    "posts": "Posts",
+    "noFollowers": "No followers yet",
+    "noFollowing": "Not following anyone yet",
+    "loading": "Loading...",
+    "loadMore": "Load more",
+    "connections": "Connections"
+  },
+  "followButton": {
+    "follow": "Follow",
+    "unfollow": "Unfollow"
+  },
+  "Settings": {
+    "settings": "Settings",
+    "sameEmailError": "This email address is already in use.",
+    "change": "Change",
+    "googleSignInInfo": "Since you signed in with Google, you cannot change your password or email address.",
+    "currentPassword": "Current Password",
+    "samePasswordError": "The new password cannot be the same as the current password.",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "deletingAccount": "Your account is being deleted...",
+    "deleteAccount": "Delete Account",
+    "deleteAccountConfirmation": "Are you sure you want to delete your account? This action cannot be undone.",
+    "deleteAccountSuccess": "Your account has been successfully deleted.",
+    "passwordConfirmationModalTitle": "Confirm Your Password",
+    "passwordConfirmationModalBody": "You need to confirm your password to proceed with this action.",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "successMessage": "Your settings have been successfully updated.",
+    "save": "Save",
+    "saving": "Saving"
+  },
+  "EditProfile": {
+    "editProfile": "Edit Profile",
+    "successMessage": "Profile updated successfully.",
+    "imagePreviewAlt": "Profile picture preview",
+    "saveChanges": "Save Changes",
+    "displayName": "Display Name",
+    "username": "Username",
+    "bio": "Bio",
+    "website": "Website",
+    "location": "Location",
+    "birthday": "Birthday",
+    "savingChanges": "Saving Changes"
+  },
+  "notifications": {
+    "notificationsTitle": "Notifications",
+    "followedBy": "{userDisplayName} has followed you.",
+    "likedCommentSingle": "{userDisplayName} liked you comment.",
+    "likedCommentMultiple": "{userDisplayName} and {count} more liked your comment.",
+    "likedPostMultiple": "{userDisplayName} and {count} more liked your post.",
+    "likedPostSingle": "{userDisplayName} liked your post.",
+    "commentedSingle": "{userDisplayName} commented on your post.",
+    "commentedMultiple": "{userDisplayName} and {count} more commented on your post.",
+    "mentionedInCommentMultiple": "{userDisplayName} and {count} more mentioned you on a comment.",
+    "mentionedInCommentSingle": "{userDisplayName} mentioned you on a comment.",
+    "mentionedInPostMultiple": "{userDisplayName} and {count} more mentioned you on a post.",
+    "mentionedInPostSingle": "{userDisplayName} mentioned you on a post."
+  },
+  "landingPage": {
+    "heroTitleFirst": "Your Stock Market Community",
+    "heroTitleSecond": "Starts Here",
+    "heroSubtitle": "Connect with investors, share market insights, and grow with the community.",
+    "startNow": "Start Now"
+  },
+  "search": {
+    "postCount": "{query} posts",
+    "search": "Search",
+    "users": "Users",
+    "stocks": "Stocks",
+    "hashtags": "Hashtags",
+    "placeholder": "Search for users, stocks, or tags...",
+    "noResults": "No results found for \"{query}\"."
+  }
+}

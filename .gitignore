@@ -8,6 +8,14 @@
 
 # testing
 /coverage
+/playwright-report/
+/test-results/
+/blob-report/
+/.tmp/
+# Vitest browser modu ekran görüntüleri/önbelleği
+/.vitest/
+# Lighthouse ölçüm çıktıları (scripts/lighthouse-feed.ts)
+/.lighthouse/
 
 # next.js
 /.next/
@@ -35,3 +43,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.claude/worktrees/
+
+# prisma generate çıktısı (postinstall üretir)
+/src/generated/
+
+# Firebase emulator günlükleri
+firebase-debug.log*
