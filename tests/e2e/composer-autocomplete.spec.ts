@@ -1,6 +1,7 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './support/test';
 
 import {
+  createGate,
   editor,
   editorText,
   expectCollapsedList,
@@ -14,6 +15,9 @@ import {
 } from './helpers/composer';
 
 // Tasarım spec'i §2.8 (AC-*) ve §3.1 (ENT-E*). Veri: route mock'ları (S7 sözleşmesi).
+
+// src/features/composer içindeki eşiklerle aynı olmalı (tasarım §2.8: "300 ms")
+const AC_SKELETON_DELAY_MS = 300;
 
 test.describe('composer autocomplete', () => {
   test('[AC-01] boş editöre $ yazılınca hisse listbox açılır, takip edilenler listelenir', async ({
@@ -180,37 +184,48 @@ test.describe('composer autocomplete', () => {
     }
   });
 
-  test('[AC-15] yavaş yanıtta 300 ms sonra 3 skeleton; hızlı yanıtta hiç yok', async ({
-    page,
-    browser,
-  }) => {
-    await openComposer(page, { mocks: { users: { delayMs: 1000 } } });
+  // [AC-15] Eşik 300 ms'dir ve gevşetilmez. Sayfa saati sahte, yanıt kapıyla tutulur: sonuç
+  // makinenin hızına değil, test'in verdiği "geçen süre"ye bağlıdır.
+  test('[AC-15] yavaş yanıtta 300 ms dolunca 3 skeleton', async ({ page }) => {
+    const gate = createGate();
+    await page.clock.install();
+    await openComposer(page, { mocks: { users: { gate } } });
+    await page.clock.pauseAt(new Date(Date.now() + 1000));
     await typeInEditor(page, '@');
+    // Yalnızca '@' (boş sorgu) debounce'suz hemen istek atar; yanıt kapıda tutulur
     const skeleton = page.getByTestId('ac-skeleton');
-    await expect(skeleton).toBeVisible({ timeout: 900 });
+    await page.clock.runFor(AC_SKELETON_DELAY_MS - 1);
+    await expect(skeleton).toHaveCount(0);
+    await page.clock.runFor(1);
+    await expect(skeleton).toBeVisible();
     await expect(skeleton.locator('[data-slot="skeleton"]').first()).toBeVisible();
     await expect(skeleton.locator(':scope > div')).toHaveCount(3);
+    gate.release();
     await expect(listbox(page, tr.ac.listbox.users).getByRole('option').first()).toBeVisible();
+    await expect(skeleton).toHaveCount(0);
+  });
 
-    // Ayrı bağlam: ilk sayfanın taslağı (localStorage) geri yüklenmesin
-    const context = await browser.newContext({ locale: 'tr-TR' });
-    const fast = await context.newPage();
-    await openComposer(fast, { mocks: { users: { delayMs: 200 } } });
-    await fast.evaluate(() => {
-      (window as Window & { __sawSkeleton?: boolean }).__sawSkeleton = false;
+  test('[AC-15] 300 ms dolmadan gelen yanıtta skeleton hiç görünmez', async ({ page }) => {
+    const gate = createGate();
+    await page.clock.install();
+    await openComposer(page, { mocks: { users: { gate } } });
+    await page.clock.pauseAt(new Date(Date.now() + 1000));
+    await page.evaluate(() => {
+      const w = window as Window & { __sawSkeleton?: boolean };
+      w.__sawSkeleton = false;
       new MutationObserver(() => {
-        if (document.querySelector('[data-testid="ac-skeleton"]')) {
-          (window as Window & { __sawSkeleton?: boolean }).__sawSkeleton = true;
-        }
+        if (document.querySelector('[data-testid="ac-skeleton"]')) w.__sawSkeleton = true;
       }).observe(document.body, { childList: true, subtree: true });
     });
-    await typeInEditor(fast, '@');
-    await expect(listbox(fast, tr.ac.listbox.users).getByRole('option').first()).toBeVisible();
-    await fast.waitForTimeout(400);
+    await typeInEditor(page, '@');
+    await page.clock.runFor(AC_SKELETON_DELAY_MS - 1);
+    gate.release();
+    await expect(listbox(page, tr.ac.listbox.users).getByRole('option').first()).toBeVisible();
+    // Eşiği geçir: bekleyen skeleton zamanlayıcısı artık iptal edilmiş olmalı
+    await page.clock.runFor(AC_SKELETON_DELAY_MS * 2);
     expect(
-      await fast.evaluate(() => (window as Window & { __sawSkeleton?: boolean }).__sawSkeleton)
+      await page.evaluate(() => (window as Window & { __sawSkeleton?: boolean }).__sawSkeleton)
     ).toBe(false);
-    await context.close();
   });
 
   test('[AC-16] 500 → "Öneriler yüklenemedi." + "Tekrar dene" option; Enter yeniden ister', async ({

@@ -10,9 +10,10 @@ import { CashtagLink } from './cashtag-link';
 import { tagHref, UGC_LINK_REL, userHref } from './entity-routes';
 import { ENTITY_CLASS } from './entity-styles';
 import { buildSegments, type Segment } from './segments';
+import { createSkipReporter } from './skip-report';
 import type { RichTextEntity, StockLookup } from './types';
 
-const log = logger.child({ module: 'rich-text' });
+const reportSkipped = createSkipReporter(logger.child({ module: 'rich-text' }));
 
 type RichTextProps = {
   /** Düz metin (contentFormat 2) ya da eski markup'tan dönüştürülmüş metin. */
@@ -69,7 +70,7 @@ const SegmentNode = ({ segment }: { segment: Segment }): ReactNode => {
 /**
  * Gönderi/yorum metnini entity'lerle render eder (ADR-0002 Karar 5). HTML üretmez: düz parçalar
  * React tarafından escape edilen string'lerdir, satır sonları `pre-wrap` ile korunur. Bozuk
- * entity atlanır, loglanır ve o bölüm düz metin kalır; bileşen asla throw etmez.
+ * entity atlanır, (içerik başına bir kez) loglanır ve o bölüm düz metin kalır; bileşen asla throw etmez.
  */
 export const RichText = ({
   text,
@@ -79,7 +80,7 @@ export const RichText = ({
   className,
 }: RichTextProps): ReactElement => {
   const { segments, skipped } = buildSegments(text, entities, stocks);
-  if (skipped.length > 0) log.warn('entity atlandı; düz metin render ediliyor', { skipped });
+  reportSkipped(text, skipped);
 
   return (
     <p

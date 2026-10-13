@@ -112,5 +112,6 @@ export const followStock = async (userId: number, stockId: number): Promise<Stoc
 export const blockUser = async (blockerId: number, blockedId: number): Promise<UserBlock> =>
   getDb().userBlock.create({ data: { blockerId, blockedId } });
 
-export const likePost = async (userId: number, postId: number): Promise<PostLike> =>
-  getDb().postLike.create({ data: { userId, postId } });
+/** `likedAt` verilmezse şimdi; sabit `now` ile puanlanan testler (Popüler) geçmiş bir zaman verir. */
+export const likePost = async (userId: number, postId: number, likedAt?: Date): Promise<PostLike> =>
+  getDb().postLike.create({ data: { userId, postId, likedAt } });

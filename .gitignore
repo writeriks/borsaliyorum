@@ -12,6 +12,10 @@
 /test-results/
 /blob-report/
 /.tmp/
+# Vitest browser modu ekran görüntüleri/önbelleği
+/.vitest/
+# Lighthouse ölçüm çıktıları (scripts/lighthouse-feed.ts)
+/.lighthouse/
 
 # next.js
 /.next/

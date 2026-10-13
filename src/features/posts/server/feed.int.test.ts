@@ -305,6 +305,7 @@ describe('En yeni: cursor sınırları', () => {
 
 describe('Popüler sıralama', () => {
   it('puan = beğeni + 2 × silinmemiş yorum; eşitlikte yeni önce; pencere dışı yok', async () => {
+    // Beğeni zamanı da `now`a göre verilir; duvar saati kullanılırsa test `now`dan sonra "gelecek" olur
     const now = new Date('2026-10-11T12:00:00.000Z');
     const hoursAgo = (h: number): Date => new Date(now.getTime() - h * 3_600_000);
     const viewer = await createUser();
@@ -323,13 +324,13 @@ describe('Popüler sıralama', () => {
       createdAt: new Date(now.getTime() + 60_000),
     });
 
-    for (const liker of likers) await likePost(liker.userId, threeLikes.postId);
+    for (const liker of likers) await likePost(liker.userId, threeLikes.postId, hoursAgo(1));
     await createComment({ postId: twoComments.postId, createdAt: hoursAgo(1) });
     await createComment({ postId: twoComments.postId, createdAt: hoursAgo(1) });
     await createComment({ postId: twoComments.postId, createdAt: hoursAgo(1), deletedAt: now });
-    await likePost(likers[0]?.userId ?? 0, oneLikeOld.postId);
-    await likePost(likers[0]?.userId ?? 0, oneLikeNew.postId);
-    for (const liker of likers) await likePost(liker.userId, outside.postId);
+    await likePost(likers[0]?.userId ?? 0, oneLikeOld.postId, hoursAgo(1));
+    await likePost(likers[0]?.userId ?? 0, oneLikeNew.postId, hoursAgo(1));
+    for (const liker of likers) await likePost(liker.userId, outside.postId, hoursAgo(1));
 
     const page = await ids(viewer.userId, { tab: 'popular', now });
     // twoComments: 4 > threeLikes: 3 > oneLikeNew (1, daha yeni) > oneLikeOld (1) > zero

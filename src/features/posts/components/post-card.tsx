@@ -21,8 +21,6 @@ import { PostOwnerMenu } from './post-owner-menu';
 import { PostStats } from './post-stats';
 import { RelativeTime } from './relative-time';
 
-export { postHref };
-
 type PostCardProps = {
   post: PostCardData;
   /** `feed`: gövde 6 satırda kırpılır; `detail`: tam metin. */

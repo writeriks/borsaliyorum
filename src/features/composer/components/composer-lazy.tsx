@@ -15,7 +15,8 @@ import { clearAllDrafts } from '../lib/draft-storage';
 import type { ComposerProps } from './composer';
 
 /**
- * Kapalı composer ile aynı ölçüde yer tutucu (CLS yok, [AUTH-02]). "Giriş yap" asla burada
+ * Kapalı (inline, gönderi) composer ile aynı ölçüde yer tutucu (CLS yok, [AUTH-02]); yükseklik 86 px
+ * (mobil: 24 px editör satırı + 32 px uyarı + dolgu) ve composer değişince birlikte güncellenir. "Giriş yap" asla burada
  * görünmez: auth `unknown` iken de bu skeleton kullanılır (auth-session). `reason='chunk'`:
  * yalnızca lazy chunk yüklemesi (auth biliniyor); `data-skeleton='chunk'` ile işaretlenir ki
  * auth flash testi bunu auth iskeletinden ayırabilsin.
@@ -34,7 +35,7 @@ export const ComposerSkeleton = ({
       data-testid='composer-skeleton'
       data-skeleton={reason === 'chunk' ? 'chunk' : undefined}
       className={cn(
-        'flex min-h-17 flex-col justify-center gap-2 rounded-lg border border-border bg-bg-subtle p-3',
+        'flex min-h-21.5 flex-col justify-center gap-2 rounded-lg border border-border bg-bg-subtle p-3',
         className
       )}
     >

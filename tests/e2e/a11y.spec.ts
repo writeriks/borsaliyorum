@@ -3,7 +3,7 @@ import { expect, type Page, test } from './support/test';
 
 import tr from '../../messages/tr.json' with { type: 'json' };
 
-import { createFirebaseAccount, loginViaUi, seedOnboardedUser } from './support/auth';
+import { createFirebaseAccount, loginViaUi, seedOnboardedUser, withDb } from './support/auth';
 
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
@@ -70,6 +70,50 @@ test.describe('erişilebilirlik (axe): serious/critical ihlal yok', () => {
     expect(await scan(page)).toEqual([]);
     await page.getByTestId('account-menu-trigger').filter({ visible: true }).click();
     await expect(page.getByRole('menu')).toBeVisible();
+    expect(await scan(page)).toEqual([]);
+  });
+
+  test('akış gönderi kartlarıyla, /paylas ve gönderi detayı (girişli)', async ({ page }) => {
+    const viewer = await seedOnboardedUser();
+    const author = await seedOnboardedUser();
+    const postId = await withDb(async client => {
+      await client.query(
+        `INSERT INTO "UserFollowers" ("followerId", "followingId")
+         SELECT v."userId", a."userId" FROM "User" v, "User" a
+         WHERE v.username = $1 AND a.username = $2`,
+        [viewer.username, author.username]
+      );
+      let first = 0;
+      for (const content of [
+        '$THYAO için bugün sakin bir seyir var. https://www.kap.org.tr/tr/ #bist100',
+        'İkinci gönderi: düz metin, @' + viewer.username + ' etiketli.',
+      ]) {
+        const { rows } = await client.query<{ postId: number }>(
+          `INSERT INTO "Post" ("userId", content, sentiment, "contentFormat")
+           SELECT "userId", $2, 'neutral', 2 FROM "User" WHERE username = $1
+           RETURNING "postId"`,
+          [author.username, content]
+        );
+        first ||= rows[0]?.postId ?? 0;
+      }
+      return first;
+    });
+    await loginViaUi(page, viewer);
+    await page.waitForURL('**/akis');
+    await expect(page.getByRole('article').first()).toBeVisible();
+    expect(await scan(page), '/akis').toEqual([]);
+    await page.goto('/paylas');
+    await expect(page.getByRole('textbox', { name: tr.composer.label.post })).toBeVisible();
+    expect(await scan(page), '/paylas').toEqual([]);
+    await page.goto(`/gonderi/${postId}`);
+    await expect(page.getByRole('article').first()).toBeVisible();
+    expect(await scan(page), '/gonderi/[id]').toEqual([]);
+  });
+
+  test('404 sayfası (girişsiz)', async ({ page }) => {
+    const response = await page.goto('/bu-sayfa-yok');
+    expect(response?.status()).toBe(404);
+    await expect(page.getByRole('main')).toBeVisible();
     expect(await scan(page)).toEqual([]);
   });
 
