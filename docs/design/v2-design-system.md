@@ -383,7 +383,7 @@ sabit genişlik yok.
 ## 12. Açık sorular
 
 1. Logo: wordmark yönü onaylanıyor mu? Profesyonel çizim yapılacak mı?
-2. Varsayılan tema koyu (skill gereği). Landing ve SEO sayfaları da koyu mu açılsın?
+2. ~~Landing ve SEO sayfaları da koyu mu açılsın?~~ **Karar (2026-10-13, kullanıcı):** evet, tüm site varsayılan koyu (`defaultTheme='dark'`); kullanıcı açık temaya geçebilir.
 3. "Takip / Keşfet / $Hisselerim" akış sekmeleri ürün kapsamında mı? (architect + PM)
 4. Reklam kutusu ölçüleri (320×100 mobil, 300×250 sağ kolon) reklam sağlayıcı kararına bağlı.
 5. Footer uyarı metninin kısa ve uzun versiyonları legal-advisor'dan bekleniyor.
