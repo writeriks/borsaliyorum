@@ -728,9 +728,9 @@ export const Composer = (props: ComposerProps): ReactElement => {
         <ComposerEditorContent
           editor={editor}
           autoFocus={autoFocus}
-          className={cn(expanded && layout !== 'inline' && 'min-h-18')}
+          // Editör kurulana kadar da aynı satır yüksekliği: kurulum akışı aşağı itmesin (CLS)
+          className={cn('min-h-6', expanded && layout !== 'inline' && 'min-h-18')}
         />
-        {editor ? null : <div aria-hidden='true' className='h-6' />}
         {blocker === 'unknownCashtag' ? (
           <p id={ids.unknown} className='text-sm text-danger'>
             {t('unknownCashtag', {
