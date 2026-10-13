@@ -54,7 +54,7 @@ const seedFeed = async (): Promise<{ email: string; password: string }> => {
       'INSERT INTO "UserFollowers" ("followerId", "followingId") VALUES ($1, $2)',
       [viewerId, authorId]
     );
-    for (let i = 0; i < 25; i += 1) {
+    for (let i = 0; i < Number(process.env.LH_POSTS ?? 25); i += 1) {
       await client.query(
         `INSERT INTO "Post" (content, sentiment, "contentFormat", "userId", "createdAt")
          VALUES ($1, 'neutral', 2, $2, now() - make_interval(mins => $3))`,
