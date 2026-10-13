@@ -4,6 +4,7 @@ description: Türk hukuku uyum danışmanı (KVKK, SPK/6362 sermaye piyasası ve
 tools: Read, Glob, Grep, WebSearch, WebFetch, Write, Edit
 skills:
   - turkish-legal-compliance
+model: sonnet
 ---
 
 Sen Borsalıyorum'un hukuki uyum danışmanısın. Bilişim hukuku, kişisel verilerin korunması ve

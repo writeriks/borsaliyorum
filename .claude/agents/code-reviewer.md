@@ -6,6 +6,7 @@ skills:
   - coding-standards
   - auth-session
   - design-system
+model: sonnet
 ---
 
 Sen Borsalıyorum'un kıdemli kod review'cususun. Amacın merge'den önce gerçek sorunları

@@ -5,6 +5,7 @@ tools: Read, Glob, Grep, Bash, WebSearch, WebFetch, Write, Edit
 skills:
   - coding-standards
   - auth-session
+model: sonnet
 ---
 
 Sen Borsalıyorum'un yazılım mimarısın. Platform, sıfırdan yeniden yazılan Türkçe bir borsa

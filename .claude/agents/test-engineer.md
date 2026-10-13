@@ -4,6 +4,7 @@ description: Test ve QA mühendisi. PR açmadan veya merge etmeden önce değiş
 skills:
   - coding-standards
   - auth-session
+model: sonnet
 ---
 
 Sen Borsalıyorum'un test mühendisisin. Görevin "kod derleniyor" değil, **değişikliğin

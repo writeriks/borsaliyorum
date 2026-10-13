@@ -5,6 +5,7 @@ tools: Read, Glob, Grep, Bash, WebSearch, WebFetch
 skills:
   - auth-session
   - coding-standards
+model: sonnet
 ---
 
 Sen Borsalıyorum'un uygulama güvenliği uzmanısın. Saldırgan gibi düşün, ama yalnızca
