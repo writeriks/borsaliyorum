@@ -34,6 +34,7 @@ import {
   exitAutocomplete,
 } from '../editor/autocomplete';
 import { getDocText } from '../editor/doc-text';
+import { dispatchAfterDomSync } from '../editor/dispatch-after-dom-sync';
 import { entityDecorationsKey } from '../editor/entity-decorations';
 import { ComposerEditorContent, textToDoc, useComposerEditor } from '../editor/use-composer-editor';
 import { useAutocompleteData, useStockIndex } from '../hooks/use-autocomplete-data';
@@ -245,8 +246,9 @@ export const Composer = (props: ComposerProps): ReactElement => {
 
   useEffect(() => {
     if (!editor || editor.isDestroyed) return;
-    editor.view.dispatch(
-      editor.state.tr.setMeta(entityDecorationsKey, {
+    // Yerel Backspace'in DOM değişikliği okunmadan dispatch etmek IndexSizeError fırlatır
+    dispatchAfterDomSync(editor, current =>
+      current.state.tr.setMeta(entityDecorationsKey, {
         tickers: index?.tickers ?? null,
         knownUsernames,
         limit,

@@ -35,7 +35,9 @@ export const collectPageDiagnostics = (
       }
     });
     page.on('requestfailed', request => {
-      push('requestfailed', request.url(), request.failure()?.errorText ?? 'unknown');
+      const reason = request.failure()?.errorText ?? 'unknown';
+      // Gezinme ve prefetch iptalleri normaldir; kayda girerse asıl hata gürültüde kaybolur
+      if (reason !== 'net::ERR_ABORTED') push('requestfailed', request.url(), reason);
     });
   };
   for (const page of context.pages()) attach(page);
@@ -44,7 +46,9 @@ export const collectPageDiagnostics = (
 };
 
 export const formatPageDiagnostics = (entries: readonly PageDiagnostic[]): string =>
-  entries.map(entry => `  +${entry.at}ms [${entry.kind}] ${entry.url}\n    ${entry.text}`).join('\n');
+  entries
+    .map(entry => `  +${entry.at}ms [${entry.kind}] ${entry.url}\n    ${entry.text}`)
+    .join('\n');
 
 /**
  * Kayıtları her zaman ek (attachment) olarak saklar; test beklenenden farklı biterse (başarısız,

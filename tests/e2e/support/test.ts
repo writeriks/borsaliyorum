@@ -2,7 +2,11 @@ import { randomInt } from 'node:crypto';
 
 import { test as base } from '@playwright/test';
 
-import { collectPageDiagnostics, type PageDiagnostic, reportPageDiagnostics } from './page-diagnostics';
+import {
+  collectPageDiagnostics,
+  type PageDiagnostic,
+  reportPageDiagnostics,
+} from './page-diagnostics';
 
 export { expect } from '@playwright/test';
 export type { Locator, Page } from '@playwright/test';

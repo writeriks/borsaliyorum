@@ -14,7 +14,7 @@
 /.tmp/
 # Vitest browser modu ekran görüntüleri/önbelleği
 /.vitest/
-# Lighthouse ölçüm çıktıları (scripts/lighthouse-feed.mjs)
+# Lighthouse ölçüm çıktıları (scripts/lighthouse-feed.ts)
 /.lighthouse/
 
 # next.js
