@@ -39,10 +39,10 @@ gerçekten `IndexSizeError` ile kırmızı, sonra yeşil).
 |---------|-------|
 | type-check, lint (0 uyarı), format:check | temiz |
 | test:unit (unit + dom) | 114 dosya, 1736 test |
-| test:integration | 273 test |
+| test:integration | 273 test (ilk koşuda 1 kırmızı: zaman bombası, düzeltildi; feed.int.test.ts 16/16 yeşil) |
 | test:browser | 4 test |
 | db:migrations:check, build (`SKIP_ENV_VALIDATION=1`), size:check | temiz |
-| test:e2e (chromium + mobile) | E2E_SONUC |
+| test:e2e (chromium + mobile) | 355 test geçti (4,9 dk, çıkış kodu 0) |
 | axe serious/critical | 0 (kapsam: `/`, `/en`, giriş, kayıt, yasal sayfalar, onboarding, akış, detay, `/paylas`, 404; koyu + açık tema) |
 
 ### Lighthouse (mobil, lab, production build, `/akis`, 25 gönderi)
