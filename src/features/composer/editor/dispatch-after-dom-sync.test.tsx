@@ -14,7 +14,7 @@ beforeAll(() => {
   Range.prototype.getClientRects = (): DOMRectList => ({
     length: 0,
     item: () => null,
-    [Symbol.iterator]: function* iterate() {},
+    [Symbol.iterator]: () => ([] as DOMRect[])[Symbol.iterator](),
   });
   Range.prototype.getBoundingClientRect = (): DOMRect => new DOMRect();
 });
