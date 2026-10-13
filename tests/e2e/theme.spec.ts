@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-import { expect, type Page, test } from '@playwright/test';
+import { expect, type Page, test } from './support/test';
 
 import tr from '../../messages/tr.json' with { type: 'json' };
 import { parseHslTriplet } from '../../src/lib/color/contrast';

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './support/test';
 
 import en from '../../messages/en.json' with { type: 'json' };
 import tr from '../../messages/tr.json' with { type: 'json' };
