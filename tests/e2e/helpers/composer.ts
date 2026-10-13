@@ -9,7 +9,21 @@ import { rankMockTags, rankMockUsers } from '../../../src/features/composer/serv
 
 export { tr };
 
-type RouteBehaviour = { delayMs?: number; status?: number };
+/**
+ * `delayMs` gerçek zamanlı bekleme (yük altında kayar); zamanlamaya bağlı iddialar için `gate`:
+ * yanıt, test `release()` diyene kadar tutulur.
+ */
+type RouteBehaviour = { delayMs?: number; status?: number; gate?: Gate };
+
+export type Gate = { opened: Promise<void>; release: () => void };
+
+export const createGate = (): Gate => {
+  let release: () => void = () => undefined;
+  const opened = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  return { opened, release };
+};
 
 export type ComposerMocks = {
   users?: RouteBehaviour;
@@ -27,6 +41,7 @@ const respond = async (
   behaviour: RouteBehaviour | undefined,
   body: unknown
 ): Promise<void> => {
+  if (behaviour?.gate) await behaviour.gate.opened;
   if (behaviour?.delayMs) await sleep(behaviour.delayMs);
   const status = behaviour?.status ?? 200;
   // Sayfa kapanmış olabilir (test bitti); bekleyen yanıt sessizce düşer
