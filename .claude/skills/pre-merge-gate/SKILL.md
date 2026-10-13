@@ -44,11 +44,12 @@ yıkıcı (DROP/ALTER ... TYPE) adım içerip içermediğini kontrol et.
 
 Çıktıları özetle; kırmızıysa dur, düzelt, baştan çalıştır.
 
-## 3. Paralel inceleme
+## 3. İnceleme
 
-`code-reviewer` ve `test-engineer` agent'larını **aynı anda** başlat; 1. adımda işaretlenen
-ek agent'ları da aynı mesajda ekle. Her birine: base branch, diff kapsamı ve değişikliğin
-amacı verilir.
+Kaynak tasarrufu kuralları için aşağıdaki "Kaynak bütçesi" bölümüne bak. Varsayılan:
+**tek** `code-reviewer` agent'ı; güvenlik kapsamı varsa aynı agent'a security kontrol listesi
+de verilir. Ayrı `security-reviewer` yalnız auth/oturum, yetki, dosya yükleme, dış fetch
+(SSRF) ya da secret değişikliğinde. Her agent'a: base branch, diff kapsamı, amaç.
 
 - `code-reviewer` → doğruluk, standartlara uyum, sadeleştirme bulguları (önem sıralı).
 - `test-engineer` → eksik testleri yazar/çalıştırır, akışı uçtan uca doğrular, sonucu raporlar.
@@ -77,8 +78,21 @@ Karar: HAZIR | HAZIR DEĞİL (neden)
 Karar "HAZIR" değilse PR açılmaz ya da draft olarak açılır. Merge kararı her zaman
 kullanıcıdadır; agent'lar merge etmez.
 
+## Kaynak bütçesi (zorunlu)
+
+Claude kullanım limiti ve GitHub Actions dakikası sınırlı (2026-10: haftalık limit 3 günde,
+Actions aylık kotası doldu). Bu yüzden:
+
+- Aynı anda **en fazla 2** agent/görev çalışır (ör. 1 engineer + 1 reviewer).
+- 50 satırın altındaki düzeltmeleri ana oturum kendisi review eder; agent açılmaz.
+- Geliştirme sırasında yalnız ilgili testler koşulur (değişen dosyanın unit/int testi, ilgili
+  e2e spec'i). **Tam e2e paketi** birleştirme (merge) öncesinde **bir kez** koşulur.
+  `--repeat-each` gibi tekrar koşuları yalnız kararsız bir testin kök nedenini ararken.
+- Aynı diff için ikinci review açılmaz; düzeltmeler önceki reviewer'a (SendMessage) gider.
+- Kullanıcıya rapor kısa tutulur; ara durum mesajı yalnız bir şey değiştiğinde.
+
 ## CI
 
-Aynı kontroller GitHub Actions'ta PR'larda zorunlu check olarak çalışmalı (type-check, lint,
-test, build, e2e). Yeni iskelet kurulurken `.github/workflows/ci.yml` eklenir ve `main` için
-branch protection açılır.
+CI (`.github/workflows/ci.yml`) yalnız **main'e açılan PR'da** ve elle (workflow_dispatch)
+koşar; agent dallarına push CI tetiklemez. Hızlı kontroller tek job'ta (`checks`), E2E onun
+ardından. Agent dallarında aynı kontroller yerelde koşulur (2. adım).

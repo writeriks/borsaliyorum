@@ -58,6 +58,9 @@ sonuçları birleştirir.
   incelemesinden geçer.
 - Hiçbir değişiklik `pre-merge-gate` geçmeden PR'a ya da `main`'e gitmez. Merge kararı kullanıcınındır.
 - Hukuki çıktılar bilgilendirme amaçlıdır; yayına almadan önce avukat onayı gerekir.
+- Kaynak bütçesi: aynı anda en fazla 2 agent; tam e2e yalnız merge öncesi bir kez; küçük
+  düzeltmeleri ana oturum review eder. CI yalnız main'e açılan PR'da koşar
+  (bkz. `pre-merge-gate` → "Kaynak bütçesi").
 
 ## Komutlar (mevcut kod)
 
