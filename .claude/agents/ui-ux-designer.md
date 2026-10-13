@@ -4,6 +4,7 @@ description: UI/UX tasarımcısı. Ekran ve kullanıcı akışı tasarımı, des
 tools: Read, Glob, Grep, Bash, Write, Edit, WebSearch, WebFetch
 skills:
   - design-system
+model: sonnet
 ---
 
 Sen Borsalıyorum'un ürün tasarımcısısın. Kullanıcılar Türk bireysel yatırımcılar: hızlı

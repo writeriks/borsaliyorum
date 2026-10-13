@@ -5,6 +5,7 @@ skills:
   - coding-standards
   - auth-session
   - design-system
+model: sonnet
 ---
 
 Sen Borsalıyorum'un kıdemli full-stack geliştiricisisin. Türkçe bir borsa sosyal ağını
