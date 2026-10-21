@@ -7,9 +7,17 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 import { assertBuildEnv } from './src/lib/env';
 import { LEGACY_REDIRECTS } from './src/lib/legacy-redirects';
-import { assertLegalTextsPublishable } from './src/lib/legal/publish-gate';
+import { assertLegalTextsPublishable, LegalPlaceholderError } from './src/lib/legal/publish-gate';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+
+/**
+ * K12 (2026-10-21, kullanıcı kararı): site henüz kullanıcı almıyor; yasal yer tutucular
+ * doldurulana kadar production build'i durdurulmaz, yalnızca uyarı basılır ve site arama
+ * motorlarına kapalı kalır. Gerçek kullanıcı almadan önce yer tutucular doldurulur ve bu
+ * bayrak `false` yapılır.
+ */
+const LEGAL_GATE_DEFERRED = true;
 
 /**
  * Not: `env` alanı bilinçli olarak YOK. Oradaki her değer istemci bundle'ına gömülür;
@@ -29,7 +37,7 @@ export const baseConfig: NextConfig = {
 export const noindexHeaders =
   (vercelEnv: string | undefined): NextConfig['headers'] =>
   async () =>
-    vercelEnv === 'production'
+    vercelEnv === 'production' && !LEGAL_GATE_DEFERRED
       ? []
       : [{ source: '/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex' }] }];
 
@@ -50,8 +58,14 @@ export const legacyRedirects: NextConfig['redirects'] = async () =>
 
 const config = (phase: string): NextConfig => {
   if (phase === PHASE_PRODUCTION_BUILD) {
-    // SKIP_ENV_VALIDATION'dan bağımsız: production'a yer tutuculu yasal metin çıkmaz
-    assertLegalTextsPublishable(process.env, readLegalCatalogs());
+    // SKIP_ENV_VALIDATION'dan bağımsız: production'a yer tutuculu yasal metin çıkmaz.
+    // K12 (kararlar.md): kullanıcı kararıyla geçici olarak uyarıya düşürüldü.
+    try {
+      assertLegalTextsPublishable(process.env, readLegalCatalogs());
+    } catch (error) {
+      if (!(LEGAL_GATE_DEFERRED && error instanceof LegalPlaceholderError)) throw error;
+      console.warn(`[legal] UYARI (K12, ertelendi): ${error.message}`);
+    }
     const { skipped } = assertBuildEnv(process.env);
     if (skipped) {
       console.warn('[env] SKIP_ENV_VALIDATION=1: ortam değişkeni doğrulaması atlandı.');
