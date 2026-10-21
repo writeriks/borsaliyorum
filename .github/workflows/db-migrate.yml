@@ -1,0 +1,54 @@
+name: DB migrate
+
+# Prisma migration'larını Neon'a uygular (elle tetiklenir). Önce `status` ile ne uygulanacağını
+# gör, sonra `deploy`. Uygulamadan önce Neon'da yedek dal aç (rollback). Migration'lar
+# doğrudan (pooler olmayan) bağlantıyla çalışır: prisma.config.ts → DATABASE_URL_UNPOOLED.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "status: sadece raporla · deploy: bekleyen migration'ları uygula"
+        type: choice
+        options: [status, deploy]
+        default: status
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-migrate
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx prisma generate
+
+      # Neon havuzlu adresi (`-pooler.`) doğrudan adrese çevrilir; değer loglanmaz
+      - name: Derive direct connection URL
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          direct="${DATABASE_URL/-pooler./.}"
+          echo "::add-mask::$direct"
+          echo "DATABASE_URL_UNPOOLED=$direct" >> "$GITHUB_ENV"
+
+      - name: Migration status
+        # Bekleyen migration varken prisma çıkış kodu 1 döner; rapor için hata sayılmaz
+        run: npx prisma migrate status || true
+
+      - name: Apply migrations
+        if: inputs.mode == 'deploy'
+        run: npx prisma migrate deploy
