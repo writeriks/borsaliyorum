@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "vercel-build": "next build --webpack",
     "size:check": "tsx scripts/check-bundle-size.ts",
     "start": "next start",
     "type-check": "tsc --noEmit",
