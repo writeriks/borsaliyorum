@@ -36,18 +36,23 @@ describe('next.config', () => {
     }
   });
 
-  it('Vercel production’da noindex eklemez', async () => {
+  // K12: yasal kapı ertelenmişken production da arama motorlarına kapalı kalır
+  it('K12 ertelemesi sürerken Vercel production’da da noindex ekler', async () => {
     const headers = await noindexHeaders('production')?.();
-    expect(headers ?? []).toEqual([]);
+    expect(headers).toEqual([
+      { source: '/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex' }] },
+    ]);
   });
 
-  it('production build’de yasal metinlerde [[ph:…]] kalmışsa build durur; SKIP ile atlanamaz', () => {
+  it('K12: production build’de [[ph:…]] kalmışsa build durmaz, uyarı basar', () => {
     vi.stubEnv('SKIP_ENV_VALIDATION', '1');
     vi.stubEnv('VERCEL', '');
     vi.stubEnv('VERCEL_ENV', 'production');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     // Depodaki metinlerde şu an doldurulmamış yer tutucular var (docs/legal/README.md)
-    expect(() => config(PHASE_PRODUCTION_BUILD)).toThrow(/yer tutucu/i);
-    expect(() => config(PHASE_PRODUCTION_BUILD)).toThrow(/company/);
+    expect(() => config(PHASE_PRODUCTION_BUILD)).not.toThrow();
+    expect(warn).toHaveBeenCalledWith(expect.stringMatching(/K12.*company/));
+    warn.mockRestore();
   });
 
   it('preview/yerel build yer tutucularla devam eder (yalnızca production kapısı)', () => {
