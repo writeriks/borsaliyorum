@@ -96,3 +96,6 @@ Actions aylık kotası doldu). Bu yüzden:
 CI (`.github/workflows/ci.yml`) yalnız **main'e açılan PR'da** ve elle (workflow_dispatch)
 koşar; agent dallarına push CI tetiklemez. Hızlı kontroller tek job'ta (`checks`), E2E onun
 ardından. Agent dallarında aynı kontroller yerelde koşulur (2. adım).
+
+**PR açılmaz (kullanıcı kararı, 2026-10-21):** kapı yerelde geçince değişiklik doğrudan
+`main`'e push edilir; rapor commit mesajına ya da kullanıcıya yazılır.

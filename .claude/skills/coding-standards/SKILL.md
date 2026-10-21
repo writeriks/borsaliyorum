@@ -112,6 +112,7 @@ Bir değişiklik şunlar sağlanmadan "bitti" sayılmaz:
 
 ## Git
 
-- `main`'e doğrudan push yok; feature branch + PR.
+- Çalışma dalda yapılır; `pre-merge-gate` yerelde geçince doğrudan `main`'e push edilir, PR
+  açılmaz (kullanıcı kararı, 2026-10-21).
 - Commit mesajı: `feat(feed): ...`, `fix(auth): ...`, `chore: ...` (Conventional Commits).
-- Bir PR tek bir amaca hizmet eder.
+- Bir commit tek bir amaca hizmet eder.

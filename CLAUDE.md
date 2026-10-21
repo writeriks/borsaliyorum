@@ -56,11 +56,13 @@ sonuçları birleştirir.
   (bkz. `turkish-legal-compliance`).
 - Kişisel veri toplayan, saklayan ya da üçüncü tarafa gönderen her değişiklik `legal-advisor`
   incelemesinden geçer.
-- Hiçbir değişiklik `pre-merge-gate` geçmeden PR'a ya da `main`'e gitmez. Merge kararı kullanıcınındır.
+- Hiçbir değişiklik `pre-merge-gate` geçmeden `main`'e gitmez. **PR açılmaz** (kullanıcı kararı,
+  2026-10-21): kapı yerelde geçince doğrudan `main`'e push edilir.
 - Hukuki çıktılar bilgilendirme amaçlıdır; yayına almadan önce avukat onayı gerekir.
 - Kaynak bütçesi: tüm agent'lar `model: sonnet` (ana oturum hariç); aynı anda en fazla
   2 agent; tam e2e yalnız merge öncesi bir kez; küçük düzeltmeleri ana oturum review eder.
-  CI yalnız main'e açılan PR'da koşar (bkz. `pre-merge-gate` → "Kaynak bütçesi").
+  CI yalnız PR'da ve elle koşar; PR açılmadığı için kontroller yerelde koşulur
+  (bkz. `pre-merge-gate` → "Kaynak bütçesi").
 
 ## Komutlar (mevcut kod)
 
